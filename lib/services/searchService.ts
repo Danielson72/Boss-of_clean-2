@@ -4,30 +4,52 @@ export interface Cleaner {
   id: string;
   user_id: string;
   business_name: string;
-  description: string;
+  business_description: string;
+  website_url?: string;
+  business_phone?: string;
+  business_email?: string;
   services: string[];
   service_areas: string[];
   hourly_rate: number;
   minimum_hours: number;
   years_experience: number;
+  employees_count: number;
   insurance_verified: boolean;
   license_verified: boolean;
   background_check: boolean;
+  approval_status: 'pending' | 'approved' | 'rejected' | 'suspended';
   subscription_tier: 'free' | 'basic' | 'pro' | 'enterprise';
+  subscription_expires_at?: string;
+  stripe_customer_id?: string;
+  stripe_subscription_id?: string;
   average_rating: number;
   total_reviews: number;
   total_jobs: number;
+  response_rate: number;
   profile_image_url?: string;
   business_images: string[];
+  featured_image_url?: string;
+  business_hours?: any;
   instant_booking: boolean;
   response_time_hours: number;
+  business_slug?: string;
+  seo_keywords?: string[];
+  marketing_message?: string;
   created_at: string;
   updated_at: string;
   users?: {
     full_name: string;
     phone: string;
     email: string;
+    city: string;
+    zip_code: string;
   };
+  service_areas_detail?: {
+    zip_code: string;
+    city: string;
+    county: string;
+    travel_fee: number;
+  }[];
 }
 
 export interface SearchFilters {
@@ -48,19 +70,26 @@ export class SearchService {
       .from('cleaners')
       .select(`
         *,
-        users!inner(full_name, phone, email)
+        users!inner(full_name, phone, email, city, zip_code),
+        cleaner_service_areas!inner(zip_code, city, county, travel_fee)
       `)
-      .neq('subscription_tier', 'free')
-      .or('subscription_expires_at.gt.now(),subscription_expires_at.is.null');
+      .eq('approval_status', 'approved')
+      .and('subscription_tier.neq.free,subscription_expires_at.gt.now()');
 
     // Filter by service type
     if (filters.serviceType) {
       query = query.contains('services', [filters.serviceType]);
     }
 
-    // Filter by ZIP code (service area)
+    // Filter by ZIP code using service areas table
     if (filters.zipCode) {
-      query = query.contains('service_areas', [filters.zipCode]);
+      query = query.in('id', 
+        this.supabase
+          .from('cleaner_service_areas')
+          .select('cleaner_id')
+          .eq('zip_code', filters.zipCode)
+          .then(({ data }) => data?.map(area => area.cleaner_id) || [])
+      );
     }
 
     // Filter by minimum rating
@@ -84,27 +113,32 @@ export class SearchService {
                    .eq('license_verified', true);
     }
 
-    // Apply sorting
+    // Apply sorting with subscription tier priority
     switch (filters.sortBy) {
       case 'rating':
-        query = query.order('average_rating', { ascending: false });
-        break;
-      case 'price':
-        query = query.order('hourly_rate', { ascending: true });
-        break;
-      case 'experience':
-        query = query.order('years_experience', { ascending: false });
-        break;
-      case 'response_time':
-        query = query.order('response_time_hours', { ascending: true });
-        break;
-      default:
-        // Default sort: subscription tier (pro/enterprise first), then rating
         query = query.order('subscription_tier', { ascending: false })
                      .order('average_rating', { ascending: false });
+        break;
+      case 'price':
+        query = query.order('hourly_rate', { ascending: true })
+                     .order('subscription_tier', { ascending: false });
+        break;
+      case 'experience':
+        query = query.order('years_experience', { ascending: false })
+                     .order('subscription_tier', { ascending: false });
+        break;
+      case 'response_time':
+        query = query.order('response_time_hours', { ascending: true })
+                     .order('subscription_tier', { ascending: false });
+        break;
+      default:
+        // Default sort: subscription tier first (enterprise > pro > basic), then rating
+        query = query.order('subscription_tier', { ascending: false })
+                     .order('average_rating', { ascending: false })
+                     .order('total_reviews', { ascending: false });
     }
 
-    const { data, error } = await query;
+    const { data, error } = await query.limit(50);
 
     if (error) {
       console.error('Search error:', error);
