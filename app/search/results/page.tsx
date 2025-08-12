@@ -388,9 +388,9 @@ export default function SearchResultsPage() {
                         <span>Responds in {cleaner.response_time_hours}h</span>
                       </div>
                     </div>
-                    {cleaner.description && (
+                    {cleaner.business_description && (
                       <p className="text-gray-600 text-sm mt-2 line-clamp-2">
-                        {cleaner.description}
+                        {cleaner.business_description}
                       </p>
                     )}
                   </div>

@@ -1,8 +1,8 @@
 import Stripe from 'stripe';
 
 // Initialize Stripe
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-06-20',
+export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_dummy', {
+  apiVersion: '2025-07-30.basil',
 });
 
 // Subscription tiers configuration

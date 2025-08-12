@@ -70,26 +70,20 @@ export class SearchService {
       .from('cleaners')
       .select(`
         *,
-        users!inner(full_name, phone, email, city, zip_code),
-        cleaner_service_areas!inner(zip_code, city, county, travel_fee)
+        users!inner(full_name, phone, email, city, zip_code)
       `)
       .eq('approval_status', 'approved')
-      .and('subscription_tier.neq.free,subscription_expires_at.gt.now()');
+      .or('subscription_tier.neq.free,subscription_expires_at.gt.now()');
 
     // Filter by service type
     if (filters.serviceType) {
       query = query.contains('services', [filters.serviceType]);
     }
 
-    // Filter by ZIP code using service areas table
+    // Filter by ZIP code using service areas - we'll handle this differently
     if (filters.zipCode) {
-      query = query.in('id', 
-        this.supabase
-          .from('cleaner_service_areas')
-          .select('cleaner_id')
-          .eq('zip_code', filters.zipCode)
-          .then(({ data }) => data?.map(area => area.cleaner_id) || [])
-      );
+      // For now, use the service_areas array until we populate the service areas table
+      query = query.contains('service_areas', [filters.zipCode]);
     }
 
     // Filter by minimum rating
