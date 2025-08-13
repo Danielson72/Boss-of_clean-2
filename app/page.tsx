@@ -60,7 +60,9 @@ export default function HomePage() {
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{
             backgroundImage: "url('/images/ChatGPT Image Aug 5, 2025, 05_04_11 PM.png')",
-            backgroundPosition: 'center 20%'
+            backgroundPosition: 'center center',
+            backgroundSize: 'cover',
+            transform: 'scale(0.85)'
           }}
         />
         
