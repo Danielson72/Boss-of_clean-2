@@ -209,26 +209,25 @@ export default function CleanerDashboard() {
           <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                {getCurrentPlan().tier === 'free' && (
-                  <div className="p-3 rounded-lg bg-green-100">
-                    <getCurrentPlan().icon className="h-8 w-8 text-green-600" />
-                  </div>
-                )}
-                {getCurrentPlan().tier === 'basic' && (
-                  <div className="p-3 rounded-lg bg-blue-100">
-                    <getCurrentPlan().icon className="h-8 w-8 text-blue-600" />
-                  </div>
-                )}
-                {getCurrentPlan().tier === 'pro' && (
-                  <div className="p-3 rounded-lg bg-purple-100">
-                    <getCurrentPlan().icon className="h-8 w-8 text-purple-600" />
-                  </div>
-                )}
-                {getCurrentPlan().tier === 'enterprise' && (
-                  <div className="p-3 rounded-lg bg-yellow-100">
-                    <getCurrentPlan().icon className="h-8 w-8 text-yellow-600" />
-                  </div>
-                )}
+                {(() => {
+                  const plan = getCurrentPlan();
+                  const IconComponent = plan.icon;
+                  return (
+                    <div className={`p-3 rounded-lg ${
+                      plan.tier === 'free' ? 'bg-green-100' :
+                      plan.tier === 'basic' ? 'bg-blue-100' :
+                      plan.tier === 'pro' ? 'bg-purple-100' :
+                      'bg-yellow-100'
+                    }`}>
+                      <IconComponent className={`h-8 w-8 ${
+                        plan.tier === 'free' ? 'text-green-600' :
+                        plan.tier === 'basic' ? 'text-blue-600' :
+                        plan.tier === 'pro' ? 'text-purple-600' :
+                        'text-yellow-600'
+                      }`} />
+                    </div>
+                  );
+                })()}
                 <div>
                   <h2 className="text-lg font-semibold text-gray-900">
                     Current Plan: {getCurrentPlan().name}
