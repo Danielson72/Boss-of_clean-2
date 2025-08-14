@@ -209,9 +209,26 @@ export default function CleanerDashboard() {
           <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <div className={`p-3 rounded-lg bg-${getCurrentPlan().color}-100`}>
-                  <getCurrentPlan().icon className={`h-8 w-8 text-${getCurrentPlan().color}-600`} />
-                </div>
+                {getCurrentPlan().tier === 'free' && (
+                  <div className="p-3 rounded-lg bg-green-100">
+                    <getCurrentPlan().icon className="h-8 w-8 text-green-600" />
+                  </div>
+                )}
+                {getCurrentPlan().tier === 'basic' && (
+                  <div className="p-3 rounded-lg bg-blue-100">
+                    <getCurrentPlan().icon className="h-8 w-8 text-blue-600" />
+                  </div>
+                )}
+                {getCurrentPlan().tier === 'pro' && (
+                  <div className="p-3 rounded-lg bg-purple-100">
+                    <getCurrentPlan().icon className="h-8 w-8 text-purple-600" />
+                  </div>
+                )}
+                {getCurrentPlan().tier === 'enterprise' && (
+                  <div className="p-3 rounded-lg bg-yellow-100">
+                    <getCurrentPlan().icon className="h-8 w-8 text-yellow-600" />
+                  </div>
+                )}
                 <div>
                   <h2 className="text-lg font-semibold text-gray-900">
                     Current Plan: {getCurrentPlan().name}
