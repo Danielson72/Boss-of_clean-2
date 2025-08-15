@@ -14,7 +14,7 @@ export default function HomePage() {
     if (serviceType) params.set('service', serviceType);
     if (zipCode) params.set('zip', zipCode);
     
-    router.push(`/search/results?${params.toString()}`);
+    router.push(`/search?${params.toString()}`);
   };
 
   const handleListBusiness = () => {
@@ -100,12 +100,18 @@ export default function HomePage() {
                           className="w-full p-4 border-2 border-gray-300 rounded-xl text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-lg"
                         >
                           <option value="">Select a service</option>
-                          <option value="residential">Residential Cleaning</option>
-                          <option value="commercial">Commercial Cleaning</option>
-                          <option value="deep">Deep Cleaning</option>
-                          <option value="pressure">Pressure Washing</option>
-                          <option value="window">Window Cleaning</option>
-                          <option value="carpet">Carpet Cleaning</option>
+                          <option value="House Cleaning">House Cleaning</option>
+                          <option value="Deep Cleaning">Deep Cleaning</option>
+                          <option value="Move-in/Move-out Cleaning">Move-in/Move-out Cleaning</option>
+                          <option value="Post-Construction Cleaning">Post-Construction Cleaning</option>
+                          <option value="Office Cleaning">Office Cleaning</option>
+                          <option value="Carpet Cleaning">Carpet Cleaning</option>
+                          <option value="Window Cleaning">Window Cleaning</option>
+                          <option value="Pressure Washing">Pressure Washing</option>
+                          <option value="Organizing Services">Organizing Services</option>
+                          <option value="Laundry Services">Laundry Services</option>
+                          <option value="Pet-Friendly Cleaning">Pet-Friendly Cleaning</option>
+                          <option value="Green/Eco Cleaning">Green/Eco Cleaning</option>
                         </select>
                       </div>
                       <div>
