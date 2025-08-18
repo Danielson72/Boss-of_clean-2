@@ -7,7 +7,7 @@ import { createClient } from '@/lib/supabase/client';
 import { 
   Camera, Save, ArrowLeft, Upload, X, CheckCircle, 
   User, Phone, Mail, MapPin, DollarSign, Calendar,
-  FileText, Shield, Award
+  FileText, Shield, Award, BadgeCheck, CheckCircle2
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -25,6 +25,9 @@ interface CleanerProfile {
   years_experience: number;
   insurance_verified: boolean;
   license_verified: boolean;
+  background_check_verified: boolean;
+  photo_verified: boolean;
+  is_certified: boolean;
   website_url?: string;
   business_address?: string;
   profile_photos: string[];
@@ -238,6 +241,19 @@ export default function CleanerProfilePage() {
         </div>
 
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Boss of Clean Certified Badge */}
+          {profile?.is_certified && (
+            <div className="mb-6 bg-gradient-to-r from-green-50 to-green-100 border border-green-300 rounded-lg p-4">
+              <div className="flex items-center justify-center gap-3">
+                <BadgeCheck className="h-8 w-8 text-green-600" />
+                <div>
+                  <h3 className="text-lg font-bold text-green-800">Boss of Clean Certified™</h3>
+                  <p className="text-sm text-green-700">Your business meets all verification requirements</p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {message && (
             <div className={`mb-6 p-4 rounded-md ${
               message.includes('Error') 
@@ -486,6 +502,40 @@ export default function CleanerProfilePage() {
                       : 'bg-gray-100 text-gray-600'
                   }`}>
                     {profile.insurance_verified ? 'Verified' : 'Pending'}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <BadgeCheck className={`h-5 w-5 ${profile.background_check_verified ? 'text-green-600' : 'text-gray-400'}`} />
+                    <div>
+                      <p className="font-medium">Background Check</p>
+                      <p className="text-sm text-gray-600">Complete criminal background screening</p>
+                    </div>
+                  </div>
+                  <span className={`px-3 py-1 rounded-full text-sm ${
+                    profile.background_check_verified 
+                      ? 'bg-green-100 text-green-800' 
+                      : 'bg-gray-100 text-gray-600'
+                  }`}>
+                    {profile.background_check_verified ? 'Verified' : 'Pending'}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <Camera className={`h-5 w-5 ${profile.photo_verified ? 'text-green-600' : 'text-gray-400'}`} />
+                    <div>
+                      <p className="font-medium">Photo Verification</p>
+                      <p className="text-sm text-gray-600">Upload business photos for verification</p>
+                    </div>
+                  </div>
+                  <span className={`px-3 py-1 rounded-full text-sm ${
+                    profile.photo_verified 
+                      ? 'bg-green-100 text-green-800' 
+                      : 'bg-gray-100 text-gray-600'
+                  }`}>
+                    {profile.photo_verified ? 'Verified' : 'Pending'}
                   </span>
                 </div>
                 

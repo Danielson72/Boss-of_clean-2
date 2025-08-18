@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Eye, EyeOff, Mail, Lock, User, Phone, MapPin, AlertCircle, CheckCircle } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User, Phone, MapPin, AlertCircle, CheckCircle, Shield, BadgeCheck, Camera } from 'lucide-react';
 import { useAuth } from '@/lib/context/AuthContext';
 
 export default function SignupPage() {
@@ -295,6 +295,69 @@ export default function SignupPage() {
                     <option value="window">Window Cleaning</option>
                     <option value="carpet">Carpet Cleaning</option>
                   </select>
+                </div>
+
+                {/* Verification Opt-ins */}
+                <div className="col-span-2">
+                  <h3 className="text-sm font-medium text-gray-900 mb-3">
+                    Get Boss of Clean Certified™ (Optional)
+                  </h3>
+                  <p className="text-xs text-gray-600 mb-4">
+                    Businesses with all verifications get the Boss of Clean Certified™ badge and appear higher in search results.
+                  </p>
+                  
+                  <div className="space-y-3">
+                    <label className="flex items-start">
+                      <input
+                        type="checkbox"
+                        name="hasInsurance"
+                        className="mt-1 mr-3"
+                      />
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <Shield className="h-4 w-4 text-blue-600" />
+                          <span className="text-sm font-medium text-gray-900">I have liability insurance</span>
+                        </div>
+                        <p className="text-xs text-gray-600 mt-1">
+                          You'll be asked to upload proof of insurance after signup
+                        </p>
+                      </div>
+                    </label>
+
+                    <label className="flex items-start">
+                      <input
+                        type="checkbox"
+                        name="willBackgroundCheck"
+                        className="mt-1 mr-3"
+                      />
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <BadgeCheck className="h-4 w-4 text-blue-600" />
+                          <span className="text-sm font-medium text-gray-900">I'm willing to complete a background check</span>
+                        </div>
+                        <p className="text-xs text-gray-600 mt-1">
+                          Background checks are processed by our trusted partner for $29.99
+                        </p>
+                      </div>
+                    </label>
+
+                    <label className="flex items-start">
+                      <input
+                        type="checkbox"
+                        name="hasPhotos"
+                        className="mt-1 mr-3"
+                      />
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <Camera className="h-4 w-4 text-blue-600" />
+                          <span className="text-sm font-medium text-gray-900">I have professional photos of my work</span>
+                        </div>
+                        <p className="text-xs text-gray-600 mt-1">
+                          Upload photos after signup to get photo verified
+                        </p>
+                      </div>
+                    </label>
+                  </div>
                 </div>
               </>
             )}

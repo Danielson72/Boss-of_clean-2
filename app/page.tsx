@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, MapPin, Star, CheckCircle, Users, Clock, Shield, Home, Building2, Droplets, Sparkles, Wind, Brush } from 'lucide-react';
+import { Search, MapPin, Star, CheckCircle, Users, Clock, Shield, Home, Building2, Droplets, Sparkles, Wind, Brush, BadgeCheck, DollarSign } from 'lucide-react';
 
 export default function HomePage() {
   const [serviceType, setServiceType] = useState('');
@@ -164,6 +164,35 @@ export default function HomePage() {
                     </div>
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* $5,000 Guarantee Banner */}
+      <section className="bg-gradient-to-r from-green-600 to-green-700 text-white py-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row items-center justify-center gap-4 text-center md:text-left">
+            <div className="flex items-center gap-3">
+              <Shield className="h-12 w-12 text-green-300" />
+              <div>
+                <h3 className="text-2xl font-bold">$5,000 Quality Guarantee</h3>
+                <p className="text-green-100">We stand behind every Boss of Clean Certified™ cleaner</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-6 ml-0 md:ml-auto">
+              <div className="flex items-center gap-2">
+                <BadgeCheck className="h-6 w-6 text-green-300" />
+                <span className="font-medium">Background Checked</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Shield className="h-6 w-6 text-green-300" />
+                <span className="font-medium">Fully Insured</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle className="h-6 w-6 text-green-300" />
+                <span className="font-medium">Photo Verified</span>
               </div>
             </div>
           </div>

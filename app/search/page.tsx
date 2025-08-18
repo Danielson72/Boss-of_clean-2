@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/client';
 import { 
   Search, MapPin, Star, DollarSign, Clock, Phone, Mail,
   Filter, ChevronDown, User, Award, Shield, Calendar,
-  MessageSquare
+  MessageSquare, BadgeCheck, CheckCircle2
 } from 'lucide-react';
 
 interface Cleaner {
@@ -25,6 +25,9 @@ interface Cleaner {
   profile_photos: string[];
   insurance_verified: boolean;
   license_verified: boolean;
+  background_check_verified: boolean;
+  photo_verified: boolean;
+  is_certified: boolean;
   subscription_tier: string;
   created_at: string;
 }
@@ -55,6 +58,7 @@ export default function SearchPage() {
   const [priceRange, setPriceRange] = useState([0, 200]);
   const [experienceMin, setExperienceMin] = useState(0);
   const [verifiedOnly, setVerifiedOnly] = useState(false);
+  const [certifiedOnly, setCertifiedOnly] = useState(false);
   const supabase = createClient();
 
   useEffect(() => {
@@ -63,7 +67,7 @@ export default function SearchPage() {
 
   useEffect(() => {
     filterCleaners();
-  }, [cleaners, searchTerm, selectedService, selectedZip, priceRange, experienceMin, verifiedOnly]);
+  }, [cleaners, searchTerm, selectedService, selectedZip, priceRange, experienceMin, verifiedOnly, certifiedOnly]);
 
   const loadCleaners = async () => {
     try {
@@ -121,6 +125,11 @@ export default function SearchPage() {
       filtered = filtered.filter(cleaner => 
         cleaner.insurance_verified && cleaner.license_verified
       );
+    }
+
+    // Filter by Boss of Clean Certified status
+    if (certifiedOnly) {
+      filtered = filtered.filter(cleaner => cleaner.is_certified);
     }
 
     setFilteredCleaners(filtered);
@@ -243,7 +252,19 @@ export default function SearchPage() {
                   </select>
                 </div>
                 
-                <div>
+                <div className="space-y-3">
+                  <label className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={certifiedOnly}
+                      onChange={(e) => setCertifiedOnly(e.target.checked)}
+                      className="mr-2"
+                    />
+                    <span className="text-sm font-medium text-gray-700 flex items-center gap-1">
+                      <BadgeCheck className="h-4 w-4 text-green-600" />
+                      Boss of Clean Certified™ only
+                    </span>
+                  </label>
                   <label className="flex items-center">
                     <input
                       type="checkbox"
@@ -336,14 +357,31 @@ export default function SearchPage() {
                       <Award className="h-4 w-4 text-gray-400" />
                       <span>{cleaner.years_experience} years experience</span>
                     </div>
-                    {(cleaner.insurance_verified || cleaner.license_verified) && (
-                      <div className="flex items-center gap-2 text-sm">
-                        <Shield className="h-4 w-4 text-green-500" />
-                        <span className="text-green-600">
-                          {cleaner.insurance_verified && cleaner.license_verified 
-                            ? 'Fully Verified' 
-                            : 'Partially Verified'}
-                        </span>
+                    {cleaner.is_certified ? (
+                      <div className="flex items-center gap-2 text-sm font-medium">
+                        <BadgeCheck className="h-5 w-5 text-green-600" />
+                        <span className="text-green-700">Boss of Clean Certified™</span>
+                      </div>
+                    ) : (
+                      <div className="space-y-1">
+                        {cleaner.insurance_verified && (
+                          <div className="flex items-center gap-2 text-xs">
+                            <Shield className="h-3.5 w-3.5 text-blue-500" />
+                            <span className="text-gray-600">Insured</span>
+                          </div>
+                        )}
+                        {cleaner.background_check_verified && (
+                          <div className="flex items-center gap-2 text-xs">
+                            <BadgeCheck className="h-3.5 w-3.5 text-blue-500" />
+                            <span className="text-gray-600">Background Checked</span>
+                          </div>
+                        )}
+                        {cleaner.photo_verified && (
+                          <div className="flex items-center gap-2 text-xs">
+                            <CheckCircle2 className="h-3.5 w-3.5 text-blue-500" />
+                            <span className="text-gray-600">Photo Verified</span>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
