@@ -61,8 +61,7 @@ export default function HomePage() {
           style={{
             backgroundImage: "url('/images/ChatGPT Image Aug 5, 2025, 05_04_11 PM.png')",
             backgroundPosition: 'center center',
-            backgroundSize: 'cover',
-            transform: 'scale(0.85)'
+            backgroundSize: 'cover'
           }}
         />
         

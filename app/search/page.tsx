@@ -74,12 +74,13 @@ export default function SearchPage() {
       const { data, error } = await supabase
         .from('cleaners')
         .select('*')
-        .eq('approval_status', 'approved')
+        .in('approval_status', ['approved', 'pending']) // Show both approved and pending cleaners
         .order('subscription_tier', { ascending: false })
         .order('average_rating', { ascending: false });
 
       if (error) throw error;
       setCleaners(data || []);
+      console.log('Loaded cleaners:', data?.length || 0); // Debug log
     } catch (error) {
       console.error('Error loading cleaners:', error);
     } finally {
@@ -93,12 +94,22 @@ export default function SearchPage() {
     // Filter by location (ZIP code or city search)
     if (searchTerm || selectedZip) {
       filtered = filtered.filter(cleaner => {
-        const searchValue = selectedZip || searchTerm;
-        return cleaner.service_areas.some(area => 
-          area.includes(searchValue.toLowerCase()) ||
-          area.toLowerCase().includes(searchValue.toLowerCase())
-        );
+        const searchValue = (selectedZip || searchTerm).toLowerCase().trim();
+        
+        // Check if cleaner has any service areas
+        if (!cleaner.service_areas || cleaner.service_areas.length === 0) {
+          return false;
+        }
+        
+        // Check each service area
+        return cleaner.service_areas.some(area => {
+          const areaLower = area.toLowerCase();
+          // Check exact match or if area contains search value
+          return areaLower === searchValue || areaLower.includes(searchValue);
+        });
       });
+      
+      console.log(`Filtered by location "${searchValue}":`, filtered.length); // Debug log
     }
 
     // Filter by service type
@@ -323,6 +334,16 @@ export default function SearchPage() {
                       {getTierBadge(cleaner.subscription_tier).text}
                     </span>
                   </div>
+                  
+                  {/* Certified Badge Overlay */}
+                  {cleaner.is_certified && (
+                    <div className="absolute top-3 left-3">
+                      <div className="bg-green-600 text-white px-2 py-1 rounded-full text-xs font-bold flex items-center gap-1">
+                        <BadgeCheck className="h-3 w-3" />
+                        CERTIFIED™
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="p-6">
@@ -358,9 +379,12 @@ export default function SearchPage() {
                       <span>{cleaner.years_experience} years experience</span>
                     </div>
                     {cleaner.is_certified ? (
-                      <div className="flex items-center gap-2 text-sm font-medium">
-                        <BadgeCheck className="h-5 w-5 text-green-600" />
-                        <span className="text-green-700">Boss of Clean Certified™</span>
+                      <div className="bg-gradient-to-r from-green-100 to-green-50 border border-green-300 rounded-lg p-3 mb-2">
+                        <div className="flex items-center gap-2 text-sm font-bold">
+                          <BadgeCheck className="h-5 w-5 text-green-600" />
+                          <span className="text-green-800">Boss of Clean Certified™</span>
+                        </div>
+                        <p className="text-xs text-green-700 mt-1">Background checked, insured & verified</p>
                       </div>
                     ) : (
                       <div className="space-y-1">
