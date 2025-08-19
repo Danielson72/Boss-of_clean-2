@@ -12,23 +12,23 @@ import {
 interface Cleaner {
   id: string;
   business_name: string;
-  business_description: string;
-  business_phone: string;
-  business_email: string;
-  services: string[];
-  service_areas: string[];
-  hourly_rate: number;
-  minimum_hours: number;
-  years_experience: number;
-  average_rating: number;
-  total_reviews: number;
-  profile_photos: string[];
-  insurance_verified: boolean;
-  license_verified: boolean;
-  background_check_verified: boolean;
-  photo_verified: boolean;
-  is_certified: boolean;
-  subscription_tier: string;
+  business_description?: string;
+  business_phone?: string;
+  business_email?: string;
+  services?: string[];
+  service_areas?: string[];
+  hourly_rate?: number;
+  minimum_hours?: number;
+  years_experience?: number;
+  average_rating?: number;
+  total_reviews?: number;
+  profile_photos?: string[];
+  insurance_verified?: boolean;
+  license_verified?: boolean;
+  background_check_verified?: boolean;
+  photo_verified?: boolean;
+  is_certified?: boolean;
+  subscription_tier?: string;
   created_at: string;
 }
 
@@ -115,32 +115,33 @@ export default function SearchPage() {
     // Filter by service type
     if (selectedService) {
       filtered = filtered.filter(cleaner => 
-        cleaner.services.includes(selectedService)
+        cleaner.services && Array.isArray(cleaner.services) && cleaner.services.includes(selectedService)
       );
     }
 
     // Filter by price range
-    filtered = filtered.filter(cleaner => 
-      cleaner.hourly_rate >= priceRange[0] && cleaner.hourly_rate <= priceRange[1]
-    );
+    filtered = filtered.filter(cleaner => {
+      const rate = cleaner.hourly_rate || 50; // Default hourly rate
+      return rate >= priceRange[0] && rate <= priceRange[1];
+    });
 
     // Filter by minimum experience
     if (experienceMin > 0) {
       filtered = filtered.filter(cleaner => 
-        cleaner.years_experience >= experienceMin
+        (cleaner.years_experience || 0) >= experienceMin
       );
     }
 
     // Filter by verification status
     if (verifiedOnly) {
       filtered = filtered.filter(cleaner => 
-        cleaner.insurance_verified && cleaner.license_verified
+        (cleaner.insurance_verified || false) && (cleaner.license_verified || false)
       );
     }
 
     // Filter by Boss of Clean Certified status
     if (certifiedOnly) {
-      filtered = filtered.filter(cleaner => cleaner.is_certified);
+      filtered = filtered.filter(cleaner => cleaner.is_certified || false);
     }
 
     setFilteredCleaners(filtered);
@@ -316,7 +317,7 @@ export default function SearchPage() {
               <div key={cleaner.id} className="bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow duration-300">
                 {/* Profile Photo */}
                 <div className="relative h-48 bg-gray-200 rounded-t-lg overflow-hidden">
-                  {cleaner.profile_photos.length > 0 ? (
+                  {cleaner.profile_photos && cleaner.profile_photos.length > 0 ? (
                     <img
                       src={cleaner.profile_photos[0]}
                       alt={cleaner.business_name}
@@ -336,7 +337,7 @@ export default function SearchPage() {
                   </div>
                   
                   {/* Certified Badge Overlay */}
-                  {cleaner.is_certified && (
+                  {(cleaner.is_certified || false) && (
                     <div className="absolute top-3 left-3">
                       <div className="bg-green-600 text-white px-2 py-1 rounded-full text-xs font-bold flex items-center gap-1">
                         <BadgeCheck className="h-3 w-3" />
@@ -355,30 +356,30 @@ export default function SearchPage() {
                     <div className="flex items-center gap-1">
                       <Star className="h-4 w-4 text-yellow-500 fill-current" />
                       <span className="text-sm font-medium">
-                        {cleaner.average_rating.toFixed(1)}
+                        {(cleaner.average_rating || 0).toFixed(1)}
                       </span>
                       <span className="text-sm text-gray-600">
-                        ({cleaner.total_reviews})
+                        ({cleaner.total_reviews || 0})
                       </span>
                     </div>
                   </div>
 
                   {/* Description */}
                   <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                    {cleaner.business_description}
+                    {cleaner.business_description || 'Professional cleaning services'}
                   </p>
 
                   {/* Key Info */}
                   <div className="space-y-2 mb-4">
                     <div className="flex items-center gap-2 text-sm">
                       <DollarSign className="h-4 w-4 text-gray-400" />
-                      <span>${cleaner.hourly_rate}/hour ({cleaner.minimum_hours}hr min)</span>
+                      <span>${cleaner.hourly_rate || 50}/hour ({cleaner.minimum_hours || 2}hr min)</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm">
                       <Award className="h-4 w-4 text-gray-400" />
-                      <span>{cleaner.years_experience} years experience</span>
+                      <span>{cleaner.years_experience || 0} years experience</span>
                     </div>
-                    {cleaner.is_certified ? (
+                    {(cleaner.is_certified || false) ? (
                       <div className="bg-gradient-to-r from-green-100 to-green-50 border border-green-300 rounded-lg p-3 mb-2">
                         <div className="flex items-center gap-2 text-sm font-bold">
                           <BadgeCheck className="h-5 w-5 text-green-600" />
@@ -388,19 +389,19 @@ export default function SearchPage() {
                       </div>
                     ) : (
                       <div className="space-y-1">
-                        {cleaner.insurance_verified && (
+                        {(cleaner.insurance_verified || false) && (
                           <div className="flex items-center gap-2 text-xs">
                             <Shield className="h-3.5 w-3.5 text-blue-500" />
                             <span className="text-gray-600">Insured</span>
                           </div>
                         )}
-                        {cleaner.background_check_verified && (
+                        {(cleaner.background_check_verified || false) && (
                           <div className="flex items-center gap-2 text-xs">
                             <BadgeCheck className="h-3.5 w-3.5 text-blue-500" />
                             <span className="text-gray-600">Background Checked</span>
                           </div>
                         )}
-                        {cleaner.photo_verified && (
+                        {(cleaner.photo_verified || false) && (
                           <div className="flex items-center gap-2 text-xs">
                             <CheckCircle2 className="h-3.5 w-3.5 text-blue-500" />
                             <span className="text-gray-600">Photo Verified</span>
@@ -413,7 +414,7 @@ export default function SearchPage() {
                   {/* Services */}
                   <div className="mb-4">
                     <div className="flex flex-wrap gap-1">
-                      {cleaner.services.slice(0, 3).map((service, index) => (
+                      {(cleaner.services || []).slice(0, 3).map((service, index) => (
                         <span
                           key={index}
                           className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
@@ -421,9 +422,9 @@ export default function SearchPage() {
                           {service}
                         </span>
                       ))}
-                      {cleaner.services.length > 3 && (
+                      {(cleaner.services || []).length > 3 && (
                         <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
-                          +{cleaner.services.length - 3} more
+                          +{(cleaner.services || []).length - 3} more
                         </span>
                       )}
                     </div>
