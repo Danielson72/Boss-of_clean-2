@@ -93,9 +93,9 @@ export default function SearchPage() {
 
     // Filter by location (ZIP code or city search)
     if (searchTerm || selectedZip) {
+      const searchValue = (selectedZip || searchTerm).toLowerCase().trim();
+      
       filtered = filtered.filter(cleaner => {
-        const searchValue = (selectedZip || searchTerm).toLowerCase().trim();
-        
         // Check if cleaner has any service areas
         if (!cleaner.service_areas || cleaner.service_areas.length === 0) {
           return false;
