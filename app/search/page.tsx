@@ -331,8 +331,8 @@ export default function SearchPage() {
                   
                   {/* Tier Badge */}
                   <div className="absolute top-3 right-3">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getTierBadge(cleaner.subscription_tier).color}`}>
-                      {getTierBadge(cleaner.subscription_tier).text}
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getTierBadge(cleaner.subscription_tier ?? 'free').color}`}>
+                      {getTierBadge(cleaner.subscription_tier ?? 'free').text}
                     </span>
                   </div>
                   
