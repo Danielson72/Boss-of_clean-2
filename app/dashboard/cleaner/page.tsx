@@ -388,7 +388,7 @@ export default function CleanerDashboard() {
                         <p className="font-medium">Update Profile</p>
                       </Link>
                       <Link
-                        href="/dashboard/cleaner/services"
+                        href="/dashboard/cleaner/service-areas"
                         className="p-4 border rounded-lg hover:shadow-md transition duration-300 text-center"
                       >
                         <MapPin className="h-8 w-8 text-green-600 mx-auto mb-2" />
@@ -484,25 +484,33 @@ export default function CleanerDashboard() {
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Services Offered</h3>
                   <div className="flex flex-wrap gap-2 mb-6">
-                    {profile?.services.map((service) => (
-                      <span key={service} className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
-                        {service}
-                      </span>
-                    ))}
+                    {profile?.services && profile.services.length > 0 ? (
+                      profile.services.map((service) => (
+                        <span key={service} className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+                          {service}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-gray-500 text-sm">No services configured</span>
+                    )}
                   </div>
                   
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Service Areas</h3>
                   <div className="flex flex-wrap gap-2">
-                    {profile?.service_areas.map((area) => (
-                      <span key={area} className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
-                        {area}
-                      </span>
-                    ))}
+                    {profile?.service_areas && profile.service_areas.length > 0 ? (
+                      profile.service_areas.map((area) => (
+                        <span key={area} className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
+                          {area}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-gray-500 text-sm">No service areas configured</span>
+                    )}
                   </div>
                   
                   <div className="mt-6">
                     <Link
-                      href="/dashboard/cleaner/services"
+                      href="/dashboard/cleaner/service-areas"
                       className="text-blue-600 hover:text-blue-700 font-medium"
                     >
                       Manage Services & Areas →

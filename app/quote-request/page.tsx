@@ -211,7 +211,7 @@ export default function QuoteRequestPage() {
             <div className="bg-white rounded-lg shadow-sm border p-6 sticky top-8">
               {/* Profile Photo */}
               <div className="h-32 bg-gray-200 rounded-lg overflow-hidden mb-4">
-                {cleaner.profile_photos.length > 0 ? (
+                {cleaner.profile_photos && cleaner.profile_photos.length > 0 ? (
                   <img
                     src={cleaner.profile_photos[0]}
                     alt={cleaner.business_name}
@@ -309,7 +309,7 @@ export default function QuoteRequestPage() {
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       >
                         <option value="">Select service</option>
-                        {cleaner.services.map((service) => (
+                        {cleaner.services && cleaner.services.map((service) => (
                           <option key={service} value={service}>{service}</option>
                         ))}
                       </select>

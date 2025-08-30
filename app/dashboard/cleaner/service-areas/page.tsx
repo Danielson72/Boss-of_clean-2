@@ -17,34 +17,19 @@ interface ServiceArea {
   travel_fee: number;
 }
 
-// Florida ZIP codes with their cities and counties
-const FLORIDA_LOCATIONS = [
-  { zip: '32801', city: 'Orlando', county: 'Orange' },
-  { zip: '33101', city: 'Miami', county: 'Miami-Dade' },
-  { zip: '33602', city: 'Tampa', county: 'Hillsborough' },
-  { zip: '32202', city: 'Jacksonville', county: 'Duval' },
-  { zip: '33301', city: 'Fort Lauderdale', county: 'Broward' },
-  { zip: '32301', city: 'Tallahassee', county: 'Leon' },
-  { zip: '33701', city: 'St. Petersburg', county: 'Pinellas' },
-  { zip: '32501', city: 'Pensacola', county: 'Escambia' },
-  { zip: '32601', city: 'Gainesville', county: 'Alachua' },
-  { zip: '34102', city: 'Naples', county: 'Collier' },
-  { zip: '33480', city: 'Delray Beach', county: 'Palm Beach' },
-  { zip: '32114', city: 'Daytona Beach', county: 'Volusia' },
-  { zip: '34102', city: 'Sarasota', county: 'Sarasota' },
-  { zip: '33901', city: 'Fort Myers', county: 'Lee' },
-  { zip: '33601', city: 'Plant City', county: 'Hillsborough' },
-  { zip: '32751', city: 'Maitland', county: 'Orange' },
-  { zip: '33063', city: 'Pompano Beach', county: 'Broward' },
-  { zip: '33143', city: 'Coral Gables', county: 'Miami-Dade' },
-  { zip: '33410', city: 'Palm Beach Gardens', county: 'Palm Beach' },
-  { zip: '32789', city: 'Winter Springs', county: 'Seminole' }
-];
+interface FloridaZipCode {
+  zip_code: string;
+  city: string;
+  county: string;
+  latitude: number;
+  longitude: number;
+}
 
 export default function ServiceAreasPage() {
   const { user } = useAuth();
   const [cleanerId, setCleanerId] = useState<string>('');
   const [serviceAreas, setServiceAreas] = useState<ServiceArea[]>([]);
+  const [floridaZips, setFloridaZips] = useState<FloridaZipCode[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -69,10 +54,19 @@ export default function ServiceAreasPage() {
       if (cleanerError) throw cleanerError;
       
       setCleanerId(cleanerData.id);
+
+      // Load Florida ZIP codes from database
+      const { data: zipsData, error: zipsError } = await supabase
+        .from('florida_zipcodes')
+        .select('*')
+        .order('city');
+
+      if (zipsError) throw zipsError;
+      setFloridaZips(zipsData || []);
       
       // Convert the service_areas array to ServiceArea objects
       const areas: ServiceArea[] = (cleanerData.service_areas || []).map((zipCode: string) => {
-        const location = FLORIDA_LOCATIONS.find(loc => loc.zip === zipCode);
+        const location = (zipsData || []).find((loc: FloridaZipCode) => loc.zip_code === zipCode);
         return {
           zip_code: zipCode,
           city: location?.city || 'Unknown',
@@ -90,15 +84,15 @@ export default function ServiceAreasPage() {
     }
   };
 
-  const addServiceArea = (location: { zip: string; city: string; county: string }) => {
-    const exists = serviceAreas.some(area => area.zip_code === location.zip);
+  const addServiceArea = (location: FloridaZipCode) => {
+    const exists = serviceAreas.some(area => area.zip_code === location.zip_code);
     if (exists) {
       setMessage('This ZIP code is already in your service areas');
       return;
     }
 
     const newArea: ServiceArea = {
-      zip_code: location.zip,
+      zip_code: location.zip_code,
       city: location.city,
       county: location.county,
       travel_fee: 0
@@ -145,11 +139,11 @@ export default function ServiceAreasPage() {
     }
   };
 
-  const filteredLocations = FLORIDA_LOCATIONS.filter(location =>
+  const filteredLocations = floridaZips.filter(location =>
     (location.city.toLowerCase().includes(searchTerm.toLowerCase()) ||
-     location.zip.includes(searchTerm) ||
+     location.zip_code.includes(searchTerm) ||
      location.county.toLowerCase().includes(searchTerm.toLowerCase())) &&
-    !serviceAreas.some(area => area.zip_code === location.zip)
+    !serviceAreas.some(area => area.zip_code === location.zip_code)
   );
 
   if (loading) {
@@ -306,13 +300,13 @@ export default function ServiceAreasPage() {
                 ) : (
                   filteredLocations.map((location) => (
                     <div
-                      key={location.zip}
+                      key={location.zip_code}
                       className="flex justify-between items-center p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
                       onClick={() => addServiceArea(location)}
                     >
                       <div>
                         <div className="font-medium text-gray-900">
-                          {location.zip} - {location.city}
+                          {location.zip_code} - {location.city}
                         </div>
                         <div className="text-sm text-gray-600">
                           {location.county} County

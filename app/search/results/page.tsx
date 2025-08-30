@@ -314,15 +314,21 @@ export default function SearchResultsPage() {
                 
                 {/* Services */}
                 <div className="flex flex-wrap gap-2 mb-4">
-                  {cleaner.services.slice(0, 3).map((service, index) => (
-                    <span key={index} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
-                      {getServiceTypeLabel(service)}
-                    </span>
-                  ))}
-                  {cleaner.services.length > 3 && (
-                    <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
-                      +{cleaner.services.length - 3} more
-                    </span>
+                  {cleaner.services && cleaner.services.length > 0 ? (
+                    <>
+                      {cleaner.services.slice(0, 3).map((service, index) => (
+                        <span key={index} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                          {getServiceTypeLabel(service)}
+                        </span>
+                      ))}
+                      {cleaner.services.length > 3 && (
+                        <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
+                          +{cleaner.services.length - 3} more
+                        </span>
+                      )}
+                    </>
+                  ) : (
+                    <span className="text-gray-500 text-xs">No services listed</span>
                   )}
                 </div>
 

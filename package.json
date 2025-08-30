@@ -6,7 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test:mobile": "playwright test tests/mobile-hero.spec.ts",
+    "test:mobile:ui": "playwright test tests/mobile-hero.spec.ts --ui",
+    "test:screenshots": "playwright test tests/mobile-hero.spec.ts --headed",
+    "test:all": "playwright test"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
@@ -73,5 +77,8 @@
     "typescript": "5.2.2",
     "vaul": "^0.9.9",
     "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.55.0"
   }
 }

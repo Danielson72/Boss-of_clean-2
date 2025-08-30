@@ -205,6 +205,58 @@ export class SearchService {
     ];
   }
 
+  // Get verified cleaners in a specific ZIP code (33801 - Lakeland, FL)
+  async getVerifiedCleanersInZip33801(): Promise<Cleaner[]> {
+    const { data, error } = await this.supabase
+      .from('cleaners')
+      .select(`
+        *,
+        users!inner(full_name, phone, email, city, zip_code),
+        service_areas!left(zip_code, city, county, travel_fee)
+      `)
+      .eq('approval_status', 'approved')
+      .eq('insurance_verified', true)
+      .eq('license_verified', true)
+      .eq('background_check_verified', true)
+      .or('service_areas.contains.{"33801"},users.zip_code.eq.33801')
+      .order('subscription_tier', { ascending: false })
+      .order('average_rating', { ascending: false })
+      .order('total_reviews', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching verified cleaners in 33801:', error);
+      throw new Error('Failed to fetch verified cleaners in ZIP code 33801');
+    }
+
+    return data || [];
+  }
+
+  // Generic function to get verified cleaners in any ZIP code
+  async getVerifiedCleanersInZipCode(zipCode: string): Promise<Cleaner[]> {
+    const { data, error } = await this.supabase
+      .from('cleaners')
+      .select(`
+        *,
+        users!inner(full_name, phone, email, city, zip_code),
+        service_areas!left(zip_code, city, county, travel_fee)
+      `)
+      .eq('approval_status', 'approved')
+      .eq('insurance_verified', true)
+      .eq('license_verified', true)
+      .eq('background_check_verified', true)
+      .or(`service_areas.contains.{"${zipCode}"},users.zip_code.eq.${zipCode}`)
+      .order('subscription_tier', { ascending: false })
+      .order('average_rating', { ascending: false })
+      .order('total_reviews', { ascending: false });
+
+    if (error) {
+      console.error(`Error fetching verified cleaners in ${zipCode}:`, error);
+      throw new Error(`Failed to fetch verified cleaners in ZIP code ${zipCode}`);
+    }
+
+    return data || [];
+  }
+
   // Get service type options
   getServiceTypes() {
     return [
