@@ -1,0 +1,416 @@
+openapi: 3.0.3
+info:
+  title: Boss of Clean API
+  version: 1.0.0
+  description: |
+    **Reference-only; not wired to runtime yet.**
+    
+    Boss of Clean marketplace API for connecting customers with verified cleaning professionals.
+    
+    ## Authentication
+    Uses Supabase Auth with JWT tokens. Include `Authorization: Bearer <token>` header.
+    
+    ## Rate Limits
+    - Anonymous: 100 requests/hour
+    - Authenticated: 1000 requests/hour
+    - Admin: 5000 requests/hour
+
+servers:
+  - url: https://api.bossofclean.com/v1
+    description: Production API
+  - url: https://staging-api.bossofclean.com/v1
+    description: Staging API
+
+paths:
+  /directory:
+    get:
+      summary: Browse cleaner directory
+      description: Public endpoint to browse verified cleaning professionals
+      tags: [Directory]
+      parameters:
+        - name: city
+          in: query
+          schema:
+            type: string
+          example: "Orlando"
+        - name: state
+          in: query
+          schema:
+            type: string
+          example: "FL"
+        - name: zip_code
+          in: query
+          schema:
+            type: string
+          example: "32801"
+        - name: service_types
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [residential, commercial, deep_clean, move_in_out]
+        - name: hourly_rate_min
+          in: query
+          schema:
+            type: number
+          example: 25
+        - name: hourly_rate_max
+          in: query
+          schema:
+            type: number
+          example: 75
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum: [distance, rating, price, experience, created_at]
+            default: rating
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 20
+      responses:
+        '200':
+          description: List of cleaners
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  cleaners:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CleanerListing'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+                  filters:
+                    $ref: '#/components/schemas/DirectoryFilters'
+
+  /directory/{id}:
+    get:
+      summary: Get cleaner profile
+      description: Detailed profile of a specific cleaner
+      tags: [Directory]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Cleaner profile details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CleanerProfile'
+        '404':
+          description: Cleaner not found
+
+  /quote-requests:
+    post:
+      summary: Submit quote request
+      description: Customer submits request for cleaning quotes
+      tags: [Quotes]
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuoteRequest'
+      responses:
+        '201':
+          description: Quote request submitted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuoteRequestResponse'
+        '401':
+          description: Authentication required
+        '400':
+          description: Invalid request data
+
+  /admin/cleaners/{id}:
+    patch:
+      summary: Update cleaner approval status
+      description: Admin endpoint to approve/reject cleaner applications
+      tags: [Admin]
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                approval_status:
+                  type: string
+                  enum: [approved, rejected, pending]
+                admin_notes:
+                  type: string
+                  maxLength: 1000
+              required:
+                - approval_status
+      responses:
+        '200':
+          description: Cleaner status updated
+        '403':
+          description: Admin access required
+        '404':
+          description: Cleaner not found
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    CleanerListing:
+      type: object
+      properties:
+        cleaner_id:
+          type: string
+          format: uuid
+        display_name:
+          type: string
+        business_name:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        zip_code:
+          type: string
+        description:
+          type: string
+          maxLength: 500
+        hourly_rate:
+          type: number
+          minimum: 0
+        years_experience:
+          type: integer
+          minimum: 0
+        profile_image_url:
+          type: string
+          format: uri
+        background_checked:
+          type: boolean
+        insurance_verified:
+          type: boolean
+        service_types:
+          type: array
+          items:
+            type: string
+        avg_rating:
+          type: number
+          minimum: 0
+          maximum: 5
+        review_count:
+          type: integer
+          minimum: 0
+        created_at:
+          type: string
+          format: date-time
+
+    CleanerProfile:
+      allOf:
+        - $ref: '#/components/schemas/CleanerListing'
+        - type: object
+          properties:
+            detailed_description:
+              type: string
+              maxLength: 2000
+            service_areas:
+              type: array
+              items:
+                type: string
+            availability:
+              type: object
+              properties:
+                weekdays:
+                  type: array
+                  items:
+                    type: string
+                weekends:
+                  type: boolean
+            gallery_images:
+              type: array
+              items:
+                type: string
+                format: uri
+            recent_reviews:
+              type: array
+              items:
+                $ref: '#/components/schemas/Review'
+
+    QuoteRequest:
+      type: object
+      required:
+        - service_type
+        - property_type
+        - address
+        - contact_info
+      properties:
+        service_type:
+          type: string
+          enum: [residential, commercial, deep_clean, move_in_out]
+        property_type:
+          type: string
+          enum: [apartment, house, office, retail]
+        address:
+          $ref: '#/components/schemas/Address'
+        contact_info:
+          $ref: '#/components/schemas/ContactInfo'
+        cleaning_details:
+          type: object
+          properties:
+            rooms:
+              type: integer
+            bathrooms:
+              type: integer
+            square_feet:
+              type: integer
+            frequency:
+              type: string
+              enum: [one_time, weekly, biweekly, monthly]
+            special_requests:
+              type: string
+              maxLength: 500
+        preferred_date:
+          type: string
+          format: date
+        budget_range:
+          type: object
+          properties:
+            min:
+              type: number
+            max:
+              type: number
+
+    QuoteRequestResponse:
+      type: object
+      properties:
+        quote_request_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [submitted, matched, quoted]
+        matched_cleaners:
+          type: array
+          items:
+            type: string
+            format: uuid
+        estimated_response_time:
+          type: string
+          description: "e.g., '24 hours'"
+
+    Address:
+      type: object
+      required:
+        - street_address
+        - city
+        - state
+        - zip_code
+      properties:
+        street_address:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+          minLength: 2
+          maxLength: 2
+        zip_code:
+          type: string
+          pattern: '^\d{5}(-\d{4})?$'
+
+    ContactInfo:
+      type: object
+      required:
+        - name
+        - phone
+        - email
+      properties:
+        name:
+          type: string
+        phone:
+          type: string
+          pattern: '^\+?1?[2-9]\d{2}[2-9]\d{2}\d{4}$'
+        email:
+          type: string
+          format: email
+
+    Review:
+      type: object
+      properties:
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+        comment:
+          type: string
+          maxLength: 500
+        reviewer_name:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+
+    Pagination:
+      type: object
+      properties:
+        page:
+          type: integer
+        limit:
+          type: integer
+        total:
+          type: integer
+        pages:
+          type: integer
+
+    DirectoryFilters:
+      type: object
+      properties:
+        cities:
+          type: array
+          items:
+            type: string
+        service_types:
+          type: array
+          items:
+            type: string
+        price_ranges:
+          type: array
+          items:
+            type: object
+            properties:
+              min:
+                type: number
+              max:
+                type: number
+              count:
+                type: integer

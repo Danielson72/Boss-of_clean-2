@@ -1,0 +1,227 @@
+name: Feature Specification
+description: Create a new feature specification for Boss of Clean
+title: "[SPEC] "
+labels: ["spec", "feature"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Feature Specification Template
+        Use this template to propose new features for the Boss of Clean marketplace platform.
+
+  - type: input
+    id: feature_name
+    attributes:
+      label: Feature Name
+      description: Short, descriptive name for the feature
+      placeholder: "e.g., Advanced Search Filters"
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement
+      description: What problem does this feature solve? What pain point are we addressing?
+      placeholder: |
+        - Current state: What's the current situation?
+        - Pain points: What issues are users experiencing?
+        - Business impact: How does this affect our goals?
+    validations:
+      required: true
+
+  - type: textarea
+    id: goals
+    attributes:
+      label: Goals & Success Metrics
+      description: What are we trying to achieve? How will we measure success?
+      placeholder: |
+        Primary Goals:
+        - [ ] Goal 1
+        - [ ] Goal 2
+        
+        Success Metrics:
+        - Metric 1: Target value
+        - Metric 2: Target value
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: users
+    attributes:
+      label: Target Users
+      description: Who will benefit from this feature?
+      options:
+        - label: Customers (service requesters)
+        - label: Cleaners (service providers)
+        - label: Platform Administrators
+        - label: Anonymous/Public users
+
+  - type: textarea
+    id: user_experience
+    attributes:
+      label: User Experience & Flow
+      description: Describe the user journey and key interactions
+      placeholder: |
+        User Flow:
+        1. User starts at...
+        2. They see/do...
+        3. The system responds with...
+        4. User completes by...
+        
+        Key Interactions:
+        - Interaction 1: Description
+        - Interaction 2: Description
+
+  - type: textarea
+    id: data_model
+    attributes:
+      label: Data Model Changes
+      description: What database schema changes are needed?
+      placeholder: |
+        New Tables:
+        - table_name: description
+        
+        Modified Tables:
+        - table_name: changes needed
+        
+        New Views/Functions:
+        - name: purpose
+
+  - type: textarea
+    id: rls_security
+    attributes:
+      label: Row Level Security (RLS)
+      description: What RLS policies are needed for data access control?
+      placeholder: |
+        New Policies:
+        - table.policy_name: who can access what
+        
+        Modified Policies:
+        - table.policy_name: changes needed
+
+  - type: textarea
+    id: api_endpoints
+    attributes:
+      label: API Endpoints
+      description: What API changes are needed?
+      placeholder: |
+        New Endpoints:
+        - GET /api/endpoint: description
+        - POST /api/endpoint: description
+        
+        Modified Endpoints:
+        - PATCH /api/endpoint: changes
+        
+        Authentication: Required/Optional/None
+
+  - type: textarea
+    id: events_webhooks
+    attributes:
+      label: Events & Webhooks
+      description: What events does this feature generate or consume?
+      placeholder: |
+        Events Generated:
+        - event.name: when triggered
+        
+        Webhooks:
+        - webhook.type: external service integration
+        
+        Email Notifications:
+        - notification.type: recipient and trigger
+
+  - type: textarea
+    id: business_metrics
+    attributes:
+      label: Business Metrics Impact
+      description: How will this feature affect key business metrics?
+      placeholder: |
+        Revenue Impact:
+        - Direct: how it generates revenue
+        - Indirect: how it supports revenue
+        
+        User Engagement:
+        - Expected behavior changes
+        - Usage pattern impacts
+        
+        Operational:
+        - Support ticket impact
+        - Admin workload changes
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority Level
+      description: How urgent/important is this feature?
+      options:
+        - "High - Critical for business goals"
+        - "Medium - Important but not urgent"
+        - "Low - Nice to have enhancement"
+    validations:
+      required: true
+
+  - type: textarea
+    id: rollout_plan
+    attributes:
+      label: Rollout Strategy
+      description: How should this feature be deployed and released?
+      placeholder: |
+        Rollout Phases:
+        1. Phase 1: Limited beta (specific users/regions)
+        2. Phase 2: Gradual rollout (percentage of users)
+        3. Phase 3: Full release
+        
+        Feature Flags:
+        - flag_name: controls what aspect
+        
+        Migration Strategy:
+        - Existing data handling
+        - Backward compatibility
+
+  - type: textarea
+    id: risks_mitigation
+    attributes:
+      label: Risks & Mitigation
+      description: What could go wrong and how do we prevent/handle it?
+      placeholder: |
+        Technical Risks:
+        - Risk: Description
+          Mitigation: How to prevent/handle
+        
+        Business Risks:
+        - Risk: Description
+          Mitigation: How to prevent/handle
+        
+        User Experience Risks:
+        - Risk: Description
+          Mitigation: How to prevent/handle
+
+  - type: checkboxes
+    id: dependencies
+    attributes:
+      label: Dependencies & Requirements
+      description: What needs to be in place before this feature can be built?
+      options:
+        - label: Database schema changes
+        - label: API authentication changes
+        - label: External service integrations
+        - label: Frontend component library updates
+        - label: Admin panel modifications
+        - label: Payment processing changes
+        - label: Email/notification system updates
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Additional Context
+      description: Any other relevant information, mockups, or references
+      placeholder: |
+        References:
+        - Similar features in other platforms
+        - User research findings
+        - Design mockups or wireframes
+        
+        Technical Notes:
+        - Performance considerations
+        - Scalability requirements
+        - Third-party service requirements
