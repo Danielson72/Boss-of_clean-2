@@ -25,7 +25,7 @@ interface CleanerProfile {
   years_experience: number;
   insurance_verified: boolean;
   license_verified: boolean;
-  subscription_tier: 'free' | 'basic' | 'pro' | 'enterprise';
+  subscription_tier: 'free' | 'pro' | 'enterprise';
   average_rating: number;
   total_reviews: number;
   total_jobs: number;
@@ -58,23 +58,15 @@ const subscriptionPlans = [
     price: '$0',
     icon: Gift,
     color: 'green',
-    features: ['Basic listing', '1 photo', '5 quote responses/month']
-  },
-  {
-    tier: 'basic',
-    name: 'Basic',
-    price: '$29',
-    icon: Star,
-    color: 'blue',
-    features: ['Enhanced listing', '5 photos', '50 quote responses/month', 'Analytics']
+    features: ['Basic business listing', '1 photo only', 'Contact information display', 'Basic customer reviews', 'Email support']
   },
   {
     tier: 'pro',
-    name: 'Pro',
+    name: 'Professional',
     price: '$79',
     icon: Zap,
     color: 'purple',
-    features: ['Priority placement', 'Unlimited photos', '200 quote responses/month', 'Lead generation']
+    features: ['Premium business listing', 'Unlimited photos', 'Priority in search results', 'Advanced review management', 'Lead contact information', 'Business analytics', 'Phone & email support']
   },
   {
     tier: 'enterprise',
@@ -82,7 +74,7 @@ const subscriptionPlans = [
     price: '$149',
     icon: Crown,
     color: 'yellow',
-    features: ['Featured placement', 'Unlimited everything', 'Priority support', 'Custom branding']
+    features: ['Featured business listing', 'Unlimited photos & videos', 'Top placement in search', 'Full review management suite', 'Direct customer messaging', 'Advanced analytics & insights', 'Multiple location support', 'Dedicated account manager', '24/7 priority support']
   }
 ];
 
@@ -215,13 +207,11 @@ export default function CleanerDashboard() {
                   return (
                     <div className={`p-3 rounded-lg ${
                       plan.tier === 'free' ? 'bg-green-100' :
-                      plan.tier === 'basic' ? 'bg-blue-100' :
                       plan.tier === 'pro' ? 'bg-purple-100' :
                       'bg-yellow-100'
                     }`}>
                       <IconComponent className={`h-8 w-8 ${
                         plan.tier === 'free' ? 'text-green-600' :
-                        plan.tier === 'basic' ? 'text-blue-600' :
                         plan.tier === 'pro' ? 'text-purple-600' :
                         'text-yellow-600'
                       }`} />
@@ -237,12 +227,28 @@ export default function CleanerDashboard() {
                   </p>
                 </div>
               </div>
-              <Link
-                href="/pricing"
-                className="text-blue-600 hover:text-blue-700 font-medium"
-              >
-                Upgrade Plan →
-              </Link>
+{profile?.subscription_tier === 'free' ? (
+                <Link
+                  href="/pricing"
+                  className="text-blue-600 hover:text-blue-700 font-medium"
+                >
+                  Upgrade Plan →
+                </Link>
+              ) : (
+                <button
+                  onClick={() => {
+                    import('@/lib/stripe/client').then(({ redirectToBillingPortal }) => {
+                      redirectToBillingPortal().catch(error => {
+                        console.error('Failed to open billing portal:', error);
+                        alert('Failed to open billing portal. Please try again.');
+                      });
+                    });
+                  }}
+                  className="text-blue-600 hover:text-blue-700 font-medium"
+                >
+                  Manage Billing →
+                </button>
+              )}
             </div>
           </div>
 

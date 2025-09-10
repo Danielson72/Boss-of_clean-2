@@ -1,6 +1,13 @@
-import { Check, Star, Zap, Crown, Gift } from 'lucide-react';
+'use client'
+
+import { useState } from 'react'
+import { Check, Star, Zap, Crown, Gift, Loader2 } from 'lucide-react'
+import { redirectToCheckout } from '@/lib/stripe/client'
+import Link from 'next/link'
 
 export default function PricingPage() {
+  const [loading, setLoading] = useState<string | null>(null)
+  
   const plans = [
     {
       name: 'Free',
@@ -16,22 +23,8 @@ export default function PricingPage() {
         'Email support'
       ],
       popular: false,
-      free: true
-    },
-    {
-      name: 'Basic',
-      price: '$29',
-      period: '/month',
-      icon: Star,
-      description: 'Perfect for small cleaning businesses',
-      features: [
-        'Basic business listing',
-        'Up to 5 photos',
-        'Contact information display',
-        'Basic customer reviews',
-        'Email support'
-      ],
-      popular: false
+      free: true,
+      planKey: 'free' as const
     },
     {
       name: 'Professional',
@@ -48,7 +41,9 @@ export default function PricingPage() {
         'Business analytics',
         'Phone & email support'
       ],
-      popular: true
+      popular: true,
+      free: false,
+      planKey: 'pro' as const
     },
     {
       name: 'Enterprise',
@@ -67,9 +62,29 @@ export default function PricingPage() {
         'Dedicated account manager',
         '24/7 priority support'
       ],
-      popular: false
+      popular: false,
+      free: false,
+      planKey: 'enterprise' as const
     }
-  ];
+  ]
+
+  const handlePlanSelection = async (planKey: 'free' | 'pro' | 'enterprise') => {
+    if (planKey === 'free') {
+      // Free plan - redirect to signup
+      window.location.href = '/signup'
+      return
+    }
+
+    setLoading(planKey)
+    try {
+      await redirectToCheckout(planKey)
+    } catch (error) {
+      console.error('Failed to start checkout:', error)
+      alert('Failed to start checkout. Please try again.')
+    } finally {
+      setLoading(null)
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -90,7 +105,7 @@ export default function PricingPage() {
 
       {/* Pricing Cards */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {plans.map((plan, index) => (
             <div
               key={index}
@@ -142,15 +157,24 @@ export default function PricingPage() {
                 </ul>
                 
                 <button
-                  className={`w-full py-3 px-4 rounded-md font-semibold transition duration-300 ${
+                  onClick={() => handlePlanSelection(plan.planKey)}
+                  disabled={loading !== null}
+                  className={`w-full py-3 px-4 rounded-md font-semibold transition duration-300 flex items-center justify-center ${
                     plan.popular
-                      ? 'bg-blue-600 text-white hover:bg-blue-700'
+                      ? 'bg-blue-600 text-white hover:bg-blue-700 disabled:bg-blue-400'
                       : plan.free
-                      ? 'bg-green-500 text-white hover:bg-green-600'
-                      : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
-                  }`}
+                      ? 'bg-green-500 text-white hover:bg-green-600 disabled:bg-green-400'
+                      : 'bg-gray-100 text-gray-900 hover:bg-gray-200 disabled:bg-gray-300'
+                  } disabled:cursor-not-allowed`}
                 >
-                  Get Started
+                  {loading === plan.planKey ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    plan.free ? 'Get Started' : `Start ${plan.name}`
+                  )}
                 </button>
               </div>
             </div>
