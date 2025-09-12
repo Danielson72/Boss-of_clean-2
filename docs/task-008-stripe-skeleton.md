@@ -158,6 +158,51 @@ Use Stripe's test card numbers:
 - **Declined**: 4000 0000 0000 0002
 - **Requires Authentication**: 4000 0027 6000 3184
 
+## Deploy to Netlify Checklist
+
+### Environment Variables
+Set these environment variables in Netlify dashboard (Site settings > Environment variables):
+
+```bash
+# Stripe Configuration (Production)
+STRIPE_SECRET_KEY=sk_live_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+STRIPE_PRO_PRICE_ID=price_live_pro_monthly
+STRIPE_ENTERPRISE_PRICE_ID=price_live_enterprise_monthly
+
+# Client-side Stripe
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_...
+
+# Site Configuration
+NEXT_PUBLIC_SITE_URL=https://your-domain.netlify.app
+SITE_URL=https://your-domain.netlify.app
+
+# Supabase Configuration (if not already set)
+NEXT_PUBLIC_SUPABASE_URL=your_production_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_production_supabase_anon_key
+```
+
+### Pre-deployment Stripe Setup
+1. ✅ Switch Stripe account to live mode
+2. ✅ Create production subscription products (Pro: $79/month, Enterprise: $149/month)
+3. ✅ Update price IDs in environment variables
+4. ✅ Configure webhook endpoint: `https://your-domain.netlify.app/api/stripe/webhook`
+5. ✅ Select webhook events: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`
+6. ✅ Copy webhook signing secret to environment variables
+
+### Post-deployment Verification
+1. Test subscription checkout flow with live Stripe
+2. Verify webhook events are received and processed
+3. Test billing portal functionality
+4. Confirm subscription tier updates in database
+5. Validate payment processing and receipt generation
+
+### Webhook Security Considerations
+- **HTTPS required** for production webhooks
+- **Webhook signature verification** implemented and working
+- **Monitor webhook delivery** in Stripe dashboard
+- **Test webhook resilience** with failed/retry scenarios
+
 ## Deployment Notes
 
 ### Environment Variables

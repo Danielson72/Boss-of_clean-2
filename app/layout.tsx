@@ -8,7 +8,7 @@ import { AuthProvider } from '@/lib/context/AuthContext';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Florida\'s Premier Cleaning Directory - Boss of Clean | Find Local Cleaners in 60 Seconds',
+  title: 'Boss of Clean',
   description: 'Find professional cleaning services in Florida instantly. 500+ verified cleaners across all 67 counties. Residential, commercial, deep cleaning, pressure washing & more. Licensed & insured professionals.',
   keywords: 'cleaning services Florida, house cleaning Florida, commercial cleaning, pressure washing, carpet cleaning, residential cleaning, professional cleaners Florida',
   openGraph: {
