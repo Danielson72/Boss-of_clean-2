@@ -54,13 +54,13 @@ export default function HomePage() {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative min-h-screen flex flex-col">
+      <section className="relative min-h-screen flex flex-col pt-16 sm:pt-20">
         {/* Hero Background Image */}
         <div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          className="absolute inset-0 bg-cover bg-no-repeat"
           style={{
             backgroundImage: "url('/images/ChatGPT Image Aug 5, 2025, 05_04_11 PM.png')",
-            backgroundPosition: 'center center',
+            backgroundPosition: 'center 30%',
             backgroundSize: 'cover'
           }}
         />
@@ -68,20 +68,20 @@ export default function HomePage() {
         {/* Content Container */}
         <div className="relative flex-1 flex flex-col justify-end">
           {/* Upper section - Let the cat CEO shine */}
-          <div className="flex-1 min-h-[40vh] md:min-h-[60vh]"></div>
+          <div className="flex-1 min-h-[35vh] sm:min-h-[40vh] md:min-h-[50vh]"></div>
           
           {/* Lower section - Text and Search Form */}
-          <div className="bg-gradient-to-t from-white/95 via-white/90 to-transparent backdrop-blur-sm">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
+          <div className="bg-gradient-to-t from-white/98 via-white/95 to-white/85 backdrop-blur-sm">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 md:py-16">
               <div className="text-center">
                 {/* Main Headlines */}
-                <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold text-gray-900 mb-4 tracking-tight">
+                <h1 className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-bold text-gray-900 mb-3 sm:mb-4 tracking-tight">
                   <span className="text-blue-600">BOSS</span> <span className="text-gray-900">OF</span> <span className="text-blue-600">CLEAN</span>
                 </h1>
-                <h2 className="text-xl sm:text-2xl md:text-3xl font-semibold text-gray-800 mb-2">
+                <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-semibold text-gray-800 mb-2">
                   Florida's #1 Cleaning Directory
                 </h2>
-                <p className="text-lg sm:text-xl md:text-2xl text-gray-700 mb-8 font-medium">
+                <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-700 mb-6 sm:mb-8 font-medium">
                   Find Any Cleaner in <span className="text-blue-600 font-bold">60 Seconds</span>
                 </p>
                 
