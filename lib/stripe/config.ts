@@ -1,17 +1,32 @@
 import Stripe from 'stripe'
 
-if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error('STRIPE_SECRET_KEY is not set')
+// Create Stripe instance lazily to avoid build-time errors
+let stripeInstance: Stripe | null = null
+
+export function getStripe(): Stripe {
+  if (!stripeInstance) {
+    const secretKey = process.env.STRIPE_SECRET_KEY
+    if (!secretKey) {
+      throw new Error('STRIPE_SECRET_KEY is not set')
+    }
+    stripeInstance = new Stripe(secretKey, {
+      apiVersion: '2025-07-30.basil',
+      typescript: true,
+    })
+  }
+  return stripeInstance
 }
 
-// Initialize Stripe with test mode
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: '2025-07-30.basil',
-  typescript: true,
+// Export for backward compatibility
+export const stripe = new Proxy({} as Stripe, {
+  get(target, prop) {
+    return getStripe()[prop as keyof Stripe]
+  }
 })
 
 // Test mode price IDs - these should be replaced with actual Stripe price IDs
 export const STRIPE_PRICES = {
+  basic: process.env.STRIPE_BASIC_PRICE_ID || 'price_test_basic_monthly',
   pro: process.env.STRIPE_PRO_PRICE_ID || 'price_test_pro_monthly',
   enterprise: process.env.STRIPE_ENTERPRISE_PRICE_ID || 'price_test_enterprise_monthly',
 } as const

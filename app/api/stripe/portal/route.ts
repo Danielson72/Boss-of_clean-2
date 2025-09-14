@@ -1,9 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { stripe, getSiteUrl } from '@/lib/stripe/config'
+import { getStripe, getSiteUrl } from '@/lib/stripe/config'
 
 export async function POST(request: NextRequest) {
   try {
+    // Check for required env vars at runtime
+    const siteUrlEnv = process.env.SITE_URL || process.env.NEXT_PUBLIC_SITE_URL
+    if (!siteUrlEnv) {
+      console.error('SITE_URL or NEXT_PUBLIC_SITE_URL is required')
+      return NextResponse.json(
+        { error: 'Site configuration missing' },
+        { status: 500 }
+      )
+    }
+
+    const stripe = getStripe()
     const supabase = await createClient()
     
     // Get authenticated user
