@@ -9,6 +9,7 @@ const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: 'Boss of Clean',
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'https://bossofclean.com'),
   description: 'Find professional cleaning services in Florida instantly. 500+ verified cleaners across all 67 counties. Residential, commercial, deep cleaning, pressure washing & more. Licensed & insured professionals.',
   keywords: 'cleaning services Florida, house cleaning Florida, commercial cleaning, pressure washing, carpet cleaning, residential cleaning, professional cleaners Florida',
   openGraph: {

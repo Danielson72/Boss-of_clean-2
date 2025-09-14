@@ -6,7 +6,7 @@ if (!process.env.STRIPE_SECRET_KEY) {
 
 // Initialize Stripe with test mode
 export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: '2023-10-16',
+  apiVersion: '2025-07-30.basil',
   typescript: true,
 })
 
@@ -61,6 +61,8 @@ export const PLAN_DETAILS = {
     ]
   }
 } as const
+
+export const SUBSCRIPTION_TIERS = PLAN_DETAILS
 
 /**
  * Verify webhook signature from Stripe

@@ -16,8 +16,8 @@ export default function SearchResultsPage() {
 
   // Search filters state
   const [filters, setFilters] = useState<SearchFilters>({
-    serviceType: searchParams.get('service') || '',
-    zipCode: searchParams.get('zip') || '',
+    serviceType: searchParams?.get('service') || '',
+    zipCode: searchParams?.get('zip') || '',
     minRating: 0,
     maxPrice: 0,
     instantBooking: false,
@@ -36,8 +36,8 @@ export default function SearchResultsPage() {
     
     try {
       const results = await searchService.searchCleaners({
-        serviceType: searchParams.get('service') || filters.serviceType || undefined,
-        zipCode: searchParams.get('zip') || filters.zipCode || undefined,
+        serviceType: searchParams?.get('service') || filters.serviceType || undefined,
+        zipCode: searchParams?.get('zip') || filters.zipCode || undefined,
         minRating: (filters.minRating || 0) > 0 ? filters.minRating : undefined,
         maxPrice: (filters.maxPrice || 0) > 0 ? filters.maxPrice : undefined,
         instantBooking: filters.instantBooking || undefined,
@@ -253,8 +253,8 @@ export default function SearchResultsPage() {
               <button
                 onClick={() => {
                   setFilters({
-                    serviceType: searchParams.get('service') || '',
-                    zipCode: searchParams.get('zip') || '',
+                    serviceType: searchParams?.get('service') || '',
+                    zipCode: searchParams?.get('zip') || '',
                     minRating: 0,
                     maxPrice: 0,
                     instantBooking: false,

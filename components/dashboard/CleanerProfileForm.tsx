@@ -118,7 +118,7 @@ export default function CleanerProfileForm({ cleanerData, userData, userId }: Cl
     if (formData.service_types.includes(service)) {
       setFormData({
         ...formData,
-        service_types: formData.service_types.filter(s => s !== service)
+        service_types: formData.service_types.filter((s: string) => s !== service)
       })
     } else {
       setFormData({
