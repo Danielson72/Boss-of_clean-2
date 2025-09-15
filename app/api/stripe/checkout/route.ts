@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { getStripe, STRIPE_PRICES, getSiteUrl } from '@/lib/stripe/config'
+import { STRIPE_PRICES, getSiteUrl } from '@/lib/stripe/config'
+import { createCheckoutSession } from '@/lib/stripe/mcp'
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,7 +15,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const stripe = getStripe()
     const supabase = await createClient()
     
     // Get authenticated user
@@ -54,30 +54,21 @@ export async function POST(request: NextRequest) {
     const siteUrl = getSiteUrl()
     const priceId = STRIPE_PRICES[plan]
 
-    // Create Stripe checkout session
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
-      line_items: [
-        {
-          price: priceId,
-          quantity: 1,
-        },
-      ],
-      mode: 'subscription',
-      success_url: `${siteUrl}/dashboard/cleaner?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${siteUrl}/pricing`,
-      customer_email: user.email,
+    // Create Stripe checkout session (with MCP integration)
+    const session = await createCheckoutSession({
+      priceId,
+      successUrl: `${siteUrl}/dashboard/cleaner?session_id={CHECKOUT_SESSION_ID}`,
+      cancelUrl: `${siteUrl}/pricing`,
+      customerEmail: user.email,
       metadata: {
         user_id: user.id,
         cleaner_id: cleaner.id,
         plan: plan,
       },
-      subscription_data: {
-        metadata: {
-          user_id: user.id,
-          cleaner_id: cleaner.id,
-          plan: plan,
-        },
+      subscriptionMetadata: {
+        user_id: user.id,
+        cleaner_id: cleaner.id,
+        plan: plan,
       },
     })
 

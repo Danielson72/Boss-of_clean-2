@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { getStripe, getSiteUrl } from '@/lib/stripe/config'
+import { getSiteUrl } from '@/lib/stripe/config'
+import { createBillingPortalSession, findCustomerByEmail } from '@/lib/stripe/mcp'
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,7 +15,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const stripe = getStripe()
     const supabase = await createClient()
     
     // Get authenticated user
@@ -47,11 +47,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Find the customer in Stripe by email
-    const customers = await stripe.customers.list({
-      email: user.email,
-      limit: 1,
-    })
+    // Find the customer in Stripe by email (with MCP integration)
+    const customers = await findCustomerByEmail(user.email!)
 
     if (customers.data.length === 0) {
       return NextResponse.json(
@@ -63,10 +60,10 @@ export async function POST(request: NextRequest) {
     const customer = customers.data[0]
     const siteUrl = getSiteUrl()
 
-    // Create billing portal session
-    const portalSession = await stripe.billingPortal.sessions.create({
-      customer: customer.id,
-      return_url: `${siteUrl}/dashboard/cleaner`,
+    // Create billing portal session (with MCP integration)
+    const portalSession = await createBillingPortalSession({
+      customerId: customer.id,
+      returnUrl: `${siteUrl}/dashboard/cleaner`,
     })
 
     return NextResponse.json({ url: portalSession.url })
