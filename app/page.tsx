@@ -97,24 +97,36 @@ export default function HomePage() {
     <div className="min-h-screen">
       {/* Hero Section */}
       <section className="relative min-h-screen flex flex-col pt-16 sm:pt-20">
-        {/* Hero Background Image */}
+        {/* Hero Background Image - Responsive positioning */}
         <div 
-          className="absolute inset-0 bg-cover bg-no-repeat"
-          style={{
-            backgroundImage: "url('/images/ChatGPT Image Aug 5, 2025, 05_04_11 PM.png')",
-            backgroundPosition: 'center 30%',
-            backgroundSize: 'cover'
-          }}
-        />
+          className="absolute inset-0 bg-blue-50 sm:bg-transparent"
+        >
+          {/* Mobile: Show full cat mascot with contain */}
+          <div 
+            className="block sm:hidden absolute inset-0 bg-no-repeat bg-center"
+            style={{
+              backgroundImage: "url('/images/ChatGPT Image Aug 5, 2025, 05_04_11 PM.png')",
+              backgroundSize: 'contain',
+            }}
+          />
+          {/* Desktop: Original cover behavior */}
+          <div 
+            className="hidden sm:block absolute inset-0 bg-cover bg-no-repeat"
+            style={{
+              backgroundImage: "url('/images/ChatGPT Image Aug 5, 2025, 05_04_11 PM.png')",
+              backgroundPosition: 'center 30%',
+            }}
+          />
+        </div>
         
         {/* Content Container */}
         <div className="relative flex-1 flex flex-col justify-end">
           {/* Upper section - Let the cat CEO shine */}
-          <div className="flex-1 min-h-[35vh] sm:min-h-[40vh] md:min-h-[50vh]"></div>
+          <div className="flex-1 min-h-[45vh] sm:min-h-[40vh] md:min-h-[50vh]"></div>
           
           {/* Lower section - Text and Search Form */}
           <div className="bg-gradient-to-t from-white/98 via-white/95 to-white/85 backdrop-blur-sm">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 md:py-16">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-12 md:py-16">
               <div className="text-center">
                 {/* Main Headlines */}
                 <h1 className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-bold text-gray-900 mb-3 sm:mb-4 tracking-tight">

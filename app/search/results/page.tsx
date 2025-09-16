@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Search, MapPin, Star, Filter, Grid, List, Shield, Clock, DollarSign, Phone, Mail, ExternalLink } from 'lucide-react';
+import { Search, MapPin, Star, Filter, Grid, List, Shield, Clock, DollarSign, Phone, Mail, ExternalLink, MessageSquare, CheckCircle } from 'lucide-react';
 import { searchService, type Cleaner, type SearchFilters } from '@/lib/services/searchService';
 import Link from 'next/link';
 
@@ -365,6 +365,13 @@ export default function SearchResultsPage() {
                   
                   <div className="flex gap-2">
                     <Link 
+                      href={`/quote-request?cleaner=${cleaner.id}`}
+                      className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition duration-300 text-sm font-semibold flex items-center"
+                    >
+                      <MessageSquare className="h-4 w-4 mr-1" />
+                      Get Quote
+                    </Link>
+                    <Link 
                       href={`/cleaner/${cleaner.id}`}
                       className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition duration-300 text-sm"
                     >
@@ -376,20 +383,42 @@ export default function SearchResultsPage() {
                 {/* Contact Info */}
                 {viewMode === 'list' && (
                   <div className="mt-4 pt-4 border-t border-gray-200">
-                    <div className="flex items-center gap-4 text-sm text-gray-600">
-                      {cleaner.users?.phone && (
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-4 text-sm text-gray-600">
                         <div className="flex items-center gap-1">
-                          <Phone className="h-4 w-4" />
-                          <span>{cleaner.users.phone}</span>
+                          <Clock className="h-4 w-4" />
+                          <span>Responds in {cleaner.response_time_hours}h</span>
                         </div>
-                      )}
-                      <div className="flex items-center gap-1">
-                        <Clock className="h-4 w-4" />
-                        <span>Responds in {cleaner.response_time_hours}h</span>
+                        {cleaner.instant_booking && (
+                          <div className="flex items-center gap-1 text-green-600">
+                            <CheckCircle className="h-4 w-4" />
+                            <span>Instant Booking</span>
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Instant Contact Buttons */}
+                      <div className="flex gap-2">
+                        {cleaner.users?.phone && (
+                          <a 
+                            href={`tel:${cleaner.users.phone}`}
+                            className="bg-blue-600 text-white px-3 py-1 rounded-md hover:bg-blue-700 transition duration-300 text-xs flex items-center"
+                          >
+                            <Phone className="h-3 w-3 mr-1" />
+                            Call
+                          </a>
+                        )}
+                        <Link 
+                          href={`/quote-request?cleaner=${cleaner.id}`}
+                          className="bg-green-600 text-white px-3 py-1 rounded-md hover:bg-green-700 transition duration-300 text-xs flex items-center"
+                        >
+                          <MessageSquare className="h-3 w-3 mr-1" />
+                          Quote
+                        </Link>
                       </div>
                     </div>
                     {cleaner.business_description && (
-                      <p className="text-gray-600 text-sm mt-2 line-clamp-2">
+                      <p className="text-gray-600 text-sm line-clamp-2">
                         {cleaner.business_description}
                       </p>
                     )}
