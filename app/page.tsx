@@ -97,32 +97,20 @@ export default function HomePage() {
     <div className="min-h-screen">
       {/* Hero Section */}
       <section className="relative min-h-screen flex flex-col pt-16 sm:pt-20">
-        {/* Hero Background Image - Responsive positioning */}
+        {/* Hero Background Image */}
         <div 
-          className="absolute inset-0 bg-blue-50 sm:bg-transparent"
-        >
-          {/* Mobile: Show full cat mascot with contain */}
-          <div 
-            className="block sm:hidden absolute inset-0 bg-no-repeat bg-center"
-            style={{
-              backgroundImage: "url('/images/ChatGPT Image Aug 5, 2025, 05_04_11 PM.png')",
-              backgroundSize: 'contain',
-            }}
-          />
-          {/* Desktop: Original cover behavior */}
-          <div 
-            className="hidden sm:block absolute inset-0 bg-cover bg-no-repeat"
-            style={{
-              backgroundImage: "url('/images/ChatGPT Image Aug 5, 2025, 05_04_11 PM.png')",
-              backgroundPosition: 'center 30%',
-            }}
-          />
-        </div>
+          className="absolute inset-0 bg-cover bg-no-repeat"
+          style={{
+            backgroundImage: "url('/images/ChatGPT Image Aug 5, 2025, 05_04_11 PM.png')",
+            backgroundPosition: 'center 20%',
+            backgroundSize: 'cover'
+          }}
+        />
         
         {/* Content Container */}
         <div className="relative flex-1 flex flex-col justify-end">
           {/* Upper section - Let the cat CEO shine */}
-          <div className="flex-1 min-h-[45vh] sm:min-h-[40vh] md:min-h-[50vh]"></div>
+          <div className="flex-1 min-h-[50vh] sm:min-h-[55vh] md:min-h-[60vh]"></div>
           
           {/* Lower section - Text and Search Form */}
           <div className="bg-gradient-to-t from-white/98 via-white/95 to-white/85 backdrop-blur-sm">
