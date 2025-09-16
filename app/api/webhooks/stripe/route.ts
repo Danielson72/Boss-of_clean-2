@@ -1,38 +1,49 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { headers } from 'next/headers';
-import { stripe } from '@/lib/stripe/config';
+import { getStripe } from '@/lib/stripe/config';
 import { subscriptionService } from '@/lib/stripe/subscription-service';
 
 export async function POST(req: NextRequest) {
-  const body = await req.text();
-  const signature = headers().get('stripe-signature');
-
-  if (!signature) {
-    return NextResponse.json(
-      { error: 'No signature provided' },
-      { status: 400 }
-    );
-  }
-
-  let event;
-
   try {
-    event = stripe.webhooks.constructEvent(
-      body,
-      signature,
-      process.env.STRIPE_WEBHOOK_SECRET!
-    );
-  } catch (err: any) {
-    console.error('Webhook signature verification failed:', err.message);
-    return NextResponse.json(
-      { error: 'Invalid signature' },
-      { status: 400 }
-    );
-  }
+    // Check for required env vars at runtime
+    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+    if (!webhookSecret) {
+      console.error('STRIPE_WEBHOOK_SECRET is required');
+      return NextResponse.json(
+        { error: 'Webhook configuration missing' },
+        { status: 500 }
+      );
+    }
 
-  console.log('Processing Stripe webhook:', event.type);
+    const stripe = getStripe();
+    const body = await req.text();
+    const signature = headers().get('stripe-signature');
 
-  try {
+    if (!signature) {
+      return NextResponse.json(
+        { error: 'No signature provided' },
+        { status: 400 }
+      );
+    }
+
+    let event;
+
+    try {
+      event = stripe.webhooks.constructEvent(
+        body,
+        signature,
+        webhookSecret
+      );
+    } catch (err: any) {
+      console.error('Webhook signature verification failed:', err.message);
+      return NextResponse.json(
+        { error: 'Invalid signature' },
+        { status: 400 }
+      );
+    }
+
+    console.log('Processing Stripe webhook:', event.type);
+    
     switch (event.type) {
       case 'checkout.session.completed':
         const session = event.data.object;
@@ -67,6 +78,7 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({ received: true });
+    
   } catch (error) {
     console.error('Error processing webhook:', error);
     return NextResponse.json(

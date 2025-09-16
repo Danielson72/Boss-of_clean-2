@@ -1,84 +1,107 @@
-import Stripe from 'stripe';
+import Stripe from 'stripe'
 
-// Initialize Stripe
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_dummy', {
-  apiVersion: '2025-07-30.basil',
-});
+// Create Stripe instance lazily to avoid build-time errors
+let stripeInstance: Stripe | null = null
 
-// Subscription tiers configuration
-export const SUBSCRIPTION_TIERS = {
+export function getStripe(): Stripe {
+  if (!stripeInstance) {
+    const secretKey = process.env.STRIPE_SECRET_KEY
+    if (!secretKey) {
+      throw new Error('STRIPE_SECRET_KEY is not set')
+    }
+    stripeInstance = new Stripe(secretKey, {
+      apiVersion: '2025-07-30.basil',
+      typescript: true,
+    })
+  }
+  return stripeInstance
+}
+
+// Export for backward compatibility
+export const stripe = new Proxy({} as Stripe, {
+  get(target, prop) {
+    return getStripe()[prop as keyof Stripe]
+  }
+})
+
+// Test mode price IDs - these should be replaced with actual Stripe price IDs
+export const STRIPE_PRICES = {
+  basic: process.env.STRIPE_BASIC_PRICE_ID || 'price_test_basic_monthly',
+  pro: process.env.STRIPE_PRO_PRICE_ID || 'price_test_pro_monthly',
+  enterprise: process.env.STRIPE_ENTERPRISE_PRICE_ID || 'price_test_enterprise_monthly',
+} as const
+
+export type SubscriptionTier = 'free' | 'pro' | 'enterprise'
+
+export const PLAN_DETAILS = {
   free: {
     name: 'Free',
     price: 0,
-    priceId: null,
-    features: {
-      max_photos: 1,
-      priority_placement: false,
-      analytics: false,
-      featured: false,
-      lead_generation: false,
-      customer_support: 'basic',
-      quote_responses: 5,
-    },
-    description: 'Basic listing only',
-  },
-  basic: {
-    name: 'Basic',
-    price: 29,
-    priceId: process.env.STRIPE_BASIC_PRICE_ID!,
-    features: {
-      max_photos: 5,
-      priority_placement: false,
-      analytics: true,
-      featured: false,
-      lead_generation: false,
-      customer_support: 'email',
-      quote_responses: 50,
-    },
-    description: 'Enhanced features, 5 photos, basic analytics',
+    features: [
+      'Basic business listing',
+      '1 photo only',
+      'Contact information display',
+      'Basic customer reviews',
+      'Email support'
+    ]
   },
   pro: {
-    name: 'Pro',
+    name: 'Professional',
     price: 79,
-    priceId: process.env.STRIPE_PRO_PRICE_ID!,
-    features: {
-      max_photos: -1, // unlimited
-      priority_placement: true,
-      analytics: true,
-      featured: false,
-      lead_generation: true,
-      customer_support: 'priority',
-      quote_responses: 200,
-    },
-    description: 'Priority placement, unlimited photos, lead generation',
+    priceId: STRIPE_PRICES.pro,
+    features: [
+      'Premium business listing',
+      'Unlimited photos',
+      'Priority in search results',
+      'Advanced review management',
+      'Lead contact information',
+      'Business analytics',
+      'Phone & email support'
+    ]
   },
   enterprise: {
     name: 'Enterprise',
     price: 149,
-    priceId: process.env.STRIPE_ENTERPRISE_PRICE_ID!,
-    features: {
-      max_photos: -1,
-      priority_placement: true,
-      analytics: true,
-      featured: true,
-      lead_generation: true,
-      customer_support: 'phone',
-      quote_responses: -1, // unlimited
-      priority_support: true,
-      custom_branding: true,
-    },
-    description: 'Featured placement, advanced analytics, priority support',
-  },
-} as const;
+    priceId: STRIPE_PRICES.enterprise,
+    features: [
+      'Featured business listing',
+      'Unlimited photos & videos',
+      'Top placement in search',
+      'Full review management suite',
+      'Direct customer messaging',
+      'Advanced analytics & insights',
+      'Multiple location support',
+      'Dedicated account manager',
+      '24/7 priority support'
+    ]
+  }
+} as const
 
-export type SubscriptionTier = keyof typeof SUBSCRIPTION_TIERS;
+export const SUBSCRIPTION_TIERS = PLAN_DETAILS
 
-// Webhook events we handle
-export const STRIPE_WEBHOOK_EVENTS = [
-  'checkout.session.completed',
-  'invoice.payment_succeeded',
-  'invoice.payment_failed',
-  'customer.subscription.created',
-  'customer.subscription.updated',
-  'customer.subscription.deleted',
-] as const;
+/**
+ * Verify webhook signature from Stripe
+ */
+export function verifyWebhookSignature(
+  body: string,
+  signature: string,
+  secret: string
+): Stripe.Event {
+  try {
+    return stripe.webhooks.constructEvent(body, signature, secret)
+  } catch (err) {
+    console.error('Webhook signature verification failed:', err)
+    throw new Error('Invalid webhook signature')
+  }
+}
+
+/**
+ * Get site URL for redirects
+ */
+export function getSiteUrl(): string {
+  const siteUrl = process.env.SITE_URL || process.env.NEXT_PUBLIC_SITE_URL
+  if (!siteUrl) {
+    throw new Error('SITE_URL or NEXT_PUBLIC_SITE_URL must be set')
+  }
+  return siteUrl
+}

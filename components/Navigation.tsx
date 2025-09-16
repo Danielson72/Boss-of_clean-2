@@ -4,6 +4,8 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/context/AuthContext';
 import { Menu, X, User, LogOut, Settings, Home, Search } from 'lucide-react';
+// NEW: Import UserNav for Supabase auth integration
+import UserNav from '@/components/auth/UserNav';
 
 export default function Navigation() {
   const { user, isCustomer, isCleaner, signOut } = useAuth();
@@ -42,6 +44,10 @@ export default function Navigation() {
               About
             </Link>
             
+            {/* NEW: Supabase auth integration with UserNav */}
+            <UserNav />
+            
+            {/* OLD: AuthContext-based UI (commented out)
             {user ? (
               <div className="flex items-center space-x-4">
                 <Link
@@ -75,6 +81,7 @@ export default function Navigation() {
                 </Link>
               </div>
             )}
+            */}
           </div>
 
           {/* Mobile menu button */}
@@ -118,6 +125,21 @@ export default function Navigation() {
               About
             </Link>
             
+            {/* NEW: Mobile auth links for Supabase */}
+            <Link
+              href="/login"
+              className="block px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md transition duration-300"
+            >
+              Sign In
+            </Link>
+            <Link
+              href="/signup"
+              className="block px-3 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-md transition duration-300 text-center"
+            >
+              Sign Up
+            </Link>
+            
+            {/* OLD: AuthContext-based mobile UI (commented out)
             {user ? (
               <>
                 <Link
@@ -149,6 +171,7 @@ export default function Navigation() {
                 </Link>
               </>
             )}
+            */}
           </div>
         </div>
       )}

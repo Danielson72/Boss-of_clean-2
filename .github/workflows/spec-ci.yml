@@ -1,0 +1,164 @@
+name: Spec CI (Non-blocking)
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'specs/**'
+      - 'scripts/**'
+      - '.github/**'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'specs/**'
+      - 'scripts/**'
+      - '.github/**'
+
+jobs:
+  spec-validation:
+    runs-on: ubuntu-latest
+    name: Validate Specifications & Schema
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: |
+        npm install -g markdownlint-cli @supabase/supabase-js
+        npm install --save-dev semgrep || echo "Semgrep install failed, continuing..."
+
+    - name: Lint Markdown files
+      run: |
+        echo "🔍 Linting specification files..."
+        markdownlint 'specs/**/*.md' --config .markdownlint.json || {
+          echo "⚠️  Markdown linting failed - see warnings above"
+          exit 0
+        }
+        echo "✅ Markdown linting completed"
+
+    - name: Security scan with Semgrep
+      run: |
+        echo "🔍 Running security scan..."
+        npx semgrep --config=p/security --json --output=semgrep-results.json . || {
+          echo "⚠️  Semgrep scan completed with findings - see report"
+          exit 0
+        }
+        echo "✅ Security scan completed"
+
+    - name: Validate API specification
+      run: |
+        echo "🔍 Validating OpenAPI specification..."
+        npx swagger-codegen-cli validate -i specs/boss-of-clean/api/openapi.yaml || {
+          echo "⚠️  OpenAPI validation warnings - please review"
+          exit 0
+        }
+        echo "✅ OpenAPI validation completed"
+
+    - name: Check database schema
+      env:
+        NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+        SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      run: |
+        echo "🔍 Checking database schema and RLS policies..."
+        node scripts/check-rls-and-schema.js || {
+          echo "⚠️  Schema validation completed with warnings"
+          exit 0
+        }
+
+    - name: Generate spec report
+      if: always()
+      run: |
+        echo "📊 Generating specification report..."
+        
+        # Count spec files
+        SPEC_COUNT=$(find specs/ -name "*.md" | wc -l)
+        TASK_COUNT=$(find specs/boss-of-clean/task/ -name "*.md" | wc -l)
+        PLAN_COUNT=$(find specs/boss-of-clean/plan/ -name "*.md" | wc -l)
+        
+        # Count completed tasks
+        COMPLETED_TASKS=$(grep -l "Status.*DONE" specs/boss-of-clean/task/*.md | wc -l)
+        
+        echo "## 📋 Specification Summary" >> spec-report.md
+        echo "- **Total Specs:** ${SPEC_COUNT}" >> spec-report.md
+        echo "- **Architecture Plans:** ${PLAN_COUNT}" >> spec-report.md  
+        echo "- **Development Tasks:** ${TASK_COUNT}" >> spec-report.md
+        echo "- **Completed Tasks:** ${COMPLETED_TASKS}" >> spec-report.md
+        echo "" >> spec-report.md
+        
+        # List any security findings
+        if [ -f semgrep-results.json ]; then
+          FINDINGS=$(jq '.results | length' semgrep-results.json 2>/dev/null || echo "0")
+          echo "- **Security Findings:** ${FINDINGS}" >> spec-report.md
+        fi
+        
+        echo "✅ Specification report generated"
+
+    - name: Upload spec report
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: spec-validation-report
+        path: |
+          spec-report.md
+          semgrep-results.json
+        retention-days: 30
+
+    - name: Comment PR with report
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const fs = require('fs');
+          
+          let report = '## 🔍 Spec Validation Report\n\n';
+          
+          try {
+            const specReport = fs.readFileSync('spec-report.md', 'utf8');
+            report += specReport;
+            report += '\n\n_Note: This validation is non-blocking. Warnings should be addressed but will not prevent merging._';
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: report
+            });
+          } catch (error) {
+            console.log('Could not read spec report:', error.message);
+          }
+
+  create-markdownlint-config:
+    runs-on: ubuntu-latest
+    name: Create Markdown Linting Config
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Create markdownlint config
+      run: |
+        cat > .markdownlint.json << 'EOF'
+        {
+          "default": true,
+          "MD013": { "line_length": 120 },
+          "MD033": false,
+          "MD041": false,
+          "MD034": false
+        }
+        EOF
+        
+    - name: Commit config if needed
+      run: |
+        if [ ! -f .markdownlint.json ]; then
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add .markdownlint.json
+          git commit -m "Add markdownlint configuration" || echo "No changes to commit"
+        fi

@@ -288,9 +288,28 @@ export default function QuoteRequestPage() {
           {/* Quote Request Form */}
           <div className="lg:col-span-2">
             <div className="bg-white rounded-lg shadow-sm border p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6">
-                Tell us about your cleaning needs
-              </h2>
+              <div className="mb-6">
+                <h2 className="text-xl font-semibold text-gray-900 mb-2">
+                  Tell us about your cleaning needs
+                </h2>
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <p className="text-blue-700 text-sm flex items-center">
+                    <CheckCircle className="h-4 w-4 mr-2" />
+                    ✨ Free quotes • No obligations • Get response in 24 hours
+                  </p>
+                </div>
+              </div>
+
+              {/* Progress Indicator */}
+              <div className="mb-6">
+                <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
+                  <span>Step 1 of 3: Service Details</span>
+                  <span>2 minutes to complete</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div className="bg-blue-600 h-2 rounded-full w-1/3"></div>
+                </div>
+              </div>
 
               <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Service Details */}
