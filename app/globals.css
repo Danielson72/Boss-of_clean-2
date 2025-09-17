@@ -80,3 +80,23 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Hero Mobile Optimization */
+@layer utilities {
+  .hero-mobile-fit {
+    background-size: contain;
+    background-position: 50% 20%;
+  }
+
+  @media (min-width: 768px) {
+    .hero-mobile-fit {
+      background-size: cover;
+      background-position: center;
+    }
+  }
+
+  /* Ensure smooth transitions */
+  .hero-transition {
+    transition: background-size 0.3s ease, background-position 0.3s ease;
+  }
+}

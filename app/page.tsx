@@ -96,7 +96,7 @@ export default function HomePage() {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative min-h-screen flex flex-col pt-16 sm:pt-20">
+      <section className="relative h-[78vh] sm:h-[82vh] md:h-[80vh] flex flex-col pt-8 sm:pt-10 md:pt-12">
         {/* Hero Background Image - Desktop */}
         <div 
           className="hidden sm:block absolute inset-0 bg-cover bg-no-repeat"
@@ -108,12 +108,12 @@ export default function HomePage() {
         />
         
         {/* Hero Background Image - Mobile (shows full scene) */}
-        <div 
+        <div
           className="block sm:hidden absolute inset-0"
           style={{
             backgroundImage: "url('/images/ChatGPT Image Aug 5, 2025, 05_04_11 PM.png')",
-            backgroundPosition: 'center center',
-            backgroundSize: '150% auto',
+            backgroundPosition: '50% 20%',
+            backgroundSize: 'contain',
             backgroundRepeat: 'no-repeat',
             backgroundColor: '#e0f2fe'
           }}
@@ -122,7 +122,7 @@ export default function HomePage() {
         {/* Content Container */}
         <div className="relative flex-1 flex flex-col justify-end">
           {/* Upper section - Let the cat CEO shine */}
-          <div className="flex-1 min-h-[55vh] sm:min-h-[55vh] md:min-h-[60vh]"></div>
+          <div className="flex-1 min-h-[40vh] sm:min-h-[45vh] md:min-h-[50vh]"></div>
           
           {/* Lower section - Text and Search Form */}
           <div className="bg-gradient-to-t from-white/98 via-white/95 to-white/85 backdrop-blur-sm">
