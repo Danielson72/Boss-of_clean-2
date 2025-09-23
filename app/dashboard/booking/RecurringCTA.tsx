@@ -170,7 +170,7 @@ export function RecurringCTA({ userTier }: RecurringCTAProps) {
             ) : (
               <>
                 <Crown className="w-4 h-4 mr-2" />
-                {config.upgradeText}
+                {config.canAccess ? 'Set Up Recurring Service' : 'Upgrade to Growth ($29.99/mo)'}
               </>
             )}
           </Button>
@@ -179,7 +179,7 @@ export function RecurringCTA({ userTier }: RecurringCTAProps) {
         {/* Purrfection tagline */}
         <div className="text-center pt-2">
           <p className="text-xs text-gray-500 italic">
-            "Purrfection is our Standard" - Consistency you can trust
+            &quot;Purrfection is our Standard&quot; - Consistency you can trust
           </p>
         </div>
       </CardContent>

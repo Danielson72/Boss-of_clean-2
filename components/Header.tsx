@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Menu, X, Search, Phone, Mail, User, LogOut } from 'lucide-react';
+import { Menu, X, Search, Phone, Mail, User, LogOut, History } from 'lucide-react';
 import { useAuth } from '@/lib/context/AuthContext';
 
 export default function Header() {
@@ -45,6 +45,10 @@ export default function Header() {
                     <Link href="/dashboard" className="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium flex items-center">
                       <User className="h-4 w-4 mr-1" />
                       Dashboard
+                    </Link>
+                    <Link href="/dashboard/booking" className="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium flex items-center">
+                      <History className="h-4 w-4 mr-1" />
+                      My History
                     </Link>
                     <button 
                       onClick={signOut}
@@ -128,6 +132,14 @@ export default function Header() {
                       >
                         <User className="h-4 w-4 mr-2" />
                         Dashboard
+                      </Link>
+                      <Link
+                        href="/dashboard/booking"
+                        className="text-gray-700 hover:text-blue-600 block px-3 py-2 text-base font-medium flex items-center"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        <History className="h-4 w-4 mr-2" />
+                        My History
                       </Link>
                       <button 
                         onClick={() => {

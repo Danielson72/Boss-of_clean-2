@@ -63,14 +63,18 @@ export interface CreateQuoteRequestData {
 export class QuoteService {
   private supabase = createClient();
 
-  async createQuoteRequest(customerId: string, data: CreateQuoteRequestData): Promise<QuoteRequest> {
+  async createQuoteRequest(customerId: string, data: CreateQuoteRequestData, customerInfo?: { name: string; email: string; phone: string }): Promise<QuoteRequest> {
     const quoteData = {
       customer_id: customerId,
       ...data,
       contact_method: data.contact_method || 'email',
       urgent: data.urgent || false,
-      flexible_scheduling: data.flexible_scheduling || false,
+      flexible_scheduling: data.flexible_scheduling !== false, // Default to true
       status: 'pending' as const,
+      // Store customer info directly in quote for temporary users
+      customer_name: customerInfo?.name,
+      customer_email: customerInfo?.email,
+      customer_phone: customerInfo?.phone,
     };
 
     const { data: quote, error } = await this.supabase
