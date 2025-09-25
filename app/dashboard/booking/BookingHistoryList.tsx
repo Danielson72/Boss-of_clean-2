@@ -75,7 +75,7 @@ export function BookingHistoryList({
       </div>
 
       {bookings.length === 0 ? (
-        <Card className="text-center py-12">
+        <Card className="text-center py-12" data-testid="empty-state">
           <CardContent>
             <div className="w-16 h-16 mx-auto mb-4 bg-blue-100 rounded-full flex items-center justify-center">
               <Calendar className="w-8 h-8 text-blue-600" />
@@ -90,15 +90,15 @@ export function BookingHistoryList({
       ) : (
         <>
           {bookings.map((booking) => (
-            <Card key={booking.id} className="hover:shadow-md transition-shadow">
+            <Card key={booking.id} className="hover:shadow-md transition-shadow" data-testid="booking-card">
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div className="space-y-1">
-                    <CardTitle className="text-lg font-medium">
+                    <CardTitle className="text-lg font-medium" data-testid="service-type">
                       {booking.service_type}
                     </CardTitle>
                     <div className="flex items-center gap-4 text-sm text-gray-600">
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-1" data-testid="booking-date">
                         <Calendar className="w-4 h-4" />
                         {formatDate(booking.scheduled_date)}
                       </div>
@@ -113,6 +113,7 @@ export function BookingHistoryList({
                       statusConfig[booking.status].color,
                       "text-xs font-medium px-2 py-1"
                     )}
+                    data-testid="status-badge"
                   >
                     {statusConfig[booking.status].label}
                   </Badge>
@@ -127,7 +128,7 @@ export function BookingHistoryList({
                   </div>
 
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1 text-sm font-medium text-gray-900">
+                    <div className="flex items-center gap-1 text-sm font-medium text-gray-900" data-testid="total-amount">
                       <DollarSign className="w-4 h-4" />
                       {formatCurrency(booking.total_amount)}
                     </div>
@@ -144,6 +145,7 @@ export function BookingHistoryList({
                         size="sm"
                         onClick={() => setSelectedBooking(booking)}
                         className="flex items-center gap-1"
+                        data-testid="view-details"
                       >
                         <Eye className="w-4 h-4" />
                         View Details
@@ -182,6 +184,7 @@ export function BookingHistoryList({
                 onClick={onLoadMore}
                 disabled={loading}
                 className="min-w-32"
+                data-testid="load-more"
               >
                 {loading ? 'Loading...' : 'Load More'}
               </Button>

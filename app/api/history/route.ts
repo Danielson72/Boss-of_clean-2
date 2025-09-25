@@ -1,11 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 // import type { Database } from '@/lib/supabase/database.types';
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = createRouteHandlerClient({ cookies });
+    const cookieStore = cookies();
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          get(name: string) {
+            return cookieStore.get(name)?.value;
+          },
+          set(name: string, value: string, options) {
+            // In API routes, we can't set cookies on the request
+            // but we can set them on the response if needed
+          },
+          remove(name: string, options) {
+            // In API routes, we can't remove cookies from the request
+            // but we can remove them from the response if needed
+          },
+        },
+      }
+    );
 
     // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -29,7 +48,7 @@ export async function GET(request: NextRequest) {
     // Calculate offset for pagination
     const offset = (page - 1) * limit;
 
-    // Build the base query
+    // Build the base query - simplified to avoid complex joins that might fail
     let query = supabase
       .from('booking_history')
       .select(`
@@ -49,13 +68,7 @@ export async function GET(request: NextRequest) {
         duration_hours,
         created_at,
         updated_at,
-        cleaners!inner(
-          user_id,
-          business_name,
-          users!inner(
-            full_name
-          )
-        )
+        cleaner_id
       `)
       .eq('customer_id', user.id)
       .order('service_date', { ascending: false })
@@ -96,30 +109,50 @@ export async function GET(request: NextRequest) {
       throw new Error(`Failed to fetch bookings: ${error.message}`);
     }
 
+    // Get cleaner information separately to avoid join failures
+    const cleanerIds = bookings?.map(b => b.cleaner_id).filter(Boolean) || [];
+    const cleanerNames: { [key: string]: string } = {};
+
+    if (cleanerIds.length > 0) {
+      try {
+        const { data: cleanersData } = await supabase
+          .from('cleaners')
+          .select('id, business_name, user_id, users(full_name)')
+          .in('id', cleanerIds);
+
+        cleanersData?.forEach(cleaner => {
+          if (cleaner.id) {
+            cleanerNames[cleaner.id] = cleaner.business_name ||
+                                     (cleaner.users as any)?.full_name ||
+                                     'Unknown Cleaner';
+          }
+        });
+      } catch (cleanerError) {
+        console.warn('Failed to fetch cleaner names:', cleanerError);
+      }
+    }
+
     // Transform the data to match our interface
-    const transformedBookings = bookings?.map(booking => {
-      const cleanerData = booking.cleaners as any;
-      return {
-        id: booking.id,
-        service_type: booking.service_type,
-        scheduled_date: booking.service_date,
-        scheduled_time: booking.service_time || '09:00',
-        address: booking.address,
-        city: booking.city,
-        zip_code: booking.zip_code,
-        status: booking.status as 'completed' | 'cancelled' | 'in_progress' | 'scheduled',
-        total_amount: booking.total_amount || 0,
-        cleaner_name: cleanerData?.business_name || cleanerData?.users?.full_name || 'Unknown',
-        photos_before: booking.before_photos || [],
-        photos_after: booking.after_photos || [],
-        rating: booking.rating,
-        notes: booking.notes,
-        service_date: booking.service_date,
-        duration_hours: booking.duration_hours,
-        created_at: booking.created_at,
-        updated_at: booking.updated_at
-      };
-    }) || [];
+    const transformedBookings = bookings?.map(booking => ({
+      id: booking.id,
+      service_type: booking.service_type,
+      scheduled_date: booking.service_date,
+      scheduled_time: booking.service_time || '09:00',
+      address: booking.address,
+      city: booking.city,
+      zip_code: booking.zip_code,
+      status: booking.status as 'completed' | 'cancelled' | 'in_progress' | 'scheduled',
+      total_amount: booking.total_amount || 0,
+      cleaner_name: cleanerNames[booking.cleaner_id] || 'Boss of Clean Service',
+      photos_before: booking.before_photos || [],
+      photos_after: booking.after_photos || [],
+      rating: booking.rating,
+      notes: booking.notes,
+      service_date: booking.service_date,
+      duration_hours: booking.duration_hours,
+      created_at: booking.created_at,
+      updated_at: booking.updated_at
+    })) || [];
 
     // Calculate pagination metadata
     const total = totalCount || 0;

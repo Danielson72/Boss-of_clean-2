@@ -73,7 +73,7 @@ export function RecurringCTA({ userTier }: RecurringCTAProps) {
       config.canAccess
         ? "border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50"
         : "border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50"
-    )}>
+    )} data-testid="recurring-cta">
       {/* CEO Cat Mascot Corner */}
       <div className="absolute top-4 right-4">
         <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center shadow-lg">

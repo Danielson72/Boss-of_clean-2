@@ -55,7 +55,7 @@ export default function BookingHistoryClient({ userTier }: BookingHistoryClientP
 
   if (hasError) {
     return (
-      <Card className="max-w-2xl mx-auto">
+      <Card className="max-w-2xl mx-auto" data-testid="error-message">
         <CardContent className="pt-6 text-center">
           <div className="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
             <X className="w-8 h-8 text-red-600" />
@@ -101,6 +101,7 @@ export default function BookingHistoryClient({ userTier }: BookingHistoryClientP
                 size="sm"
                 onClick={refresh}
                 disabled={loading}
+                data-testid="refresh-button"
               >
                 <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
               </Button>
@@ -121,16 +122,17 @@ export default function BookingHistoryClient({ userTier }: BookingHistoryClientP
                   onValueChange={(value) =>
                     setTempFilters(prev => ({ ...prev, status: value === 'all' ? '' : value }))
                   }
+                  data-testid="status-filter"
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="All statuses" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Statuses</SelectItem>
-                    <SelectItem value="completed">Completed</SelectItem>
-                    <SelectItem value="scheduled">Scheduled</SelectItem>
-                    <SelectItem value="in_progress">In Progress</SelectItem>
-                    <SelectItem value="cancelled">Cancelled</SelectItem>
+                    <SelectItem value="all" data-testid="status-all">All Statuses</SelectItem>
+                    <SelectItem value="completed" data-testid="status-completed">Completed</SelectItem>
+                    <SelectItem value="scheduled" data-testid="status-scheduled">Scheduled</SelectItem>
+                    <SelectItem value="in_progress" data-testid="status-in_progress">In Progress</SelectItem>
+                    <SelectItem value="cancelled" data-testid="status-cancelled">Cancelled</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -145,17 +147,18 @@ export default function BookingHistoryClient({ userTier }: BookingHistoryClientP
                   onValueChange={(value) =>
                     setTempFilters(prev => ({ ...prev, service_type: value === 'all' ? '' : value }))
                   }
+                  data-testid="service-type-filter"
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="All services" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Services</SelectItem>
-                    <SelectItem value="house-cleaning">House Cleaning</SelectItem>
-                    <SelectItem value="deep-cleaning">Deep Cleaning</SelectItem>
-                    <SelectItem value="office-cleaning">Office Cleaning</SelectItem>
-                    <SelectItem value="move-in-out">Move In/Out</SelectItem>
-                    <SelectItem value="carpet-cleaning">Carpet Cleaning</SelectItem>
+                    <SelectItem value="all" data-testid="service-all">All Services</SelectItem>
+                    <SelectItem value="house-cleaning" data-testid="service-house-cleaning">House Cleaning</SelectItem>
+                    <SelectItem value="deep-cleaning" data-testid="service-deep-cleaning">Deep Cleaning</SelectItem>
+                    <SelectItem value="office-cleaning" data-testid="service-office-cleaning">Office Cleaning</SelectItem>
+                    <SelectItem value="move-in-out" data-testid="service-move-in-out">Move In/Out</SelectItem>
+                    <SelectItem value="carpet-cleaning" data-testid="service-carpet-cleaning">Carpet Cleaning</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -171,6 +174,7 @@ export default function BookingHistoryClient({ userTier }: BookingHistoryClientP
                   onChange={(e) =>
                     setTempFilters(prev => ({ ...prev, date_from: e.target.value }))
                   }
+                  data-testid="date-from"
                 />
               </div>
 
@@ -185,13 +189,14 @@ export default function BookingHistoryClient({ userTier }: BookingHistoryClientP
                   onChange={(e) =>
                     setTempFilters(prev => ({ ...prev, date_to: e.target.value }))
                   }
+                  data-testid="date-to"
                 />
               </div>
             </div>
 
             {/* Filter Actions */}
             <div className="flex items-center gap-2 mt-4 pt-4 border-t">
-              <Button onClick={handleApplyFilters} size="sm">
+              <Button onClick={handleApplyFilters} size="sm" data-testid="apply-filters">
                 <Search className="w-4 h-4 mr-1" />
                 Apply Filters
               </Button>
@@ -200,6 +205,7 @@ export default function BookingHistoryClient({ userTier }: BookingHistoryClientP
                 size="sm"
                 onClick={handleClearFilters}
                 disabled={!hasActiveFilters}
+                data-testid="clear-filters"
               >
                 Clear All
               </Button>
@@ -223,17 +229,19 @@ export default function BookingHistoryClient({ userTier }: BookingHistoryClientP
       )}
 
       {/* Booking History List */}
-      <BookingHistoryList
-        bookings={bookings}
-        onLoadMore={loadMore}
-        hasMore={pagination.hasMore}
-        loading={loading}
-        userTier={userTier}
-      />
+      <div data-testid="booking-history-list">
+        <BookingHistoryList
+          bookings={bookings}
+          onLoadMore={loadMore}
+          hasMore={pagination.hasMore}
+          loading={loading}
+          userTier={userTier}
+        />
+      </div>
 
       {/* Empty State for initial load */}
       {isInitialLoad && loading && (
-        <Card>
+        <Card data-testid="loading-indicator">
           <CardContent className="pt-6 text-center">
             <div className="w-16 h-16 mx-auto mb-4 bg-blue-100 rounded-full flex items-center justify-center">
               <RefreshCw className="w-8 h-8 text-blue-600 animate-spin" />

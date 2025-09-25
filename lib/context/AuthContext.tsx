@@ -80,18 +80,29 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
-    return { error };
+
+    if (error) {
+      return { error };
+    }
+
+    // Wait for auth state to be updated
+    if (data.session) {
+      setUser(data.session.user as AuthUser);
+    }
+
+    return { error: null };
   };
 
   const signOut = async () => {
     await supabase.auth.signOut();
   };
 
-  const isCustomer = Boolean(user?.user_metadata?.role === 'customer' || (!user?.user_metadata?.role && user));
+  // Default all authenticated users to customer role if no role specified
+  const isCustomer = Boolean(user && (user?.user_metadata?.role === 'customer' || !user?.user_metadata?.role));
   const isCleaner = Boolean(user?.user_metadata?.role === 'cleaner');
 
   const value = {

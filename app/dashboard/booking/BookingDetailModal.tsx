@@ -98,7 +98,7 @@ export function BookingDetailModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" data-testid="booking-detail-modal">
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle className="flex items-center gap-2">
@@ -120,7 +120,7 @@ export function BookingDetailModal({
 
         <div className="space-y-6">
           {/* Service Information */}
-          <Card>
+          <Card data-testid="booking-service-info">
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <FileText className="w-5 h-5" />
@@ -195,7 +195,7 @@ export function BookingDetailModal({
 
                   {/* Photo Carousel */}
                   <div className="relative">
-                    <Carousel className="w-full">
+                    <Carousel className="w-full" data-testid="photo-carousel">
                       <CarouselContent>
                         {(activePhotoSet === 'before' ? booking.photos_before : booking.photos_after)?.map((photo, index) => (
                           <CarouselItem key={index}>
