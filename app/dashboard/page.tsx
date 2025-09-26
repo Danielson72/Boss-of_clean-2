@@ -1,35 +1,65 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { ProtectedRoute } from '@/lib/auth/protected-route';
+import ErrorBoundary from '@/lib/components/ErrorBoundary';
 
-export default function DashboardPage() {
-  const { user, isCustomer, isCleaner } = useAuth();
+function DashboardRedirect() {
+  const { user, isCustomer, isCleaner, loading } = useAuth();
   const router = useRouter();
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   useEffect(() => {
-    if (user) {
-      if (isCleaner) {
-        router.push('/dashboard/cleaner');
-      } else if (isCustomer) {
-        router.push('/dashboard/customer');
-      } else {
-        // Default to customer dashboard if role is unclear
-        router.push('/dashboard/customer');
+    // Don't redirect while auth is still loading
+    if (loading || isRedirecting) {
+      return;
+    }
+
+    // Only redirect if we have a user and haven't started redirecting
+    if (user && !isRedirecting) {
+      setIsRedirecting(true);
+
+      try {
+        // Add a small delay to ensure state has settled
+        const redirectTimer = setTimeout(() => {
+          if (isCleaner) {
+            router.push('/dashboard/cleaner');
+          } else if (isCustomer) {
+            router.push('/dashboard/customer');
+          } else {
+            // Default to customer dashboard if role is unclear
+            router.push('/dashboard/customer');
+          }
+        }, 100);
+
+        return () => clearTimeout(redirectTimer);
+      } catch (error) {
+        console.error('Dashboard redirect error:', error);
+        setIsRedirecting(false);
       }
     }
-  }, [user, isCustomer, isCleaner, router]);
+  }, [user, isCustomer, isCleaner, loading, router, isRedirecting]);
 
   return (
-    <ProtectedRoute>
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Redirecting to your dashboard...</p>
-        </div>
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+        <p className="text-gray-600">
+          {loading ? 'Checking authentication...' : 'Redirecting to your dashboard...'}
+        </p>
       </div>
-    </ProtectedRoute>
+    </div>
+  );
+}
+
+export default function DashboardPage() {
+  return (
+    <ErrorBoundary>
+      <ProtectedRoute>
+        <DashboardRedirect />
+      </ProtectedRoute>
+    </ErrorBoundary>
   );
 }

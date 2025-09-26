@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/context/AuthContext';
 import { ProtectedRoute } from '@/lib/auth/protected-route';
+import ErrorBoundary from '@/lib/components/ErrorBoundary';
 import { createClient } from '@/lib/supabase/client';
 import { 
   User, Settings, FileText, Clock, CheckCircle, 
@@ -55,13 +56,18 @@ export default function CustomerDashboard() {
   const supabase = createClient();
 
   useEffect(() => {
-    if (user) {
+    if (user?.id) {
       loadQuotes();
       loadProfile();
     }
-  }, [user]);
+  }, [user?.id]);
 
   const loadQuotes = async () => {
+    if (!user?.id) {
+      setLoading(false);
+      return;
+    }
+
     try {
       const { data, error } = await supabase
         .from('quote_requests')
@@ -73,51 +79,69 @@ export default function CustomerDashboard() {
             user:users(email)
           )
         `)
-        .eq('customer_id', user?.id)
+        .eq('customer_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
       setQuotes(data || []);
     } catch (error) {
       console.error('Error loading quotes:', error);
+      setQuotes([]);
     } finally {
       setLoading(false);
     }
   };
 
   const loadProfile = async () => {
+    if (!user?.id) {
+      return;
+    }
+
     try {
       const { data, error } = await supabase
         .from('users')
         .select('id, full_name, phone, address, city, zip_code, email')
-        .eq('id', user?.id)
+        .eq('id', user.id)
         .single();
 
       if (error && error.code !== 'PGRST116') throw error;
-      
+
       if (data) {
         setProfile(data);
       } else {
         // Create default profile if none exists
         const defaultProfile = {
-          id: user?.id || '',
+          id: user.id,
           full_name: '',
           phone: '',
           address: '',
           city: '',
           zip_code: '',
-          email: user?.email || ''
+          email: user.email || ''
         };
         setProfile(defaultProfile);
       }
     } catch (error) {
       console.error('Error loading profile:', error);
+      // Set a safe fallback profile on error
+      if (user?.id) {
+        const fallbackProfile = {
+          id: user.id,
+          full_name: '',
+          phone: '',
+          address: '',
+          city: '',
+          zip_code: '',
+          email: user.email || ''
+        };
+        setProfile(fallbackProfile);
+      }
     }
   };
 
   const handleProfileSave = async () => {
-    if (!profile) return;
-    
+    if (!profile || !user?.id) return;
+
     setSaving(true);
     try {
       const { error } = await supabase
@@ -130,16 +154,17 @@ export default function CustomerDashboard() {
           zip_code: profile.zip_code,
           updated_at: new Date().toISOString()
         })
-        .eq('id', user?.id);
+        .eq('id', user.id);
 
       if (error) throw error;
-      
+
       setMessage('Profile updated successfully!');
       setEditingProfile(false);
       setTimeout(() => setMessage(''), 3000);
     } catch (error) {
       console.error('Error saving profile:', error);
       setMessage('Error saving profile');
+      setTimeout(() => setMessage(''), 5000);
     } finally {
       setSaving(false);
     }
@@ -190,8 +215,9 @@ export default function CustomerDashboard() {
   };
 
   return (
-    <ProtectedRoute requireRole="customer">
-      <div className="min-h-screen bg-gray-50">
+    <ErrorBoundary>
+      <ProtectedRoute requireRole="customer">
+        <div className="min-h-screen bg-gray-50">
         {/* Header */}
         <div className="bg-white shadow-sm border-b">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -323,7 +349,7 @@ export default function CustomerDashboard() {
                             <div className="flex-1">
                               <div className="flex items-center gap-4 mb-3">
                                 <h3 className="text-lg font-semibold text-gray-900">
-                                  {quote.cleaner.business_name}
+                                  {quote.cleaner?.business_name || 'Unknown Cleaner'}
                                 </h3>
                                 <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm ${getStatusColor(quote.status)}`}>
                                   {getStatusIcon(quote.status)}
@@ -381,7 +407,7 @@ export default function CustomerDashboard() {
                               {quote.status === 'accepted' && (
                                 <div className="text-sm text-gray-600">
                                   <p className="font-medium">Contact:</p>
-                                  <p>{quote.cleaner.business_phone}</p>
+                                  <p>{quote.cleaner?.business_phone || 'No phone available'}</p>
                                 </div>
                               )}
                             </div>
@@ -583,7 +609,8 @@ export default function CustomerDashboard() {
             </div>
           </div>
         </div>
-      </div>
-    </ProtectedRoute>
+        </div>
+      </ProtectedRoute>
+    </ErrorBoundary>
   );
 }

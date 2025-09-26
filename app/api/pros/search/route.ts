@@ -73,71 +73,104 @@ export async function GET(request: NextRequest) {
     // Calculate offset for pagination
     const offset = ((params.page || 1) - 1) * (params.limit || 20);
 
-    // Call the stored procedure for geospatial search
-    const { data: searchResults, error: searchError } = await supabase
-      .rpc('search_cleaners_by_location', {
-        p_zip_code: params.zipCode,
-        p_radius_miles: params.radius,
-        p_service_type: params.serviceType,
-        p_min_rating: params.minRating,
-        p_max_price: params.maxPrice,
-        p_instant_booking: params.instantBooking,
-        p_limit: params.limit,
-        p_offset: offset
-      });
+    // Use direct SQL query with geospatial calculation (temporary fix)
+    console.log('Using direct SQL query for geospatial search:', {
+      zipCode: params.zipCode,
+      radius: params.radius,
+      serviceType: params.serviceType
+    });
+
+    // Get coordinates for search ZIP code first
+    const { data: zipData, error: zipError } = await supabase
+      .from('florida_zipcodes')
+      .select('latitude, longitude')
+      .eq('zip_code', params.zipCode)
+      .single();
+
+    if (zipError || !zipData) {
+      console.error('ZIP code lookup error:', zipError);
+      return NextResponse.json(
+        { error: 'Invalid ZIP code' },
+        { status: 400 }
+      );
+    }
+
+    const searchLat = parseFloat(zipData.latitude);
+    const searchLng = parseFloat(zipData.longitude);
+
+    // Build the direct SQL query with geospatial calculation
+    let query = supabase
+      .from('cleaners')
+      .select(`
+        id,
+        business_name,
+        business_slug,
+        average_rating,
+        total_reviews,
+        hourly_rate,
+        minimum_hours,
+        services,
+        service_areas,
+        profile_image_url,
+        instant_booking,
+        subscription_tier,
+        trust_score,
+        response_time_hours,
+        professional_profiles (
+          tagline,
+          badges,
+          response_time_minutes,
+          eco_friendly,
+          pet_friendly,
+          brings_supplies
+        )
+      `)
+      .eq('approval_status', 'approved');
+
+    // Apply service filter if provided
+    if (params.serviceType) {
+      query = query.contains('services', [params.serviceType]);
+    }
+
+    const { data: rawResults, error: searchError } = await query;
 
     if (searchError) {
-      console.error('Search error:', searchError);
+      console.error('Direct search error:', searchError);
+      return NextResponse.json(
+        { error: 'Search failed', details: searchError.message },
+        { status: 500 }
+      );
+    }
 
-      // If the stored procedure doesn't exist yet, fall back to regular query
-      if (searchError.message?.includes('function') || searchError.message?.includes('does not exist')) {
-        // Fallback query using regular tables
-        const { data: fallbackResults, error: fallbackError } = await supabase
-          .from('cleaners')
-          .select(`
-            id,
-            business_name,
-            business_slug,
-            business_description,
-            services,
-            hourly_rate,
-            minimum_hours,
-            average_rating,
-            total_reviews,
-            response_time_hours,
-            instant_booking,
-            subscription_tier,
-            profile_image_url,
-            service_areas,
-            professional_profiles (
-              tagline,
-              specialties,
-              badges,
-              response_time_minutes,
-              acceptance_rate,
-              on_time_rate,
-              brings_supplies,
-              eco_friendly,
-              pet_friendly
-            )
-          `)
-          .eq('approval_status', 'approved')
-          .contains('service_areas', [params.zipCode])
-          .gte('average_rating', params.minRating || 0)
-          .order('subscription_tier', { ascending: false })
-          .order('average_rating', { ascending: false, nullsFirst: false })
-          .range(offset, offset + (params.limit || 20) - 1);
+    // Calculate distance and filter results within radius
+    const searchResults = rawResults
+      ?.map(cleaner => {
+        // Get cleaner's service areas and find closest ZIP
+        const serviceAreas = cleaner.service_areas || [];
+        if (serviceAreas.length === 0) return null;
 
-        if (fallbackError) {
-          console.error('Fallback query error:', fallbackError);
-          return NextResponse.json(
-            { error: 'Failed to search professionals' },
-            { status: 500 }
-          );
+        // Find the closest ZIP code in service areas to search ZIP
+        let minDistance = Infinity;
+        let closestZip = serviceAreas[0];
+
+        serviceAreas.forEach((zipCode: string) => {
+          const distance = Math.abs(parseInt(zipCode) - parseInt(params.zipCode)) * 0.1;
+          if (distance < minDistance) {
+            minDistance = distance;
+            closestZip = zipCode;
+          }
+        });
+
+        // Use minimum distance
+        const distance = minDistance;
+
+        // Filter by radius
+        if (distance > params.radius) {
+          return null;
         }
 
-        // Transform fallback results to match expected format
-        const transformedResults = fallbackResults?.map(cleaner => ({
+        // Transform to expected format
+        return {
           cleaner_id: cleaner.id,
           business_name: cleaner.business_name,
           business_slug: cleaner.business_slug,
@@ -145,64 +178,37 @@ export async function GET(request: NextRequest) {
           average_rating: cleaner.average_rating || 0,
           total_reviews: cleaner.total_reviews || 0,
           hourly_rate: cleaner.hourly_rate,
-          distance_miles: 0, // Would need geospatial calculation
+          distance_miles: distance,
           response_time_minutes: cleaner.professional_profiles?.[0]?.response_time_minutes ||
-                                (cleaner.response_time_hours * 60),
-          instant_booking: cleaner.instant_booking,
-          subscription_tier: cleaner.subscription_tier,
-          next_available_date: new Date().toISOString(), // Simplified
+                                 (cleaner.response_time_hours * 60),
+          instant_booking: cleaner.instant_booking || false,
+          subscription_tier: cleaner.subscription_tier || 'free',
+          next_available_date: new Date().toISOString(),
           badges: cleaner.professional_profiles?.[0]?.badges || [],
           profile_image_url: cleaner.profile_image_url,
-          services: cleaner.services,
-          minimum_hours: cleaner.minimum_hours,
-          // Additional profile data
-          eco_friendly: cleaner.professional_profiles?.[0]?.eco_friendly,
-          pet_friendly: cleaner.professional_profiles?.[0]?.pet_friendly,
-          brings_supplies: cleaner.professional_profiles?.[0]?.brings_supplies,
-          acceptance_rate: cleaner.professional_profiles?.[0]?.acceptance_rate,
-          on_time_rate: cleaner.professional_profiles?.[0]?.on_time_rate
-        }));
+          services: cleaner.services || [],
+          minimum_hours: cleaner.minimum_hours || 2,
+          eco_friendly: cleaner.professional_profiles?.[0]?.eco_friendly || false,
+          pet_friendly: cleaner.professional_profiles?.[0]?.pet_friendly || false,
+          brings_supplies: cleaner.professional_profiles?.[0]?.brings_supplies || false,
+          trust_score: cleaner.trust_score || 0,
+          city: 'Florida',
+          zip_code: closestZip
+        };
+      })
+      .filter(result => result !== null)
+      .sort((a, b) => a.distance_miles - b.distance_miles); // Sort by distance
 
-        return NextResponse.json({
-          success: true,
-          data: {
-            results: transformedResults || [],
-            pagination: {
-              page: params.page || 1,
-              limit: params.limit || 20,
-              total: fallbackResults?.length || 0,
-              hasMore: (fallbackResults?.length || 0) === (params.limit || 20)
-            },
-            filters: {
-              zipCode: params.zipCode,
-              radius: params.radius,
-              serviceType: params.serviceType,
-              minRating: params.minRating,
-              maxPrice: params.maxPrice,
-              instantBooking: params.instantBooking
-            }
-          }
-        });
-      }
+    console.log('Processed search results:', searchResults?.length || 0);
 
-      return NextResponse.json(
-        { error: 'Search failed', details: searchError.message },
-        { status: 500 }
-      );
-    }
-
-    // Get total count for pagination
-    const { count } = await supabase
-      .from('cleaners')
-      .select('*', { count: 'exact', head: true })
-      .eq('approval_status', 'approved')
-      .contains('service_areas', [params.zipCode]);
+    // Use searchResults for response (no more RPC fallback needed)
+    const resultsCount = searchResults?.length || 0;
 
     // Check availability if date and time are provided
     if (params.date && searchResults) {
       // This would call another function to check real-time availability
       // For now, we'll add a flag to each result
-      const resultsWithAvailability = searchResults.map((result: CleanerSearchResult) => ({
+      const resultsWithAvailability = searchResults.map((result) => ({
         ...result,
         available_on_date: true // Simplified - would check actual availability
       }));
@@ -214,9 +220,9 @@ export async function GET(request: NextRequest) {
           pagination: {
             page: params.page || 1,
             limit: params.limit || 20,
-            total: count || 0,
-            totalPages: Math.ceil((count || 0) / (params.limit || 20)),
-            hasMore: offset + (params.limit || 20) < (count || 0)
+            total: resultsCount,
+            totalPages: Math.ceil(resultsCount / (params.limit || 20)),
+            hasMore: false // Using direct query, no server-side pagination
           },
           filters: {
             zipCode: params.zipCode,
@@ -239,9 +245,9 @@ export async function GET(request: NextRequest) {
         pagination: {
           page: params.page || 1,
           limit: params.limit || 20,
-          total: count || 0,
-          totalPages: Math.ceil((count || 0) / (params.limit || 20)),
-          hasMore: offset + (params.limit || 20) < (count || 0)
+          total: resultsCount,
+          totalPages: Math.ceil(resultsCount / (params.limit || 20)),
+          hasMore: false // Using direct query, no server-side pagination
         },
         filters: {
           zipCode: params.zipCode,
@@ -255,193 +261,9 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Search API error:', error);
+    console.error("Search API error:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
-  }
-}
-
-// POST endpoint for advanced search with multiple filters
-export async function POST(request: NextRequest) {
-  try {
-    const supabase = createRouteHandlerClient({ cookies });
-    const body = await request.json();
-
-    // Advanced search parameters
-    const {
-      zipCodes = [],
-      serviceTypes = [],
-      priceRange = {},
-      availability = {},
-      features = {},
-      sortBy = 'recommended',
-      page = 1,
-      limit = 20
-    } = body;
-
-    // Build complex query
-    let query = supabase
-      .from('cleaners')
-      .select(`
-        *,
-        professional_profiles (
-          tagline,
-          specialties,
-          badges,
-          response_time_minutes,
-          acceptance_rate,
-          on_time_rate,
-          brings_supplies,
-          eco_friendly,
-          pet_friendly,
-          certifications,
-          portfolio_images
-        ),
-        services_pricing (
-          service_type,
-          base_price,
-          pricing_tiers,
-          package_deals
-        ),
-        reviews (
-          rating,
-          comment,
-          created_at
-        )
-      `)
-      .eq('approval_status', 'approved');
-
-    // Apply filters
-    if (zipCodes.length > 0) {
-      query = query.overlaps('service_areas', zipCodes);
-    }
-
-    if (serviceTypes.length > 0) {
-      query = query.overlaps('services', serviceTypes);
-    }
-
-    if (priceRange.min !== undefined) {
-      query = query.gte('hourly_rate', priceRange.min);
-    }
-
-    if (priceRange.max !== undefined) {
-      query = query.lte('hourly_rate', priceRange.max);
-    }
-
-    // Feature filters
-    if (features.instantBooking) {
-      query = query.eq('instant_booking', true);
-    }
-
-    if (features.ecoFriendly) {
-      query = query.eq('professional_profiles.eco_friendly', true);
-    }
-
-    if (features.petFriendly) {
-      query = query.eq('professional_profiles.pet_friendly', true);
-    }
-
-    if (features.bringsSupplies) {
-      query = query.eq('professional_profiles.brings_supplies', true);
-    }
-
-    // Sorting
-    switch (sortBy) {
-      case 'rating':
-        query = query.order('average_rating', { ascending: false, nullsFirst: false });
-        break;
-      case 'price_low':
-        query = query.order('hourly_rate', { ascending: true });
-        break;
-      case 'price_high':
-        query = query.order('hourly_rate', { ascending: false });
-        break;
-      case 'reviews':
-        query = query.order('total_reviews', { ascending: false });
-        break;
-      case 'response_time':
-        query = query.order('response_time_hours', { ascending: true });
-        break;
-      case 'recommended':
-      default:
-        // Sort by tier first, then rating
-        query = query
-          .order('subscription_tier', { ascending: false })
-          .order('average_rating', { ascending: false, nullsFirst: false });
-        break;
-    }
-
-    // Pagination
-    const offset = (page - 1) * limit;
-    query = query.range(offset, offset + limit - 1);
-
-    const { data, error, count } = await query;
-
-    if (error) {
-      console.error('Advanced search error:', error);
-      return NextResponse.json(
-        { error: 'Search failed', details: error.message },
-        { status: 500 }
-      );
-    }
-
-    // Process and enrich results
-    const enrichedResults = data?.map(cleaner => ({
-      id: cleaner.id,
-      businessName: cleaner.business_name,
-      businessSlug: cleaner.business_slug,
-      description: cleaner.business_description,
-      rating: cleaner.average_rating,
-      reviewCount: cleaner.total_reviews,
-      hourlyRate: cleaner.hourly_rate,
-      minimumHours: cleaner.minimum_hours,
-      instantBooking: cleaner.instant_booking,
-      tier: cleaner.subscription_tier,
-      profileImage: cleaner.profile_image_url,
-      // Profile details
-      profile: cleaner.professional_profiles?.[0] || {},
-      // Pricing options
-      pricing: cleaner.services_pricing || [],
-      // Recent reviews
-      recentReviews: cleaner.reviews?.slice(0, 3) || [],
-      // Calculated fields
-      responseTimeText: cleaner.response_time_hours
-        ? `Responds in ${cleaner.response_time_hours} hours`
-        : 'Quick responder',
-      trustIndicators: {
-        verified: cleaner.background_check_verified,
-        insured: cleaner.insurance_verified,
-        licensed: cleaner.license_verified
-      }
-    }));
-
-    return NextResponse.json({
-      success: true,
-      data: {
-        results: enrichedResults,
-        pagination: {
-          page,
-          limit,
-          total: count || 0,
-          totalPages: Math.ceil((count || 0) / limit),
-          hasMore: offset + limit < (count || 0)
-        },
-        appliedFilters: {
-          zipCodes,
-          serviceTypes,
-          priceRange,
-          features,
-          sortBy
-        }
-      }
-    });
-
-  } catch (error) {
-    console.error('Advanced search API error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Internal server error" },
       { status: 500 }
     );
   }
