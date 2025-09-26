@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-06-20',
+  apiVersion: '2025-08-27.basil',
 });
 
 interface BookingRequest {
@@ -151,6 +151,7 @@ export async function POST(request: NextRequest) {
         services,
         instant_booking,
         subscription_tier,
+        response_time_hours,
         users (
           full_name,
           email,

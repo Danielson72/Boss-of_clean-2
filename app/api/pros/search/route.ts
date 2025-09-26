@@ -165,7 +165,7 @@ export async function GET(request: NextRequest) {
         const distance = minDistance;
 
         // Filter by radius
-        if (distance > params.radius) {
+        if (distance > (params.radius || 10)) {
           return null;
         }
 
@@ -196,7 +196,7 @@ export async function GET(request: NextRequest) {
           zip_code: closestZip
         };
       })
-      .filter(result => result !== null)
+      .filter((result): result is NonNullable<typeof result> => result !== null)
       .sort((a, b) => a.distance_miles - b.distance_miles); // Sort by distance
 
     console.log('Processed search results:', searchResults?.length || 0);

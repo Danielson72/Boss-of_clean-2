@@ -725,7 +725,7 @@ export default function ProfessionalProfilePage() {
                             ))}
                           </div>
                           {review.verifiedBooking && (
-                            <CheckCircle className="h-4 w-4 text-green-600" title="Verified booking" />
+                            <CheckCircle className="h-4 w-4 text-green-600" />
                           )}
                         </div>
                       </div>
