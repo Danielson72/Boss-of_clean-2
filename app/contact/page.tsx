@@ -1,4 +1,5 @@
 import { Mail, Phone, MapPin, Clock } from 'lucide-react';
+import FormContact from '@/components/FormContact';
 
 export default function ContactPage() {
   return (
@@ -6,10 +7,10 @@ export default function ContactPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            Contact Boss of Clean
+            Contact Sonz of Thunder Services
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Have questions? Need help with your account? We're here to help you succeed.
+            Have questions? Need a quote? We're here to serve you with excellence.
           </p>
         </div>
 
@@ -28,10 +29,10 @@ export default function ContactPage() {
                 <div className="ml-4">
                   <h3 className="text-lg font-medium text-gray-900">Email Support</h3>
                   <p className="mt-1 text-gray-600">
-                    Get help with your account, technical issues, or general questions.
+                    Get help with your cleaning needs, quotes, or general questions.
                   </p>
-                  <a href="mailto:support@bossofclean.com" className="mt-2 text-blue-600 hover:text-blue-700 font-medium">
-                    support@bossofclean.com
+                  <a href="mailto:dalvarez@sotsvc.com" className="mt-2 text-blue-600 hover:text-blue-700 font-medium">
+                    dalvarez@sotsvc.com
                   </a>
                 </div>
               </div>
@@ -43,10 +44,10 @@ export default function ContactPage() {
                 <div className="ml-4">
                   <h3 className="text-lg font-medium text-gray-900">Phone Support</h3>
                   <p className="mt-1 text-gray-600">
-                    Speak directly with our support team for urgent matters.
+                    Speak directly with our team for urgent matters.
                   </p>
-                  <a href="tel:+1-855-BOSS-CLEAN" className="mt-2 text-blue-600 hover:text-blue-700 font-medium">
-                    1-855-BOSS-CLEAN (2677)
+                  <a href="tel:+14074616039" className="mt-2 text-blue-600 hover:text-blue-700 font-medium">
+                    (407) 461-6039
                   </a>
                 </div>
               </div>
@@ -56,10 +57,11 @@ export default function ContactPage() {
                   <Clock className="h-6 w-6 text-blue-600" />
                 </div>
                 <div className="ml-4">
-                  <h3 className="text-lg font-medium text-gray-900">Support Hours</h3>
+                  <h3 className="text-lg font-medium text-gray-900">Service Hours</h3>
                   <p className="mt-1 text-gray-600">
-                    Monday - Friday: 8:00 AM - 8:00 PM EST<br />
-                    Saturday - Sunday: 9:00 AM - 5:00 PM EST
+                    Monday - Friday: 8:00 AM - 6:00 PM EST<br />
+                    Saturday: 9:00 AM - 3:00 PM EST<br />
+                    Sunday: Closed
                   </p>
                 </div>
               </div>
@@ -71,24 +73,21 @@ export default function ContactPage() {
                 <div className="ml-4">
                   <h3 className="text-lg font-medium text-gray-900">Service Area</h3>
                   <p className="mt-1 text-gray-600">
-                    All 67 counties in Florida<br />
-                    Orlando • Miami • Tampa • Jacksonville • Fort Lauderdale • Tallahassee
+                    Central Florida<br />
+                    Orlando • Kissimmee • Winter Park • Altamonte Springs
                   </p>
                 </div>
               </div>
             </div>
 
-            {/* FAQ Link */}
+            {/* Faith Message */}
             <div className="mt-8 p-6 bg-blue-50 rounded-lg">
               <h3 className="text-lg font-medium text-blue-900 mb-2">
-                Frequently Asked Questions
+                Our Commitment
               </h3>
-              <p className="text-blue-700 mb-3">
-                Find quick answers to common questions about our platform.
+              <p className="text-blue-700 italic">
+                "We clean every space as if it were holy ground ✨"
               </p>
-              <a href="#faq" className="text-blue-600 hover:text-blue-700 font-medium">
-                View FAQ →
-              </a>
             </div>
           </div>
 
@@ -98,86 +97,11 @@ export default function ContactPage() {
               Send us a Message
             </h2>
             
-            <form className="space-y-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    First Name *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Last Name *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Email Address *
-                </label>
-                <input
-                  type="email"
-                  required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  I am a... *
-                </label>
-                <select className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                  <option value="">Please select</option>
-                  <option value="customer">Customer looking for cleaning services</option>
-                  <option value="cleaner">Cleaning business owner</option>
-                  <option value="other">Other</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Subject *
-                </label>
-                <input
-                  type="text"
-                  required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Message *
-                </label>
-                <textarea
-                  rows={6}
-                  required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Please describe your question or issue in detail..."
-                />
-              </div>
-
-              <button
-                type="submit"
-                className="w-full bg-blue-600 text-white px-6 py-3 rounded-md font-semibold hover:bg-blue-700 transition duration-300"
-              >
-                Send Message
-              </button>
-            </form>
+            <FormContact formType="standalone" />
           </div>
         </div>
       </div>
     </div>
   );
 }
+

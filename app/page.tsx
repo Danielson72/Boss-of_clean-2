@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search, MapPin, Star, CheckCircle, Users, Clock, Shield, Home, Building2, Droplets, Sparkles, Wind, Brush, BadgeCheck, DollarSign, Phone } from 'lucide-react';
+import FormContact from '@/components/FormContact';
 
 export default function HomePage() {
   const [serviceType, setServiceType] = useState('');
@@ -587,6 +588,23 @@ export default function HomePage() {
                 <p className="text-sm text-gray-600">We're here when you need us</p>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Contact Form Section */}
+      <section className="py-16 bg-white">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Get in Touch
+            </h2>
+            <p className="text-lg text-gray-600">
+              Have questions or ready to get started? Send us a message and we'll respond promptly.
+            </p>
+          </div>
+          <div className="bg-gray-50 rounded-xl p-8 shadow-lg">
+            <FormContact formType="embedded" />
           </div>
         </div>
       </section>
