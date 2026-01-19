@@ -30,6 +30,8 @@ interface CleanerProfile {
   total_reviews: number;
   total_jobs: number;
   approval_status: string;
+  onboarding_step?: number;
+  onboarding_completed_at?: string;
 }
 
 interface QuoteRequest {
@@ -103,12 +105,19 @@ export default function CleanerDashboard() {
         .single();
 
       if (error && error.code === 'PGRST116') {
-        // No cleaner profile exists, redirect to create one
-        router.push('/dashboard/cleaner/setup');
+        // No cleaner profile exists, redirect to onboarding wizard
+        router.push('/dashboard/cleaner/onboarding');
         return;
       }
-      
+
       if (error) throw error;
+
+      // Check if onboarding is incomplete
+      if (!data.onboarding_completed_at && data.onboarding_step && data.onboarding_step < 5) {
+        router.push('/dashboard/cleaner/onboarding');
+        return;
+      }
+
       setProfile(data);
     } catch (error) {
       console.error('Error loading profile:', error);
