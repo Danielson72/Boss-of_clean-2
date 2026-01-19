@@ -1,185 +1,195 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useAuth } from '@/lib/context/AuthContext';
-import { createClient } from '@/lib/supabase/client';
-import { 
-  Calendar, MapPin, DollarSign, MessageSquare, 
-  CheckCircle, ArrowLeft, User, Phone, Mail,
-  Star, Shield, Award
+import {
+  Calendar,
+  MapPin,
+  CheckCircle,
+  ArrowLeft,
+  Home,
+  Building2,
+  Sparkles,
+  Phone,
+  Mail,
+  User,
+  Square,
+  Bath,
+  Bed,
 } from 'lucide-react';
 import Link from 'next/link';
+import { submitQuoteRequest, type QuoteRequestData } from './actions';
 
-interface Cleaner {
-  id: string;
-  business_name: string;
-  business_description: string;
-  business_phone: string;
-  business_email: string;
-  services: string[];
-  hourly_rate: number;
-  minimum_hours: number;
-  years_experience: number;
-  average_rating: number;
-  total_reviews: number;
-  profile_photos: string[];
-  insurance_verified: boolean;
-  license_verified: boolean;
-}
+const SERVICE_TYPES = [
+  { value: 'residential', label: 'Residential Cleaning', icon: Home },
+  { value: 'commercial', label: 'Commercial Cleaning', icon: Building2 },
+  { value: 'deep_cleaning', label: 'Deep Cleaning', icon: Sparkles },
+  { value: 'move_in_out', label: 'Move In/Out Cleaning', icon: Home },
+  { value: 'recurring', label: 'Recurring Service', icon: Calendar },
+];
+
+const PROPERTY_TYPES = [
+  { value: 'home', label: 'House' },
+  { value: 'condo', label: 'Condo' },
+  { value: 'apartment', label: 'Apartment' },
+  { value: 'office', label: 'Office' },
+  { value: 'other', label: 'Other' },
+];
 
 export default function QuoteRequestPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { user } = useAuth();
-  const [cleaner, setCleaner] = useState<Cleaner | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [step, setStep] = useState(1);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [formData, setFormData] = useState({
+  const [matchCount, setMatchCount] = useState(0);
+  const [quoteId, setQuoteId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const [formData, setFormData] = useState<QuoteRequestData>({
     service_type: searchParams?.get('service') || '',
-    service_date: '',
-    service_time: '',
-    address: '',
-    city: '',
+    property_type: 'home',
+    sqft_estimate: undefined,
+    bedrooms: undefined,
+    bathrooms: undefined,
     zip_code: searchParams?.get('zip') || '',
-    description: '',
-    estimated_hours: 2
+    city: '',
+    preferred_date: '',
+    flexibility: 'flexible',
+    contact_name: '',
+    contact_email: '',
+    contact_phone: '',
+    notes: '',
   });
-  
-  const cleanerId = searchParams?.get('cleaner');
-  const supabase = createClient();
 
-  useEffect(() => {
-    if (cleanerId) {
-      loadCleaner();
-    } else {
-      setLoading(false);
-    }
-  }, [cleanerId]);
+  const handleInputChange = (
+    field: keyof QuoteRequestData,
+    value: string | number | undefined
+  ) => {
+    setFormData({ ...formData, [field]: value });
+    setError(null);
+  };
 
-  const loadCleaner = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('cleaners')
-        .select('*')
-        .eq('id', cleanerId)
-        .single();
-
-      if (error) throw error;
-      setCleaner(data);
-    } catch (error) {
-      console.error('Error loading cleaner:', error);
-    } finally {
-      setLoading(false);
+  const validateStep = (stepNumber: number): boolean => {
+    switch (stepNumber) {
+      case 1:
+        if (!formData.service_type) {
+          setError('Please select a service type');
+          return false;
+        }
+        if (!formData.zip_code || !/^\d{5}(-\d{4})?$/.test(formData.zip_code)) {
+          setError('Please enter a valid ZIP code');
+          return false;
+        }
+        return true;
+      case 2:
+        return true; // Property details are optional
+      case 3:
+        if (!formData.contact_name) {
+          setError('Please enter your name');
+          return false;
+        }
+        if (!formData.contact_email || !/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(formData.contact_email)) {
+          setError('Please enter a valid email address');
+          return false;
+        }
+        return true;
+      default:
+        return true;
     }
   };
 
-  const handleInputChange = (field: string, value: string | number) => {
-    setFormData({ ...formData, [field]: value });
+  const nextStep = () => {
+    if (validateStep(step)) {
+      setStep(step + 1);
+    }
+  };
+
+  const prevStep = () => {
+    setError(null);
+    setStep(step - 1);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!user) {
-      router.push('/login');
-      return;
-    }
 
-    if (!cleanerId) {
-      alert('Please select a cleaner first');
-      return;
-    }
+    if (!validateStep(3)) return;
 
     setSubmitting(true);
-    try {
-      const { error } = await supabase
-        .from('quote_requests')
-        .insert({
-          customer_id: user.id,
-          cleaner_id: cleanerId,
-          service_type: formData.service_type,
-          service_date: formData.service_date,
-          service_time: formData.service_time,
-          address: formData.address,
-          city: formData.city,
-          zip_code: formData.zip_code,
-          description: formData.description,
-          estimated_hours: formData.estimated_hours,
-          status: 'pending'
-        });
+    setError(null);
 
-      if (error) throw error;
-      
-      setSubmitted(true);
-    } catch (error) {
-      console.error('Error submitting quote request:', error);
-      alert('Error submitting quote request. Please try again.');
+    try {
+      const result = await submitQuoteRequest(formData);
+
+      if (result.success) {
+        setSubmitted(true);
+        setMatchCount(result.matchCount || 0);
+        setQuoteId(result.quoteId || null);
+      } else {
+        setError(result.error || 'Failed to submit quote request');
+      }
+    } catch (err) {
+      console.error('Error submitting quote:', err);
+      setError('An unexpected error occurred. Please try again.');
     } finally {
       setSubmitting(false);
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading cleaner information...</p>
-        </div>
-      </div>
-    );
-  }
-
   if (submitted) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="max-w-md mx-auto text-center bg-white rounded-lg shadow-lg p-8">
-          <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+        <div className="max-w-md w-full text-center bg-white rounded-lg shadow-lg p-8">
+          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <CheckCircle className="h-10 w-10 text-green-500" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">
             Quote Request Sent!
           </h2>
           <p className="text-gray-600 mb-6">
-            Your quote request has been sent to {cleaner?.business_name}. 
-            You'll receive a response within 24 hours.
+            {matchCount > 0 ? (
+              <>
+                We&apos;ve matched your request with <strong>{matchCount} cleaning professionals</strong> in your area.
+                You&apos;ll receive quotes within 24-48 hours.
+              </>
+            ) : (
+              <>
+                Your request has been submitted. We&apos;re working to find cleaners in your area.
+                Check back soon for quotes.
+              </>
+            )}
           </p>
+
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 text-left">
+            <h4 className="font-medium text-blue-900 mb-2">What happens next?</h4>
+            <ul className="text-sm text-blue-800 space-y-1">
+              <li>✓ Cleaners review your request</li>
+              <li>✓ You receive quotes via email</li>
+              <li>✓ Compare and choose the best offer</li>
+              <li>✓ Book directly with your chosen cleaner</li>
+            </ul>
+          </div>
+
           <div className="space-y-3">
             <Link
-              href="/dashboard/customer"
-              className="block w-full bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition duration-300"
+              href="/search"
+              className="block w-full bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition duration-300 font-medium"
             >
-              View My Quotes
+              Browse More Cleaners
             </Link>
             <Link
-              href="/search"
+              href="/"
               className="block w-full text-blue-600 hover:text-blue-700 font-medium"
             >
-              Find More Cleaners
+              Return to Home
             </Link>
           </div>
-        </div>
-      </div>
-    );
-  }
 
-  if (!cleanerId || !cleaner) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="max-w-md mx-auto text-center bg-white rounded-lg shadow-lg p-8">
-          <MessageSquare className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-gray-900 mb-4">
-            No Cleaner Selected
-          </h2>
-          <p className="text-gray-600 mb-6">
-            Please select a cleaner from the search results to request a quote.
-          </p>
-          <Link
-            href="/search"
-            className="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition duration-300"
-          >
-            Find Cleaners
-          </Link>
+          {quoteId && (
+            <p className="text-xs text-gray-500 mt-4">
+              Reference ID: {quoteId.slice(0, 8)}
+            </p>
+          )}
         </div>
       </div>
     );
@@ -189,301 +199,430 @@ export default function QuoteRequestPage() {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center py-6">
-            <Link
-              href="/search"
-              className="text-gray-600 hover:text-gray-900 mr-4"
-            >
+            <Link href="/search" className="text-gray-600 hover:text-gray-900 mr-4">
               <ArrowLeft className="h-6 w-6" />
             </Link>
-            <h1 className="text-2xl font-bold text-gray-900">
-              Request a Quote
-            </h1>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Get Free Quotes</h1>
+              <p className="text-sm text-gray-600">
+                Compare quotes from verified cleaners in your area
+              </p>
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Cleaner Information */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow-sm border p-6 sticky top-8">
-              {/* Profile Photo */}
-              <div className="h-32 bg-gray-200 rounded-lg overflow-hidden mb-4">
-                {cleaner.profile_photos && cleaner.profile_photos.length > 0 ? (
-                  <img
-                    src={cleaner.profile_photos[0]}
-                    alt={cleaner.business_name}
-                    className="w-full h-full object-cover"
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Progress Steps */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-2">
+            {[1, 2, 3].map((s) => (
+              <div key={s} className="flex items-center">
+                <div
+                  className={`w-8 h-8 rounded-full flex items-center justify-center font-medium ${
+                    s < step
+                      ? 'bg-green-500 text-white'
+                      : s === step
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-200 text-gray-600'
+                  }`}
+                >
+                  {s < step ? <CheckCircle className="h-5 w-5" /> : s}
+                </div>
+                {s < 3 && (
+                  <div
+                    className={`w-24 sm:w-32 h-1 mx-2 ${
+                      s < step ? 'bg-green-500' : 'bg-gray-200'
+                    }`}
                   />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <User className="h-12 w-12 text-gray-400" />
-                  </div>
                 )}
               </div>
-
-              {/* Business Info */}
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                {cleaner.business_name}
-              </h3>
-              
-              <div className="flex items-center gap-1 mb-3">
-                <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                <span className="text-sm font-medium">
-                  {cleaner.average_rating.toFixed(1)}
-                </span>
-                <span className="text-sm text-gray-600">
-                  ({cleaner.total_reviews} reviews)
-                </span>
-              </div>
-
-              <p className="text-gray-600 text-sm mb-4 line-clamp-3">
-                {cleaner.business_description}
-              </p>
-
-              {/* Key Details */}
-              <div className="space-y-2 mb-4">
-                <div className="flex items-center gap-2 text-sm">
-                  <DollarSign className="h-4 w-4 text-gray-400" />
-                  <span>${cleaner.hourly_rate}/hour ({cleaner.minimum_hours}hr min)</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <Award className="h-4 w-4 text-gray-400" />
-                  <span>{cleaner.years_experience} years experience</span>
-                </div>
-                {(cleaner.insurance_verified || cleaner.license_verified) && (
-                  <div className="flex items-center gap-2 text-sm">
-                    <Shield className="h-4 w-4 text-green-500" />
-                    <span className="text-green-600">
-                      {cleaner.insurance_verified && cleaner.license_verified 
-                        ? 'Fully Verified' 
-                        : 'Partially Verified'}
-                    </span>
-                  </div>
-                )}
-              </div>
-
-              {/* Contact Info */}
-              <div className="pt-4 border-t border-gray-200">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-sm">
-                    <Phone className="h-4 w-4 text-gray-400" />
-                    <a href={`tel:${cleaner.business_phone}`} className="text-blue-600 hover:text-blue-700">
-                      {cleaner.business_phone}
-                    </a>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <Mail className="h-4 w-4 text-gray-400" />
-                    <a href={`mailto:${cleaner.business_email}`} className="text-blue-600 hover:text-blue-700">
-                      {cleaner.business_email}
-                    </a>
-                  </div>
-                </div>
-              </div>
-            </div>
+            ))}
           </div>
+          <div className="flex justify-between text-xs text-gray-600">
+            <span>Service</span>
+            <span>Property</span>
+            <span>Contact</span>
+          </div>
+        </div>
 
-          {/* Quote Request Form */}
-          <div className="lg:col-span-2">
-            <div className="bg-white rounded-lg shadow-sm border p-6">
-              <div className="mb-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-2">
-                  Tell us about your cleaning needs
-                </h2>
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <p className="text-blue-700 text-sm flex items-center">
-                    <CheckCircle className="h-4 w-4 mr-2" />
-                    ✨ Free quotes • No obligations • Get response in 24 hours
-                  </p>
-                </div>
-              </div>
+        {/* Form Card */}
+        <div className="bg-white rounded-lg shadow-sm border p-6">
+          {error && (
+            <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+              {error}
+            </div>
+          )}
 
-              {/* Progress Indicator */}
-              <div className="mb-6">
-                <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
-                  <span>Step 1 of 3: Service Details</span>
-                  <span>2 minutes to complete</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div className="bg-blue-600 h-2 rounded-full w-1/3"></div>
-                </div>
-              </div>
-
-              <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Service Details */}
+          <form onSubmit={handleSubmit}>
+            {/* Step 1: Service Details */}
+            {step === 1 && (
+              <div className="space-y-6">
                 <div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-4">Service Details</h3>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Service Type *
-                      </label>
-                      <select
-                        value={formData.service_type}
-                        onChange={(e) => handleInputChange('service_type', e.target.value)}
-                        required
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      >
-                        <option value="">Select service</option>
-                        {cleaner.services && cleaner.services.map((service) => (
-                          <option key={service} value={service}>{service}</option>
-                        ))}
-                      </select>
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Estimated Hours
-                      </label>
-                      <select
-                        value={formData.estimated_hours}
-                        onChange={(e) => handleInputChange('estimated_hours', parseInt(e.target.value))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      >
-                        <option value={2}>2 hours</option>
-                        <option value={3}>3 hours</option>
-                        <option value={4}>4 hours</option>
-                        <option value={6}>6 hours</option>
-                        <option value={8}>8 hours</option>
-                      </select>
-                    </div>
+                  <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                    What type of cleaning do you need?
+                  </h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {SERVICE_TYPES.map((service) => {
+                      const Icon = service.icon;
+                      return (
+                        <button
+                          key={service.value}
+                          type="button"
+                          onClick={() => handleInputChange('service_type', service.value)}
+                          className={`flex items-center gap-3 p-4 border rounded-lg text-left transition ${
+                            formData.service_type === service.value
+                              ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-500'
+                              : 'border-gray-200 hover:border-gray-300'
+                          }`}
+                        >
+                          <Icon className={`h-5 w-5 ${
+                            formData.service_type === service.value
+                              ? 'text-blue-600'
+                              : 'text-gray-400'
+                          }`} />
+                          <span className="font-medium">{service.label}</span>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 
-                {/* Schedule */}
                 <div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-4">When do you need service?</h3>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Your ZIP Code *
+                  </label>
+                  <div className="relative">
+                    <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                    <input
+                      type="text"
+                      value={formData.zip_code}
+                      onChange={(e) => handleInputChange('zip_code', e.target.value)}
+                      placeholder="32801"
+                      maxLength={10}
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    City (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.city}
+                    onChange={(e) => handleInputChange('city', e.target.value)}
+                    placeholder="Orlando"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Preferred Date
+                  </label>
+                  <div className="relative">
+                    <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                    <input
+                      type="date"
+                      value={formData.preferred_date}
+                      onChange={(e) => handleInputChange('preferred_date', e.target.value)}
+                      min={new Date().toISOString().split('T')[0]}
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Scheduling Flexibility
+                  </label>
+                  <div className="flex gap-3">
+                    {[
+                      { value: 'exact', label: 'Exact date only' },
+                      { value: 'flexible', label: 'Flexible' },
+                      { value: 'asap', label: 'ASAP' },
+                    ].map((option) => (
+                      <button
+                        key={option.value}
+                        type="button"
+                        onClick={() => handleInputChange('flexibility', option.value)}
+                        className={`flex-1 py-2 px-3 border rounded-lg text-sm font-medium transition ${
+                          formData.flexibility === option.value
+                            ? 'border-blue-500 bg-blue-50 text-blue-700'
+                            : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                        }`}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Step 2: Property Details */}
+            {step === 2 && (
+              <div className="space-y-6">
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                    Tell us about your property
+                  </h2>
+
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Property Type
+                      </label>
+                      <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                        {PROPERTY_TYPES.map((type) => (
+                          <button
+                            key={type.value}
+                            type="button"
+                            onClick={() => handleInputChange('property_type', type.value as QuoteRequestData['property_type'])}
+                            className={`py-2 px-3 border rounded-lg text-sm font-medium transition ${
+                              formData.property_type === type.value
+                                ? 'border-blue-500 bg-blue-50 text-blue-700'
+                                : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                            }`}
+                          >
+                            {type.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Bedrooms
+                        </label>
+                        <div className="relative">
+                          <Bed className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                          <select
+                            value={formData.bedrooms || ''}
+                            onChange={(e) => handleInputChange('bedrooms', e.target.value ? parseInt(e.target.value) : undefined)}
+                            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none"
+                          >
+                            <option value="">Select</option>
+                            {[1, 2, 3, 4, 5, 6].map((n) => (
+                              <option key={n} value={n}>{n}</option>
+                            ))}
+                            <option value="7">7+</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Bathrooms
+                        </label>
+                        <div className="relative">
+                          <Bath className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                          <select
+                            value={formData.bathrooms || ''}
+                            onChange={(e) => handleInputChange('bathrooms', e.target.value ? parseInt(e.target.value) : undefined)}
+                            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none"
+                          >
+                            <option value="">Select</option>
+                            {[1, 2, 3, 4, 5].map((n) => (
+                              <option key={n} value={n}>{n}</option>
+                            ))}
+                            <option value="6">6+</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Preferred Date *
+                        Approximate Square Footage
                       </label>
-                      <input
-                        type="date"
-                        value={formData.service_date}
-                        onChange={(e) => handleInputChange('service_date', e.target.value)}
-                        min={new Date().toISOString().split('T')[0]}
-                        required
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      <div className="relative">
+                        <Square className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                        <select
+                          value={formData.sqft_estimate || ''}
+                          onChange={(e) => handleInputChange('sqft_estimate', e.target.value ? parseInt(e.target.value) : undefined)}
+                          className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none"
+                        >
+                          <option value="">Select</option>
+                          <option value="500">Under 500 sq ft</option>
+                          <option value="1000">500-1,000 sq ft</option>
+                          <option value="1500">1,000-1,500 sq ft</option>
+                          <option value="2000">1,500-2,000 sq ft</option>
+                          <option value="2500">2,000-2,500 sq ft</option>
+                          <option value="3000">2,500-3,000 sq ft</option>
+                          <option value="4000">3,000-4,000 sq ft</option>
+                          <option value="5000">4,000+ sq ft</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Additional Details
+                      </label>
+                      <textarea
+                        value={formData.notes}
+                        onChange={(e) => handleInputChange('notes', e.target.value)}
+                        rows={3}
+                        placeholder="Any special requirements, access instructions, or specific areas that need attention..."
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Preferred Time *
-                      </label>
-                      <select
-                        value={formData.service_time}
-                        onChange={(e) => handleInputChange('service_time', e.target.value)}
-                        required
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      >
-                        <option value="">Select time</option>
-                        <option value="08:00">8:00 AM</option>
-                        <option value="09:00">9:00 AM</option>
-                        <option value="10:00">10:00 AM</option>
-                        <option value="11:00">11:00 AM</option>
-                        <option value="12:00">12:00 PM</option>
-                        <option value="13:00">1:00 PM</option>
-                        <option value="14:00">2:00 PM</option>
-                        <option value="15:00">3:00 PM</option>
-                        <option value="16:00">4:00 PM</option>
-                        <option value="17:00">5:00 PM</option>
-                      </select>
-                    </div>
                   </div>
                 </div>
+              </div>
+            )}
 
-                {/* Location */}
+            {/* Step 3: Contact Information */}
+            {step === 3 && (
+              <div className="space-y-6">
                 <div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-4">Service Location</h3>
-                  
+                  <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                    How can cleaners reach you?
+                  </h2>
+
                   <div className="space-y-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Street Address *
+                        Your Name *
                       </label>
-                      <input
-                        type="text"
-                        value={formData.address}
-                        onChange={(e) => handleInputChange('address', e.target.value)}
-                        placeholder="123 Main Street"
-                        required
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          City *
-                        </label>
+                      <div className="relative">
+                        <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                         <input
                           type="text"
-                          value={formData.city}
-                          onChange={(e) => handleInputChange('city', e.target.value)}
-                          placeholder="Orlando"
-                          required
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          value={formData.contact_name}
+                          onChange={(e) => handleInputChange('contact_name', e.target.value)}
+                          placeholder="John Smith"
+                          className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         />
                       </div>
-                      
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          ZIP Code *
-                        </label>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Email Address *
+                      </label>
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                         <input
-                          type="text"
-                          value={formData.zip_code}
-                          onChange={(e) => handleInputChange('zip_code', e.target.value)}
-                          placeholder="32801"
-                          required
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          type="email"
+                          value={formData.contact_email}
+                          onChange={(e) => handleInputChange('contact_email', e.target.value)}
+                          placeholder="john@example.com"
+                          className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Phone Number (Optional)
+                      </label>
+                      <div className="relative">
+                        <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                        <input
+                          type="tel"
+                          value={formData.contact_phone}
+                          onChange={(e) => handleInputChange('contact_phone', e.target.value)}
+                          placeholder="(555) 123-4567"
+                          className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         />
                       </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Additional Details */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Additional Details
-                  </label>
-                  <textarea
-                    value={formData.description}
-                    onChange={(e) => handleInputChange('description', e.target.value)}
-                    rows={4}
-                    placeholder="Please describe any specific requirements, access instructions, or special considerations..."
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-
-                {/* Estimated Cost */}
-                <div className="bg-blue-50 rounded-lg p-4">
-                  <h4 className="font-medium text-gray-900 mb-2">Estimated Cost</h4>
-                  <div className="text-sm text-gray-600">
-                    <p>Base rate: ${cleaner.hourly_rate}/hour × {formData.estimated_hours} hours = ${cleaner.hourly_rate * formData.estimated_hours}</p>
-                    <p className="text-xs mt-1">* Final price may vary based on actual service requirements</p>
+                  <div className="mt-6 bg-gray-50 border border-gray-200 rounded-lg p-4">
+                    <h4 className="font-medium text-gray-900 mb-2">Your Quote Request Summary</h4>
+                    <dl className="text-sm space-y-1">
+                      <div className="flex justify-between">
+                        <dt className="text-gray-600">Service:</dt>
+                        <dd className="font-medium">{SERVICE_TYPES.find(s => s.value === formData.service_type)?.label || '-'}</dd>
+                      </div>
+                      <div className="flex justify-between">
+                        <dt className="text-gray-600">Location:</dt>
+                        <dd className="font-medium">{formData.city ? `${formData.city}, ` : ''}{formData.zip_code}</dd>
+                      </div>
+                      {formData.preferred_date && (
+                        <div className="flex justify-between">
+                          <dt className="text-gray-600">Date:</dt>
+                          <dd className="font-medium">{new Date(formData.preferred_date + 'T00:00:00').toLocaleDateString()}</dd>
+                        </div>
+                      )}
+                      {formData.bedrooms && (
+                        <div className="flex justify-between">
+                          <dt className="text-gray-600">Bedrooms:</dt>
+                          <dd className="font-medium">{formData.bedrooms}</dd>
+                        </div>
+                      )}
+                      {formData.bathrooms && (
+                        <div className="flex justify-between">
+                          <dt className="text-gray-600">Bathrooms:</dt>
+                          <dd className="font-medium">{formData.bathrooms}</dd>
+                        </div>
+                      )}
+                    </dl>
                   </div>
-                </div>
 
-                {/* Submit Button */}
-                <div className="flex gap-4">
-                  <button
-                    type="submit"
-                    disabled={submitting}
-                    className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 disabled:bg-blue-400 transition duration-300 font-medium"
-                  >
-                    {submitting ? 'Sending Request...' : 'Send Quote Request'}
-                  </button>
+                  <p className="text-xs text-gray-500 mt-4">
+                    By submitting, you agree to receive quotes from verified cleaning professionals.
+                    Your information is protected and never shared publicly.
+                  </p>
                 </div>
-              </form>
+              </div>
+            )}
+
+            {/* Navigation Buttons */}
+            <div className="flex gap-4 mt-8">
+              {step > 1 && (
+                <button
+                  type="button"
+                  onClick={prevStep}
+                  className="flex-1 px-6 py-3 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition"
+                >
+                  Back
+                </button>
+              )}
+              {step < 3 ? (
+                <button
+                  type="button"
+                  onClick={nextStep}
+                  className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition"
+                >
+                  Continue
+                </button>
+              ) : (
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 disabled:bg-blue-400 transition"
+                >
+                  {submitting ? 'Submitting...' : 'Get Free Quotes'}
+                </button>
+              )}
             </div>
+          </form>
+        </div>
+
+        {/* Trust Indicators */}
+        <div className="mt-8 text-center">
+          <div className="flex items-center justify-center gap-6 text-sm text-gray-600">
+            <span className="flex items-center gap-1">
+              <CheckCircle className="h-4 w-4 text-green-500" />
+              Free quotes
+            </span>
+            <span className="flex items-center gap-1">
+              <CheckCircle className="h-4 w-4 text-green-500" />
+              No obligation
+            </span>
+            <span className="flex items-center gap-1">
+              <CheckCircle className="h-4 w-4 text-green-500" />
+              Verified cleaners
+            </span>
           </div>
         </div>
       </div>
