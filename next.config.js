@@ -3,9 +3,12 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  images: { 
+  images: {
     domains: ['localhost'],
-    unoptimized: true 
+    unoptimized: true
+  },
+  experimental: {
+    serverActions: true,
   },
 };
 
