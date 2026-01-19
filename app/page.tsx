@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search, MapPin, Star, CheckCircle, Users, Clock, Shield, Home, Building2, Droplets, Sparkles, Wind, Brush, BadgeCheck, DollarSign, Phone } from 'lucide-react';
+import { HomePageStructuredData } from '@/components/seo';
 
 export default function HomePage() {
   const [serviceType, setServiceType] = useState('');
@@ -95,6 +96,9 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen">
+      {/* JSON-LD Structured Data */}
+      <HomePageStructuredData />
+
       {/* Hero Section */}
       <section className="relative h-[78vh] sm:h-[82vh] md:h-[80vh] flex flex-col pt-8 sm:pt-10 md:pt-12">
         {/* Hero Background Image - Desktop */}
