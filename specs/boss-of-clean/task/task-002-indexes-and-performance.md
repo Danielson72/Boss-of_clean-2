@@ -1,43 +1,79 @@
 # Task 002: Indexes and Performance
 
-**Status:** 📋 PLANNED  
-**Priority:** High  
-**Estimated Effort:** 3 hours  
+**Status:** ✅ COMPLETED
+**Priority:** High
+**Estimated Effort:** 3 hours
+**Completed:** 2026-01-19
 
 ## Description
 Add database indexes to optimize directory search and filtering performance.
 
 ## Acceptance Criteria
-- [ ] Add indexes for location-based searches (city, state, zip_code)
-- [ ] Add indexes for service type filtering
-- [ ] Add composite indexes for common filter combinations
-- [ ] Add indexes for sorting (rating, hourly_rate, created_at)
-- [ ] Verify query performance improvements
+- [x] Add indexes for location-based searches (city, state, zip_code)
+- [x] Add indexes for service type filtering
+- [x] Add composite indexes for common filter combinations
+- [x] Add indexes for sorting (rating, hourly_rate, created_at)
+- [x] Verify query performance improvements
 
-## Proposed Implementation
+## Implementation Summary
 
-### Core Indexes
+### Pre-existing Indexes (already in place)
+The following indexes were already created in previous migrations:
+- `idx_cleaners_approval_status` - btree on approval_status
+- `idx_cleaners_services` - GIN index on services array
+- `idx_cleaners_created_at` - btree on created_at DESC
+- `idx_cleaners_average_rating` - btree on average_rating DESC
+- `idx_service_areas_zip_code` - btree on zip_code
+- `idx_users_zip_code` - btree on zip_code
+
+### New Indexes Created (Migration: add_directory_performance_indexes)
+
+#### Location-Based Search Indexes
 ```sql
--- Location searches
+-- Users: City + State composite for directory filtering
 CREATE INDEX idx_users_city_state ON users(city, state) WHERE city IS NOT NULL;
-CREATE INDEX idx_users_zip_code ON users(zip_code) WHERE zip_code IS NOT NULL;
 
--- Cleaner filtering
-CREATE INDEX idx_cleaners_approval_status ON cleaners(approval_status);
-CREATE INDEX idx_cleaners_directory_visible ON cleaners(directory_visible);
-CREATE INDEX idx_cleaners_service_types ON cleaners USING GIN(service_types);
+-- Service Areas: City index for geographic searches
+CREATE INDEX idx_service_areas_city ON service_areas(city);
 
--- Sorting optimization
-CREATE INDEX idx_cleaners_hourly_rate ON cleaners(hourly_rate) WHERE hourly_rate IS NOT NULL;
-CREATE INDEX idx_cleaners_created_at ON cleaners(created_at);
+-- Service Areas: Composite for cleaner lookups by location
+CREATE INDEX idx_service_areas_cleaner_city_zip ON service_areas(cleaner_id, city, zip_code);
 ```
 
-### Composite Indexes
+#### Sorting Optimization
 ```sql
--- Common filter combinations
-CREATE INDEX idx_cleaners_approved_visible ON cleaners(approval_status, directory_visible, created_at);
-CREATE INDEX idx_cleaners_location_approved ON cleaners(approval_status, directory_visible) 
-  INCLUDE (user_id, business_name, hourly_rate);
+-- Cleaners: Hourly rate for price sorting/filtering
+CREATE INDEX idx_cleaners_hourly_rate ON cleaners(hourly_rate) WHERE hourly_rate IS NOT NULL;
+```
+
+#### Composite Indexes for Directory Queries
+```sql
+-- Approved cleaners with rating sort
+CREATE INDEX idx_cleaners_approved_rating ON cleaners(approval_status, average_rating DESC)
+  WHERE approval_status = 'approved';
+
+-- Approved cleaners with price sort
+CREATE INDEX idx_cleaners_approved_price ON cleaners(approval_status, hourly_rate ASC)
+  WHERE approval_status = 'approved';
+
+-- Approved cleaners with created_at sort
+CREATE INDEX idx_cleaners_approved_created ON cleaners(approval_status, created_at DESC)
+  WHERE approval_status = 'approved';
+```
+
+#### Covering Index for Directory View
+```sql
+-- Covering index to avoid table lookups in directory view
+CREATE INDEX idx_cleaners_directory_covering ON cleaners(approval_status, average_rating DESC, hourly_rate)
+  INCLUDE (business_name, business_slug, profile_image_url, services, years_experience)
+  WHERE approval_status = 'approved';
+```
+
+#### Quote Request Location Indexes
+```sql
+-- Location-based filtering for lead matching
+CREATE INDEX idx_quote_requests_zip_status ON quote_requests(zip_code, status);
+CREATE INDEX idx_quote_requests_city_status ON quote_requests(city, status);
 ```
 
 ## Performance Targets
@@ -53,5 +89,5 @@ CREATE INDEX idx_cleaners_location_approved ON cleaners(approval_status, directo
 - Load test directory endpoints
 
 ## Related Tasks
-- task-001: Public directory view (prerequisite)
-- task-006: SEO sitemap generation (benefits from indexes)
+- task-001: Public directory view (prerequisite) ✅
+- task-006: SEO sitemap generation (benefits from indexes) ✅

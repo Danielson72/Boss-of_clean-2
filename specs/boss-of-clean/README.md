@@ -72,14 +72,15 @@ Technical implementation approaches:
 - **auth-roles-rls.md** - Security and permissions architecture
 - **stripe-architecture.md** - Payment processing design
 
-### Development Tasks (`/task`) 
+### Development Tasks (`/task`)
 Specific implementation work items:
 - **task-001-public-directory-view.md** ✅ DONE - Privacy-safe directory view
-- **task-002-indexes-and-performance.md** 📋 PLANNED - Database optimization
-- **task-003-cleaner-onboarding-wizard.md** 📋 PLANNED - Multi-step onboarding
-- **task-004-admin-moderation-queue.md** 📋 PLANNED - Approval workflow
-- **task-005-stripe-webhooks.md** 📋 PLANNED - Payment event handling
-- **task-006-seo-sitemap-jsonld.md** 📋 PLANNED - SEO optimization
+- **task-002-indexes-and-performance.md** ✅ DONE - Database optimization
+- **task-003-cleaner-onboarding-wizard.md** ✅ DONE - Multi-step onboarding
+- **task-004-admin-moderation-queue.md** ✅ DONE - Approval workflow
+- **task-005-stripe-webhooks.md** ✅ DONE - Payment event handling
+- **task-006-seo-sitemap-jsonld.md** ✅ DONE - SEO optimization
+- **task-007-quote-request-system.md** ✅ DONE - Quote request lead matching
 
 ### API Reference (`/api`)
 - **openapi.yaml** - Complete API specification (reference-only, not wired to runtime yet)
