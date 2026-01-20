@@ -55,35 +55,98 @@ export interface Cleaner {
 export interface SearchFilters {
   serviceType?: string;
   zipCode?: string;
+  location?: string; // For city/county/zip text search
   minRating?: number;
   maxPrice?: number;
+  minExperience?: number;
   instantBooking?: boolean;
   verified?: boolean;
+  certified?: boolean;
   sortBy?: 'rating' | 'price' | 'experience' | 'response_time';
+  page?: number;
+  pageSize?: number;
+}
+
+export interface SearchResult {
+  cleaners: Cleaner[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+  hasMore: boolean;
 }
 
 export class SearchService {
   private supabase = createClient();
 
   async searchCleaners(filters: SearchFilters): Promise<Cleaner[]> {
+    const result = await this.searchCleanersWithPagination(filters);
+    return result.cleaners;
+  }
+
+  async searchCleanersWithPagination(filters: SearchFilters): Promise<SearchResult> {
+    const page = filters.page || 1;
+    const pageSize = filters.pageSize || 12;
+    const offset = (page - 1) * pageSize;
+
+    // First, get the total count
+    let countQuery = this.supabase
+      .from('cleaners')
+      .select('*', { count: 'exact', head: true })
+      .eq('approval_status', 'approved');
+
+    // Apply filters to count query
+    if (filters.serviceType) {
+      countQuery = countQuery.contains('services', [filters.serviceType]);
+    }
+    if (filters.zipCode) {
+      countQuery = countQuery.contains('service_areas', [filters.zipCode]);
+    }
+    if (filters.minRating) {
+      countQuery = countQuery.gte('average_rating', filters.minRating);
+    }
+    if (filters.maxPrice) {
+      countQuery = countQuery.lte('hourly_rate', filters.maxPrice);
+    }
+    if (filters.minExperience) {
+      countQuery = countQuery.gte('years_experience', filters.minExperience);
+    }
+    if (filters.instantBooking) {
+      countQuery = countQuery.eq('instant_booking', true);
+    }
+    if (filters.verified) {
+      countQuery = countQuery.eq('insurance_verified', true).eq('license_verified', true);
+    }
+    if (filters.certified) {
+      countQuery = countQuery.eq('is_certified', true);
+    }
+
+    const { count } = await countQuery;
+    const totalCount = count || 0;
+
+    // Now get the actual data
     let query = this.supabase
       .from('cleaners')
       .select(`
         *,
-        users!inner(full_name, phone, email, city, zip_code)
+        users!inner(full_name, phone, email, city, state, zip_code)
       `)
-      .eq('approval_status', 'approved')
-      .or('subscription_tier.neq.free,subscription_expires_at.gt.now()');
+      .eq('approval_status', 'approved');
 
     // Filter by service type
     if (filters.serviceType) {
       query = query.contains('services', [filters.serviceType]);
     }
 
-    // Filter by ZIP code using service areas - we'll handle this differently
+    // Filter by ZIP code using service areas
     if (filters.zipCode) {
-      // For now, use the service_areas array until we populate the service areas table
       query = query.contains('service_areas', [filters.zipCode]);
+    }
+
+    // Filter by location text (search in service_areas array)
+    if (filters.location) {
+      const searchTerm = filters.location.toLowerCase().trim();
+      // Search will be handled client-side for now since Supabase
+      // doesn't support case-insensitive array contains
     }
 
     // Filter by minimum rating
@@ -96,6 +159,11 @@ export class SearchService {
       query = query.lte('hourly_rate', filters.maxPrice);
     }
 
+    // Filter by minimum experience
+    if (filters.minExperience) {
+      query = query.gte('years_experience', filters.minExperience);
+    }
+
     // Filter by instant booking
     if (filters.instantBooking) {
       query = query.eq('instant_booking', true);
@@ -105,6 +173,11 @@ export class SearchService {
     if (filters.verified) {
       query = query.eq('insurance_verified', true)
                    .eq('license_verified', true);
+    }
+
+    // Filter by certified status
+    if (filters.certified) {
+      query = query.eq('is_certified', true);
     }
 
     // Apply sorting with subscription tier priority
@@ -132,14 +205,42 @@ export class SearchService {
                      .order('total_reviews', { ascending: false });
     }
 
-    const { data, error } = await query.limit(50);
+    // Apply pagination
+    query = query.range(offset, offset + pageSize - 1);
+
+    const { data, error } = await query;
 
     if (error) {
       console.error('Search error:', error);
       throw new Error('Failed to search cleaners');
     }
 
-    return data || [];
+    let cleaners = data || [];
+
+    // Client-side location filtering if location text provided
+    if (filters.location) {
+      const searchTerm = filters.location.toLowerCase().trim();
+      cleaners = cleaners.filter(cleaner => {
+        if (!cleaner.service_areas || cleaner.service_areas.length === 0) {
+          // Also check user's city/zip
+          const userCity = cleaner.users?.city?.toLowerCase() || '';
+          const userZip = cleaner.users?.zip_code || '';
+          return userCity.includes(searchTerm) || userZip.includes(searchTerm);
+        }
+        return cleaner.service_areas.some((area: string) => {
+          const areaLower = area.toLowerCase();
+          return areaLower === searchTerm || areaLower.includes(searchTerm);
+        });
+      });
+    }
+
+    return {
+      cleaners,
+      totalCount,
+      page,
+      pageSize,
+      hasMore: offset + cleaners.length < totalCount
+    };
   }
 
   async getCleanerById(id: string): Promise<Cleaner | null> {

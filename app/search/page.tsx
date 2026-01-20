@@ -1,36 +1,15 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useState, useEffect, useCallback } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import { 
-  Search, MapPin, Star, DollarSign, Clock, Phone, Mail,
-  Filter, ChevronDown, User, Award, Shield, Calendar,
-  MessageSquare, BadgeCheck, CheckCircle2
-} from 'lucide-react';
-
-interface Cleaner {
-  id: string;
-  business_name: string;
-  business_description?: string;
-  business_phone?: string;
-  business_email?: string;
-  services?: string[];
-  service_areas?: string[];
-  hourly_rate?: number;
-  minimum_hours?: number;
-  years_experience?: number;
-  average_rating?: number;
-  total_reviews?: number;
-  profile_photos?: string[];
-  insurance_verified?: boolean;
-  license_verified?: boolean;
-  background_check_verified?: boolean;
-  photo_verified?: boolean;
-  is_certified?: boolean;
-  subscription_tier?: string;
-  created_at: string;
-}
+import {
+  SearchFilters,
+  SearchFiltersState,
+  SearchResultsGrid,
+  LoadMorePagination,
+  CleanerCardProps
+} from '@/components/search';
 
 const SERVICE_TYPES = [
   'House Cleaning', 'Deep Cleaning', 'Move-in/Move-out Cleaning',
@@ -40,416 +19,245 @@ const SERVICE_TYPES = [
 ];
 
 const FLORIDA_ZIP_CODES = [
-  '32801', '33101', '33602', '32202', '33301', '32301',
-  '33701', '32501', '32601', '34102', '33480', '32114',
-  '34102', '33901', '33601', '32751', '33063', '33143',
-  '33410', '32789'
+  '32801', '32804', '32806', '32807', '32809', // Orlando
+  '33101', '33109', '33125', '33126', '33131', // Miami
+  '33602', '33603', '33604', '33605', '33606', // Tampa
+  '32204', '32205', '32207', '32208', '32209', // Jacksonville
+  '33301', '33304', '33305', '33306', '33308', // Fort Lauderdale
+  '32301', '32303', '32304', '32305', '32308', // Tallahassee
+  '33401', '33405', '33406', '33407', '33409', // West Palm Beach
+  '34102', '34103', '34104', '34105', '34108'  // Naples
 ];
+
+const PAGE_SIZE = 12;
+
+interface CleanerData {
+  id: string;
+  business_name: string;
+  business_slug?: string;
+  business_description?: string;
+  business_phone?: string;
+  services?: string[];
+  service_areas?: string[];
+  hourly_rate?: number;
+  minimum_hours?: number;
+  years_experience?: number;
+  average_rating?: number;
+  total_reviews?: number;
+  profile_image_url?: string;
+  insurance_verified?: boolean;
+  license_verified?: boolean;
+  background_check?: boolean;
+  is_certified?: boolean;
+  subscription_tier?: string;
+  users?: {
+    city?: string;
+    state?: string;
+    zip_code?: string;
+  };
+}
 
 export default function SearchPage() {
   const searchParams = useSearchParams();
-  const [cleaners, setCleaners] = useState<Cleaner[]>([]);
-  const [filteredCleaners, setFilteredCleaners] = useState<Cleaner[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState(searchParams?.get('location') || '');
-  const [selectedService, setSelectedService] = useState(searchParams?.get('service') || '');
-  const [selectedZip, setSelectedZip] = useState(searchParams?.get('zip') || '');
-  const [showFilters, setShowFilters] = useState(false);
-  const [priceRange, setPriceRange] = useState([0, 200]);
-  const [experienceMin, setExperienceMin] = useState(0);
-  const [verifiedOnly, setVerifiedOnly] = useState(false);
-  const [certifiedOnly, setCertifiedOnly] = useState(false);
+  const router = useRouter();
   const supabase = createClient();
 
-  useEffect(() => {
-    loadCleaners();
-  }, []);
+  const [cleaners, setCleaners] = useState<CleanerCardProps[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [page, setPage] = useState(1);
 
-  useEffect(() => {
-    filterCleaners();
-  }, [cleaners, searchTerm, selectedService, selectedZip, priceRange, experienceMin, verifiedOnly, certifiedOnly]);
+  const [filters, setFilters] = useState<SearchFiltersState>({
+    location: searchParams?.get('location') || '',
+    selectedZip: searchParams?.get('zip') || '',
+    selectedService: searchParams?.get('service') || '',
+    priceRange: [0, 200],
+    experienceMin: 0,
+    verifiedOnly: false,
+    certifiedOnly: false
+  });
 
-  const loadCleaners = async () => {
+  const mapCleanerToCardProps = (cleaner: CleanerData): CleanerCardProps => ({
+    id: cleaner.id,
+    businessName: cleaner.business_name,
+    businessSlug: cleaner.business_slug,
+    businessDescription: cleaner.business_description,
+    profileImageUrl: cleaner.profile_image_url,
+    averageRating: cleaner.average_rating || 0,
+    totalReviews: cleaner.total_reviews || 0,
+    services: cleaner.services || [],
+    hourlyRate: cleaner.hourly_rate || 50,
+    minimumHours: cleaner.minimum_hours || 2,
+    yearsExperience: cleaner.years_experience || 0,
+    city: cleaner.users?.city,
+    state: cleaner.users?.state || 'FL',
+    subscriptionTier: cleaner.subscription_tier || 'free',
+    insuranceVerified: cleaner.insurance_verified || false,
+    licenseVerified: cleaner.license_verified || false,
+    backgroundCheckVerified: cleaner.background_check || false,
+    isCertified: cleaner.is_certified || false,
+    businessPhone: cleaner.business_phone
+  });
+
+  const loadCleaners = useCallback(async (pageNum: number, append: boolean = false) => {
+    if (pageNum === 1) {
+      setLoading(true);
+    } else {
+      setLoadingMore(true);
+    }
+
     try {
-      const { data, error } = await supabase
+      const offset = (pageNum - 1) * PAGE_SIZE;
+
+      // Build query
+      let query = supabase
         .from('cleaners')
-        .select('*')
-        .in('approval_status', ['approved', 'pending']) // Show both approved and pending cleaners
+        .select(`
+          *,
+          users!inner(full_name, phone, email, city, state, zip_code)
+        `, { count: 'exact' })
+        .in('approval_status', ['approved', 'pending'])
         .order('subscription_tier', { ascending: false })
         .order('average_rating', { ascending: false });
 
+      // Apply filters
+      if (filters.selectedService) {
+        query = query.contains('services', [filters.selectedService]);
+      }
+
+      if (filters.priceRange[1] < 200) {
+        query = query.lte('hourly_rate', filters.priceRange[1]);
+      }
+
+      if (filters.experienceMin > 0) {
+        query = query.gte('years_experience', filters.experienceMin);
+      }
+
+      if (filters.verifiedOnly) {
+        query = query.eq('insurance_verified', true).eq('license_verified', true);
+      }
+
+      if (filters.certifiedOnly) {
+        query = query.eq('is_certified', true);
+      }
+
+      // Apply pagination
+      query = query.range(offset, offset + PAGE_SIZE - 1);
+
+      const { data, count, error } = await query;
+
       if (error) throw error;
-      setCleaners(data || []);
-      console.log('Loaded cleaners:', data?.length || 0); // Debug log
+
+      let filteredData = data || [];
+
+      // Client-side location filtering
+      const searchValue = (filters.selectedZip || filters.location).toLowerCase().trim();
+      if (searchValue) {
+        filteredData = filteredData.filter((cleaner: CleanerData) => {
+          // Check service_areas array
+          if (cleaner.service_areas && cleaner.service_areas.length > 0) {
+            const matchInAreas = cleaner.service_areas.some(area => {
+              const areaLower = area.toLowerCase();
+              return areaLower === searchValue || areaLower.includes(searchValue);
+            });
+            if (matchInAreas) return true;
+          }
+          // Also check user's city/zip
+          const userCity = cleaner.users?.city?.toLowerCase() || '';
+          const userZip = cleaner.users?.zip_code || '';
+          return userCity.includes(searchValue) || userZip.includes(searchValue);
+        });
+      }
+
+      const mappedCleaners = filteredData.map(mapCleanerToCardProps);
+
+      if (append) {
+        setCleaners(prev => [...prev, ...mappedCleaners]);
+      } else {
+        setCleaners(mappedCleaners);
+      }
+
+      setTotalCount(count || 0);
+      setPage(pageNum);
     } catch (error) {
       console.error('Error loading cleaners:', error);
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
+  }, [filters, supabase]);
+
+  // Initial load and filter changes
+  useEffect(() => {
+    loadCleaners(1);
+  }, [filters.selectedService, filters.selectedZip, filters.location, filters.priceRange, filters.experienceMin, filters.verifiedOnly, filters.certifiedOnly]);
+
+  // Update URL when filters change
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (filters.location) params.set('location', filters.location);
+    if (filters.selectedZip) params.set('zip', filters.selectedZip);
+    if (filters.selectedService) params.set('service', filters.selectedService);
+
+    const newUrl = params.toString() ? `?${params.toString()}` : '/search';
+    router.replace(newUrl, { scroll: false });
+  }, [filters.location, filters.selectedZip, filters.selectedService, router]);
+
+  const handleFiltersChange = (newFilters: SearchFiltersState) => {
+    setFilters(newFilters);
+    setPage(1);
   };
 
-  const filterCleaners = () => {
-    let filtered = cleaners;
-
-    // Filter by location (ZIP code or city search)
-    if (searchTerm || selectedZip) {
-      const searchValue = (selectedZip || searchTerm).toLowerCase().trim();
-      
-      filtered = filtered.filter(cleaner => {
-        // Check if cleaner has any service areas
-        if (!cleaner.service_areas || cleaner.service_areas.length === 0) {
-          return false;
-        }
-        
-        // Check each service area
-        return cleaner.service_areas.some(area => {
-          const areaLower = area.toLowerCase();
-          // Check exact match or if area contains search value
-          return areaLower === searchValue || areaLower.includes(searchValue);
-        });
-      });
-      
-      console.log(`Filtered by location "${searchValue}":`, filtered.length); // Debug log
-    }
-
-    // Filter by service type
-    if (selectedService) {
-      filtered = filtered.filter(cleaner => 
-        cleaner.services && Array.isArray(cleaner.services) && cleaner.services.includes(selectedService)
-      );
-    }
-
-    // Filter by price range
-    filtered = filtered.filter(cleaner => {
-      const rate = cleaner.hourly_rate || 50; // Default hourly rate
-      return rate >= priceRange[0] && rate <= priceRange[1];
-    });
-
-    // Filter by minimum experience
-    if (experienceMin > 0) {
-      filtered = filtered.filter(cleaner => 
-        (cleaner.years_experience || 0) >= experienceMin
-      );
-    }
-
-    // Filter by verification status
-    if (verifiedOnly) {
-      filtered = filtered.filter(cleaner => 
-        (cleaner.insurance_verified || false) && (cleaner.license_verified || false)
-      );
-    }
-
-    // Filter by Boss of Clean Certified status
-    if (certifiedOnly) {
-      filtered = filtered.filter(cleaner => cleaner.is_certified || false);
-    }
-
-    setFilteredCleaners(filtered);
+  const handleLoadMore = () => {
+    loadCleaners(page + 1, true);
   };
 
   const handleRequestQuote = (cleanerId: string) => {
-    // Navigate to quote request page with cleaner ID
-    window.location.href = `/quote-request?cleaner=${cleanerId}&service=${selectedService}&zip=${selectedZip}`;
+    const params = new URLSearchParams();
+    params.set('cleaner', cleanerId);
+    if (filters.selectedService) params.set('service', filters.selectedService);
+    if (filters.selectedZip) params.set('zip', filters.selectedZip);
+    router.push(`/quote-request?${params.toString()}`);
   };
 
-  const getTierBadge = (tier: string) => {
-    const badges = {
-      'enterprise': { color: 'bg-yellow-100 text-yellow-800', text: 'Enterprise' },
-      'pro': { color: 'bg-purple-100 text-purple-800', text: 'Pro' },
-      'basic': { color: 'bg-blue-100 text-blue-800', text: 'Basic' },
-      'free': { color: 'bg-gray-100 text-gray-800', text: 'Basic' }
-    };
-    return badges[tier as keyof typeof badges] || badges.free;
+  const handleClearFilters = () => {
+    setFilters({
+      location: '',
+      selectedZip: '',
+      selectedService: '',
+      priceRange: [0, 200],
+      experienceMin: 0,
+      verifiedOnly: false,
+      certifiedOnly: false
+    });
   };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Finding cleaners in your area...</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <h1 className="text-2xl font-bold text-gray-900 mb-6">
-            Find Professional Cleaners in Florida
-          </h1>
-          
-          {/* Search Form */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="relative">
-              <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Enter ZIP code or city"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-            
-            <select
-              value={selectedZip}
-              onChange={(e) => setSelectedZip(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="">Select ZIP Code</option>
-              {FLORIDA_ZIP_CODES.map(zip => (
-                <option key={zip} value={zip}>{zip}</option>
-              ))}
-            </select>
-            
-            <select
-              value={selectedService}
-              onChange={(e) => setSelectedService(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="">All Services</option>
-              {SERVICE_TYPES.map(service => (
-                <option key={service} value={service}>{service}</option>
-              ))}
-            </select>
-            
-            <button
-              onClick={() => setShowFilters(!showFilters)}
-              className="flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
-            >
-              <Filter className="h-4 w-4" />
-              Filters
-              <ChevronDown className={`h-4 w-4 transition-transform ${showFilters ? 'rotate-180' : ''}`} />
-            </button>
-          </div>
+      <SearchFilters
+        filters={filters}
+        onFiltersChange={handleFiltersChange}
+        serviceTypes={SERVICE_TYPES}
+        zipCodes={FLORIDA_ZIP_CODES}
+      />
 
-          {/* Advanced Filters */}
-          {showFilters && (
-            <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Price Range: ${priceRange[0]} - ${priceRange[1]}/hour
-                  </label>
-                  <input
-                    type="range"
-                    min="0"
-                    max="200"
-                    value={priceRange[1]}
-                    onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value)])}
-                    className="w-full"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Minimum Experience
-                  </label>
-                  <select
-                    value={experienceMin}
-                    onChange={(e) => setExperienceMin(parseInt(e.target.value))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                  >
-                    <option value={0}>Any Experience</option>
-                    <option value={1}>1+ Years</option>
-                    <option value={3}>3+ Years</option>
-                    <option value={5}>5+ Years</option>
-                    <option value={10}>10+ Years</option>
-                  </select>
-                </div>
-                
-                <div className="space-y-3">
-                  <label className="flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={certifiedOnly}
-                      onChange={(e) => setCertifiedOnly(e.target.checked)}
-                      className="mr-2"
-                    />
-                    <span className="text-sm font-medium text-gray-700 flex items-center gap-1">
-                      <BadgeCheck className="h-4 w-4 text-green-600" />
-                      Boss of Clean Certified™ only
-                    </span>
-                  </label>
-                  <label className="flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={verifiedOnly}
-                      onChange={(e) => setVerifiedOnly(e.target.checked)}
-                      className="mr-2"
-                    />
-                    <span className="text-sm font-medium text-gray-700">
-                      Verified cleaners only
-                    </span>
-                  </label>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Results */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex justify-between items-center mb-6">
-          <p className="text-gray-600">
-            Found {filteredCleaners.length} cleaner{filteredCleaners.length !== 1 ? 's' : ''} in your area
-          </p>
-        </div>
+        <SearchResultsGrid
+          cleaners={cleaners}
+          isLoading={loading}
+          totalCount={totalCount}
+          onRequestQuote={handleRequestQuote}
+          onClearFilters={handleClearFilters}
+        />
 
-        {filteredCleaners.length === 0 ? (
-          <div className="text-center py-12">
-            <Search className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No cleaners found</h3>
-            <p className="text-gray-600 mb-6">
-              Try adjusting your search criteria or expanding your location area.
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredCleaners.map((cleaner) => (
-              <div key={cleaner.id} className="bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow duration-300">
-                {/* Profile Photo */}
-                <div className="relative h-48 bg-gray-200 rounded-t-lg overflow-hidden">
-                  {cleaner.profile_photos && cleaner.profile_photos.length > 0 ? (
-                    <img
-                      src={cleaner.profile_photos[0]}
-                      alt={cleaner.business_name}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <User className="h-16 w-16 text-gray-400" />
-                    </div>
-                  )}
-                  
-                  {/* Tier Badge */}
-                  <div className="absolute top-3 right-3">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getTierBadge(cleaner.subscription_tier ?? '').color}`}>
-                      {getTierBadge(cleaner.subscription_tier ?? '').text}
-                    </span>
-                  </div>
-                  
-                  {/* Certified Badge Overlay */}
-                  {(cleaner.is_certified || false) && (
-                    <div className="absolute top-3 left-3">
-                      <div className="bg-green-600 text-white px-2 py-1 rounded-full text-xs font-bold flex items-center gap-1">
-                        <BadgeCheck className="h-3 w-3" />
-                        CERTIFIED™
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                <div className="p-6">
-                  {/* Business Name & Rating */}
-                  <div className="flex justify-between items-start mb-3">
-                    <h3 className="text-lg font-semibold text-gray-900">
-                      {cleaner.business_name}
-                    </h3>
-                    <div className="flex items-center gap-1">
-                      <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                      <span className="text-sm font-medium">
-                        {(cleaner.average_rating || 0).toFixed(1)}
-                      </span>
-                      <span className="text-sm text-gray-600">
-                        ({cleaner.total_reviews || 0})
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Description */}
-                  <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                    {cleaner.business_description || 'Professional cleaning services'}
-                  </p>
-
-                  {/* Key Info */}
-                  <div className="space-y-2 mb-4">
-                    <div className="flex items-center gap-2 text-sm">
-                      <DollarSign className="h-4 w-4 text-gray-400" />
-                      <span>${cleaner.hourly_rate || 50}/hour ({cleaner.minimum_hours || 2}hr min)</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm">
-                      <Award className="h-4 w-4 text-gray-400" />
-                      <span>{cleaner.years_experience || 0} years experience</span>
-                    </div>
-                    {(cleaner.is_certified || false) ? (
-                      <div className="bg-gradient-to-r from-green-100 to-green-50 border border-green-300 rounded-lg p-3 mb-2">
-                        <div className="flex items-center gap-2 text-sm font-bold">
-                          <BadgeCheck className="h-5 w-5 text-green-600" />
-                          <span className="text-green-800">Boss of Clean Certified™</span>
-                        </div>
-                        <p className="text-xs text-green-700 mt-1">Background checked, insured & verified</p>
-                      </div>
-                    ) : (
-                      <div className="space-y-1">
-                        {(cleaner.insurance_verified || false) && (
-                          <div className="flex items-center gap-2 text-xs">
-                            <Shield className="h-3.5 w-3.5 text-blue-500" />
-                            <span className="text-gray-600">Insured</span>
-                          </div>
-                        )}
-                        {(cleaner.background_check_verified || false) && (
-                          <div className="flex items-center gap-2 text-xs">
-                            <BadgeCheck className="h-3.5 w-3.5 text-blue-500" />
-                            <span className="text-gray-600">Background Checked</span>
-                          </div>
-                        )}
-                        {(cleaner.photo_verified || false) && (
-                          <div className="flex items-center gap-2 text-xs">
-                            <CheckCircle2 className="h-3.5 w-3.5 text-blue-500" />
-                            <span className="text-gray-600">Photo Verified</span>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Services */}
-                  <div className="mb-4">
-                    <div className="flex flex-wrap gap-1">
-                      {(cleaner.services || []).slice(0, 3).map((service, index) => (
-                        <span
-                          key={index}
-                          className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
-                        >
-                          {service}
-                        </span>
-                      ))}
-                      {(cleaner.services || []).length > 3 && (
-                        <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
-                          +{(cleaner.services || []).length - 3} more
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Action Buttons */}
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => handleRequestQuote(cleaner.id)}
-                      className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition duration-300 text-sm font-medium flex items-center justify-center gap-2"
-                    >
-                      <MessageSquare className="h-4 w-4" />
-                      Request Quote
-                    </button>
-                    <a
-                      href={`tel:${cleaner.business_phone}`}
-                      className="px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition duration-300"
-                    >
-                      <Phone className="h-4 w-4 text-gray-600" />
-                    </a>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+        {!loading && cleaners.length > 0 && (
+          <LoadMorePagination
+            currentCount={cleaners.length}
+            totalCount={totalCount}
+            isLoading={loadingMore}
+            onLoadMore={handleLoadMore}
+          />
         )}
       </div>
     </div>
