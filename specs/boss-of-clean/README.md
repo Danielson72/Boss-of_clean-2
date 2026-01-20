@@ -82,6 +82,7 @@ Specific implementation work items:
 - **task-006-seo-sitemap-jsonld.md** ✅ DONE - SEO optimization
 - **task-007-quote-request-system.md** ✅ DONE - Quote request lead matching
 - **task-008-professional-search-discovery.md** ✅ DONE - Customer search & filtering
+- **task-009-cleaner-billing-dashboard.md** 📋 PLANNED - Subscription & billing management
 
 ### API Reference (`/api`)
 - **openapi.yaml** - Complete API specification (reference-only, not wired to runtime yet)
