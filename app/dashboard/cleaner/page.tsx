@@ -7,7 +7,7 @@ import { createClient } from '@/lib/supabase/client';
 import {
   Settings, FileText, Clock, CheckCircle, Star, TrendingUp,
   DollarSign, MapPin, Calendar, User, Phone, MessageSquare,
-  Camera, Shield, Award, Zap, Crown, Gift, Inbox
+  Camera, Shield, Award, Zap, Crown, Gift, Inbox, CreditCard
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -415,6 +415,13 @@ export default function CleanerDashboard() {
                       >
                         <MapPin className="h-8 w-8 text-green-600 mx-auto mb-2" />
                         <p className="font-medium">Manage Service Areas</p>
+                      </Link>
+                      <Link
+                        href="/dashboard/cleaner/billing"
+                        className="p-4 border rounded-lg hover:shadow-md transition duration-300 text-center"
+                      >
+                        <CreditCard className="h-8 w-8 text-indigo-600 mx-auto mb-2" />
+                        <p className="font-medium">Billing</p>
                       </Link>
                       <Link
                         href="/pricing"
