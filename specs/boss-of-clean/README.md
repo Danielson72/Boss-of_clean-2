@@ -81,6 +81,7 @@ Specific implementation work items:
 - **task-005-stripe-webhooks.md** ✅ DONE - Payment event handling
 - **task-006-seo-sitemap-jsonld.md** ✅ DONE - SEO optimization
 - **task-007-quote-request-system.md** ✅ DONE - Quote request lead matching
+- **task-008-professional-search-discovery.md** 📋 PLANNED - Customer search & filtering
 
 ### API Reference (`/api`)
 - **openapi.yaml** - Complete API specification (reference-only, not wired to runtime yet)
