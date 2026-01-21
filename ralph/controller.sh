@@ -26,6 +26,29 @@ COMMIT_PREFIX=$(jq -r '.config.commitPrefix' "$PRD_FILE")
 BUILD_CMD=$(jq -r '.config.buildCommand' "$PRD_FILE")
 LINT_CMD=$(jq -r '.config.lintCommand' "$PRD_FILE")
 
+# Parse command line arguments
+DRY_RUN=false
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --dry-run|--dry_run|-n)
+            DRY_RUN=true
+            shift
+            ;;
+        --help|-h)
+            echo "Usage: $0 [OPTIONS]"
+            echo ""
+            echo "Options:"
+            echo "  --dry-run, -n    Show what would be executed without running"
+            echo "  --help, -h       Show this help message"
+            exit 0
+            ;;
+        *)
+            echo "Unknown option: $1"
+            exit 1
+            ;;
+    esac
+done
+
 # Runtime variables
 START_TIME=$(date +%s)
 TASKS_COMPLETED=0
@@ -355,6 +378,44 @@ main() {
     log INFO "  Time cap: $TIME_CAP_MINUTES minutes"
     log INFO "  Commit prefix: $COMMIT_PREFIX"
     echo ""
+
+    # Dry run mode - show what would be executed
+    if [ "$DRY_RUN" = true ]; then
+        echo -e "${YELLOW}=== DRY RUN MODE ===${NC}"
+        echo ""
+        echo "Would execute up to $MAX_TASKS tasks:"
+        echo ""
+
+        local count=0
+        while IFS= read -r task_line; do
+            if [ $count -ge $MAX_TASKS ]; then
+                break
+            fi
+            local task_id=$(echo "$task_line" | jq -r '.id')
+            local title=$(echo "$task_line" | jq -r '.title')
+            local priority=$(echo "$task_line" | jq -r '.priority')
+            local est_mins=$(echo "$task_line" | jq -r '.estimatedMinutes')
+            local files=$(echo "$task_line" | jq -r '.files | join(", ")')
+            local criteria_count=$(echo "$task_line" | jq -r '.acceptanceCriteria | length')
+
+            echo -e "${BLUE}[$((count + 1))] $task_id${NC}: $title"
+            echo "    Priority: $priority | Est: ${est_mins}min | Criteria: $criteria_count"
+            echo "    Files: $files"
+            echo ""
+            count=$((count + 1))
+        done < <(jq -c '.tasks | map(select(.status == "pending")) | sort_by(.priority | if . == "high" then 0 elif . == "medium" then 1 else 2 end) | .[]' "$PRD_FILE")
+
+        echo "---"
+        echo "Total pending tasks: $(jq '[.tasks[] | select(.status == "pending")] | length' "$PRD_FILE")"
+        echo "Tasks by status:"
+        echo "  - pending: $(jq '[.tasks[] | select(.status == "pending")] | length' "$PRD_FILE")"
+        echo "  - in-progress: $(jq '[.tasks[] | select(.status == "in-progress")] | length' "$PRD_FILE")"
+        echo "  - done: $(jq '[.tasks[] | select(.status == "done")] | length' "$PRD_FILE")"
+        echo "  - failed: $(jq '[.tasks[] | select(.status == "failed")] | length' "$PRD_FILE")"
+        echo ""
+        echo "Run without --dry-run to execute."
+        exit 0
+    fi
 
     # Main task execution loop
     local tasks_attempted=0

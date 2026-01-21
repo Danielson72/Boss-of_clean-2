@@ -2,7 +2,6 @@
   "project": "Boss of Clean",
   "version": "1.0.0",
   "lastUpdated": "2025-01-21",
-
   "config": {
     "maxTasksPerRun": 3,
     "timeCapMinutes": 90,
@@ -13,7 +12,6 @@
     "workingDirectory": "/root/Boss-of_clean-2",
     "reportsDirectory": "/root/Boss-of_clean-2/ralph/reports"
   },
-
   "tasks": [
     {
       "id": "AUTH-001",
@@ -36,7 +34,11 @@
         "app/auth/confirm/page.tsx",
         "lib/email/verification.ts"
       ],
-      "tags": ["auth", "email", "phase1"]
+      "tags": [
+        "auth",
+        "email",
+        "phase1"
+      ]
     },
     {
       "id": "AUTH-002",
@@ -59,7 +61,11 @@
         "app/auth/reset-password/page.tsx",
         "lib/email/password-reset.ts"
       ],
-      "tags": ["auth", "email", "phase1"]
+      "tags": [
+        "auth",
+        "email",
+        "phase1"
+      ]
     },
     {
       "id": "AUTH-003",
@@ -68,7 +74,9 @@
       "priority": "medium",
       "status": "pending",
       "estimatedMinutes": 60,
-      "dependencies": ["AUTH-001"],
+      "dependencies": [
+        "AUTH-001"
+      ],
       "acceptanceCriteria": [
         "Google sign-in button on login page",
         "Google sign-in button on signup page",
@@ -83,7 +91,11 @@
         "app/auth/callback/route.ts",
         "components/auth/GoogleSignInButton.tsx"
       ],
-      "tags": ["auth", "oauth", "phase1"]
+      "tags": [
+        "auth",
+        "oauth",
+        "phase1"
+      ]
     },
     {
       "id": "DASH-001",
@@ -106,7 +118,11 @@
         "components/availability/WeeklySchedule.tsx",
         "supabase/10-availability-schema.sql"
       ],
-      "tags": ["dashboard", "cleaner", "phase1"]
+      "tags": [
+        "dashboard",
+        "cleaner",
+        "phase1"
+      ]
     },
     {
       "id": "DASH-002",
@@ -129,7 +145,11 @@
         "components/analytics/EarningsChart.tsx",
         "lib/services/analytics.ts"
       ],
-      "tags": ["dashboard", "analytics", "phase1"]
+      "tags": [
+        "dashboard",
+        "analytics",
+        "phase1"
+      ]
     },
     {
       "id": "DASH-003",
@@ -152,7 +172,11 @@
         "components/reviews/ReviewResponseForm.tsx",
         "app/api/cleaner/reviews/respond/route.ts"
       ],
-      "tags": ["dashboard", "reviews", "phase1"]
+      "tags": [
+        "dashboard",
+        "reviews",
+        "phase1"
+      ]
     },
     {
       "id": "BOOK-001",
@@ -161,7 +185,9 @@
       "priority": "high",
       "status": "pending",
       "estimatedMinutes": 75,
-      "dependencies": ["DASH-001"],
+      "dependencies": [
+        "DASH-001"
+      ],
       "acceptanceCriteria": [
         "Book Now button on cleaner profiles",
         "Date picker shows only available dates",
@@ -178,7 +204,11 @@
         "app/api/bookings/create/route.ts",
         "lib/email/booking-confirmation.ts"
       ],
-      "tags": ["booking", "customer", "phase1"]
+      "tags": [
+        "booking",
+        "customer",
+        "phase1"
+      ]
     },
     {
       "id": "BOOK-002",
@@ -187,7 +217,9 @@
       "priority": "high",
       "status": "pending",
       "estimatedMinutes": 50,
-      "dependencies": ["BOOK-001"],
+      "dependencies": [
+        "BOOK-001"
+      ],
       "acceptanceCriteria": [
         "List of all bookings (upcoming, past)",
         "Booking details modal/page",
@@ -202,7 +234,11 @@
         "components/booking/RescheduleModal.tsx",
         "app/api/bookings/[id]/route.ts"
       ],
-      "tags": ["booking", "customer", "phase1"]
+      "tags": [
+        "booking",
+        "customer",
+        "phase1"
+      ]
     },
     {
       "id": "BOOK-003",
@@ -211,7 +247,9 @@
       "priority": "high",
       "status": "pending",
       "estimatedMinutes": 45,
-      "dependencies": ["BOOK-001"],
+      "dependencies": [
+        "BOOK-001"
+      ],
       "acceptanceCriteria": [
         "List of pending booking requests",
         "Confirm/decline booking actions",
@@ -225,7 +263,11 @@
         "components/booking/CleanerBookingList.tsx",
         "app/api/cleaner/bookings/[id]/route.ts"
       ],
-      "tags": ["booking", "cleaner", "phase1"]
+      "tags": [
+        "booking",
+        "cleaner",
+        "phase1"
+      ]
     },
     {
       "id": "PAY-001",
@@ -247,7 +289,11 @@
         "lib/stripe/invoices.ts",
         "components/billing/InvoiceList.tsx"
       ],
-      "tags": ["billing", "stripe", "phase1"]
+      "tags": [
+        "billing",
+        "stripe",
+        "phase1"
+      ]
     },
     {
       "id": "PAY-002",
@@ -271,7 +317,11 @@
         "lib/email/payment-failed.ts",
         "components/billing/PaymentFailureAlert.tsx"
       ],
-      "tags": ["billing", "stripe", "phase1"]
+      "tags": [
+        "billing",
+        "stripe",
+        "phase1"
+      ]
     },
     {
       "id": "REV-001",
@@ -280,7 +330,9 @@
       "priority": "medium",
       "status": "pending",
       "estimatedMinutes": 45,
-      "dependencies": ["BOOK-001"],
+      "dependencies": [
+        "BOOK-001"
+      ],
       "acceptanceCriteria": [
         "Review prompt after booking marked complete",
         "1-5 star rating required",
@@ -295,7 +347,11 @@
         "app/api/reviews/create/route.ts",
         "lib/email/review-request.ts"
       ],
-      "tags": ["reviews", "customer", "phase2"]
+      "tags": [
+        "reviews",
+        "customer",
+        "phase2"
+      ]
     },
     {
       "id": "REV-002",
@@ -304,7 +360,9 @@
       "priority": "low",
       "status": "pending",
       "estimatedMinutes": 40,
-      "dependencies": ["REV-001"],
+      "dependencies": [
+        "REV-001"
+      ],
       "acceptanceCriteria": [
         "List of pending reviews for moderation",
         "Approve/reject actions",
@@ -318,7 +376,11 @@
         "components/admin/ReviewModerationCard.tsx",
         "app/api/admin/reviews/[id]/route.ts"
       ],
-      "tags": ["reviews", "admin", "phase2"]
+      "tags": [
+        "reviews",
+        "admin",
+        "phase2"
+      ]
     },
     {
       "id": "SRCH-001",
@@ -341,7 +403,10 @@
         "components/search/SearchFilters.tsx",
         "lib/services/search.ts"
       ],
-      "tags": ["search", "phase2"]
+      "tags": [
+        "search",
+        "phase2"
+      ]
     },
     {
       "id": "SRCH-002",
@@ -363,7 +428,11 @@
         "components/FavoriteButton.tsx",
         "app/api/customer/favorites/route.ts"
       ],
-      "tags": ["search", "customer", "phase2"]
+      "tags": [
+        "search",
+        "customer",
+        "phase2"
+      ]
     },
     {
       "id": "MSG-001",
@@ -389,7 +458,10 @@
         "app/api/messages/route.ts",
         "supabase/11-messaging-schema.sql"
       ],
-      "tags": ["messaging", "phase2"]
+      "tags": [
+        "messaging",
+        "phase2"
+      ]
     },
     {
       "id": "SEO-001",
@@ -412,7 +484,10 @@
         "lib/seo/city-pages.ts",
         "lib/data/florida-cities.ts"
       ],
-      "tags": ["seo", "phase2"]
+      "tags": [
+        "seo",
+        "phase2"
+      ]
     }
   ]
 }
