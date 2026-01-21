@@ -1,0 +1,418 @@
+{
+  "project": "Boss of Clean",
+  "version": "1.0.0",
+  "lastUpdated": "2025-01-21",
+
+  "config": {
+    "maxTasksPerRun": 3,
+    "timeCapMinutes": 90,
+    "commitPrefix": "ralph:",
+    "buildCommand": "npm run build",
+    "lintCommand": "npm run lint",
+    "testCommand": null,
+    "workingDirectory": "/root/Boss-of_clean-2",
+    "reportsDirectory": "/root/Boss-of_clean-2/ralph/reports"
+  },
+
+  "tasks": [
+    {
+      "id": "AUTH-001",
+      "title": "Email verification flow",
+      "description": "Implement email verification after signup. Send verification email with magic link, show pending verification state, handle verification callback.",
+      "priority": "high",
+      "status": "pending",
+      "estimatedMinutes": 45,
+      "dependencies": [],
+      "acceptanceCriteria": [
+        "Verification email sent within 30 seconds of signup",
+        "Magic link expires after 24 hours",
+        "User sees 'verify your email' message after signup",
+        "Successful verification redirects to dashboard",
+        "Resend verification email button works",
+        "Build passes with no TypeScript errors"
+      ],
+      "files": [
+        "app/(auth)/signup/page.tsx",
+        "app/auth/confirm/page.tsx",
+        "lib/email/verification.ts"
+      ],
+      "tags": ["auth", "email", "phase1"]
+    },
+    {
+      "id": "AUTH-002",
+      "title": "Password reset flow",
+      "description": "Complete password reset functionality. User enters email, receives reset link, sets new password. Include rate limiting and expiry.",
+      "priority": "high",
+      "status": "pending",
+      "estimatedMinutes": 40,
+      "dependencies": [],
+      "acceptanceCriteria": [
+        "Reset email sent within 30 seconds",
+        "Reset link expires after 1 hour",
+        "New password must meet strength requirements",
+        "Success message after password change",
+        "Rate limit: max 3 requests per hour per email",
+        "Build passes with no TypeScript errors"
+      ],
+      "files": [
+        "app/forgot-password/page.tsx",
+        "app/auth/reset-password/page.tsx",
+        "lib/email/password-reset.ts"
+      ],
+      "tags": ["auth", "email", "phase1"]
+    },
+    {
+      "id": "AUTH-003",
+      "title": "Google OAuth integration",
+      "description": "Add Google sign-in option to login and signup pages. Link OAuth users to existing accounts by email. Handle OAuth callback.",
+      "priority": "medium",
+      "status": "pending",
+      "estimatedMinutes": 60,
+      "dependencies": ["AUTH-001"],
+      "acceptanceCriteria": [
+        "Google sign-in button on login page",
+        "Google sign-in button on signup page",
+        "OAuth callback handles new and existing users",
+        "Existing email accounts are linked",
+        "User role selection for new OAuth signups",
+        "Build passes with no TypeScript errors"
+      ],
+      "files": [
+        "app/login/page.tsx",
+        "app/signup/page.tsx",
+        "app/auth/callback/route.ts",
+        "components/auth/GoogleSignInButton.tsx"
+      ],
+      "tags": ["auth", "oauth", "phase1"]
+    },
+    {
+      "id": "DASH-001",
+      "title": "Cleaner calendar/availability settings",
+      "description": "Add availability management to cleaner dashboard. Weekly schedule with time slots, vacation/blocked dates, instant booking toggle.",
+      "priority": "high",
+      "status": "pending",
+      "estimatedMinutes": 60,
+      "dependencies": [],
+      "acceptanceCriteria": [
+        "Weekly availability grid (Mon-Sun, AM/PM slots)",
+        "Save/update availability to database",
+        "Block specific dates (vacation mode)",
+        "Toggle for instant booking availability",
+        "Availability shown on cleaner profile",
+        "Build passes with no TypeScript errors"
+      ],
+      "files": [
+        "app/dashboard/cleaner/availability/page.tsx",
+        "components/availability/WeeklySchedule.tsx",
+        "supabase/10-availability-schema.sql"
+      ],
+      "tags": ["dashboard", "cleaner", "phase1"]
+    },
+    {
+      "id": "DASH-002",
+      "title": "Cleaner earnings dashboard",
+      "description": "Create earnings analytics page showing revenue, bookings completed, lead conversion rate. Include charts and export functionality.",
+      "priority": "medium",
+      "status": "pending",
+      "estimatedMinutes": 50,
+      "dependencies": [],
+      "acceptanceCriteria": [
+        "Total earnings display (monthly, all-time)",
+        "Bookings completed count",
+        "Lead-to-booking conversion rate",
+        "Revenue chart (last 6 months)",
+        "Export to CSV functionality",
+        "Build passes with no TypeScript errors"
+      ],
+      "files": [
+        "app/dashboard/cleaner/earnings/page.tsx",
+        "components/analytics/EarningsChart.tsx",
+        "lib/services/analytics.ts"
+      ],
+      "tags": ["dashboard", "analytics", "phase1"]
+    },
+    {
+      "id": "DASH-003",
+      "title": "Review response functionality",
+      "description": "Allow cleaners to respond to customer reviews from their dashboard. One response per review, edit capability, character limit.",
+      "priority": "medium",
+      "status": "pending",
+      "estimatedMinutes": 35,
+      "dependencies": [],
+      "acceptanceCriteria": [
+        "View all reviews in dashboard",
+        "Respond button on each review",
+        "500 character limit on responses",
+        "Edit existing response",
+        "Response shown on public profile",
+        "Build passes with no TypeScript errors"
+      ],
+      "files": [
+        "app/dashboard/cleaner/reviews/page.tsx",
+        "components/reviews/ReviewResponseForm.tsx",
+        "app/api/cleaner/reviews/respond/route.ts"
+      ],
+      "tags": ["dashboard", "reviews", "phase1"]
+    },
+    {
+      "id": "BOOK-001",
+      "title": "Customer instant booking flow",
+      "description": "Implement instant booking for cleaners with availability. Date/time picker based on cleaner schedule, booking confirmation, email notifications.",
+      "priority": "high",
+      "status": "pending",
+      "estimatedMinutes": 75,
+      "dependencies": ["DASH-001"],
+      "acceptanceCriteria": [
+        "Book Now button on cleaner profiles",
+        "Date picker shows only available dates",
+        "Time slot selection based on cleaner schedule",
+        "Service type and home size selection",
+        "Price calculation before confirmation",
+        "Booking confirmation email to both parties",
+        "Build passes with no TypeScript errors"
+      ],
+      "files": [
+        "app/book/[cleanerId]/page.tsx",
+        "components/booking/DateTimePicker.tsx",
+        "components/booking/BookingConfirmation.tsx",
+        "app/api/bookings/create/route.ts",
+        "lib/email/booking-confirmation.ts"
+      ],
+      "tags": ["booking", "customer", "phase1"]
+    },
+    {
+      "id": "BOOK-002",
+      "title": "Booking management for customers",
+      "description": "Customer dashboard page to view, reschedule, and cancel bookings. Show booking status, cleaner info, and service details.",
+      "priority": "high",
+      "status": "pending",
+      "estimatedMinutes": 50,
+      "dependencies": ["BOOK-001"],
+      "acceptanceCriteria": [
+        "List of all bookings (upcoming, past)",
+        "Booking details modal/page",
+        "Reschedule with date picker",
+        "Cancel with reason selection",
+        "24-hour cancellation policy enforced",
+        "Build passes with no TypeScript errors"
+      ],
+      "files": [
+        "app/dashboard/customer/bookings/page.tsx",
+        "components/booking/BookingCard.tsx",
+        "components/booking/RescheduleModal.tsx",
+        "app/api/bookings/[id]/route.ts"
+      ],
+      "tags": ["booking", "customer", "phase1"]
+    },
+    {
+      "id": "BOOK-003",
+      "title": "Booking management for cleaners",
+      "description": "Cleaner dashboard page to view incoming bookings, confirm/decline, and mark as completed. Integration with availability calendar.",
+      "priority": "high",
+      "status": "pending",
+      "estimatedMinutes": 45,
+      "dependencies": ["BOOK-001"],
+      "acceptanceCriteria": [
+        "List of pending booking requests",
+        "Confirm/decline booking actions",
+        "Upcoming bookings calendar view",
+        "Mark booking as completed",
+        "Auto-request review after completion",
+        "Build passes with no TypeScript errors"
+      ],
+      "files": [
+        "app/dashboard/cleaner/bookings/page.tsx",
+        "components/booking/CleanerBookingList.tsx",
+        "app/api/cleaner/bookings/[id]/route.ts"
+      ],
+      "tags": ["booking", "cleaner", "phase1"]
+    },
+    {
+      "id": "PAY-001",
+      "title": "Invoice generation and history",
+      "description": "Generate PDF invoices for subscription payments. Show invoice history in billing dashboard with download links.",
+      "priority": "medium",
+      "status": "pending",
+      "estimatedMinutes": 40,
+      "dependencies": [],
+      "acceptanceCriteria": [
+        "Invoice generated for each payment",
+        "PDF download link for each invoice",
+        "Invoice list in billing page",
+        "Invoice details: date, amount, description",
+        "Build passes with no TypeScript errors"
+      ],
+      "files": [
+        "app/api/cleaner/billing/invoices/route.ts",
+        "lib/stripe/invoices.ts",
+        "components/billing/InvoiceList.tsx"
+      ],
+      "tags": ["billing", "stripe", "phase1"]
+    },
+    {
+      "id": "PAY-002",
+      "title": "Failed payment handling",
+      "description": "Implement retry logic for failed payments. Send dunning emails, show payment failure alert in dashboard, grace period before downgrade.",
+      "priority": "high",
+      "status": "pending",
+      "estimatedMinutes": 55,
+      "dependencies": [],
+      "acceptanceCriteria": [
+        "Stripe webhook handles payment_failed event",
+        "3 automatic retry attempts over 7 days",
+        "Email sent on each failure",
+        "Dashboard shows payment failure alert",
+        "7-day grace period before downgrade to free",
+        "Build passes with no TypeScript errors"
+      ],
+      "files": [
+        "app/api/webhooks/stripe/route.ts",
+        "lib/stripe/dunning.ts",
+        "lib/email/payment-failed.ts",
+        "components/billing/PaymentFailureAlert.tsx"
+      ],
+      "tags": ["billing", "stripe", "phase1"]
+    },
+    {
+      "id": "REV-001",
+      "title": "Customer review submission",
+      "description": "Allow customers to submit reviews after completed bookings. Star rating, written feedback, photo upload option.",
+      "priority": "medium",
+      "status": "pending",
+      "estimatedMinutes": 45,
+      "dependencies": ["BOOK-001"],
+      "acceptanceCriteria": [
+        "Review prompt after booking marked complete",
+        "1-5 star rating required",
+        "Written feedback (50-500 chars)",
+        "Optional photo upload",
+        "One review per booking",
+        "Build passes with no TypeScript errors"
+      ],
+      "files": [
+        "app/review/[bookingId]/page.tsx",
+        "components/reviews/ReviewForm.tsx",
+        "app/api/reviews/create/route.ts",
+        "lib/email/review-request.ts"
+      ],
+      "tags": ["reviews", "customer", "phase2"]
+    },
+    {
+      "id": "REV-002",
+      "title": "Review moderation queue",
+      "description": "Admin interface to review and approve/reject customer reviews. Flag inappropriate content, edit capability.",
+      "priority": "low",
+      "status": "pending",
+      "estimatedMinutes": 40,
+      "dependencies": ["REV-001"],
+      "acceptanceCriteria": [
+        "List of pending reviews for moderation",
+        "Approve/reject actions",
+        "Flag for inappropriate content",
+        "Edit review content (admin only)",
+        "Notification to cleaner on approval",
+        "Build passes with no TypeScript errors"
+      ],
+      "files": [
+        "app/dashboard/admin/reviews/page.tsx",
+        "components/admin/ReviewModerationCard.tsx",
+        "app/api/admin/reviews/[id]/route.ts"
+      ],
+      "tags": ["reviews", "admin", "phase2"]
+    },
+    {
+      "id": "SRCH-001",
+      "title": "Advanced search filters",
+      "description": "Add filters to search results: rating, price range, availability, services offered. Persist filters in URL.",
+      "priority": "medium",
+      "status": "pending",
+      "estimatedMinutes": 50,
+      "dependencies": [],
+      "acceptanceCriteria": [
+        "Filter by minimum rating (1-5 stars)",
+        "Filter by price range slider",
+        "Filter by availability (today, this week)",
+        "Filter by service types (checkboxes)",
+        "Filters persist in URL for sharing",
+        "Build passes with no TypeScript errors"
+      ],
+      "files": [
+        "app/search/results/page.tsx",
+        "components/search/SearchFilters.tsx",
+        "lib/services/search.ts"
+      ],
+      "tags": ["search", "phase2"]
+    },
+    {
+      "id": "SRCH-002",
+      "title": "Save favorite cleaners",
+      "description": "Allow customers to save cleaners to favorites list. Heart icon on profiles, favorites page in customer dashboard.",
+      "priority": "low",
+      "status": "pending",
+      "estimatedMinutes": 30,
+      "dependencies": [],
+      "acceptanceCriteria": [
+        "Heart/save icon on cleaner cards",
+        "Toggle favorite state",
+        "Favorites page in customer dashboard",
+        "Favorites count on profile",
+        "Build passes with no TypeScript errors"
+      ],
+      "files": [
+        "app/dashboard/customer/favorites/page.tsx",
+        "components/FavoriteButton.tsx",
+        "app/api/customer/favorites/route.ts"
+      ],
+      "tags": ["search", "customer", "phase2"]
+    },
+    {
+      "id": "MSG-001",
+      "title": "In-app messaging system",
+      "description": "Basic messaging between customers and cleaners. Conversation threads, real-time updates, message notifications.",
+      "priority": "medium",
+      "status": "pending",
+      "estimatedMinutes": 90,
+      "dependencies": [],
+      "acceptanceCriteria": [
+        "Send message from cleaner profile",
+        "Conversation thread view",
+        "Real-time message updates (polling or websocket)",
+        "Unread message indicator",
+        "Email notification for new messages",
+        "Build passes with no TypeScript errors"
+      ],
+      "files": [
+        "app/dashboard/messages/page.tsx",
+        "app/dashboard/messages/[conversationId]/page.tsx",
+        "components/messaging/MessageThread.tsx",
+        "components/messaging/MessageInput.tsx",
+        "app/api/messages/route.ts",
+        "supabase/11-messaging-schema.sql"
+      ],
+      "tags": ["messaging", "phase2"]
+    },
+    {
+      "id": "SEO-001",
+      "title": "City landing pages",
+      "description": "Generate SEO-optimized landing pages for major Florida cities. Dynamic content based on cleaners in area.",
+      "priority": "medium",
+      "status": "pending",
+      "estimatedMinutes": 45,
+      "dependencies": [],
+      "acceptanceCriteria": [
+        "Landing page template for cities",
+        "Dynamic cleaner count per city",
+        "Local SEO meta tags",
+        "City-specific content sections",
+        "Internal linking to search results",
+        "Build passes with no TypeScript errors"
+      ],
+      "files": [
+        "app/[city]/page.tsx",
+        "lib/seo/city-pages.ts",
+        "lib/data/florida-cities.ts"
+      ],
+      "tags": ["seo", "phase2"]
+    }
+  ]
+}
