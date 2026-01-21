@@ -25,12 +25,11 @@ interface CleanerProfile {
   years_experience: number;
   insurance_verified: boolean;
   license_verified: boolean;
-  background_check_verified: boolean;
-  photo_verified: boolean;
-  is_certified: boolean;
+  background_check: boolean;
+  is_certified?: boolean;
   website_url?: string;
   business_address?: string;
-  profile_photos: string[];
+  business_images: string[];
 }
 
 const AVAILABLE_SERVICES = [
@@ -83,7 +82,7 @@ export default function CleanerProfilePage() {
           years_experience: 1,
           insurance_verified: false,
           license_verified: false,
-          profile_photos: [],
+          business_images: [],
           approval_status: 'pending'
         };
         
@@ -136,8 +135,8 @@ export default function CleanerProfilePage() {
         .from('cleaner-photos')
         .getPublicUrl(fileName);
 
-      const updatedPhotos = [...profile.profile_photos, publicUrl];
-      setProfile({ ...profile, profile_photos: updatedPhotos });
+      const updatedPhotos = [...profile.business_images, publicUrl];
+      setProfile({ ...profile, business_images: updatedPhotos });
       
       setMessage('Photo uploaded successfully!');
     } catch (error) {
@@ -150,8 +149,8 @@ export default function CleanerProfilePage() {
 
   const handlePhotoRemove = (photoUrl: string) => {
     if (!profile) return;
-    const updatedPhotos = profile.profile_photos.filter(url => url !== photoUrl);
-    setProfile({ ...profile, profile_photos: updatedPhotos });
+    const updatedPhotos = profile.business_images.filter(url => url !== photoUrl);
+    setProfile({ ...profile, business_images: updatedPhotos });
   };
 
   const handleSave = async () => {
@@ -172,7 +171,7 @@ export default function CleanerProfilePage() {
           years_experience: profile.years_experience,
           website_url: profile.website_url,
           business_address: profile.business_address,
-          profile_photos: profile.profile_photos,
+          business_images: profile.business_images,
           updated_at: new Date().toISOString()
         })
         .eq('id', profile.id);
@@ -442,7 +441,7 @@ export default function CleanerProfilePage() {
               </h2>
               
               <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
-                {profile.profile_photos.map((photo, index) => (
+                {profile.business_images.map((photo, index) => (
                   <div key={index} className="relative group">
                     <img
                       src={photo}
@@ -458,7 +457,7 @@ export default function CleanerProfilePage() {
                   </div>
                 ))}
                 
-                {profile.profile_photos.length < 10 && (
+                {profile.business_images.length < 10 && (
                   <label className="flex flex-col items-center justify-center h-32 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 cursor-pointer">
                     <Upload className="h-8 w-8 text-gray-400" />
                     <span className="text-sm text-gray-600 mt-2">
@@ -507,38 +506,21 @@ export default function CleanerProfilePage() {
 
                 <div className="flex items-center justify-between p-4 border rounded-lg">
                   <div className="flex items-center gap-3">
-                    <BadgeCheck className={`h-5 w-5 ${profile.background_check_verified ? 'text-green-600' : 'text-gray-400'}`} />
+                    <BadgeCheck className={`h-5 w-5 ${profile.background_check ? 'text-green-600' : 'text-gray-400'}`} />
                     <div>
                       <p className="font-medium">Background Check</p>
                       <p className="text-sm text-gray-600">Complete criminal background screening</p>
                     </div>
                   </div>
                   <span className={`px-3 py-1 rounded-full text-sm ${
-                    profile.background_check_verified 
+                    profile.background_check 
                       ? 'bg-green-100 text-green-800' 
                       : 'bg-gray-100 text-gray-600'
                   }`}>
-                    {profile.background_check_verified ? 'Verified' : 'Pending'}
+                    {profile.background_check ? 'Verified' : 'Pending'}
                   </span>
                 </div>
 
-                <div className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <Camera className={`h-5 w-5 ${profile.photo_verified ? 'text-green-600' : 'text-gray-400'}`} />
-                    <div>
-                      <p className="font-medium">Photo Verification</p>
-                      <p className="text-sm text-gray-600">Upload business photos for verification</p>
-                    </div>
-                  </div>
-                  <span className={`px-3 py-1 rounded-full text-sm ${
-                    profile.photo_verified 
-                      ? 'bg-green-100 text-green-800' 
-                      : 'bg-gray-100 text-gray-600'
-                  }`}>
-                    {profile.photo_verified ? 'Verified' : 'Pending'}
-                  </span>
-                </div>
-                
                 <div className="flex items-center justify-between p-4 border rounded-lg">
                   <div className="flex items-center gap-3">
                     <CheckCircle className={`h-5 w-5 ${profile.license_verified ? 'text-green-600' : 'text-gray-400'}`} />
