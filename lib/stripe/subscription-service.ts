@@ -1,0 +1,356 @@
+import { stripe, SUBSCRIPTION_TIERS, type SubscriptionTier } from './config';
+import { createClient } from '@/lib/supabase/server';
+import type Stripe from 'stripe';
+
+export class SubscriptionService {
+  private getSupabase() {
+    return createClient();
+  }
+
+  async createCheckoutSession(
+    cleanerId: string,
+    tier: SubscriptionTier,
+    customerEmail: string,
+    successUrl: string,
+    cancelUrl: string
+  ) {
+    if (tier === 'free') {
+      throw new Error('Free tier does not require payment');
+    }
+
+    const tierConfig = SUBSCRIPTION_TIERS[tier];
+    
+    try {
+      // Create or retrieve Stripe customer
+      const customer = await this.getOrCreateStripeCustomer(cleanerId, customerEmail);
+      
+      const session = await stripe.checkout.sessions.create({
+        customer: customer.id,
+        mode: 'subscription',
+        payment_method_types: ['card'],
+        line_items: [
+          {
+            price: tierConfig.priceId,
+            quantity: 1,
+          },
+        ],
+        success_url: successUrl,
+        cancel_url: cancelUrl,
+        metadata: {
+          cleaner_id: cleanerId,
+          tier: tier,
+        },
+        allow_promotion_codes: true,
+        billing_address_collection: 'required',
+        customer_update: {
+          address: 'auto',
+        },
+        subscription_data: {
+          metadata: {
+            cleaner_id: cleanerId,
+            tier: tier,
+          },
+        },
+      });
+
+      return { sessionId: session.id, url: session.url };
+    } catch (error) {
+      console.error('Error creating checkout session:', error);
+      throw new Error('Failed to create checkout session');
+    }
+  }
+
+  async getOrCreateStripeCustomer(cleanerId: string, email: string) {
+    // Check if cleaner already has a Stripe customer ID
+    const { data: cleaner } = await this.getSupabase()
+      .from('cleaners')
+      .select('stripe_customer_id, business_name')
+      .eq('id', cleanerId)
+      .single();
+
+    if (cleaner?.stripe_customer_id) {
+      return await stripe.customers.retrieve(cleaner.stripe_customer_id) as any;
+    }
+
+    // Create new Stripe customer
+    const customer = await stripe.customers.create({
+      email,
+      name: cleaner?.business_name || 'Business Owner',
+      metadata: {
+        cleaner_id: cleanerId,
+      },
+    });
+
+    // Update cleaner with Stripe customer ID
+    await this.getSupabase()
+      .from('cleaners')
+      .update({ stripe_customer_id: customer.id })
+      .eq('id', cleanerId);
+
+    return customer;
+  }
+
+  async handleSubscriptionCreated(subscription: Stripe.Subscription) {
+    // Use bracket notation for properties that may not be in strict types
+    const sub = subscription as Stripe.Subscription & {
+      current_period_start: number;
+      current_period_end: number;
+    };
+    const { customer, id, status, current_period_start, current_period_end, metadata } = sub;
+    const cleanerId = metadata.cleaner_id;
+    const tier = metadata.tier as SubscriptionTier;
+
+    if (!cleanerId || !tier) {
+      console.error('Missing cleaner_id or tier in subscription metadata');
+      return;
+    }
+
+    const tierConfig = SUBSCRIPTION_TIERS[tier];
+    const periodStart = new Date(current_period_start * 1000).toISOString();
+    const periodEnd = new Date(current_period_end * 1000).toISOString();
+
+    try {
+      // Insert subscription record
+      await this.getSupabase().from('subscriptions').insert({
+        cleaner_id: cleanerId,
+        stripe_subscription_id: id,
+        stripe_customer_id: typeof customer === 'string' ? customer : customer?.id,
+        tier,
+        status,
+        current_period_start: periodStart,
+        current_period_end: periodEnd,
+        monthly_price: tierConfig.price,
+        features: tierConfig.features,
+      });
+
+      // Update cleaner subscription info and billing dates
+      await this.getSupabase()
+        .from('cleaners')
+        .update({
+          subscription_tier: tier,
+          subscription_expires_at: periodEnd,
+          stripe_subscription_id: id,
+          next_billing_date: periodEnd,
+          payment_failed_count: 0, // Reset on new subscription
+        })
+        .eq('id', cleanerId);
+
+      console.log(`Subscription created for cleaner ${cleanerId}: ${tier}`);
+    } catch (error) {
+      console.error('Error handling subscription created:', error);
+      throw error; // Re-throw for retry logic
+    }
+  }
+
+  async handleSubscriptionUpdated(subscription: Stripe.Subscription) {
+    const sub = subscription as Stripe.Subscription & {
+      current_period_end: number;
+    };
+    const { id, status, current_period_end, cancel_at } = sub;
+    const periodEnd = new Date(current_period_end * 1000).toISOString();
+
+    try {
+      // Update subscription record
+      await this.getSupabase()
+        .from('subscriptions')
+        .update({
+          status,
+          current_period_end: periodEnd,
+          cancel_at: cancel_at ? new Date(cancel_at * 1000).toISOString() : null,
+        })
+        .eq('stripe_subscription_id', id);
+
+      // Update cleaner subscription expiry and next billing date
+      await this.getSupabase()
+        .from('cleaners')
+        .update({
+          subscription_expires_at: periodEnd,
+          next_billing_date: periodEnd,
+        })
+        .eq('stripe_subscription_id', id);
+
+      console.log(`Subscription updated: ${id}`);
+    } catch (error) {
+      console.error('Error handling subscription updated:', error);
+      throw error; // Re-throw for retry logic
+    }
+  }
+
+  async handleSubscriptionDeleted(subscription: Stripe.Subscription) {
+    const { id } = subscription;
+
+    try {
+      // Update cleaner to free tier and clear billing dates
+      await this.getSupabase()
+        .from('cleaners')
+        .update({
+          subscription_tier: 'free',
+          subscription_expires_at: null,
+          stripe_subscription_id: null,
+          next_billing_date: null,
+        })
+        .eq('stripe_subscription_id', id);
+
+      // Update subscription status
+      await this.getSupabase()
+        .from('subscriptions')
+        .update({ status: 'canceled' })
+        .eq('stripe_subscription_id', id);
+
+      console.log(`Subscription canceled: ${id}`);
+    } catch (error) {
+      console.error('Error handling subscription deleted:', error);
+      throw error; // Re-throw for retry logic
+    }
+  }
+
+  async handlePaymentSucceeded(invoice: Stripe.Invoice) {
+    // Extended type for invoice properties that may not be in strict types
+    const inv = invoice as Stripe.Invoice & {
+      subscription?: string | { id: string } | null;
+      payment_intent?: string | { id: string } | null;
+    };
+    const { subscription, amount_paid, currency } = inv;
+
+    if (!subscription) {
+      console.log('No subscription associated with invoice, skipping');
+      return;
+    }
+
+    const subscriptionId = typeof subscription === 'string' ? subscription : subscription.id;
+
+    try {
+      // Record successful payment
+      const { data: subscriptionData } = await this.getSupabase()
+        .from('subscriptions')
+        .select('cleaner_id')
+        .eq('stripe_subscription_id', subscriptionId)
+        .single();
+
+      if (subscriptionData) {
+        const paymentIntentId = typeof inv.payment_intent === 'string'
+          ? inv.payment_intent
+          : inv.payment_intent?.id || null;
+
+        // Record payment
+        await this.getSupabase().from('payments').insert({
+          cleaner_id: subscriptionData.cleaner_id,
+          stripe_payment_intent_id: paymentIntentId,
+          amount: (amount_paid || 0) / 100, // Convert cents to dollars
+          currency: currency || 'usd',
+          status: 'succeeded',
+          description: 'Monthly subscription payment',
+          metadata: { invoice_id: invoice.id },
+          paid_at: new Date().toISOString(),
+        });
+
+        // Update last payment date and reset failed count
+        await this.getSupabase()
+          .from('cleaners')
+          .update({
+            last_payment_date: new Date().toISOString(),
+            payment_failed_count: 0,
+          })
+          .eq('id', subscriptionData.cleaner_id);
+      }
+
+      console.log(`Payment succeeded for subscription: ${subscriptionId}`);
+    } catch (error) {
+      console.error('Error handling payment succeeded:', error);
+      throw error; // Re-throw for retry logic
+    }
+  }
+
+  async handlePaymentFailed(invoice: Stripe.Invoice) {
+    // Extended type for invoice properties that may not be in strict types
+    const inv = invoice as Stripe.Invoice & {
+      subscription?: string | { id: string } | null;
+      payment_intent?: string | { id: string } | null;
+    };
+    const { subscription } = inv;
+
+    if (!subscription) {
+      console.log('No subscription associated with failed invoice, skipping');
+      return;
+    }
+
+    const subscriptionId = typeof subscription === 'string' ? subscription : subscription.id;
+
+    try {
+      // Get cleaner ID from subscription
+      const { data: subscriptionData } = await this.getSupabase()
+        .from('subscriptions')
+        .select('cleaner_id')
+        .eq('stripe_subscription_id', subscriptionId)
+        .single();
+
+      if (subscriptionData) {
+        // Increment failed payment count using RPC
+        await this.getSupabase().rpc('increment_payment_failed_count', {
+          p_cleaner_id: subscriptionData.cleaner_id,
+        });
+
+        const paymentIntentId = typeof inv.payment_intent === 'string'
+          ? inv.payment_intent
+          : inv.payment_intent?.id || null;
+
+        // Record failed payment
+        await this.getSupabase().from('payments').insert({
+          cleaner_id: subscriptionData.cleaner_id,
+          stripe_payment_intent_id: paymentIntentId,
+          amount: (invoice.amount_due || 0) / 100,
+          currency: invoice.currency || 'usd',
+          status: 'failed',
+          description: 'Failed subscription payment',
+          metadata: { invoice_id: invoice.id },
+          failed_at: new Date().toISOString(),
+        });
+      }
+
+      console.log(`Payment failed for subscription: ${subscriptionId}`);
+      // TODO: Send payment failed notification email
+    } catch (error) {
+      console.error('Error handling payment failed:', error);
+      throw error; // Re-throw for retry logic
+    }
+  }
+
+  async cancelSubscription(cleanerId: string) {
+    try {
+      const { data: cleaner } = await this.getSupabase()
+        .from('cleaners')
+        .select('stripe_subscription_id')
+        .eq('id', cleanerId)
+        .single();
+
+      if (!cleaner?.stripe_subscription_id) {
+        throw new Error('No active subscription found');
+      }
+
+      await stripe.subscriptions.cancel(cleaner.stripe_subscription_id);
+      
+      return { success: true };
+    } catch (error) {
+      console.error('Error canceling subscription:', error);
+      throw new Error('Failed to cancel subscription');
+    }
+  }
+
+  async getSubscriptionDetails(cleanerId: string) {
+    try {
+      const { data } = await this.getSupabase()
+        .from('subscriptions')
+        .select('*')
+        .eq('cleaner_id', cleanerId)
+        .eq('status', 'active')
+        .single();
+
+      return data;
+    } catch (error) {
+      console.error('Error getting subscription details:', error);
+      return null;
+    }
+  }
+}
+
+export const subscriptionService = new SubscriptionService();
