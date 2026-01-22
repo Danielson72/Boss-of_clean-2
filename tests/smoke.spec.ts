@@ -95,8 +95,8 @@ test.describe('Boss of Clean - Smoke Tests', () => {
 
     await page.waitForLoadState('domcontentloaded')
 
-    // Verify the quote request page loads
-    await expect(page.locator('h1, h2')).toContainText(/Quote|Free/i, { timeout: 5000 })
+    // Verify the quote request page loads - check for main heading
+    await expect(page.locator('h1').first()).toContainText(/Quote|Free/i, { timeout: 5000 })
 
     // Check for form elements
     // Step 1 should show service type selection
