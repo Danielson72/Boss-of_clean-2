@@ -163,6 +163,21 @@ run_lint() {
     fi
 }
 
+run_smoke_tests() {
+    log INFO "Running Playwright smoke tests..."
+
+    cd "$PROJECT_DIR"
+
+    # Run smoke tests with chromium only, headless
+    if npx playwright test tests/smoke.spec.ts --project=chromium --reporter=line >> "$LOG_FILE" 2>&1; then
+        log OK "Smoke tests passed"
+        return 0
+    else
+        log ERROR "SMOKE TEST FAILURE - Check $LOG_FILE for details"
+        return 1
+    fi
+}
+
 validate_changes() {
     log INFO "Validating changes..."
 
@@ -171,6 +186,13 @@ validate_changes() {
     fi
 
     run_lint
+
+    # Run smoke tests after successful build
+    if ! run_smoke_tests; then
+        log ERROR "Smoke tests failed - blocking deployment"
+        return 1
+    fi
+
     return 0
 }
 
