@@ -410,6 +410,13 @@ export default function CleanerDashboard() {
                         <p className="font-medium">Update Profile</p>
                       </Link>
                       <Link
+                        href="/dashboard/cleaner/availability"
+                        className="p-4 border rounded-lg hover:shadow-md transition duration-300 text-center"
+                      >
+                        <Calendar className="h-8 w-8 text-orange-600 mx-auto mb-2" />
+                        <p className="font-medium">Availability</p>
+                      </Link>
+                      <Link
                         href="/dashboard/cleaner/service-areas"
                         className="p-4 border rounded-lg hover:shadow-md transition duration-300 text-center"
                       >
