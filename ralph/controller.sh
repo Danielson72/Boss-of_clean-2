@@ -25,6 +25,8 @@ TIME_CAP_MINUTES=$(jq -r '.config.timeCapMinutes' "$PRD_FILE")
 COMMIT_PREFIX=$(jq -r '.config.commitPrefix' "$PRD_FILE")
 BUILD_CMD=$(jq -r '.config.buildCommand' "$PRD_FILE")
 LINT_CMD=$(jq -r '.config.lintCommand' "$PRD_FILE")
+MAX_RETRIES=$(jq -r '.config.maxRetries // 3' "$PRD_FILE")
+RETRY_COOLDOWN_HOURS=$(jq -r '.config.retryCooldownHours // 24' "$PRD_FILE")
 
 # Parse command line arguments
 DRY_RUN=false
@@ -106,9 +108,21 @@ get_elapsed_time() {
 #############################################################################
 
 get_next_pending_task() {
-    jq -r '
+    local cooldown_seconds=$(( RETRY_COOLDOWN_HOURS * 3600 ))
+    local now=$(date +%s)
+
+    jq -r --argjson max_retries "$MAX_RETRIES" \
+           --argjson cooldown "$cooldown_seconds" \
+           --argjson now "$now" '
         .tasks
-        | map(select(.status == "pending"))
+        | map(select(
+            .status == "pending"
+            or (
+                .status == "failed"
+                and ((.retry_count // 0) < $max_retries)
+                and ((.failed_at // 0) + $cooldown <= $now)
+            )
+        ))
         | sort_by(.priority | if . == "high" then 0 elif . == "medium" then 1 else 2 end)
         | first
         | .id // empty
@@ -125,11 +139,32 @@ update_task_status() {
     local new_status=$2
 
     local tmp_file=$(mktemp)
-    jq --arg id "$task_id" --arg status "$new_status" '
-        .tasks = [.tasks[] | if .id == $id then .status = $status else . end]
-    ' "$PRD_FILE" > "$tmp_file"
-    mv "$tmp_file" "$PRD_FILE"
 
+    if [ "$new_status" = "failed" ]; then
+        local now=$(date +%s)
+        jq --arg id "$task_id" --arg status "$new_status" --argjson now "$now" '
+            .tasks = [.tasks[] | if .id == $id then
+                .status = $status
+                | .retry_count = ((.retry_count // 0) + 1)
+                | .failed_at = $now
+            else . end]
+        ' "$PRD_FILE" > "$tmp_file"
+    elif [ "$new_status" = "in-progress" ]; then
+        jq --arg id "$task_id" --arg status "$new_status" '
+            .tasks = [.tasks[] | if .id == $id then
+                .status = $status
+            else . end]
+        ' "$PRD_FILE" > "$tmp_file"
+    else
+        jq --arg id "$task_id" --arg status "$new_status" '
+            .tasks = [.tasks[] | if .id == $id then
+                .status = $status
+                | del(.retry_count, .failed_at)
+            else . end]
+        ' "$PRD_FILE" > "$tmp_file"
+    fi
+
+    mv "$tmp_file" "$PRD_FILE"
     log INFO "Task $task_id status updated to: $new_status"
 }
 
@@ -243,8 +278,13 @@ execute_task() {
     local task_id=$1
     local task_json=$(get_task_details "$task_id")
 
+    local retry_count=$(echo "$task_json" | jq -r '.retry_count // 0')
+
     log INFO "Executing task: $task_id"
     log INFO "Title: $(echo "$task_json" | jq -r '.title')"
+    if [ "$retry_count" -gt 0 ]; then
+        log WARN "Retry attempt $retry_count/$MAX_RETRIES"
+    fi
 
     # Update status to in-progress
     update_task_status "$task_id" "in-progress"
@@ -399,6 +439,7 @@ main() {
     log INFO "  Max tasks per run: $MAX_TASKS"
     log INFO "  Time cap: $TIME_CAP_MINUTES minutes"
     log INFO "  Commit prefix: $COMMIT_PREFIX"
+    log INFO "  Max retries: $MAX_RETRIES (cooldown: ${RETRY_COOLDOWN_HOURS}h)"
     echo ""
 
     # Dry run mode - show what would be executed

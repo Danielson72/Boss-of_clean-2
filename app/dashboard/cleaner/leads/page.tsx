@@ -141,7 +141,12 @@ export default function LeadsPage() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setLeads(data || []);
+      // Supabase FK joins return related row as array; unwrap to single object
+      const normalized = (data || []).map((row: any) => ({
+        ...row,
+        customer: Array.isArray(row.customer) ? row.customer[0] : row.customer,
+      }));
+      setLeads(normalized);
     } catch (error) {
       console.error('Error loading leads:', error);
     } finally {

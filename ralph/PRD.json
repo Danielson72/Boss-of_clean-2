@@ -9,6 +9,8 @@
     "buildCommand": "npm run build",
     "lintCommand": "npm run lint",
     "testCommand": null,
+    "maxRetries": 3,
+    "retryCooldownHours": 24,
     "workingDirectory": "/root/Boss-of_clean-2",
     "reportsDirectory": "/root/Boss-of_clean-2/ralph/reports"
   },
@@ -72,7 +74,7 @@
       "title": "Google OAuth integration",
       "description": "Add Google sign-in option to login and signup pages. Link OAuth users to existing accounts by email. Handle OAuth callback.",
       "priority": "medium",
-      "status": "pending",
+      "status": "in-progress",
       "estimatedMinutes": 60,
       "dependencies": [
         "AUTH-001"
