@@ -30,18 +30,24 @@ RETRY_COOLDOWN_HOURS=$(jq -r '.config.retryCooldownHours // 24' "$PRD_FILE")
 
 # Parse command line arguments
 DRY_RUN=false
+TARGET_TASK=""
 while [[ $# -gt 0 ]]; do
     case $1 in
         --dry-run|--dry_run|-n)
             DRY_RUN=true
             shift
             ;;
+        --task|-t)
+            TARGET_TASK="$2"
+            shift 2
+            ;;
         --help|-h)
             echo "Usage: $0 [OPTIONS]"
             echo ""
             echo "Options:"
-            echo "  --dry-run, -n    Show what would be executed without running"
-            echo "  --help, -h       Show this help message"
+            echo "  --dry-run, -n        Show what would be executed without running"
+            echo "  --task, -t TASK_ID   Execute a specific task by ID"
+            echo "  --help, -h           Show this help message"
             exit 0
             ;;
         *)
@@ -480,38 +486,57 @@ main() {
         exit 0
     fi
 
-    # Main task execution loop
-    local tasks_attempted=0
-
-    while [ $tasks_attempted -lt $MAX_TASKS ]; do
-        # Check time cap
-        if ! check_time_cap; then
-            log WARN "Stopping due to time cap"
-            break
-        fi
-
-        # Get next pending task
-        local next_task=$(get_next_pending_task)
-
-        if [ -z "$next_task" ]; then
-            log INFO "No more pending tasks"
-            break
+    # Main task execution
+    if [ -n "$TARGET_TASK" ]; then
+        # Single task mode
+        local task_exists=$(jq -r --arg id "$TARGET_TASK" '.tasks[] | select(.id == $id) | .id' "$PRD_FILE")
+        if [ -z "$task_exists" ]; then
+            log ERROR "Task '$TARGET_TASK' not found in PRD.json"
+            exit 1
         fi
 
         echo ""
-        log INFO "========== Task $((tasks_attempted + 1))/$MAX_TASKS =========="
+        log INFO "========== Targeted Task: $TARGET_TASK =========="
 
-        # Execute the task
-        if execute_task "$next_task"; then
+        if execute_task "$TARGET_TASK"; then
             log OK "Task completed successfully"
         else
-            log ERROR "Task failed - continuing to next task"
+            log ERROR "Task failed"
         fi
+    else
+        # Queue mode - execute up to MAX_TASKS
+        local tasks_attempted=0
 
-        tasks_attempted=$((tasks_attempted + 1))
+        while [ $tasks_attempted -lt $MAX_TASKS ]; do
+            # Check time cap
+            if ! check_time_cap; then
+                log WARN "Stopping due to time cap"
+                break
+            fi
 
-        echo ""
-    done
+            # Get next pending task
+            local next_task=$(get_next_pending_task)
+
+            if [ -z "$next_task" ]; then
+                log INFO "No more pending tasks"
+                break
+            fi
+
+            echo ""
+            log INFO "========== Task $((tasks_attempted + 1))/$MAX_TASKS =========="
+
+            # Execute the task
+            if execute_task "$next_task"; then
+                log OK "Task completed successfully"
+            else
+                log ERROR "Task failed - continuing to next task"
+            fi
+
+            tasks_attempted=$((tasks_attempted + 1))
+
+            echo ""
+        done
+    fi
 
     # Generate final report
     echo ""
