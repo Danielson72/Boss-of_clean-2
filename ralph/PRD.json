@@ -74,7 +74,7 @@
       "title": "Google OAuth integration",
       "description": "Add Google sign-in option to login and signup pages. Link OAuth users to existing accounts by email. Handle OAuth callback.",
       "priority": "medium",
-      "status": "in-progress",
+      "status": "failed",
       "estimatedMinutes": 60,
       "dependencies": [
         "AUTH-001"
