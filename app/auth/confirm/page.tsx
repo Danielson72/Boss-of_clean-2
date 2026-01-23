@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { createClient } from '@/lib/supabase/client';
 
 export default function EmailConfirmPage() {
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
@@ -11,38 +12,75 @@ export default function EmailConfirmPage() {
   const router = useRouter();
 
   useEffect(() => {
-    // Check if we're on the client side and have access to window
-    if (typeof window !== 'undefined') {
-      const hash = window.location.hash;
-      
-      if (hash && hash.includes('type=signup')) {
-        // Email confirmation successful
+    if (typeof window === 'undefined') return;
+
+    const hash = window.location.hash;
+    const params = new URLSearchParams(window.location.search);
+    const tokenHash = params.get('token_hash');
+    const type = params.get('type');
+
+    // Handle token_hash verification (Supabase email verification link format)
+    if (tokenHash && type === 'signup') {
+      const supabase = createClient();
+      supabase.auth.verifyOtp({ token_hash: tokenHash, type: 'signup' })
+        .then(async ({ data, error }) => {
+          if (error) {
+            setStatus('error');
+            setMessage(error.message || 'Verification failed. The link may have expired.');
+            return;
+          }
+
+          if (data.user) {
+            setStatus('success');
+            setMessage('Your email has been verified! Redirecting to your dashboard...');
+
+            // Determine role for redirect
+            const { data: userData } = await supabase
+              .from('users')
+              .select('role')
+              .eq('id', data.user.id)
+              .single();
+
+            const role = userData?.role || 'customer';
+            setTimeout(() => {
+              router.push(`/dashboard/${role}`);
+            }, 2000);
+          }
+        });
+      return;
+    }
+
+    // Handle hash-based confirmation (legacy Supabase format)
+    if (hash) {
+      if (hash.includes('type=signup')) {
         setStatus('success');
         setMessage('Your email has been confirmed successfully!');
-        
-        // Redirect to login after 3 seconds
+        // Redirect to dashboard - user session should already be established
         setTimeout(() => {
-          router.push('/login');
-        }, 3000);
-      } else if (hash && hash.includes('type=recovery')) {
-        // Password recovery link
+          router.push('/dashboard/customer');
+        }, 2000);
+      } else if (hash.includes('type=recovery')) {
         setStatus('success');
         setMessage('Password reset link verified. Redirecting...');
-        
-        // Redirect to password reset page
         setTimeout(() => {
           router.push('/auth/reset-password');
         }, 2000);
-      } else if (hash && hash.includes('error')) {
-        // Error in confirmation
+      } else if (hash.includes('error')) {
         setStatus('error');
-        setMessage('There was an error confirming your email. Please try again or contact support.');
+        const errorDesc = decodeURIComponent(
+          hash.match(/error_description=([^&]*)/)?.[1]?.replace(/\+/g, ' ') || ''
+        );
+        setMessage(errorDesc || 'There was an error confirming your email. The link may have expired.');
       } else {
-        // No hash or unrecognized type
         setStatus('error');
         setMessage('Invalid confirmation link.');
       }
+      return;
     }
+
+    // No hash or token_hash - invalid link
+    setStatus('error');
+    setMessage('Invalid or expired confirmation link.');
   }, [router]);
 
   return (
@@ -73,10 +111,10 @@ export default function EmailConfirmPage() {
                 {message}
               </p>
               <Link
-                href="/login"
+                href="/dashboard/customer"
                 className="inline-block bg-blue-600 text-white px-6 py-3 rounded-md font-semibold hover:bg-blue-700 transition duration-300"
               >
-                Continue to Login
+                Go to Dashboard
               </Link>
             </div>
           )}
@@ -110,10 +148,9 @@ export default function EmailConfirmPage() {
           )}
         </div>
 
-        {/* Additional Information */}
         <div className="mt-8 text-center">
           <p className="text-sm text-gray-600">
-            Having trouble? {' '}
+            Having trouble?{' '}
             <Link href="/contact" className="text-blue-600 hover:text-blue-700 font-medium">
               Contact our support team
             </Link>
