@@ -25,6 +25,7 @@ export interface CleanerCardProps {
   licenseVerified: boolean;
   backgroundCheckVerified?: boolean;
   isCertified?: boolean;
+  instantBooking?: boolean;
   businessPhone?: string;
   onRequestQuote?: (cleanerId: string) => void;
 }
@@ -48,6 +49,7 @@ export function CleanerCard({
   licenseVerified,
   backgroundCheckVerified,
   isCertified,
+  instantBooking,
   businessPhone,
   onRequestQuote
 }: CleanerCardProps) {
@@ -198,13 +200,23 @@ export function CleanerCard({
 
         {/* Action Buttons */}
         <div className="flex gap-2">
-          <button
-            onClick={handleRequestQuote}
-            className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition duration-300 text-sm font-medium flex items-center justify-center gap-2"
-          >
-            <MessageSquare className="h-4 w-4" />
-            Request Quote
-          </button>
+          {instantBooking ? (
+            <Link
+              href={`/book/${id}`}
+              className="flex-1 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition duration-300 text-sm font-medium flex items-center justify-center gap-2"
+            >
+              <CheckCircle2 className="h-4 w-4" />
+              Book Now
+            </Link>
+          ) : (
+            <button
+              onClick={handleRequestQuote}
+              className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition duration-300 text-sm font-medium flex items-center justify-center gap-2"
+            >
+              <MessageSquare className="h-4 w-4" />
+              Request Quote
+            </button>
+          )}
           {businessPhone && (
             <a
               href={`tel:${businessPhone}`}

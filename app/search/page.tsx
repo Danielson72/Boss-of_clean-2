@@ -49,6 +49,7 @@ interface CleanerData {
   license_verified?: boolean;
   background_check?: boolean;
   is_certified?: boolean;
+  instant_booking?: boolean;
   subscription_tier?: string;
   users?: {
     city?: string;
@@ -97,6 +98,7 @@ export default function SearchPage() {
     licenseVerified: cleaner.license_verified || false,
     backgroundCheckVerified: cleaner.background_check || false,
     isCertified: cleaner.is_certified || false,
+    instantBooking: cleaner.instant_booking || false,
     businessPhone: cleaner.business_phone
   });
 
