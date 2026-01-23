@@ -20,7 +20,7 @@
       "title": "Email verification flow",
       "description": "Implement email verification after signup. Send verification email with magic link, show pending verification state, handle verification callback.",
       "priority": "high",
-      "status": "pending",
+      "status": "done",
       "estimatedMinutes": 45,
       "dependencies": [],
       "acceptanceCriteria": [
@@ -47,7 +47,7 @@
       "title": "Password reset flow",
       "description": "Complete password reset functionality. User enters email, receives reset link, sets new password. Include rate limiting and expiry.",
       "priority": "high",
-      "status": "pending",
+      "status": "done",
       "estimatedMinutes": 40,
       "dependencies": [],
       "acceptanceCriteria": [
@@ -74,7 +74,7 @@
       "title": "Google OAuth integration",
       "description": "Add Google sign-in option to login and signup pages. Link OAuth users to existing accounts by email. Handle OAuth callback.",
       "priority": "medium",
-      "status": "failed",
+      "status": "pending",
       "estimatedMinutes": 60,
       "dependencies": [
         "AUTH-001"
@@ -88,8 +88,8 @@
         "Build passes with no TypeScript errors"
       ],
       "files": [
-        "app/login/page.tsx",
-        "app/signup/page.tsx",
+        "app/(auth)/login/page.tsx",
+        "app/(auth)/signup/page.tsx",
         "app/auth/callback/route.ts",
         "components/auth/GoogleSignInButton.tsx"
       ],
@@ -104,7 +104,7 @@
       "title": "Cleaner calendar/availability settings",
       "description": "Add availability management to cleaner dashboard. Weekly schedule with time slots, vacation/blocked dates, instant booking toggle.",
       "priority": "high",
-      "status": "pending",
+      "status": "done",
       "estimatedMinutes": 60,
       "dependencies": [],
       "acceptanceCriteria": [
