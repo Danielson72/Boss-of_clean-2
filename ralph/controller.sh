@@ -301,7 +301,7 @@ execute_task() {
 
     local task_start=$(date +%s)
 
-    if claude --dangerously-skip-permissions -p "$(cat "$prompt_file")" >> "$LOG_FILE" 2>&1; then
+    if claude -p "$(cat "$prompt_file")" --allowedTools "Bash Edit Write Read Glob Grep" >> "$LOG_FILE" 2>&1; then
         local task_end=$(date +%s)
         local task_duration=$(( task_end - task_start ))
 
