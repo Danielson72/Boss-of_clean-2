@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { Mail, ArrowLeft, CheckCircle, AlertCircle } from 'lucide-react';
+import { canRequestReset, recordResetRequest } from '@/lib/email/password-reset';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
@@ -14,25 +15,36 @@ export default function ForgotPasswordPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!email) {
       setError('Please enter your email address');
       return;
     }
-    
+
+    // Check rate limit
+    const { allowed, remainingSeconds } = canRequestReset(email);
+    if (!allowed) {
+      const minutes = Math.ceil(remainingSeconds / 60);
+      setError(`Too many reset requests. Please try again in ${minutes} minute${minutes > 1 ? 's' : ''}.`);
+      return;
+    }
+
     setLoading(true);
     setError('');
-    
+
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/auth/reset-password`,
       });
-      
+
       if (error) throw error;
-      
+
+      // Record the successful request for rate limiting
+      recordResetRequest(email);
       setSuccess(true);
-    } catch (err: any) {
-      setError(err.message || 'Failed to send reset email');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to send reset email';
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -46,7 +58,7 @@ export default function ForgotPasswordPage() {
             Forgot Your Password?
           </h2>
           <p className="text-gray-600">
-            No worries! We'll send you reset instructions.
+            No worries! We&apos;ll send you reset instructions.
           </p>
         </div>
 
@@ -54,7 +66,7 @@ export default function ForgotPasswordPage() {
           {error && (
             <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-md">
               <div className="flex items-center">
-                <AlertCircle className="h-5 w-5 text-red-500 mr-2" />
+                <AlertCircle className="h-5 w-5 text-red-500 mr-2 flex-shrink-0" />
                 <span className="text-red-700 text-sm">{error}</span>
               </div>
             </div>
@@ -68,11 +80,11 @@ export default function ForgotPasswordPage() {
               <h3 className="text-xl font-semibold text-gray-900 mb-2">
                 Check Your Email
               </h3>
-              <p className="text-gray-600 mb-6">
-                We've sent password reset instructions to <strong>{email}</strong>
+              <p className="text-gray-600 mb-4">
+                We&apos;ve sent password reset instructions to <strong>{email}</strong>
               </p>
               <p className="text-sm text-gray-500 mb-6">
-                Didn't receive the email? Check your spam folder or try again.
+                The link will expire in 1 hour. If you don&apos;t see the email, check your spam folder.
               </p>
               <button
                 onClick={() => {

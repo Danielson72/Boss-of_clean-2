@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Lock, AlertCircle, CheckCircle, Eye, EyeOff } from 'lucide-react';
+import { validatePasswordStrength } from '@/lib/email/password-reset';
 
 export default function ResetPasswordPage() {
   const [password, setPassword] = useState('');
@@ -15,33 +16,46 @@ export default function ResetPasswordPage() {
   const router = useRouter();
   const supabase = createClient();
 
+  const strength = validatePasswordStrength(password);
+
+  const getStrengthColor = () => {
+    switch (strength.score) {
+      case 1: return 'bg-red-500';
+      case 2: return 'bg-yellow-500';
+      case 3: return 'bg-blue-500';
+      case 4: return 'bg-green-500';
+      default: return 'bg-gray-200';
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (password.length < 8) {
-      setError('Password must be at least 8 characters long');
+
+    if (!strength.isValid) {
+      setError('Password does not meet all requirements');
       return;
     }
-    
+
     if (password !== confirmPassword) {
       setError('Passwords do not match');
       return;
     }
-    
+
     setLoading(true);
     setError('');
-    
+
     try {
       const { error } = await supabase.auth.updateUser({ password });
-      
+
       if (error) throw error;
-      
+
       setSuccess(true);
       setTimeout(() => {
         router.push('/login');
       }, 2000);
-    } catch (err: any) {
-      setError(err.message || 'Failed to reset password');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to reset password';
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -63,7 +77,7 @@ export default function ResetPasswordPage() {
           {error && (
             <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-md">
               <div className="flex items-center">
-                <AlertCircle className="h-5 w-5 text-red-500 mr-2" />
+                <AlertCircle className="h-5 w-5 text-red-500 mr-2 flex-shrink-0" />
                 <span className="text-red-700 text-sm">{error}</span>
               </div>
             </div>
@@ -105,6 +119,29 @@ export default function ResetPasswordPage() {
                     {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                   </button>
                 </div>
+
+                {/* Password strength indicator */}
+                {password.length > 0 && (
+                  <div className="mt-3">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs text-gray-500">Strength:</span>
+                      <span className={`text-xs font-medium ${
+                        strength.score <= 1 ? 'text-red-600' :
+                        strength.score === 2 ? 'text-yellow-600' :
+                        strength.score === 3 ? 'text-blue-600' :
+                        'text-green-600'
+                      }`}>
+                        {strength.label}
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-1.5">
+                      <div
+                        className={`h-1.5 rounded-full transition-all duration-300 ${getStrengthColor()}`}
+                        style={{ width: `${(strength.score / 4) * 100}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div>
@@ -122,19 +159,33 @@ export default function ResetPasswordPage() {
                     placeholder="Confirm new password"
                   />
                 </div>
+                {confirmPassword.length > 0 && password !== confirmPassword && (
+                  <p className="mt-1 text-xs text-red-600">Passwords do not match</p>
+                )}
               </div>
 
+              {/* Password requirements checklist */}
               <div className="text-sm text-gray-600">
-                <p>Password must:</p>
-                <ul className="list-disc list-inside mt-1">
-                  <li>Be at least 8 characters long</li>
-                  <li>Include a mix of letters and numbers (recommended)</li>
+                <p className="font-medium mb-2">Password requirements:</p>
+                <ul className="space-y-1">
+                  {strength.requirements.map((req) => (
+                    <li key={req.label} className="flex items-center">
+                      <span className={`inline-block w-4 h-4 mr-2 rounded-full text-xs flex items-center justify-center ${
+                        req.met ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'
+                      }`}>
+                        {req.met ? '✓' : '·'}
+                      </span>
+                      <span className={req.met ? 'text-green-700' : 'text-gray-500'}>
+                        {req.label}
+                      </span>
+                    </li>
+                  ))}
                 </ul>
               </div>
 
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || !strength.isValid}
                 className="w-full bg-blue-600 text-white px-4 py-2 rounded-md font-semibold hover:bg-blue-700 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? 'Resetting Password...' : 'Reset Password'}
