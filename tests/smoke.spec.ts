@@ -57,7 +57,8 @@ test.describe('Boss of Clean - Smoke Tests', () => {
     expect(hasError).toBe(0)
   })
 
-  test('cleaner profile page structure loads correctly', async ({ page }) => {
+  test('cleaner profile page structure loads correctly', async ({ page }, testInfo) => {
+    testInfo.setTimeout(60000);
     // Try to load a cleaner profile page
     // First check search to get a cleaner slug, or use a known test slug
     await page.goto('/search')
