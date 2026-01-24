@@ -185,7 +185,7 @@
       "title": "Customer instant booking flow",
       "description": "Implement instant booking for cleaners with availability. Date/time picker based on cleaner schedule, booking confirmation, email notifications.",
       "priority": "high",
-      "status": "pending",
+      "status": "done",
       "estimatedMinutes": 75,
       "dependencies": [
         "DASH-001"
@@ -217,7 +217,7 @@
       "title": "Booking management for customers",
       "description": "Customer dashboard page to view, reschedule, and cancel bookings. Show booking status, cleaner info, and service details.",
       "priority": "high",
-      "status": "pending",
+      "status": "done",
       "estimatedMinutes": 50,
       "dependencies": [
         "BOOK-001"
@@ -247,7 +247,7 @@
       "title": "Booking management for cleaners",
       "description": "Cleaner dashboard page to view incoming bookings, confirm/decline, and mark as completed. Integration with availability calendar.",
       "priority": "high",
-      "status": "pending",
+      "status": "done",
       "estimatedMinutes": 45,
       "dependencies": [
         "BOOK-001"
@@ -269,7 +269,9 @@
         "booking",
         "cleaner",
         "phase1"
-      ]
+      ],
+      "retry_count": 2,
+      "failed_at": 1769225908
     },
     {
       "id": "PAY-001",
