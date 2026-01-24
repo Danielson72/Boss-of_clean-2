@@ -1,5 +1,6 @@
 import { stripe, SUBSCRIPTION_TIERS, type SubscriptionTier } from './config';
 import { createClient } from '@/lib/supabase/server';
+import { processDunningEvent, resetDunningState } from '@/lib/stripe/dunning';
 import type Stripe from 'stripe';
 
 export class SubscriptionService {
@@ -252,6 +253,9 @@ export class SubscriptionService {
             payment_failed_count: 0,
           })
           .eq('id', subscriptionData.cleaner_id);
+
+        // Reset dunning state (grace period, subscription status)
+        await resetDunningState(subscriptionData.cleaner_id);
       }
 
       console.log(`Payment succeeded for subscription: ${subscriptionId}`);
@@ -308,7 +312,11 @@ export class SubscriptionService {
       }
 
       console.log(`Payment failed for subscription: ${subscriptionId}`);
-      // TODO: Send payment failed notification email
+
+      // Process dunning: send emails, manage grace period, downgrade if needed
+      if (subscriptionData && invoice.id) {
+        await processDunningEvent(subscriptionData.cleaner_id, invoice.id);
+      }
     } catch (error) {
       console.error('Error handling payment failed:', error);
       throw error; // Re-throw for retry logic
