@@ -7,6 +7,7 @@ import {
   MessageSquare, ArrowLeft
 } from 'lucide-react';
 import Link from 'next/link';
+import { StartConversationButton } from '@/components/messaging/StartConversationButton';
 
 interface CleanerProfile {
   id: string;
@@ -276,6 +277,11 @@ export default async function CleanerProfilePage({ params }: { params: Promise<{
                     Call Now
                   </a>
                 )}
+
+                <StartConversationButton
+                  cleanerId={cleaner.id}
+                  cleanerName={cleaner.business_name}
+                />
               </div>
             </div>
           </div>

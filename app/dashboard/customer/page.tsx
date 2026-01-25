@@ -198,6 +198,13 @@ export default function CustomerDashboard() {
               <h1 className="text-2xl font-bold text-gray-900">Customer Dashboard</h1>
               <div className="flex items-center gap-4">
                 <Link
+                  href="/dashboard/messages"
+                  className="flex items-center gap-2 text-gray-600 hover:text-gray-900 font-medium"
+                >
+                  <MessageSquare className="h-5 w-5" />
+                  Messages
+                </Link>
+                <Link
                   href="/search"
                   className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition duration-300"
                 >

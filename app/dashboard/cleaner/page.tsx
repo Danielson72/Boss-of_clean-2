@@ -396,8 +396,15 @@ export default function CleanerDashboard() {
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                       <Link
-                        href="/dashboard/cleaner/leads"
+                        href="/dashboard/messages"
                         className="p-4 border rounded-lg hover:shadow-md transition duration-300 text-center border-blue-200 bg-blue-50"
+                      >
+                        <MessageSquare className="h-8 w-8 text-blue-600 mx-auto mb-2" />
+                        <p className="font-medium">Messages</p>
+                      </Link>
+                      <Link
+                        href="/dashboard/cleaner/leads"
+                        className="p-4 border rounded-lg hover:shadow-md transition duration-300 text-center"
                       >
                         <Inbox className="h-8 w-8 text-blue-600 mx-auto mb-2" />
                         <p className="font-medium">View Leads</p>
