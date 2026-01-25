@@ -50,6 +50,8 @@ interface Review {
   comment: string;
   created_at: string;
   customer_name: string;
+  cleaner_response: string | null;
+  cleaner_response_at: string | null;
 }
 
 async function getCleanerBySlug(slug: string): Promise<CleanerProfile | null> {
@@ -89,7 +91,7 @@ async function getCleanerReviews(cleanerId: string): Promise<Review[]> {
 
   const { data } = await supabase
     .from('reviews')
-    .select('id, rating, comment, created_at, customer_name')
+    .select('id, rating, comment, created_at, customer_name, cleaner_response, cleaner_response_at')
     .eq('cleaner_id', cleanerId)
     .eq('is_published', true)
     .order('created_at', { ascending: false })
@@ -358,6 +360,19 @@ export default async function CleanerProfilePage({ params }: { params: Promise<{
                         </span>
                       </div>
                       <p className="text-gray-600 text-sm">{review.comment}</p>
+                      {review.cleaner_response && (
+                        <div className="mt-3 ml-4 pl-4 border-l-2 border-blue-200">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-xs font-medium text-blue-700">Business Response</span>
+                            {review.cleaner_response_at && (
+                              <span className="text-xs text-gray-400">
+                                {new Date(review.cleaner_response_at).toLocaleDateString()}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-gray-600 text-sm">{review.cleaner_response}</p>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>

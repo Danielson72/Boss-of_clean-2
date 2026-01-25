@@ -438,6 +438,13 @@ export default function CleanerDashboard() {
                         <p className="font-medium">Billing</p>
                       </Link>
                       <Link
+                        href="/dashboard/cleaner/reviews"
+                        className="p-4 border rounded-lg hover:shadow-md transition duration-300 text-center"
+                      >
+                        <Star className="h-8 w-8 text-yellow-500 mx-auto mb-2" />
+                        <p className="font-medium">Reviews</p>
+                      </Link>
+                      <Link
                         href="/pricing"
                         className="p-4 border rounded-lg hover:shadow-md transition duration-300 text-center"
                       >
