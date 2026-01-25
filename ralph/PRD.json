@@ -362,7 +362,7 @@
       "title": "Review moderation queue",
       "description": "Admin interface to review and approve/reject customer reviews. Flag inappropriate content, edit capability.",
       "priority": "low",
-      "status": "pending",
+      "status": "done",
       "estimatedMinutes": 40,
       "dependencies": [
         "REV-001"
@@ -417,7 +417,7 @@
       "title": "Save favorite cleaners",
       "description": "Allow customers to save cleaners to favorites list. Heart icon on profiles, favorites page in customer dashboard.",
       "priority": "low",
-      "status": "pending",
+      "status": "done",
       "estimatedMinutes": 30,
       "dependencies": [],
       "acceptanceCriteria": [
