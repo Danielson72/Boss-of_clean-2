@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { getStripe } from '@/lib/stripe/config';
+import { getCustomerInvoices } from '@/lib/stripe/invoices';
 
 export async function GET(request: NextRequest) {
   try {
@@ -79,13 +80,19 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Get billing history (payments)
-    const { data: payments } = await supabase
-      .from('payments')
-      .select('*')
-      .eq('cleaner_id', cleaner.id)
-      .order('created_at', { ascending: false })
-      .limit(20);
+    // Get billing history (invoices) from Stripe
+    let stripeInvoices: any[] = [];
+    if (cleaner.stripe_customer_id) {
+      try {
+        const { invoices: fetchedInvoices } = await getCustomerInvoices(
+          cleaner.stripe_customer_id,
+          { limit: 10 }
+        );
+        stripeInvoices = fetchedInvoices;
+      } catch (invoiceError) {
+        console.error('Error fetching Stripe invoices:', invoiceError);
+      }
+    }
 
     // Calculate lead credits usage (mock data for now - you can implement actual tracking)
     // In a real implementation, you'd query a lead_contacts or similar table
@@ -161,14 +168,15 @@ export async function GET(request: NextRequest) {
       status = subscription?.status === 'active' ? 'active' : 'none';
     }
 
-    // Format invoices from payments
-    const invoices = (payments || []).map((payment: any) => ({
-      id: payment.id,
-      date: payment.created_at,
-      description: payment.description || 'Monthly subscription',
-      amount: payment.amount,
-      status: payment.status === 'succeeded' ? 'paid' : payment.status,
-      invoicePdf: payment.metadata?.invoice_pdf || null,
+    // Format invoices from Stripe
+    const invoices = stripeInvoices.map((invoice: any) => ({
+      id: invoice.id,
+      date: invoice.date,
+      description: invoice.description || 'Subscription payment',
+      amount: invoice.amount,
+      status: invoice.status,
+      invoiceUrl: invoice.invoiceUrl,
+      invoicePdf: invoice.invoicePdf,
     }));
 
     const stripeSub = stripeSubscription as any;

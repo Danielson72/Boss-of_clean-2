@@ -12,7 +12,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Download, ChevronLeft, ChevronRight, Receipt } from 'lucide-react';
+import { Download, ChevronLeft, ChevronRight, Receipt, ExternalLink } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export interface Invoice {
@@ -144,15 +144,28 @@ export function BillingHistory({
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
-                      {(invoice.invoicePdf || onDownloadInvoice) && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDownload(invoice)}
-                        >
-                          <Download className="h-4 w-4" />
-                        </Button>
-                      )}
+                      <div className="flex items-center justify-end gap-1">
+                        {invoice.invoiceUrl && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => window.open(invoice.invoiceUrl, '_blank')}
+                            title="View invoice"
+                          >
+                            <ExternalLink className="h-4 w-4" />
+                          </Button>
+                        )}
+                        {(invoice.invoicePdf || onDownloadInvoice) && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDownload(invoice)}
+                            title="Download PDF"
+                          >
+                            <Download className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 );
@@ -179,16 +192,28 @@ export function BillingHistory({
                 <p className="text-sm text-gray-600">{invoice.description}</p>
                 <div className="flex items-center justify-between">
                   <span className="font-semibold">{formatAmount(invoice.amount)}</span>
-                  {(invoice.invoicePdf || onDownloadInvoice) && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDownload(invoice)}
-                    >
-                      <Download className="h-4 w-4 mr-1" />
-                      PDF
-                    </Button>
-                  )}
+                  <div className="flex items-center gap-2">
+                    {invoice.invoiceUrl && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => window.open(invoice.invoiceUrl, '_blank')}
+                      >
+                        <ExternalLink className="h-4 w-4 mr-1" />
+                        View
+                      </Button>
+                    )}
+                    {(invoice.invoicePdf || onDownloadInvoice) && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDownload(invoice)}
+                      >
+                        <Download className="h-4 w-4 mr-1" />
+                        PDF
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </div>
             );
