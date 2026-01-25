@@ -424,6 +424,13 @@ export default function CleanerDashboard() {
                         <p className="font-medium">Manage Service Areas</p>
                       </Link>
                       <Link
+                        href="/dashboard/cleaner/earnings"
+                        className="p-4 border rounded-lg hover:shadow-md transition duration-300 text-center border-green-200 bg-green-50"
+                      >
+                        <DollarSign className="h-8 w-8 text-green-600 mx-auto mb-2" />
+                        <p className="font-medium">Earnings</p>
+                      </Link>
+                      <Link
                         href="/dashboard/cleaner/billing"
                         className="p-4 border rounded-lg hover:shadow-md transition duration-300 text-center"
                       >
