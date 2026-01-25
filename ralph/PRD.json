@@ -472,7 +472,7 @@
       "title": "City landing pages",
       "description": "Generate SEO-optimized landing pages for major Florida cities. Dynamic content based on cleaners in area.",
       "priority": "medium",
-      "status": "pending",
+      "status": "done",
       "estimatedMinutes": 45,
       "dependencies": [],
       "acceptanceCriteria": [
