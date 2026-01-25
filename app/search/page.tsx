@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import {
@@ -8,7 +8,8 @@ import {
   SearchFiltersState,
   SearchResultsGrid,
   LoadMorePagination,
-  CleanerCardProps
+  CleanerCardProps,
+  AvailabilityFilter
 } from '@/components/search';
 
 const SERVICE_TYPES = [
@@ -69,15 +70,30 @@ export default function SearchPage() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [page, setPage] = useState(1);
 
-  const [filters, setFilters] = useState<SearchFiltersState>({
-    location: searchParams?.get('location') || '',
-    selectedZip: searchParams?.get('zip') || '',
-    selectedService: searchParams?.get('service') || '',
-    priceRange: [0, 200],
-    experienceMin: 0,
-    verifiedOnly: false,
-    certifiedOnly: false
-  });
+  // Parse URL params for initial filter state
+  const initialFilters = useMemo((): SearchFiltersState => {
+    const servicesParam = searchParams?.get('services');
+    const priceParam = searchParams?.get('maxPrice');
+    const ratingParam = searchParams?.get('rating');
+    const availabilityParam = searchParams?.get('availability');
+    const experienceParam = searchParams?.get('experience');
+
+    return {
+      location: searchParams?.get('location') || '',
+      selectedZip: searchParams?.get('zip') || '',
+      selectedService: searchParams?.get('service') || '',
+      selectedServices: servicesParam ? servicesParam.split(',') : [],
+      priceRange: [0, priceParam ? parseInt(priceParam) : 200],
+      minRating: ratingParam ? parseInt(ratingParam) : 0,
+      availability: (availabilityParam as AvailabilityFilter) || 'any',
+      experienceMin: experienceParam ? parseInt(experienceParam) : 0,
+      verifiedOnly: searchParams?.get('verified') === 'true',
+      certifiedOnly: searchParams?.get('certified') === 'true',
+      instantBookingOnly: searchParams?.get('instant') === 'true'
+    };
+  }, [searchParams]);
+
+  const [filters, setFilters] = useState<SearchFiltersState>(initialFilters);
 
   const mapCleanerToCardProps = (cleaner: CleanerData): CleanerCardProps => ({
     id: cleaner.id,
@@ -124,24 +140,43 @@ export default function SearchPage() {
         .order('average_rating', { ascending: false });
 
       // Apply filters
-      if (filters.selectedService) {
+
+      // Service type filter (single or multiple)
+      if (filters.selectedServices && filters.selectedServices.length > 0) {
+        // Filter by any of the selected services
+        query = query.overlaps('services', filters.selectedServices);
+      } else if (filters.selectedService) {
         query = query.contains('services', [filters.selectedService]);
       }
 
+      // Price range filter
       if (filters.priceRange[1] < 200) {
         query = query.lte('hourly_rate', filters.priceRange[1]);
       }
 
+      // Minimum rating filter
+      if (filters.minRating > 0) {
+        query = query.gte('average_rating', filters.minRating);
+      }
+
+      // Experience filter
       if (filters.experienceMin > 0) {
         query = query.gte('years_experience', filters.experienceMin);
       }
 
+      // Verified filter
       if (filters.verifiedOnly) {
         query = query.eq('insurance_verified', true).eq('license_verified', true);
       }
 
+      // Certified filter
       if (filters.certifiedOnly) {
         query = query.eq('is_certified', true);
+      }
+
+      // Instant booking filter
+      if (filters.instantBookingOnly) {
+        query = query.eq('instant_booking', true);
       }
 
       // Apply pagination
@@ -193,18 +228,75 @@ export default function SearchPage() {
   // Initial load and filter changes
   useEffect(() => {
     loadCleaners(1);
-  }, [filters.selectedService, filters.selectedZip, filters.location, filters.priceRange, filters.experienceMin, filters.verifiedOnly, filters.certifiedOnly]);
+  }, [
+    filters.selectedService,
+    filters.selectedServices,
+    filters.selectedZip,
+    filters.location,
+    filters.priceRange,
+    filters.minRating,
+    filters.availability,
+    filters.experienceMin,
+    filters.verifiedOnly,
+    filters.certifiedOnly,
+    filters.instantBookingOnly
+  ]);
 
-  // Update URL when filters change
+  // Update URL when filters change (persist all filters)
   useEffect(() => {
     const params = new URLSearchParams();
+
+    // Location filters
     if (filters.location) params.set('location', filters.location);
     if (filters.selectedZip) params.set('zip', filters.selectedZip);
+
+    // Service filters
     if (filters.selectedService) params.set('service', filters.selectedService);
+    if (filters.selectedServices && filters.selectedServices.length > 0) {
+      params.set('services', filters.selectedServices.join(','));
+    }
+
+    // Price filter
+    if (filters.priceRange[1] < 200) {
+      params.set('maxPrice', filters.priceRange[1].toString());
+    }
+
+    // Rating filter
+    if (filters.minRating > 0) {
+      params.set('rating', filters.minRating.toString());
+    }
+
+    // Availability filter
+    if (filters.availability !== 'any') {
+      params.set('availability', filters.availability);
+    }
+
+    // Experience filter
+    if (filters.experienceMin > 0) {
+      params.set('experience', filters.experienceMin.toString());
+    }
+
+    // Boolean filters
+    if (filters.verifiedOnly) params.set('verified', 'true');
+    if (filters.certifiedOnly) params.set('certified', 'true');
+    if (filters.instantBookingOnly) params.set('instant', 'true');
 
     const newUrl = params.toString() ? `?${params.toString()}` : '/search';
     router.replace(newUrl, { scroll: false });
-  }, [filters.location, filters.selectedZip, filters.selectedService, router]);
+  }, [
+    filters.location,
+    filters.selectedZip,
+    filters.selectedService,
+    filters.selectedServices,
+    filters.priceRange,
+    filters.minRating,
+    filters.availability,
+    filters.experienceMin,
+    filters.verifiedOnly,
+    filters.certifiedOnly,
+    filters.instantBookingOnly,
+    router
+  ]);
 
   const handleFiltersChange = (newFilters: SearchFiltersState) => {
     setFilters(newFilters);
@@ -228,10 +320,14 @@ export default function SearchPage() {
       location: '',
       selectedZip: '',
       selectedService: '',
+      selectedServices: [],
       priceRange: [0, 200],
+      minRating: 0,
+      availability: 'any',
       experienceMin: 0,
       verifiedOnly: false,
-      certifiedOnly: false
+      certifiedOnly: false,
+      instantBookingOnly: false
     });
   };
 

@@ -391,7 +391,7 @@
       "title": "Advanced search filters",
       "description": "Add filters to search results: rating, price range, availability, services offered. Persist filters in URL.",
       "priority": "medium",
-      "status": "pending",
+      "status": "done",
       "estimatedMinutes": 50,
       "dependencies": [],
       "acceptanceCriteria": [
