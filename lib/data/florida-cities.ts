@@ -113,6 +113,116 @@ export const FLORIDA_CITIES: FloridaCity[] = [
     nearbyAreas: ['Orlando', 'St. Cloud', 'Celebration', 'Davenport', 'Lake Buena Vista'],
     description: 'Kissimmee offers affordable living near Orlando\'s attractions with a charming downtown and natural beauty.'
   },
+  {
+    name: 'Winter Park',
+    slug: 'winter-park',
+    county: 'Orange',
+    region: 'central',
+    population: 31100,
+    zipCodes: ['32789', '32790', '32792', '32793'],
+    nearbyAreas: ['Orlando', 'Maitland', 'Casselberry', 'Fern Park', 'Altamonte Springs'],
+    description: 'Winter Park is a charming Central Florida city known for its brick-lined streets, upscale Park Avenue shops, and scenic chain of lakes.'
+  },
+  {
+    name: 'Altamonte Springs',
+    slug: 'altamonte-springs',
+    county: 'Seminole',
+    region: 'central',
+    population: 45200,
+    zipCodes: ['32701', '32714', '32715', '32716'],
+    nearbyAreas: ['Maitland', 'Longwood', 'Casselberry', 'Winter Park', 'Orlando'],
+    description: 'Altamonte Springs is a thriving Seminole County suburb with excellent shopping, dining, and easy access to downtown Orlando.'
+  },
+  {
+    name: 'Lake Mary',
+    slug: 'lake-mary',
+    county: 'Seminole',
+    region: 'central',
+    population: 17200,
+    zipCodes: ['32746', '32795'],
+    nearbyAreas: ['Sanford', 'Longwood', 'Heathrow', 'Winter Springs', 'Altamonte Springs'],
+    description: 'Lake Mary is a family-friendly Seminole County city with top-rated schools, corporate offices, and scenic lakefront parks.'
+  },
+  {
+    name: 'Sanford',
+    slug: 'sanford',
+    county: 'Seminole',
+    region: 'central',
+    population: 63300,
+    zipCodes: ['32771', '32772', '32773'],
+    nearbyAreas: ['Lake Mary', 'Longwood', 'Winter Springs', 'Deltona', 'DeBary'],
+    description: 'Sanford is the Seminole County seat, featuring a revitalized historic downtown on the shores of Lake Monroe with the SunRail commuter line.'
+  },
+  {
+    name: 'Maitland',
+    slug: 'maitland',
+    county: 'Orange',
+    region: 'central',
+    population: 18200,
+    zipCodes: ['32751', '32794'],
+    nearbyAreas: ['Winter Park', 'Altamonte Springs', 'Orlando', 'Casselberry', 'Eatonville'],
+    description: 'Maitland is a quiet residential city between Orlando and Winter Park, home to the Maitland Art Center and scenic lakefront living.'
+  },
+  {
+    name: 'Longwood',
+    slug: 'longwood',
+    county: 'Seminole',
+    region: 'central',
+    population: 15600,
+    zipCodes: ['32750', '32752', '32779'],
+    nearbyAreas: ['Altamonte Springs', 'Lake Mary', 'Casselberry', 'Winter Springs', 'Sanford'],
+    description: 'Longwood is a historic Seminole County city offering a small-town feel with convenient access to Orlando and SunRail transit.'
+  },
+  {
+    name: 'Casselberry',
+    slug: 'casselberry',
+    county: 'Seminole',
+    region: 'central',
+    population: 29200,
+    zipCodes: ['32707', '32730'],
+    nearbyAreas: ['Fern Park', 'Winter Park', 'Altamonte Springs', 'Winter Springs', 'Maitland'],
+    description: 'Casselberry is a centrally located Seminole County suburb with affordable housing, parks, and quick access to Orlando.'
+  },
+  {
+    name: 'Fern Park',
+    slug: 'fern-park',
+    county: 'Seminole',
+    region: 'central',
+    population: 10600,
+    zipCodes: ['32730'],
+    nearbyAreas: ['Casselberry', 'Winter Park', 'Maitland', 'Altamonte Springs', 'Orlando'],
+    description: 'Fern Park is a Seminole County community offering convenient central location between Orlando and northern suburbs.'
+  },
+  {
+    name: 'Winter Garden',
+    slug: 'winter-garden',
+    county: 'Orange',
+    region: 'central',
+    population: 46100,
+    zipCodes: ['34777', '34778', '34787'],
+    nearbyAreas: ['Ocoee', 'Windermere', 'Clermont', 'Orlando', 'Oakland'],
+    description: 'Winter Garden features a vibrant historic downtown, the popular West Orange Trail, and family-friendly neighborhoods west of Orlando.'
+  },
+  {
+    name: 'Winter Springs',
+    slug: 'winter-springs',
+    county: 'Seminole',
+    region: 'central',
+    population: 37200,
+    zipCodes: ['32708'],
+    nearbyAreas: ['Oviedo', 'Casselberry', 'Longwood', 'Sanford', 'Tuskawilla'],
+    description: 'Winter Springs is a Seminole County city known for its excellent schools, Cross Seminole Trail, and strong sense of community.'
+  },
+  {
+    name: 'Celebration',
+    slug: 'celebration',
+    county: 'Osceola',
+    region: 'central',
+    population: 11200,
+    zipCodes: ['34747'],
+    nearbyAreas: ['Kissimmee', 'Orlando', 'Lake Buena Vista', 'Davenport', 'Champions Gate'],
+    description: 'Celebration is a master-planned community near Walt Disney World, featuring walkable streets, lakefront dining, and a signature town center.'
+  },
 
   // North Florida
   {
