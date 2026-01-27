@@ -132,7 +132,8 @@ export async function POST(req: NextRequest) {
 
     const stripe = getStripe();
     const body = await req.text();
-    const signature = headers().get('stripe-signature');
+    const headersList = await headers();
+    const signature = headersList.get('stripe-signature');
 
     if (!signature) {
       return NextResponse.json(
