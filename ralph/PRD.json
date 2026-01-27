@@ -45,7 +45,7 @@
       "title": "Stripe dispute handling",
       "description": "Implement webhook handler for charge.dispute.created and charge.dispute.closed Stripe events. Notify admin of disputes, flag cleaner accounts, track dispute status, and handle won/lost outcomes.",
       "priority": "high",
-      "status": "pending",
+      "status": "done",
       "estimatedMinutes": 45,
       "dependencies": ["FIX-003"],
       "acceptanceCriteria": [

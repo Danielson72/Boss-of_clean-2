@@ -3,6 +3,7 @@ import { headers } from 'next/headers';
 import { getStripe } from '@/lib/stripe/config';
 import { subscriptionService } from '@/lib/stripe/subscription-service';
 import { webhookEventService } from '@/lib/stripe/webhook-event-service';
+import { handleDisputeCreated, handleDisputeClosed } from '@/lib/stripe/disputes';
 import type Stripe from 'stripe';
 
 // Retry configuration
@@ -109,8 +110,15 @@ async function handleStripeEvent(event: Stripe.Event): Promise<void> {
       break;
 
     case 'charge.dispute.created':
-      console.log('Dispute created:', (event.data.object as Stripe.Dispute).id);
-      // TODO: Implement dispute handling (notify admin, potentially suspend account)
+      await processEventWithRetry(event, () =>
+        handleDisputeCreated(event.data.object as Stripe.Dispute)
+      );
+      break;
+
+    case 'charge.dispute.closed':
+      await processEventWithRetry(event, () =>
+        handleDisputeClosed(event.data.object as Stripe.Dispute)
+      );
       break;
 
     default:
