@@ -91,7 +91,7 @@
       "title": "Add error boundaries",
       "description": "Create error.tsx boundary files for critical route segments to prevent full-page crashes. Each error boundary should display a branded error message with retry button and optional error reporting.",
       "priority": "high",
-      "status": "pending",
+      "status": "done",
       "estimatedMinutes": 35,
       "dependencies": [],
       "acceptanceCriteria": [
