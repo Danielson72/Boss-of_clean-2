@@ -78,10 +78,10 @@ export default function LeadsPage() {
     try {
       setLoading(true);
 
-      // Get cleaner profile
+      // Get cleaner profile with credit tracking
       const { data: cleanerData, error: cleanerError } = await supabase
         .from('cleaners')
-        .select('id, subscription_tier')
+        .select('id, subscription_tier, lead_credits_used, lead_credits_reset_at')
         .eq('user_id', user?.id)
         .single();
 
@@ -92,8 +92,8 @@ export default function LeadsPage() {
 
       setCleaner({
         ...cleanerData,
-        lead_credits_used: 0, // TODO: Track actual usage
-        lead_credits_reset_at: new Date().toISOString(),
+        lead_credits_used: cleanerData.lead_credits_used ?? 0,
+        lead_credits_reset_at: cleanerData.lead_credits_reset_at ?? new Date().toISOString(),
       });
 
       // Get service areas for this cleaner
@@ -178,22 +178,33 @@ export default function LeadsPage() {
     try {
       setClaimingLead(true);
 
-      // Update the quote request to assign it to this cleaner
-      const { error } = await supabase
-        .from('quote_requests')
-        .update({
-          cleaner_id: cleaner.id,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', leadId);
+      const response = await fetch('/api/cleaner/leads/claim', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ leadId }),
+      });
 
-      if (error) throw error;
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        alert(result.error || 'Failed to claim lead');
+        return;
+      }
+
+      // Update local credit state
+      if (cleaner && result.credits_used !== undefined) {
+        setCleaner({
+          ...cleaner,
+          lead_credits_used: result.credits_used,
+        });
+      }
 
       // Refresh leads
       await loadData();
       setViewingLead(null);
     } catch (error) {
       console.error('Error claiming lead:', error);
+      alert('An error occurred while claiming the lead.');
     } finally {
       setClaimingLead(false);
     }
@@ -286,6 +297,29 @@ export default function LeadsPage() {
                   className="bg-white text-purple-600 px-6 py-2 rounded-md font-medium hover:bg-purple-50 transition"
                 >
                   Upgrade Now
+                </Link>
+              </div>
+            </div>
+          )}
+
+          {/* Credits Exhausted Banner */}
+          {!isUnlimited && remaining <= 0 && (
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Lock className="h-5 w-5 text-amber-600" />
+                  <div>
+                    <p className="font-medium text-amber-800">Lead credits exhausted</p>
+                    <p className="text-sm text-amber-600">
+                      You&apos;ve used all {getLeadLimit()} credits this month. Upgrade for more leads.
+                    </p>
+                  </div>
+                </div>
+                <Link
+                  href="/dashboard/cleaner/billing"
+                  className="bg-amber-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-amber-700 transition"
+                >
+                  Upgrade
                 </Link>
               </div>
             </div>

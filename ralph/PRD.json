@@ -20,7 +20,7 @@
       "title": "Lead credits system actual tracking",
       "description": "Implement real lead credit tracking for cleaner subscription tiers. Currently credits are displayed but not enforced. Track credit usage per billing cycle, prevent claiming leads when credits exhausted, show remaining credits on leads page, reset credits on subscription renewal.",
       "priority": "high",
-      "status": "pending",
+      "status": "done",
       "estimatedMinutes": 60,
       "dependencies": [],
       "acceptanceCriteria": [

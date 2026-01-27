@@ -245,12 +245,19 @@ export class SubscriptionService {
           paid_at: new Date().toISOString(),
         });
 
-        // Update last payment date and reset failed count
+        // Update last payment date, reset failed count, and reset lead credits
+        const nextMonth = new Date();
+        nextMonth.setMonth(nextMonth.getMonth() + 1);
+        nextMonth.setDate(1);
+        nextMonth.setHours(0, 0, 0, 0);
+
         await this.getSupabase()
           .from('cleaners')
           .update({
             last_payment_date: new Date().toISOString(),
             payment_failed_count: 0,
+            lead_credits_used: 0,
+            lead_credits_reset_at: nextMonth.toISOString(),
           })
           .eq('id', subscriptionData.cleaner_id);
 
