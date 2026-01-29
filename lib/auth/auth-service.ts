@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/client';
-import type { User } from '@supabase/supabase-js';
+import type { User, AuthError } from '@supabase/supabase-js';
+import type { UserUpdate } from '@/lib/types/database';
 
 export class AuthService {
   private supabase = createClient();
@@ -21,8 +22,8 @@ export class AuthService {
       if (error) throw error;
 
       return { user: data.user, error: null };
-    } catch (error: any) {
-      return { user: null, error };
+    } catch (error) {
+      return { user: null, error: error as AuthError };
     }
   }
 
@@ -36,8 +37,8 @@ export class AuthService {
       if (error) throw error;
 
       return { user: data.user, session: data.session, error: null };
-    } catch (error: any) {
-      return { user: null, session: null, error };
+    } catch (error) {
+      return { user: null, session: null, error: error as AuthError };
     }
   }
 
@@ -46,8 +47,8 @@ export class AuthService {
       const { error } = await this.supabase.auth.signOut();
       if (error) throw error;
       return { error: null };
-    } catch (error: any) {
-      return { error };
+    } catch (error) {
+      return { error: error as AuthError };
     }
   }
 
@@ -56,12 +57,12 @@ export class AuthService {
       const { error } = await this.supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/auth/reset-password`
       });
-      
+
       if (error) throw error;
-      
+
       return { error: null };
-    } catch (error: any) {
-      return { error };
+    } catch (error) {
+      return { error: error as AuthError };
     }
   }
 
@@ -74,32 +75,32 @@ export class AuthService {
       if (error) throw error;
 
       return { error: null };
-    } catch (error: any) {
-      return { error };
+    } catch (error) {
+      return { error: error as AuthError };
     }
   }
 
   async getUser() {
     try {
       const { data: { user }, error } = await this.supabase.auth.getUser();
-      
+
       if (error) throw error;
-      
+
       return { user, error: null };
-    } catch (error: any) {
-      return { user: null, error };
+    } catch (error) {
+      return { user: null, error: error as AuthError };
     }
   }
 
   async getSession() {
     try {
       const { data: { session }, error } = await this.supabase.auth.getSession();
-      
+
       if (error) throw error;
-      
+
       return { session, error: null };
-    } catch (error: any) {
-      return { session: null, error };
+    } catch (error) {
+      return { session: null, error: error as AuthError };
     }
   }
 
@@ -114,12 +115,12 @@ export class AuthService {
       if (error) throw error;
 
       return { profile: data, error: null };
-    } catch (error: any) {
-      return { profile: null, error };
+    } catch (error) {
+      return { profile: null, error: error as Error };
     }
   }
 
-  async updateUserProfile(userId: string, updates: any) {
+  async updateUserProfile(userId: string, updates: UserUpdate) {
     try {
       const { data, error } = await this.supabase
         .from('users')
@@ -131,8 +132,8 @@ export class AuthService {
       if (error) throw error;
 
       return { profile: data, error: null };
-    } catch (error: any) {
-      return { profile: null, error };
+    } catch (error) {
+      return { profile: null, error: error as Error };
     }
   }
 
@@ -147,8 +148,8 @@ export class AuthService {
       if (error && error.code !== 'PGRST116') throw error; // Ignore not found error
 
       return { cleaner: data, error: null };
-    } catch (error: any) {
-      return { cleaner: null, error };
+    } catch (error) {
+      return { cleaner: null, error: error as Error };
     }
   }
 

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { getStripe } from '@/lib/stripe/config';
-import { getCustomerInvoices } from '@/lib/stripe/invoices';
+import { getCustomerInvoices, InvoiceData } from '@/lib/stripe/invoices';
 import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger({ file: 'api/cleaner/billing/route' });
@@ -84,7 +84,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get billing history (invoices) from Stripe
-    let stripeInvoices: any[] = [];
+    let stripeInvoices: InvoiceData[] = [];
     if (cleaner.stripe_customer_id) {
       try {
         const { invoices: fetchedInvoices } = await getCustomerInvoices(
@@ -172,7 +172,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Format invoices from Stripe
-    const invoices = stripeInvoices.map((invoice: any) => ({
+    const invoices = stripeInvoices.map((invoice: InvoiceData) => ({
       id: invoice.id,
       date: invoice.date,
       description: invoice.description || 'Subscription payment',
@@ -182,7 +182,7 @@ export async function GET(request: NextRequest) {
       invoicePdf: invoice.invoicePdf,
     }));
 
-    const stripeSub = stripeSubscription as any;
+    const stripeSub = stripeSubscription as { current_period_end?: number; cancel_at?: number | null } | null;
     return NextResponse.json({
       subscription: {
         planName: tierDisplayNames[cleaner.subscription_tier] || 'Free',

@@ -4,6 +4,15 @@ import { createLogger } from '../utils/logger';
 
 const logger = createLogger({ file: 'lib/services/quote-service' });
 
+/** Cleaner data for email notifications */
+interface CleanerEmailData {
+  id: string;
+  user_id: string;
+  business_name: string;
+  services: string[];
+  users?: { email: string; full_name: string } | { email: string; full_name: string }[] | null;
+}
+
 export interface QuoteRequest {
   id: string;
   customer_id: string;
@@ -151,7 +160,13 @@ export class QuoteService {
     response: string,
     quotedPrice?: number
   ): Promise<QuoteRequest> {
-    const updateData: any = {
+    const updateData: {
+      cleaner_id: string;
+      cleaner_response: string;
+      status: 'responded';
+      updated_at: string;
+      quoted_price?: number;
+    } = {
       cleaner_id: cleanerId,
       cleaner_response: response,
       status: 'responded',
@@ -282,7 +297,7 @@ export class QuoteService {
     }
   }
 
-  private async sendQuoteNotificationEmail(cleaner: any, quoteId: string) {
+  private async sendQuoteNotificationEmail(cleaner: CleanerEmailData, quoteId: string) {
     // This would integrate with your email service (SendGrid, Resend, etc.)
     logger.debug(`Sending quote notification to ${cleaner.business_name} for quote ${quoteId}`);
     

@@ -11,9 +11,29 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Save, Loader2 } from 'lucide-react'
 
+/** Cleaner data from database */
+interface CleanerData {
+  id: string;
+  business_name: string;
+  description?: string;
+  hourly_rate?: number;
+  years_experience?: number;
+  service_types?: string[];
+  insurance_verified?: boolean;
+  background_checked?: boolean;
+}
+
+/** User data from database */
+interface UserData {
+  display_name?: string;
+  city?: string;
+  state?: string;
+  zip_code?: string;
+}
+
 interface CleanerProfileFormProps {
-  cleanerData: any
-  userData: any
+  cleanerData: CleanerData | null
+  userData: UserData | null
   userId: string
 }
 
@@ -76,8 +96,8 @@ export default function CleanerProfileForm({ cleanerData, userData, userId }: Cl
           .update({
             business_name: formData.business_name,
             description: formData.description,
-            hourly_rate: parseFloat(formData.hourly_rate),
-            years_experience: parseInt(formData.years_experience),
+            hourly_rate: parseFloat(String(formData.hourly_rate)),
+            years_experience: parseInt(String(formData.years_experience)),
             service_types: formData.service_types,
             insurance_verified: formData.insurance_verified,
             background_checked: formData.background_checked,
@@ -93,8 +113,8 @@ export default function CleanerProfileForm({ cleanerData, userData, userId }: Cl
             user_id: userId,
             business_name: formData.business_name,
             description: formData.description,
-            hourly_rate: parseFloat(formData.hourly_rate),
-            years_experience: parseInt(formData.years_experience),
+            hourly_rate: parseFloat(String(formData.hourly_rate)),
+            years_experience: parseInt(String(formData.years_experience)),
             service_types: formData.service_types,
             insurance_verified: formData.insurance_verified,
             background_checked: formData.background_checked,
@@ -107,8 +127,9 @@ export default function CleanerProfileForm({ cleanerData, userData, userId }: Cl
 
       setMessage({ type: 'success', text: 'Profile updated successfully!' })
       router.refresh()
-    } catch (error: any) {
-      setMessage({ type: 'error', text: error.message || 'Error updating profile' })
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Error updating profile';
+      setMessage({ type: 'error', text: message })
     } finally {
       setLoading(false)
     }

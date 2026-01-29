@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
+import Image from 'next/image';
 import {
   Star, MapPin, Phone, Mail, Globe, Clock, Shield, Award,
   BadgeCheck, CheckCircle2, DollarSign, Users, Calendar,
@@ -8,6 +9,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { StartConversationButton } from '@/components/messaging/StartConversationButton';
+import type { BusinessHours } from '@/lib/types/database';
 
 interface CleanerProfile {
   id: string;
@@ -35,7 +37,7 @@ interface CleanerProfile {
   subscription_tier: string;
   profile_image_url: string;
   business_images: string[];
-  business_hours: any;
+  business_hours: BusinessHours | null;
   created_at: string;
   users: {
     full_name: string;
@@ -165,9 +167,12 @@ export default async function CleanerProfilePage({ params }: { params: Promise<{
             <div className="flex-shrink-0">
               <div className="relative">
                 {cleaner.profile_image_url ? (
-                  <img
+                  <Image
                     src={cleaner.profile_image_url}
                     alt={cleaner.business_name}
+                    width={160}
+                    height={160}
+                    sizes="(max-width: 768px) 128px, 160px"
                     className="w-32 h-32 md:w-40 md:h-40 rounded-xl object-cover shadow-md"
                   />
                 ) : (

@@ -113,9 +113,35 @@ export function useMessages({ conversationId, enabled = true }: UseMessagesOptio
   };
 }
 
+/** Conversation data from API - matches ConversationList component expectations */
+interface Conversation {
+  id: string;
+  customer_id: string;
+  cleaner_id: string;
+  quote_request_id?: string | null;
+  last_message_at: string | null;
+  created_at?: string;
+  customer: {
+    id: string;
+    full_name: string;
+    email: string;
+  };
+  cleaner: {
+    id: string;
+    business_name: string;
+    user_id: string;
+  };
+  lastMessage: {
+    content: string;
+    sender_role: string;
+    created_at: string;
+  } | null;
+  unreadCount: number;
+}
+
 // Hook for conversation list with unread updates
 export function useConversations() {
-  const [conversations, setConversations] = useState<any[]>([]);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [totalUnread, setTotalUnread] = useState(0);
@@ -134,10 +160,11 @@ export function useConversations() {
         return;
       }
 
-      setConversations(data.conversations || []);
+      const conversationList: Conversation[] = data.conversations || [];
+      setConversations(conversationList);
       setTotalUnread(
-        (data.conversations || []).reduce(
-          (sum: number, c: any) => sum + (c.unreadCount || 0),
+        conversationList.reduce(
+          (sum: number, c: Conversation) => sum + (c.unreadCount || 0),
           0
         )
       );

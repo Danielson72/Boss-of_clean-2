@@ -142,7 +142,10 @@ export default function LeadsPage() {
 
       if (error) throw error;
       // Supabase FK joins return related row as array; unwrap to single object
-      const normalized = (data || []).map((row: any) => ({
+      interface LeadRow extends Omit<Lead, 'customer'> {
+        customer: Lead['customer'] | Lead['customer'][];
+      }
+      const normalized = (data || []).map((row: LeadRow) => ({
         ...row,
         customer: Array.isArray(row.customer) ? row.customer[0] : row.customer,
       }));

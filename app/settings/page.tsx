@@ -102,7 +102,7 @@ export default function SettingsPage() {
     router.push('/');
   };
 
-  const handleInputChange = (field: keyof UserSettings, value: any) => {
+  const handleInputChange = (field: keyof UserSettings, value: string | boolean) => {
     if (!settings) return;
     setSettings({ ...settings, [field]: value });
   };

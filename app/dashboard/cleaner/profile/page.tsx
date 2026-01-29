@@ -104,7 +104,7 @@ export default function CleanerProfilePage() {
     }
   };
 
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = (field: string, value: string | number | boolean | string[]) => {
     if (!profile) return;
     setProfile({ ...profile, [field]: value });
   };

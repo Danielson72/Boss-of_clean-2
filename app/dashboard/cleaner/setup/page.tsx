@@ -153,8 +153,9 @@ export default function CleanerSetupPage() {
       setTimeout(() => {
         router.push('/dashboard/cleaner');
       }, 2000);
-    } catch (err: any) {
-      setError(err.message || 'Failed to create profile');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to create profile';
+      setError(message);
     } finally {
       setLoading(false);
     }

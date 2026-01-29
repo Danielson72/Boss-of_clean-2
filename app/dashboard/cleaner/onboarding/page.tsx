@@ -201,9 +201,9 @@ export default function CleanerOnboardingPage() {
       setTimeout(() => {
         router.push('/dashboard/cleaner')
       }, 3000)
-    } catch (err: any) {
-      // console.error('Error submitting:', err)
-      setError(err.message || 'Failed to submit. Please try again.')
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to submit. Please try again.';
+      setError(message);
     } finally {
       setSubmitting(false)
     }

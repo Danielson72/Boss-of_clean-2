@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { createClient } from '@/lib/supabase/server';
 import {
   getCityBySlug,
@@ -29,6 +30,22 @@ import {
 
 interface CityPageProps {
   params: Promise<{ city: string }>;
+}
+
+/** Cleaner data for city page display */
+interface CityPageCleaner {
+  id: string;
+  business_name: string;
+  business_slug: string | null;
+  average_rating: number;
+  total_reviews: number;
+  services: string[];
+  hourly_rate: number | null;
+  profile_image_url: string | null;
+  subscription_tier: string;
+  instant_booking: boolean;
+  insurance_verified: boolean;
+  users: { city: string | null; state: string | null } | { city: string | null; state: string | null }[];
 }
 
 // Generate static params for all cities
@@ -341,19 +358,21 @@ export default async function CityPage({ params }: CityPageProps) {
               </p>
 
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {cleaners.map((cleaner: any) => (
+                {cleaners.map((cleaner: CityPageCleaner) => (
                   <Link
                     key={cleaner.id}
                     href={`/cleaner/${cleaner.business_slug || cleaner.id}`}
                     className="bg-white rounded-lg shadow-sm hover:shadow-md transition p-6"
                   >
                     <div className="flex items-start gap-4">
-                      <div className="w-16 h-16 rounded-full bg-gray-200 flex-shrink-0 overflow-hidden">
+                      <div className="relative w-16 h-16 rounded-full bg-gray-200 flex-shrink-0 overflow-hidden">
                         {cleaner.profile_image_url ? (
-                          <img
+                          <Image
                             src={cleaner.profile_image_url}
                             alt={cleaner.business_name}
-                            className="w-full h-full object-cover"
+                            fill
+                            sizes="64px"
+                            className="object-cover"
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-gray-400 text-xl font-bold">

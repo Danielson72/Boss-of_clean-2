@@ -47,7 +47,9 @@ interface QuoteRequest {
   };
 }
 
-const statusConfig: Record<string, { label: string; color: string; icon: any }> = {
+type IconComponent = React.ComponentType<{ className?: string }>;
+
+const statusConfig: Record<string, { label: string; color: string; icon: IconComponent }> = {
   pending: { label: 'Pending', color: 'yellow', icon: Clock },
   responded: { label: 'Responded', color: 'blue', icon: MessageSquare },
   accepted: { label: 'Accepted', color: 'green', icon: CheckCircle },

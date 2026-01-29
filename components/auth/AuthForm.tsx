@@ -130,8 +130,9 @@ export function AuthForm({ mode }: AuthFormProps) {
         const role = userData?.role || 'customer'
         router.push(`/dashboard/${role}`)
       }
-    } catch (error: any) {
-      setError(error.message || 'An error occurred during authentication')
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'An error occurred during authentication';
+      setError(message);
     } finally {
       setLoading(false)
     }

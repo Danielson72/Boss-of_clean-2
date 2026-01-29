@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/client';
 import { createLogger } from '../utils/logger';
+import type { BookingData } from '@/lib/types/api';
 
 const logger = createLogger({ file: 'lib/services/analytics' });
 
@@ -123,7 +124,7 @@ export class AnalyticsService {
     };
   }
 
-  private generateMonthlyData(completedBookings: any[]): MonthlyEarnings[] {
+  private generateMonthlyData(completedBookings: BookingData[]): MonthlyEarnings[] {
     const months: MonthlyEarnings[] = [];
     const now = new Date();
 

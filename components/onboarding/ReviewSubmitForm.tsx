@@ -47,8 +47,9 @@ export default function ReviewSubmitForm({
     setError(null)
     try {
       await onSubmit()
-    } catch (err: any) {
-      setError(err.message || 'Failed to submit. Please try again.')
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to submit. Please try again.';
+      setError(message);
     }
   }
 

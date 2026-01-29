@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/client';
 import { createLogger } from '../utils/logger';
+import type { BusinessHours } from '@/lib/types/database';
 
 const logger = createLogger({ file: 'lib/services/searchService' });
 
@@ -32,7 +33,7 @@ export interface Cleaner {
   profile_image_url?: string;
   business_images: string[];
   featured_image_url?: string;
-  business_hours?: any;
+  business_hours?: BusinessHours | null;
   instant_booking: boolean;
   response_time_hours: number;
   business_slug?: string;
@@ -41,16 +42,17 @@ export interface Cleaner {
   created_at: string;
   updated_at: string;
   users?: {
-    full_name: string;
-    phone: string;
+    full_name: string | null;
+    phone: string | null;
     email: string;
-    city: string;
-    zip_code: string;
-  };
+    city: string | null;
+    state?: string;
+    zip_code: string | null;
+  } | null;
   service_areas_detail?: {
     zip_code: string;
-    city: string;
-    county: string;
+    city: string | null;
+    county: string | null;
     travel_fee: number;
   }[];
 }
