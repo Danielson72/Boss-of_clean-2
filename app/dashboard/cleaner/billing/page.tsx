@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/lib/context/AuthContext';
 import { ProtectedRoute } from '@/lib/auth/protected-route';
-import { getStripe } from '@/lib/stripe/client';
 import { redirectToBillingPortal } from '@/lib/stripe/client';
 import {
   SubscriptionStatusCard,
@@ -12,6 +11,7 @@ import {
   PlanComparison,
   BillingHistory,
   PaymentMethodCard,
+  CancelSubscriptionDialog,
   defaultPlans,
 } from '@/components/billing';
 import type { Invoice, PaymentMethod } from '@/components/billing';
@@ -179,6 +179,62 @@ export default function BillingPage() {
     router.push('#plans');
   };
 
+  const handleCancelSubscription = async () => {
+    try {
+      setUpgradeLoading(true);
+      const response = await fetch('/api/cleaner/billing/cancel', {
+        method: 'POST',
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to cancel subscription');
+      }
+
+      setNotification({
+        type: 'success',
+        message: 'Your subscription has been scheduled for cancellation.',
+      });
+      fetchBillingData();
+    } catch (error) {
+      setNotification({
+        type: 'error',
+        message: error instanceof Error ? error.message : 'Failed to cancel subscription',
+      });
+    } finally {
+      setUpgradeLoading(false);
+    }
+  };
+
+  const handleReactivateSubscription = async () => {
+    try {
+      setUpgradeLoading(true);
+      const response = await fetch('/api/cleaner/billing/reactivate', {
+        method: 'POST',
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to reactivate subscription');
+      }
+
+      setNotification({
+        type: 'success',
+        message: 'Your subscription has been reactivated!',
+      });
+      fetchBillingData();
+    } catch (error) {
+      setNotification({
+        type: 'error',
+        message: error instanceof Error ? error.message : 'Failed to reactivate subscription',
+      });
+    } finally {
+      setUpgradeLoading(false);
+    }
+  };
+
   // Auto-dismiss notification
   useEffect(() => {
     if (notification) {
@@ -301,6 +357,34 @@ export default function BillingPage() {
                 />
                 <BillingHistory invoices={billingData.invoices} />
               </div>
+
+              {/* Cancel Subscription Section - only show for paid plans */}
+              {billingData.subscription.planTier !== 'free' && (
+                <div className="mt-8 pt-8 border-t border-gray-200">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-lg font-medium text-gray-900">
+                        {billingData.subscription.cancelAt
+                          ? 'Subscription Cancellation Scheduled'
+                          : 'Cancel Subscription'}
+                      </h3>
+                      <p className="text-sm text-gray-600 mt-1">
+                        {billingData.subscription.cancelAt
+                          ? `Your subscription will end on ${new Date(billingData.subscription.cancelAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`
+                          : 'Cancel your subscription. You will retain access until the end of your billing period.'}
+                      </p>
+                    </div>
+                    <CancelSubscriptionDialog
+                      planName={billingData.subscription.planName}
+                      planTier={billingData.subscription.planTier}
+                      cancelAt={billingData.subscription.cancelAt}
+                      onCancel={handleCancelSubscription}
+                      onReactivate={handleReactivateSubscription}
+                      isLoading={upgradeLoading}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>

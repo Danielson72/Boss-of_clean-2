@@ -12,3 +12,6 @@ export type { BillingHistoryProps, Invoice } from './BillingHistory';
 
 export { PaymentMethodCard } from './PaymentMethodCard';
 export type { PaymentMethodCardProps, PaymentMethod } from './PaymentMethodCard';
+
+export { CancelSubscriptionDialog } from './CancelSubscriptionDialog';
+export type { CancelSubscriptionDialogProps } from './CancelSubscriptionDialog';
