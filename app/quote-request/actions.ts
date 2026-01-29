@@ -1,7 +1,12 @@
 'use server';
 
+import { headers } from 'next/headers';
 import { createClient } from '@/lib/supabase/server';
 import { sendQuoteMatchEmail, sendNewLeadEmail } from '@/lib/email/notifications';
+import { checkRateLimit, RATE_LIMITS } from '@/lib/middleware/rate-limit';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger({ file: 'quote-request/actions' });
 
 export interface QuoteRequestData {
   service_type: string;
@@ -33,6 +38,18 @@ export interface QuoteRequestResult {
 export async function submitQuoteRequest(
   data: QuoteRequestData
 ): Promise<QuoteRequestResult> {
+  // Rate limit: 5 quote requests per hour per IP
+  const headersList = await headers();
+  const forwarded = headersList.get('x-forwarded-for');
+  const ip = forwarded ? forwarded.split(',')[0].trim() : headersList.get('x-real-ip') || 'unknown';
+  const rateLimitResult = checkRateLimit('quote-request', ip, RATE_LIMITS.quoteRequest);
+  if (!rateLimitResult.allowed) {
+    return {
+      success: false,
+      error: `Too many requests. Please try again in ${rateLimitResult.retryAfter} seconds.`,
+    };
+  }
+
   const supabase = createClient();
 
   try {
@@ -76,7 +93,7 @@ export async function submitQuoteRequest(
       .single();
 
     if (insertError) {
-      console.error('Error inserting quote request:', insertError);
+      logger.error('Error inserting quote request', { function: 'submitQuoteRequest' }, insertError);
       return { success: false, error: 'Failed to submit quote request' };
     }
 
@@ -87,13 +104,13 @@ export async function submitQuoteRequest(
     );
 
     if (matchError) {
-      console.error('Error matching quote to cleaners:', matchError);
+      logger.error('Error matching quote to cleaners', { function: 'submitQuoteRequest' }, matchError);
       // Don't fail the request, just log the error
     }
 
     // Send email notifications to matched cleaners (async, don't block)
     notifyMatchedCleaners(quote.id).catch((err) =>
-      console.error('Error sending cleaner notifications:', err)
+      logger.error('Error sending cleaner notifications', { function: 'submitQuoteRequest' }, err)
     );
 
     return {
@@ -102,7 +119,7 @@ export async function submitQuoteRequest(
       matchCount: matchCount || 0,
     };
   } catch (error) {
-    console.error('Error in submitQuoteRequest:', error);
+    logger.error('Error in submitQuoteRequest', { function: 'submitQuoteRequest' }, error);
     return { success: false, error: 'An unexpected error occurred' };
   }
 }
@@ -229,7 +246,7 @@ export async function getQuoteStatus(
       },
     };
   } catch (error) {
-    console.error('Error in getQuoteStatus:', error);
+    logger.error('Error in getQuoteStatus', { function: 'getQuoteStatus' }, error);
     return { success: false, error: 'An unexpected error occurred' };
   }
 }

@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger({ file: 'api/cleaner/leads/claim/route' });
 
 export async function POST(request: NextRequest) {
   try {
@@ -36,7 +39,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (error) {
-      console.error('Error claiming lead:', error);
+      logger.error('Error claiming lead', { function: 'POST' }, error);
       return NextResponse.json({ error: 'Failed to claim lead' }, { status: 500 });
     }
 
@@ -55,7 +58,7 @@ export async function POST(request: NextRequest) {
       credit_limit: result.credit_limit,
     });
   } catch (error) {
-    console.error('Claim lead error:', error);
+    logger.error('Claim lead error', { function: 'POST' }, error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

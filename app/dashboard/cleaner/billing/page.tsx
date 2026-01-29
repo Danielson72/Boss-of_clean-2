@@ -91,7 +91,7 @@ export default function BillingPage() {
       const data = await response.json();
       setBillingData(data);
     } catch (error) {
-      console.error('Error fetching billing data:', error);
+      // console.error('Error fetching billing data:', error);
       setNotification({
         type: 'error',
         message: 'Failed to load billing information. Please try again.',
@@ -110,7 +110,7 @@ export default function BillingPage() {
       setUpgradeLoading(true);
       await redirectToBillingPortal();
     } catch (error) {
-      console.error('Error opening billing portal:', error);
+      // console.error('Error opening billing portal:', error);
       setNotification({
         type: 'error',
         message: 'Failed to open billing portal. Please try again.',
@@ -151,7 +151,7 @@ export default function BillingPage() {
         fetchBillingData();
       }
     } catch (error) {
-      console.error('Error upgrading plan:', error);
+      // console.error('Error upgrading plan:', error);
       setNotification({
         type: 'error',
         message: error instanceof Error ? error.message : 'Failed to upgrade plan',
@@ -166,7 +166,7 @@ export default function BillingPage() {
     try {
       await redirectToBillingPortal();
     } catch (error) {
-      console.error('Error opening billing portal:', error);
+      // console.error('Error opening billing portal:', error);
       setNotification({
         type: 'error',
         message: 'Failed to open payment settings. Please try again.',

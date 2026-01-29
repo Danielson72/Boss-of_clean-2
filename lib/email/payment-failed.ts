@@ -5,6 +5,9 @@
  * Placeholder implementation - replace with actual email provider in production.
  */
 
+import { createLogger } from '../utils/logger';
+
+const logger = createLogger({ file: 'lib/email/payment-failed' });
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://bossofclean.com';
 
 export interface PaymentFailedEmailData {
@@ -38,15 +41,15 @@ export async function sendPaymentFailedEmail(data: PaymentFailedEmailData): Prom
     year: 'numeric',
   });
 
-  console.log('[EMAIL] Payment Failed Notification');
-  console.log(`   To: ${data.to}`);
-  console.log(`   Subject: Payment failed - Action required (Attempt ${data.attemptNumber}/${data.maxAttempts})`);
-  console.log(`   Business: ${data.businessName}`);
-  console.log(`   Attempt: ${data.attemptNumber} of ${data.maxAttempts}`);
-  console.log(`   Grace period ends: ${formattedDate}`);
-  console.log(`   Invoice: ${data.invoiceId}`);
-  console.log(`   Update payment: ${BASE_URL}/dashboard/cleaner/billing`);
-  console.log('');
+  logger.info('[EMAIL] Payment Failed Notification');
+  logger.info(`   To: ${data.to}`);
+  logger.info(`   Subject: Payment failed - Action required (Attempt ${data.attemptNumber}/${data.maxAttempts})`);
+  logger.info(`   Business: ${data.businessName}`);
+  logger.info(`   Attempt: ${data.attemptNumber} of ${data.maxAttempts}`);
+  logger.info(`   Grace period ends: ${formattedDate}`);
+  logger.info(`   Invoice: ${data.invoiceId}`);
+  logger.info(`   Update payment: ${BASE_URL}/dashboard/cleaner/billing`);
+  logger.info('');
 
   // TODO: Replace with actual email provider (Resend, SendGrid, etc.)
   // return await resend.emails.send({
@@ -69,13 +72,13 @@ export async function sendFinalWarningEmail(data: FinalWarningEmailData): Promis
     year: 'numeric',
   });
 
-  console.log('[EMAIL] Final Payment Warning');
-  console.log(`   To: ${data.to}`);
-  console.log(`   Subject: URGENT: Your subscription will be downgraded`);
-  console.log(`   Business: ${data.businessName}`);
-  console.log(`   Downgrade date: ${formattedDate}`);
-  console.log(`   Update payment: ${BASE_URL}/dashboard/cleaner/billing`);
-  console.log('');
+  logger.info('[EMAIL] Final Payment Warning');
+  logger.info(`   To: ${data.to}`);
+  logger.info(`   Subject: URGENT: Your subscription will be downgraded`);
+  logger.info(`   Business: ${data.businessName}`);
+  logger.info(`   Downgrade date: ${formattedDate}`);
+  logger.info(`   Update payment: ${BASE_URL}/dashboard/cleaner/billing`);
+  logger.info('');
 
   // TODO: Replace with actual email provider
   // return await resend.emails.send({
@@ -92,13 +95,13 @@ export async function sendFinalWarningEmail(data: FinalWarningEmailData): Promis
  * Send downgrade notification email
  */
 export async function sendDowngradeEmail(data: DowngradeEmailData): Promise<boolean> {
-  console.log('[EMAIL] Subscription Downgraded');
-  console.log(`   To: ${data.to}`);
-  console.log(`   Subject: Your subscription has been downgraded to Free`);
-  console.log(`   Business: ${data.businessName}`);
-  console.log(`   Previous tier: ${data.previousTier}`);
-  console.log(`   Resubscribe: ${BASE_URL}/dashboard/cleaner/billing`);
-  console.log('');
+  logger.info('[EMAIL] Subscription Downgraded');
+  logger.info(`   To: ${data.to}`);
+  logger.info(`   Subject: Your subscription has been downgraded to Free`);
+  logger.info(`   Business: ${data.businessName}`);
+  logger.info(`   Previous tier: ${data.previousTier}`);
+  logger.info(`   Resubscribe: ${BASE_URL}/dashboard/cleaner/billing`);
+  logger.info('');
 
   // TODO: Replace with actual email provider
   // return await resend.emails.send({

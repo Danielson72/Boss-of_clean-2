@@ -4,8 +4,9 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/context/AuthContext';
 import { ProtectedRoute } from '@/lib/auth/protected-route';
 import { createClient } from '@/lib/supabase/client';
-import { 
-  Camera, Save, ArrowLeft, Upload, X, CheckCircle, 
+import Image from 'next/image';
+import {
+  Camera, Save, ArrowLeft, Upload, X, CheckCircle,
   User, Phone, Mail, MapPin, DollarSign, Calendar,
   FileText, Shield, Award, BadgeCheck, CheckCircle2
 } from 'lucide-react';
@@ -96,7 +97,7 @@ export default function CleanerProfilePage() {
         setProfile(created);
       }
     } catch (error) {
-      console.error('Error loading profile:', error);
+      // console.error('Error loading profile:', error);
       setMessage('Error loading profile');
     } finally {
       setLoading(false);
@@ -137,10 +138,10 @@ export default function CleanerProfilePage() {
 
       const updatedPhotos = [...profile.business_images, publicUrl];
       setProfile({ ...profile, business_images: updatedPhotos });
-      
+
       setMessage('Photo uploaded successfully!');
     } catch (error) {
-      console.error('Error uploading photo:', error);
+      // console.error('Error uploading photo:', error);
       setMessage('Error uploading photo');
     } finally {
       setUploading(false);
@@ -181,7 +182,7 @@ export default function CleanerProfilePage() {
       setMessage('Profile updated successfully!');
       setTimeout(() => setMessage(''), 3000);
     } catch (error) {
-      console.error('Error saving profile:', error);
+      // console.error('Error saving profile:', error);
       setMessage('Error saving profile');
     } finally {
       setSaving(false);
@@ -443,9 +444,11 @@ export default function CleanerProfilePage() {
               <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
                 {profile.business_images.map((photo, index) => (
                   <div key={index} className="relative group">
-                    <img
+                    <Image
                       src={photo}
                       alt={`Business photo ${index + 1}`}
+                      width={300}
+                      height={128}
                       className="w-full h-32 object-cover rounded-lg"
                     />
                     <button

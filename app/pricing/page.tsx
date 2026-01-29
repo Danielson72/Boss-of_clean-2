@@ -102,7 +102,7 @@ export default function PricingPage() {
     try {
       await redirectToCheckout(planKey)
     } catch (error) {
-      console.error('Failed to start checkout:', error)
+      // console.error('Failed to start checkout:', error)
       alert('Failed to start checkout. Please try again.')
     } finally {
       setLoading(null)

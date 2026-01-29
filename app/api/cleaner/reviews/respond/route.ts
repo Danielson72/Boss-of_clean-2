@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger({ file: 'api/cleaner/reviews/respond/route' });
 
 const MAX_RESPONSE_LENGTH = 500;
 
@@ -98,7 +101,7 @@ export async function POST(request: NextRequest) {
       .eq('id', reviewId);
 
     if (updateError) {
-      console.error('Error updating review response:', updateError);
+      logger.error('Error updating review response', { function: 'POST' }, updateError);
       return NextResponse.json(
         { error: 'Failed to save response' },
         { status: 500 }
@@ -110,7 +113,7 @@ export async function POST(request: NextRequest) {
       message: 'Response saved successfully',
     });
   } catch (error) {
-    console.error('Review response API error:', error);
+    logger.error('Review response API error', { function: 'POST' }, error);
     return NextResponse.json(
       { error: 'Failed to process response' },
       { status: 500 }

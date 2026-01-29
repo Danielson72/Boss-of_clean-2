@@ -2,6 +2,9 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { sendQuoteResponseEmail } from '@/lib/email/notifications';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger({ file: 'app/dashboard/cleaner/leads/actions' });
 
 export interface LeadMatch {
   id: string;
@@ -105,7 +108,7 @@ export async function getCleanerLeads(): Promise<{
       .order('created_at', { ascending: false });
 
     if (leadsError) {
-      console.error('Error fetching leads:', leadsError);
+      logger.error('Error fetching leads', { function: 'getCleanerLeads' }, leadsError);
       return { success: false, error: 'Failed to fetch leads' };
     }
 
@@ -126,7 +129,7 @@ export async function getCleanerLeads(): Promise<{
       },
     };
   } catch (error) {
-    console.error('Error in getCleanerLeads:', error);
+    logger.error('Error in getCleanerLeads', { function: 'getCleanerLeads' }, error);
     return { success: false, error: 'An unexpected error occurred' };
   }
 }
@@ -222,7 +225,7 @@ export async function getLeadById(matchId: string): Promise<{
       },
     };
   } catch (error) {
-    console.error('Error in getLeadById:', error);
+    logger.error('Error in getLeadById', { function: 'getLeadById' }, error);
     return { success: false, error: 'An unexpected error occurred' };
   }
 }
@@ -270,7 +273,7 @@ export async function respondToLead(
     });
 
     if (rpcError) {
-      console.error('Error responding to lead:', rpcError);
+      logger.error('Error responding to lead', { function: 'respondToLead' }, rpcError);
       if (rpcError.message.includes('No lead credits')) {
         return { success: false, error: 'No lead credits remaining. Upgrade your plan to respond to more leads.' };
       }
@@ -304,12 +307,12 @@ export async function respondToLead(
         availabilityDate,
         message: message || null,
         quoteId: matchId,
-      }).catch((err) => console.error('Error sending quote response email:', err));
+      }).catch((err) => logger.error('Error sending quote response email', { function: 'respondToLead' }, err));
     }
 
     return { success: true };
   } catch (error) {
-    console.error('Error in respondToLead:', error);
+    logger.error('Error in respondToLead', { function: 'respondToLead' }, error);
     return { success: false, error: 'An unexpected error occurred' };
   }
 }
@@ -346,13 +349,13 @@ export async function declineLead(
     });
 
     if (rpcError) {
-      console.error('Error declining lead:', rpcError);
+      logger.error('Error declining lead', { function: 'declineLead' }, rpcError);
       return { success: false, error: 'Failed to decline lead' };
     }
 
     return { success: true };
   } catch (error) {
-    console.error('Error in declineLead:', error);
+    logger.error('Error in declineLead', { function: 'declineLead' }, error);
     return { success: false, error: 'An unexpected error occurred' };
   }
 }

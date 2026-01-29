@@ -1,7 +1,10 @@
 import { stripe, SUBSCRIPTION_TIERS, type SubscriptionTier } from './config';
 import { createClient } from '@/lib/supabase/server';
 import { processDunningEvent, resetDunningState } from '@/lib/stripe/dunning';
+import { createLogger } from '../utils/logger';
 import type Stripe from 'stripe';
+
+const logger = createLogger({ file: 'lib/stripe/subscription-service' });
 
 export class SubscriptionService {
   private getSupabase() {
@@ -56,7 +59,7 @@ export class SubscriptionService {
 
       return { sessionId: session.id, url: session.url };
     } catch (error) {
-      console.error('Error creating checkout session:', error);
+      logger.error('Error creating checkout session:', {}, error);
       throw new Error('Failed to create checkout session');
     }
   }
@@ -102,7 +105,7 @@ export class SubscriptionService {
     const tier = metadata.tier as SubscriptionTier;
 
     if (!cleanerId || !tier) {
-      console.error('Missing cleaner_id or tier in subscription metadata');
+      logger.error('Missing cleaner_id or tier in subscription metadata');
       return;
     }
 
@@ -136,9 +139,9 @@ export class SubscriptionService {
         })
         .eq('id', cleanerId);
 
-      console.log(`Subscription created for cleaner ${cleanerId}: ${tier}`);
+      logger.info(`Subscription created for cleaner ${cleanerId}: ${tier}`);
     } catch (error) {
-      console.error('Error handling subscription created:', error);
+      logger.error('Error handling subscription created:', {}, error);
       throw error; // Re-throw for retry logic
     }
   }
@@ -170,9 +173,9 @@ export class SubscriptionService {
         })
         .eq('stripe_subscription_id', id);
 
-      console.log(`Subscription updated: ${id}`);
+      logger.info(`Subscription updated: ${id}`);
     } catch (error) {
-      console.error('Error handling subscription updated:', error);
+      logger.error('Error handling subscription updated:', {}, error);
       throw error; // Re-throw for retry logic
     }
   }
@@ -198,9 +201,9 @@ export class SubscriptionService {
         .update({ status: 'canceled' })
         .eq('stripe_subscription_id', id);
 
-      console.log(`Subscription canceled: ${id}`);
+      logger.info(`Subscription canceled: ${id}`);
     } catch (error) {
-      console.error('Error handling subscription deleted:', error);
+      logger.error('Error handling subscription deleted:', {}, error);
       throw error; // Re-throw for retry logic
     }
   }
@@ -214,7 +217,7 @@ export class SubscriptionService {
     const { subscription, amount_paid, currency } = inv;
 
     if (!subscription) {
-      console.log('No subscription associated with invoice, skipping');
+      logger.debug('No subscription associated with invoice, skipping');
       return;
     }
 
@@ -265,9 +268,9 @@ export class SubscriptionService {
         await resetDunningState(subscriptionData.cleaner_id);
       }
 
-      console.log(`Payment succeeded for subscription: ${subscriptionId}`);
+      logger.info(`Payment succeeded for subscription: ${subscriptionId}`);
     } catch (error) {
-      console.error('Error handling payment succeeded:', error);
+      logger.error('Error handling payment succeeded:', {}, error);
       throw error; // Re-throw for retry logic
     }
   }
@@ -281,7 +284,7 @@ export class SubscriptionService {
     const { subscription } = inv;
 
     if (!subscription) {
-      console.log('No subscription associated with failed invoice, skipping');
+      logger.debug('No subscription associated with failed invoice, skipping');
       return;
     }
 
@@ -318,14 +321,14 @@ export class SubscriptionService {
         });
       }
 
-      console.log(`Payment failed for subscription: ${subscriptionId}`);
+      logger.info(`Payment failed for subscription: ${subscriptionId}`);
 
       // Process dunning: send emails, manage grace period, downgrade if needed
       if (subscriptionData && invoice.id) {
         await processDunningEvent(subscriptionData.cleaner_id, invoice.id);
       }
     } catch (error) {
-      console.error('Error handling payment failed:', error);
+      logger.error('Error handling payment failed:', {}, error);
       throw error; // Re-throw for retry logic
     }
   }
@@ -343,10 +346,10 @@ export class SubscriptionService {
       }
 
       await stripe.subscriptions.cancel(cleaner.stripe_subscription_id);
-      
+
       return { success: true };
     } catch (error) {
-      console.error('Error canceling subscription:', error);
+      logger.error('Error canceling subscription:', {}, error);
       throw new Error('Failed to cancel subscription');
     }
   }
@@ -362,7 +365,7 @@ export class SubscriptionService {
 
       return data;
     } catch (error) {
-      console.error('Error getting subscription details:', error);
+      logger.error('Error getting subscription details:', {}, error);
       return null;
     }
   }

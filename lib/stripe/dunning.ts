@@ -13,7 +13,9 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { sendPaymentFailedEmail, sendFinalWarningEmail, sendDowngradeEmail } from '@/lib/email/payment-failed';
+import { createLogger } from '../utils/logger';
 
+const logger = createLogger({ file: 'lib/stripe/dunning' });
 const MAX_RETRY_ATTEMPTS = 3;
 const GRACE_PERIOD_DAYS = 7;
 
@@ -164,7 +166,7 @@ async function downgradeToFree(cleanerId: string): Promise<void> {
     .eq('cleaner_id', cleanerId)
     .neq('status', 'canceled');
 
-  console.log(`Cleaner ${cleanerId} downgraded to free tier after failed payments`);
+  logger.info(`Cleaner ${cleanerId} downgraded to free tier after failed payments`);
 }
 
 /**
@@ -230,5 +232,5 @@ export async function resetDunningState(cleanerId: string): Promise<void> {
     .eq('cleaner_id', cleanerId)
     .eq('status', 'past_due');
 
-  console.log(`Dunning state reset for cleaner ${cleanerId}`);
+  logger.info(`Dunning state reset for cleaner ${cleanerId}`);
 }

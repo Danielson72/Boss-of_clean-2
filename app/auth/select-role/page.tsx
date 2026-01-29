@@ -80,7 +80,7 @@ export default function SelectRolePage() {
 
         if (cleanerError && cleanerError.code !== '23505') {
           // Ignore duplicate key errors
-          console.error('Error creating cleaner profile:', cleanerError)
+          // Cleaner profile creation error is non-critical if duplicate key
         }
       }
 

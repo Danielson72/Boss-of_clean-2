@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { getStripe } from '@/lib/stripe/config';
 import { getCustomerInvoices } from '@/lib/stripe/invoices';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger({ file: 'api/cleaner/billing/route' });
 
 export async function GET(request: NextRequest) {
   try {
@@ -76,7 +79,7 @@ export async function GET(request: NextRequest) {
           }
         }
       } catch (stripeError) {
-        console.error('Error fetching Stripe subscription:', stripeError);
+        logger.error('Error fetching Stripe subscription', { function: 'GET' }, stripeError);
       }
     }
 
@@ -90,7 +93,7 @@ export async function GET(request: NextRequest) {
         );
         stripeInvoices = fetchedInvoices;
       } catch (invoiceError) {
-        console.error('Error fetching Stripe invoices:', invoiceError);
+        logger.error('Error fetching Stripe invoices', { function: 'GET' }, invoiceError);
       }
     }
 
@@ -204,7 +207,7 @@ export async function GET(request: NextRequest) {
       invoices,
     });
   } catch (error) {
-    console.error('Billing API error:', error);
+    logger.error('Billing API error', { function: 'GET' }, error);
     return NextResponse.json(
       { error: 'Failed to fetch billing information' },
       { status: 500 }

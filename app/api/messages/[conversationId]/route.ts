@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger({ file: 'api/messages/[conversationId]/route' });
 
 interface RouteContext {
   params: Promise<{ conversationId: string }>;
@@ -78,7 +81,7 @@ export async function GET(
     .range(offset, offset + limit - 1);
 
   if (msgError) {
-    console.error('Error fetching messages:', msgError);
+    logger.error('Error fetching messages', { function: 'GET' }, msgError);
     return NextResponse.json({ error: 'Failed to fetch messages' }, { status: 500 });
   }
 
@@ -154,7 +157,7 @@ export async function POST(
     .is('read_at', null);
 
   if (updateError) {
-    console.error('Error marking messages as read:', updateError);
+    logger.error('Error marking messages as read', { function: 'POST' }, updateError);
     return NextResponse.json({ error: 'Failed to mark as read' }, { status: 500 });
   }
 
@@ -166,7 +169,7 @@ export async function POST(
     .eq('id', conversationId);
 
   if (convUpdateError) {
-    console.error('Error resetting unread count:', convUpdateError);
+    logger.error('Error resetting unread count', { function: 'POST' }, convUpdateError);
   }
 
   return NextResponse.json({ success: true });

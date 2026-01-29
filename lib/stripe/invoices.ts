@@ -1,5 +1,8 @@
 import Stripe from 'stripe';
 import { getStripe } from './config';
+import { createLogger } from '../utils/logger';
+
+const logger = createLogger({ file: 'lib/stripe/invoices' });
 
 export interface InvoiceData {
   id: string;
@@ -130,7 +133,7 @@ export async function getInvoice(invoiceId: string): Promise<InvoiceData | null>
 
     return formatInvoice(invoice);
   } catch (error) {
-    console.error('Error fetching invoice:', error);
+    logger.error('Error fetching invoice:', {}, error);
     return null;
   }
 }
@@ -195,7 +198,7 @@ export async function sendInvoice(invoiceId: string): Promise<boolean> {
     await stripe.invoices.sendInvoice(invoiceId);
     return true;
   } catch (error) {
-    console.error('Error sending invoice:', error);
+    logger.error('Error sending invoice:', {}, error);
     return false;
   }
 }

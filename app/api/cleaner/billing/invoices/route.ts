@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { getCustomerInvoices, getUpcomingInvoice } from '@/lib/stripe/invoices';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger({ file: 'api/cleaner/billing/invoices/route' });
 
 export async function GET(request: NextRequest) {
   try {
@@ -72,7 +75,7 @@ export async function GET(request: NextRequest) {
       hasMore,
     });
   } catch (error) {
-    console.error('Invoices API error:', error);
+    logger.error('Invoices API error', { function: 'GET' }, error);
     return NextResponse.json(
       { error: 'Failed to fetch invoices' },
       { status: 500 }

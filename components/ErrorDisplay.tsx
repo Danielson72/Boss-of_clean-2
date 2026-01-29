@@ -20,7 +20,7 @@ export default function ErrorDisplay({
   backLabel = 'Go home',
 }: ErrorDisplayProps) {
   useEffect(() => {
-    console.error('Error boundary caught:', error);
+    // Error boundary caught - logging removed for client component
   }, [error]);
 
   return (

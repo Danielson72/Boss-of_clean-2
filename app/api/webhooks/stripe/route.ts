@@ -4,7 +4,10 @@ import { getStripe } from '@/lib/stripe/config';
 import { subscriptionService } from '@/lib/stripe/subscription-service';
 import { webhookEventService } from '@/lib/stripe/webhook-event-service';
 import { handleDisputeCreated, handleDisputeClosed } from '@/lib/stripe/disputes';
+import { createLogger } from '@/lib/utils/logger';
 import type Stripe from 'stripe';
+
+const logger = createLogger({ file: 'api/webhooks/stripe/route' });
 
 // Retry configuration
 const MAX_RETRIES = 3;
@@ -32,8 +35,9 @@ async function processEventWithRetry(
       return; // Success
     } catch (error) {
       lastError = error as Error;
-      console.error(
-        `Webhook handler attempt ${attempt + 1}/${MAX_RETRIES} failed:`,
+      logger.error(
+        `Webhook handler attempt ${attempt + 1}/${MAX_RETRIES} failed`,
+        { function: 'processEventWithRetry' },
         error
       );
 
@@ -55,7 +59,7 @@ async function handleStripeEvent(event: Stripe.Event): Promise<void> {
     case 'checkout.session.completed': {
       const session = event.data.object as Stripe.Checkout.Session;
       if (session.mode === 'subscription') {
-        console.log('Subscription checkout completed:', session.id);
+        logger.info('Subscription checkout completed', { sessionId: session.id });
         // Subscription will be created via customer.subscription.created event
       }
       break;
@@ -102,11 +106,11 @@ async function handleStripeEvent(event: Stripe.Event): Promise<void> {
       break;
 
     case 'payment_intent.succeeded':
-      console.log('Payment intent succeeded:', (event.data.object as Stripe.PaymentIntent).id);
+      logger.info('Payment intent succeeded', { paymentIntentId: (event.data.object as Stripe.PaymentIntent).id });
       break;
 
     case 'payment_intent.payment_failed':
-      console.log('Payment intent failed:', (event.data.object as Stripe.PaymentIntent).id);
+      logger.info('Payment intent failed', { paymentIntentId: (event.data.object as Stripe.PaymentIntent).id });
       break;
 
     case 'charge.dispute.created':
@@ -122,7 +126,7 @@ async function handleStripeEvent(event: Stripe.Event): Promise<void> {
       break;
 
     default:
-      console.log(`Unhandled event type: ${event.type}`);
+      logger.debug(`Unhandled event type: ${event.type}`);
   }
 }
 
@@ -131,7 +135,7 @@ export async function POST(req: NextRequest) {
     // Check for required env vars at runtime
     const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
     if (!webhookSecret) {
-      console.error('STRIPE_WEBHOOK_SECRET is required');
+      logger.error('STRIPE_WEBHOOK_SECRET is required', { function: 'POST' });
       return NextResponse.json(
         { error: 'Webhook configuration missing' },
         { status: 500 }
@@ -161,14 +165,14 @@ export async function POST(req: NextRequest) {
       ) as Stripe.Event;
     } catch (err: unknown) {
       const error = err as Error;
-      console.error('Webhook signature verification failed:', error.message);
+      logger.error('Webhook signature verification failed', { function: 'POST' }, error.message);
       return NextResponse.json(
         { error: 'Invalid signature' },
         { status: 400 }
       );
     }
 
-    console.log('Processing Stripe webhook:', event.type, event.id);
+    logger.info('Processing Stripe webhook', { eventType: event.type, eventId: event.id });
 
     // Check idempotency - record event and check if already processed
     const eventRecord = await webhookEventService.recordEvent(event);
@@ -176,12 +180,12 @@ export async function POST(req: NextRequest) {
     if (!eventRecord.is_new) {
       // Event already processed or is being processed
       if (eventRecord.event_status === 'processed') {
-        console.log(`Event ${event.id} already processed, skipping`);
+        logger.info(`Event ${event.id} already processed, skipping`);
         return NextResponse.json({ received: true, duplicate: true });
       }
 
       if (eventRecord.event_status === 'processing') {
-        console.log(`Event ${event.id} is being processed, skipping`);
+        logger.info(`Event ${event.id} is being processed, skipping`);
         return NextResponse.json({ received: true, processing: true });
       }
     }
@@ -193,7 +197,7 @@ export async function POST(req: NextRequest) {
       // Mark as successfully processed
       await webhookEventService.markProcessed(event.id);
 
-      console.log(`Successfully processed webhook: ${event.type} (${event.id})`);
+      logger.info(`Successfully processed webhook: ${event.type} (${event.id})`);
       return NextResponse.json({ received: true });
     } catch (error) {
       const errorMessage =
@@ -202,7 +206,7 @@ export async function POST(req: NextRequest) {
       // Mark as failed with error
       await webhookEventService.markFailed(event.id, errorMessage);
 
-      console.error(`Failed to process webhook ${event.id}:`, error);
+      logger.error(`Failed to process webhook ${event.id}`, { function: 'POST' }, error);
 
       // Return 500 so Stripe will retry
       return NextResponse.json(
@@ -211,7 +215,7 @@ export async function POST(req: NextRequest) {
       );
     }
   } catch (error) {
-    console.error('Error processing webhook:', error);
+    logger.error('Error processing webhook', { function: 'POST' }, error);
     return NextResponse.json(
       { error: 'Webhook processing failed' },
       { status: 500 }

@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger({ file: 'api/bookings/[id]/route' });
 
 export async function GET(
   request: NextRequest,
@@ -109,7 +112,7 @@ export async function PATCH(
       .eq('id', params.id);
 
     if (updateError) {
-      console.error('Cancel booking error:', updateError);
+      logger.error('Cancel booking error', { function: 'PATCH' }, updateError);
       return NextResponse.json(
         { error: 'Failed to cancel booking' },
         { status: 500 }
@@ -170,7 +173,7 @@ export async function PATCH(
       .eq('id', params.id);
 
     if (updateError) {
-      console.error('Reschedule booking error:', updateError);
+      logger.error('Reschedule booking error', { function: 'PATCH' }, updateError);
       return NextResponse.json(
         { error: 'Failed to reschedule booking' },
         { status: 500 }

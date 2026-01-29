@@ -116,7 +116,7 @@ export function ApprovalQueue({ applications, onViewDetails }: ApprovalQueueProp
         toast.error(result?.error || 'Action failed')
       }
     } catch (error) {
-      console.error('Action error:', error)
+      // console.error('Action error:', error)
       toast.error('An unexpected error occurred')
     } finally {
       setLoading(false)

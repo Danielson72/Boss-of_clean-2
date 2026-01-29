@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger({ file: 'api/admin/reviews/route' });
 
 // GET - List all reviews for moderation
 export async function GET(request: NextRequest) {
@@ -76,7 +79,7 @@ export async function GET(request: NextRequest) {
       .range(offset, offset + limit - 1);
 
     if (error) {
-      console.error('Error fetching reviews:', error);
+      logger.error('Error fetching reviews', { function: 'GET' }, error);
       return NextResponse.json({ error: 'Failed to fetch reviews' }, { status: 500 });
     }
 
@@ -109,7 +112,7 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Review list error:', error);
+    logger.error('Review list error', { function: 'GET' }, error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

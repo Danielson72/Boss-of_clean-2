@@ -1,4 +1,7 @@
 import { loadStripe } from '@stripe/stripe-js'
+import { createLogger } from '../utils/logger'
+
+const logger = createLogger({ file: 'lib/stripe/client' })
 
 // Client-side Stripe initialization
 let stripePromise: ReturnType<typeof loadStripe>
@@ -41,7 +44,7 @@ export async function redirectToCheckout(plan: 'pro' | 'enterprise') {
       throw new Error(error.message)
     }
   } catch (error) {
-    console.error('Error redirecting to checkout:', error)
+    logger.error('Error redirecting to checkout:', {}, error)
     throw error
   }
 }
@@ -65,7 +68,7 @@ export async function redirectToBillingPortal() {
     const { url } = await response.json()
     window.location.href = url
   } catch (error) {
-    console.error('Error redirecting to billing portal:', error)
+    logger.error('Error redirecting to billing portal:', {}, error)
     throw error
   }
 }

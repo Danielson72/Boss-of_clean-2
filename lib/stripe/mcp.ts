@@ -1,11 +1,14 @@
 /**
  * Stripe MCP Integration Layer
- * 
+ *
  * Provides a wrapper around Claude Code's MCP Stripe tools with SDK fallback.
  * Enable with STRIPE_USE_MCP=true environment variable.
  */
 
 import { getStripe } from './config'
+import { createLogger } from '../utils/logger'
+
+const logger = createLogger({ file: 'lib/stripe/mcp' })
 
 /**
  * Check if MCP Stripe integration should be used
@@ -30,9 +33,9 @@ export async function createCheckoutSession(params: {
     try {
       // Note: MCP Stripe doesn't have direct checkout session creation
       // We'll use payment links as an alternative MCP approach
-      console.log('MCP mode enabled, but using SDK for checkout sessions')
+      logger.debug('MCP mode enabled, but using SDK for checkout sessions')
     } catch (error) {
-      console.warn('MCP checkout failed, falling back to SDK:', error)
+      logger.warn('MCP checkout failed, falling back to SDK:', {}, error)
     }
   }
 
@@ -69,9 +72,9 @@ export async function createBillingPortalSession(params: {
     try {
       // Note: MCP Stripe tools don't include billing portal
       // Keep SDK implementation for now
-      console.log('MCP mode enabled, but using SDK for billing portal')
+      logger.debug('MCP mode enabled, but using SDK for billing portal')
     } catch (error) {
-      console.warn('MCP billing portal failed, falling back to SDK:', error)
+      logger.warn('MCP billing portal failed, falling back to SDK:', {}, error)
     }
   }
 
@@ -96,11 +99,11 @@ export async function findCustomerByEmail(email: string) {
       })
       
       if (mcpResult && mcpResult.data && mcpResult.data.length > 0) {
-        console.log('Found customer via MCP')
+        logger.debug('Found customer via MCP')
         return mcpResult
       }
     } catch (error) {
-      console.warn('MCP customer lookup failed, falling back to SDK:', error)
+      logger.warn('MCP customer lookup failed, falling back to SDK:', {}, error)
     }
   }
 
@@ -122,11 +125,11 @@ export async function listPrices(limit = 10) {
       // Try MCP first
       const mcpResult = await (globalThis as any).mcpStripeTool?.list_prices?.({ limit })
       if (mcpResult) {
-        console.log('Prices retrieved via MCP')
+        logger.debug('Prices retrieved via MCP')
         return mcpResult
       }
     } catch (error) {
-      console.warn('MCP price listing failed, falling back to SDK:', error)
+      logger.warn('MCP price listing failed, falling back to SDK:', {}, error)
     }
   }
 

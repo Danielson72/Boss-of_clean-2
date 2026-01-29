@@ -55,7 +55,7 @@ export default function DocumentUploadForm({ data, onChange, onNext, onBack, isS
 
       if (uploadError) {
         // If bucket doesn't exist, store as base64 temporarily
-        console.error('Storage upload error:', uploadError)
+        // Storage upload error - fall back to local storage
         // For now, just save the file info locally
         const newDoc: DocumentUpload = {
           document_type: type as DocumentUpload['document_type'],
@@ -88,7 +88,7 @@ export default function DocumentUploadForm({ data, onChange, onNext, onBack, isS
       const existingDocs = documents.filter((d) => d.document_type !== type)
       onChange({ ...data, documents: [...existingDocs, newDoc] })
     } catch (err) {
-      console.error('Upload error:', err)
+      // Upload error - show user-friendly message
       setError('Failed to upload document. Please try again.')
     } finally {
       setUploading(null)

@@ -1,6 +1,8 @@
 import { MetadataRoute } from 'next';
 import { createClient } from '@/lib/supabase/server';
+import { createLogger } from '@/lib/utils/logger';
 
+const logger = createLogger({ file: 'app/sitemap' });
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://bossofclean.com';
 
 // Service types for dynamic pages
@@ -117,7 +119,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       }));
     }
   } catch (error) {
-    console.error('Error fetching cleaners for sitemap:', error);
+    logger.error('Error fetching cleaners for sitemap', { function: 'sitemap' }, error);
   }
 
   // Dynamic city pages based on service areas
@@ -147,7 +149,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       }));
     }
   } catch (error) {
-    console.error('Error fetching cities for sitemap:', error);
+    logger.error('Error fetching cities for sitemap', { function: 'sitemap' }, error);
   }
 
   return [

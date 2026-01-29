@@ -98,7 +98,7 @@ export function AuthForm({ mode }: AuthFormProps) {
             })
 
           if (userError) {
-            console.error('Error creating user record:', userError)
+            // Error creating user record - silently fail for client component
           }
         }
 

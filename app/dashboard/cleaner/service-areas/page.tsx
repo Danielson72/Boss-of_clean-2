@@ -74,10 +74,10 @@ export default function ServiceAreasPage() {
           travel_fee: 0 // Default travel fee
         };
       });
-      
+
       setServiceAreas(areas);
     } catch (error) {
-      console.error('Error loading service areas:', error);
+      // console.error('Error loading service areas:', error);
       setMessage('Error loading service areas');
     } finally {
       setLoading(false);
@@ -132,7 +132,7 @@ export default function ServiceAreasPage() {
       setMessage('Service areas updated successfully!');
       setTimeout(() => setMessage(''), 3000);
     } catch (error) {
-      console.error('Error saving service areas:', error);
+      // console.error('Error saving service areas:', error);
       setMessage('Error saving service areas');
     } finally {
       setSaving(false);

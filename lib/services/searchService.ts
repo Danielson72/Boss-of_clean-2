@@ -1,4 +1,7 @@
 import { createClient } from '@/lib/supabase/client';
+import { createLogger } from '../utils/logger';
+
+const logger = createLogger({ file: 'lib/services/searchService' });
 
 export interface Cleaner {
   id: string;
@@ -211,7 +214,7 @@ export class SearchService {
     const { data, error } = await query;
 
     if (error) {
-      console.error('Search error:', error);
+      logger.error('Search error:', {}, error);
       throw new Error('Failed to search cleaners');
     }
 
@@ -254,7 +257,7 @@ export class SearchService {
       .single();
 
     if (error) {
-      console.error('Get cleaner error:', error);
+      logger.error('Get cleaner error:', {}, error);
       return null;
     }
 
@@ -283,7 +286,7 @@ export class SearchService {
       .limit(limit);
 
     if (error) {
-      console.error('Featured cleaners error:', error);
+      logger.error('Featured cleaners error:', {}, error);
       return [];
     }
 
@@ -325,7 +328,7 @@ export class SearchService {
       .order('total_reviews', { ascending: false });
 
     if (error) {
-      console.error('Error fetching verified cleaners in 33801:', error);
+      logger.error('Error fetching verified cleaners in 33801:', {}, error);
       throw new Error('Failed to fetch verified cleaners in ZIP code 33801');
     }
 
@@ -351,7 +354,7 @@ export class SearchService {
       .order('total_reviews', { ascending: false });
 
     if (error) {
-      console.error(`Error fetching verified cleaners in ${zipCode}:`, error);
+      logger.error(`Error fetching verified cleaners in ${zipCode}:`, {}, error);
       throw new Error(`Failed to fetch verified cleaners in ZIP code ${zipCode}`);
     }
 

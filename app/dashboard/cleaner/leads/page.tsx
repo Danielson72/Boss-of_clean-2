@@ -148,7 +148,7 @@ export default function LeadsPage() {
       }));
       setLeads(normalized);
     } catch (error) {
-      console.error('Error loading leads:', error);
+      // console.error('Error loading leads:', error);
     } finally {
       setLoading(false);
     }
@@ -203,7 +203,7 @@ export default function LeadsPage() {
       await loadData();
       setViewingLead(null);
     } catch (error) {
-      console.error('Error claiming lead:', error);
+      // console.error('Error claiming lead:', error);
       alert('An error occurred while claiming the lead.');
     } finally {
       setClaimingLead(false);

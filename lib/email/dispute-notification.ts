@@ -5,6 +5,9 @@
  * Placeholder implementation - replace with actual email provider in production.
  */
 
+import { createLogger } from '../utils/logger';
+
+const logger = createLogger({ file: 'lib/email/dispute-notification' });
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://bossofclean.com';
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@bossofclean.com';
 
@@ -44,16 +47,16 @@ export interface DisputeResolvedData {
 export async function sendDisputeAdminAlert(data: DisputeAdminAlertData): Promise<boolean> {
   const amountFormatted = (data.amount / 100).toFixed(2);
 
-  console.log('[EMAIL] Dispute Alert - Admin Notification');
-  console.log(`   To: ${ADMIN_EMAIL}`);
-  console.log(`   Subject: ALERT: Stripe Dispute - ${data.cleanerName} ($${amountFormatted})`);
-  console.log(`   Dispute ID: ${data.disputeId}`);
-  console.log(`   Cleaner: ${data.cleanerName} (${data.cleanerEmail})`);
-  console.log(`   Amount: $${amountFormatted} ${data.currency.toUpperCase()}`);
-  console.log(`   Reason: ${data.reason}`);
-  console.log(`   Charge: ${data.chargeId}`);
-  console.log(`   Admin dashboard: ${BASE_URL}/dashboard/admin`);
-  console.log('');
+  logger.info('[EMAIL] Dispute Alert - Admin Notification');
+  logger.info(`   To: ${ADMIN_EMAIL}`);
+  logger.info(`   Subject: ALERT: Stripe Dispute - ${data.cleanerName} ($${amountFormatted})`);
+  logger.info(`   Dispute ID: ${data.disputeId}`);
+  logger.info(`   Cleaner: ${data.cleanerName} (${data.cleanerEmail})`);
+  logger.info(`   Amount: $${amountFormatted} ${data.currency.toUpperCase()}`);
+  logger.info(`   Reason: ${data.reason}`);
+  logger.info(`   Charge: ${data.chargeId}`);
+  logger.info(`   Admin dashboard: ${BASE_URL}/dashboard/admin`);
+  logger.info('');
 
   // TODO: Replace with actual email provider (Resend, SendGrid, etc.)
   // return await resend.emails.send({
@@ -79,16 +82,16 @@ export async function sendDisputeCleanerNotification(data: DisputeCleanerNotifyD
       })
     : 'N/A';
 
-  console.log('[EMAIL] Dispute Notification - Cleaner');
-  console.log(`   To: ${data.to}`);
-  console.log(`   Subject: Payment Dispute on Your Account - Action Required`);
-  console.log(`   Business: ${data.businessName}`);
-  console.log(`   Dispute ID: ${data.disputeId}`);
-  console.log(`   Amount: $${amountFormatted} ${data.currency.toUpperCase()}`);
-  console.log(`   Reason: ${data.reason}`);
-  console.log(`   Evidence due by: ${dueDate}`);
-  console.log(`   Dashboard: ${BASE_URL}/dashboard/cleaner/billing`);
-  console.log('');
+  logger.info('[EMAIL] Dispute Notification - Cleaner');
+  logger.info(`   To: ${data.to}`);
+  logger.info(`   Subject: Payment Dispute on Your Account - Action Required`);
+  logger.info(`   Business: ${data.businessName}`);
+  logger.info(`   Dispute ID: ${data.disputeId}`);
+  logger.info(`   Amount: $${amountFormatted} ${data.currency.toUpperCase()}`);
+  logger.info(`   Reason: ${data.reason}`);
+  logger.info(`   Evidence due by: ${dueDate}`);
+  logger.info(`   Dashboard: ${BASE_URL}/dashboard/cleaner/billing`);
+  logger.info('');
 
   // TODO: Replace with actual email provider
   return true;
@@ -103,14 +106,14 @@ export async function sendDisputeResolvedNotification(data: DisputeResolvedData)
     ? 'resolved in your favor'
     : 'resolved against your account';
 
-  console.log('[EMAIL] Dispute Resolved - Cleaner');
-  console.log(`   To: ${data.to}`);
-  console.log(`   Subject: Dispute ${data.outcome === 'won' ? 'Won' : 'Lost'} - $${amountFormatted}`);
-  console.log(`   Business: ${data.businessName}`);
-  console.log(`   Dispute ID: ${data.disputeId}`);
-  console.log(`   Outcome: ${outcomeText}`);
-  console.log(`   Amount: $${amountFormatted} ${data.currency.toUpperCase()}`);
-  console.log('');
+  logger.info('[EMAIL] Dispute Resolved - Cleaner');
+  logger.info(`   To: ${data.to}`);
+  logger.info(`   Subject: Dispute ${data.outcome === 'won' ? 'Won' : 'Lost'} - $${amountFormatted}`);
+  logger.info(`   Business: ${data.businessName}`);
+  logger.info(`   Dispute ID: ${data.disputeId}`);
+  logger.info(`   Outcome: ${outcomeText}`);
+  logger.info(`   Amount: $${amountFormatted} ${data.currency.toUpperCase()}`);
+  logger.info('');
 
   // TODO: Replace with actual email provider
   return true;

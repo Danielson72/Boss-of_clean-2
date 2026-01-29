@@ -218,7 +218,7 @@ export default function SearchPage() {
       setTotalCount(count || 0);
       setPage(pageNum);
     } catch (error) {
-      console.error('Error loading cleaners:', error);
+      // console.error('Error loading cleaners:', error);
     } finally {
       setLoading(false);
       setLoadingMore(false);

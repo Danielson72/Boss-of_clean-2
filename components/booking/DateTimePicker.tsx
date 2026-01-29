@@ -103,7 +103,7 @@ export function DateTimePicker({
           setExistingBookings(data.existingBookings || []);
         }
       } catch (err) {
-        console.error('Failed to fetch availability:', err);
+        // Failed to fetch availability - silently fail for client component
       } finally {
         setLoading(false);
       }

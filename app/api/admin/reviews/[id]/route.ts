@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger({ file: 'api/admin/reviews/[id]/route' });
 
 // PATCH - Update review (approve, reject, flag, edit)
 export async function PATCH(
@@ -79,7 +82,7 @@ export async function PATCH(
       .single();
 
     if (error) {
-      console.error('Error updating review:', error);
+      logger.error('Error updating review', { function: 'PATCH' }, error);
       return NextResponse.json({ error: 'Failed to update review' }, { status: 500 });
     }
 
@@ -94,12 +97,12 @@ export async function PATCH(
 
       // TODO: Send email notification to cleaner about new published review
       const cleanerInfo = reviewData?.cleaner as unknown as { user_id: string; business_name: string } | null;
-      console.log(`Review ${id} approved for cleaner: ${cleanerInfo?.business_name}`);
+      logger.info(`Review ${id} approved for cleaner: ${cleanerInfo?.business_name}`, { function: 'PATCH' });
     }
 
     return NextResponse.json({ success: true, review });
   } catch (error) {
-    console.error('Review moderation error:', error);
+    logger.error('Review moderation error', { function: 'PATCH' }, error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -136,13 +139,13 @@ export async function DELETE(
     const { error } = await supabase.from('reviews').delete().eq('id', id);
 
     if (error) {
-      console.error('Error deleting review:', error);
+      logger.error('Error deleting review', { function: 'DELETE' }, error);
       return NextResponse.json({ error: 'Failed to delete review' }, { status: 500 });
     }
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Review deletion error:', error);
+    logger.error('Review deletion error', { function: 'DELETE' }, error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

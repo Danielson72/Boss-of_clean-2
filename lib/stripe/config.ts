@@ -1,4 +1,7 @@
 import Stripe from 'stripe'
+import { createLogger } from '../utils/logger'
+
+const logger = createLogger({ file: 'lib/stripe/config' })
 
 // Create Stripe instance lazily to avoid build-time errors
 let stripeInstance: Stripe | null = null
@@ -90,7 +93,7 @@ export function verifyWebhookSignature(
   try {
     return stripe.webhooks.constructEvent(body, signature, secret)
   } catch (err) {
-    console.error('Webhook signature verification failed:', err)
+    logger.error('Webhook signature verification failed:', {}, err)
     throw new Error('Invalid webhook signature')
   }
 }

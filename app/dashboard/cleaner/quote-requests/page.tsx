@@ -137,7 +137,7 @@ export default function QuoteRequestsPage() {
         setQuotes(data || []);
       }
     } catch (error) {
-      console.error('Error loading quotes:', error);
+      // console.error('Error loading quotes:', error);
     } finally {
       setLoading(false);
     }
@@ -167,7 +167,7 @@ export default function QuoteRequestsPage() {
       setResponsePrice('');
       setResponseMessage('');
     } catch (error) {
-      console.error('Error responding to quote:', error);
+      // console.error('Error responding to quote:', error);
     } finally {
       setSubmitting(false);
     }

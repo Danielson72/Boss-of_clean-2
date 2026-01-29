@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger({ file: 'api/customer/favorites/route' });
 
 // GET - List customer's favorites
 export async function GET(request: NextRequest) {
@@ -40,13 +43,13 @@ export async function GET(request: NextRequest) {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching favorites:', error);
+      logger.error('Error fetching favorites', { function: 'GET' }, error);
       return NextResponse.json({ error: 'Failed to fetch favorites' }, { status: 500 });
     }
 
     return NextResponse.json({ favorites: favorites || [] });
   } catch (error) {
-    console.error('Favorites fetch error:', error);
+    logger.error('Favorites fetch error', { function: 'GET' }, error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -97,13 +100,13 @@ export async function POST(request: NextRequest) {
         // Unique constraint violation - already favorited
         return NextResponse.json({ error: 'Already in favorites' }, { status: 409 });
       }
-      console.error('Error adding favorite:', error);
+      logger.error('Error adding favorite', { function: 'POST' }, error);
       return NextResponse.json({ error: 'Failed to add favorite' }, { status: 500 });
     }
 
     return NextResponse.json({ success: true, favorite: data });
   } catch (error) {
-    console.error('Favorite add error:', error);
+    logger.error('Favorite add error', { function: 'POST' }, error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -136,13 +139,13 @@ export async function DELETE(request: NextRequest) {
       .eq('cleaner_id', cleanerId);
 
     if (error) {
-      console.error('Error removing favorite:', error);
+      logger.error('Error removing favorite', { function: 'DELETE' }, error);
       return NextResponse.json({ error: 'Failed to remove favorite' }, { status: 500 });
     }
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Favorite remove error:', error);
+    logger.error('Favorite remove error', { function: 'DELETE' }, error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

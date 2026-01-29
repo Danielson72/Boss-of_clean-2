@@ -2,13 +2,16 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getSiteUrl } from '@/lib/stripe/config'
 import { createBillingPortalSession, findCustomerByEmail } from '@/lib/stripe/mcp'
+import { createLogger } from '@/lib/utils/logger'
+
+const logger = createLogger({ file: 'api/stripe/portal/route' })
 
 export async function POST(request: NextRequest) {
   try {
     // Check for required env vars at runtime
     const siteUrlEnv = process.env.SITE_URL || process.env.NEXT_PUBLIC_SITE_URL
     if (!siteUrlEnv) {
-      console.error('SITE_URL or NEXT_PUBLIC_SITE_URL is required')
+      logger.error('SITE_URL or NEXT_PUBLIC_SITE_URL is required', { function: 'POST' })
       return NextResponse.json(
         { error: 'Site configuration missing' },
         { status: 500 }
@@ -69,7 +72,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ url: portalSession.url })
 
   } catch (error) {
-    console.error('Stripe portal error:', error)
+    logger.error('Stripe portal error', { function: 'POST' }, error)
     return NextResponse.json(
       { error: 'Failed to create portal session' },
       { status: 500 }

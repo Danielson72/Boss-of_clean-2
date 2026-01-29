@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger({ file: 'api/cleaner/bookings/route' });
 
 export async function GET() {
   const supabase = createClient();
@@ -37,7 +40,7 @@ export async function GET() {
     .order('booking_date', { ascending: true });
 
   if (bookingsError) {
-    console.error('Error fetching cleaner bookings:', bookingsError);
+    logger.error('Error fetching cleaner bookings', { function: 'GET' }, bookingsError);
     return NextResponse.json({ error: 'Failed to fetch bookings' }, { status: 500 });
   }
 

@@ -129,7 +129,7 @@ export default function QuoteRequestPage() {
         setError(result.error || 'Failed to submit quote request');
       }
     } catch (err) {
-      console.error('Error submitting quote:', err);
+      // Error is handled by displaying error state to user
       setError('An unexpected error occurred. Please try again.');
     } finally {
       setSubmitting(false);

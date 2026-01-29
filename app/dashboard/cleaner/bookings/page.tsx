@@ -61,7 +61,7 @@ export default function CleanerBookingsPage() {
       if (error) throw error;
       setBookings(data || []);
     } catch (error) {
-      console.error('Error loading bookings:', error);
+      // console.error('Error loading bookings:', error);
     } finally {
       setLoading(false);
     }

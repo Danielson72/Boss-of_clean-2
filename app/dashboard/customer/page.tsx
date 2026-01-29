@@ -79,7 +79,7 @@ export default function CustomerDashboard() {
       if (error) throw error;
       setQuotes(data || []);
     } catch (error) {
-      console.error('Error loading quotes:', error);
+      // Error loading quotes - silently fail for client component
     } finally {
       setLoading(false);
     }
@@ -111,7 +111,7 @@ export default function CustomerDashboard() {
         setProfile(defaultProfile);
       }
     } catch (error) {
-      console.error('Error loading profile:', error);
+      // Error loading profile - silently fail for client component
     }
   };
 
@@ -138,7 +138,7 @@ export default function CustomerDashboard() {
       setEditingProfile(false);
       setTimeout(() => setMessage(''), 3000);
     } catch (error) {
-      console.error('Error saving profile:', error);
+      // Error saving profile - display error message to user
       setMessage('Error saving profile');
     } finally {
       setSaving(false);

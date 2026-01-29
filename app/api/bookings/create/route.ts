@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { sendBookingConfirmationEmails } from '@/lib/email/booking-confirmation';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger({ file: 'api/bookings/create/route' });
 
 interface CreateBookingBody {
   cleanerId: string;
@@ -152,7 +155,7 @@ export async function POST(request: NextRequest) {
     .single();
 
   if (bookingError) {
-    console.error('Booking creation error:', bookingError);
+    logger.error('Booking creation error', { function: 'POST' }, bookingError);
     return NextResponse.json(
       { error: 'Failed to create booking' },
       { status: 500 }
@@ -191,7 +194,7 @@ export async function POST(request: NextRequest) {
     estimatedPrice,
     estimatedHours,
     specialInstructions: specialInstructions || undefined,
-  }).catch((err) => console.error('Email send error:', err));
+  }).catch((err) => logger.error('Email send error', { function: 'POST' }, err));
 
   return NextResponse.json({
     success: true,

@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { getStripe } from '@/lib/stripe/config';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger({ file: 'api/cleaner/billing/reactivate/route' });
 
 export async function POST(request: NextRequest) {
   try {
@@ -80,7 +83,7 @@ export async function POST(request: NextRequest) {
         : null,
     });
   } catch (error) {
-    console.error('Reactivate API error:', error);
+    logger.error('Reactivate API error', { function: 'POST' }, error);
     return NextResponse.json(
       { error: 'Failed to reactivate subscription' },
       { status: 500 }

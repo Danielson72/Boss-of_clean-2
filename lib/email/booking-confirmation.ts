@@ -5,6 +5,9 @@
  * when an instant booking is created.
  */
 
+import { createLogger } from '../utils/logger';
+
+const logger = createLogger({ file: 'lib/email/booking-confirmation' });
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://bossofclean.com';
 
 export interface BookingConfirmationData {
@@ -32,17 +35,17 @@ export interface BookingConfirmationData {
 export async function sendBookingConfirmationToCustomer(
   data: BookingConfirmationData
 ): Promise<boolean> {
-  console.log('📧 [EMAIL] Booking Confirmation - Customer');
-  console.log(`   To: ${data.customerEmail}`);
-  console.log(`   Subject: Booking Confirmed with ${data.businessName}!`);
-  console.log(`   Booking ID: ${data.bookingId}`);
-  console.log(`   Service: ${data.serviceType}`);
-  console.log(`   Date: ${data.bookingDate}`);
-  console.log(`   Time: ${data.startTime} - ${data.endTime}`);
-  console.log(`   Address: ${data.address}`);
-  console.log(`   Estimated Price: $${data.estimatedPrice}`);
-  console.log(`   View URL: ${BASE_URL}/dashboard/customer/bookings/${data.bookingId}`);
-  console.log('');
+  logger.info('[EMAIL] Booking Confirmation - Customer');
+  logger.info(`   To: ${data.customerEmail}`);
+  logger.info(`   Subject: Booking Confirmed with ${data.businessName}!`);
+  logger.info(`   Booking ID: ${data.bookingId}`);
+  logger.info(`   Service: ${data.serviceType}`);
+  logger.info(`   Date: ${data.bookingDate}`);
+  logger.info(`   Time: ${data.startTime} - ${data.endTime}`);
+  logger.info(`   Address: ${data.address}`);
+  logger.info(`   Estimated Price: $${data.estimatedPrice}`);
+  logger.info(`   View URL: ${BASE_URL}/dashboard/customer/bookings/${data.bookingId}`);
+  logger.info('');
 
   // TODO: Replace with actual email provider (Resend, SendGrid, etc.)
   // return await resend.emails.send({
@@ -61,18 +64,18 @@ export async function sendBookingConfirmationToCustomer(
 export async function sendBookingNotificationToCleaner(
   data: BookingConfirmationData
 ): Promise<boolean> {
-  console.log('📧 [EMAIL] Booking Notification - Cleaner');
-  console.log(`   To: ${data.cleanerEmail}`);
-  console.log(`   Subject: New Booking from ${data.customerName}!`);
-  console.log(`   Booking ID: ${data.bookingId}`);
-  console.log(`   Service: ${data.serviceType}`);
-  console.log(`   Property: ${data.propertyType} (${data.bedrooms}bd/${data.bathrooms}ba)`);
-  console.log(`   Date: ${data.bookingDate}`);
-  console.log(`   Time: ${data.startTime} - ${data.endTime}`);
-  console.log(`   Address: ${data.address}`);
-  console.log(`   Estimated Price: $${data.estimatedPrice}`);
-  console.log(`   View URL: ${BASE_URL}/dashboard/cleaner/bookings/${data.bookingId}`);
-  console.log('');
+  logger.info('[EMAIL] Booking Notification - Cleaner');
+  logger.info(`   To: ${data.cleanerEmail}`);
+  logger.info(`   Subject: New Booking from ${data.customerName}!`);
+  logger.info(`   Booking ID: ${data.bookingId}`);
+  logger.info(`   Service: ${data.serviceType}`);
+  logger.info(`   Property: ${data.propertyType} (${data.bedrooms}bd/${data.bathrooms}ba)`);
+  logger.info(`   Date: ${data.bookingDate}`);
+  logger.info(`   Time: ${data.startTime} - ${data.endTime}`);
+  logger.info(`   Address: ${data.address}`);
+  logger.info(`   Estimated Price: $${data.estimatedPrice}`);
+  logger.info(`   View URL: ${BASE_URL}/dashboard/cleaner/bookings/${data.bookingId}`);
+  logger.info('');
 
   // TODO: Replace with actual email provider
   return true;

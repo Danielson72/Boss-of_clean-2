@@ -120,7 +120,7 @@ export default function CleanerDashboard() {
 
       setProfile(data);
     } catch (error) {
-      console.error('Error loading profile:', error);
+      // console.error('Error loading profile:', error);
     }
   };
 
@@ -150,7 +150,7 @@ export default function CleanerDashboard() {
       if (error) throw error;
       setQuotes(data || []);
     } catch (error) {
-      console.error('Error loading quotes:', error);
+      // console.error('Error loading quotes:', error);
     } finally {
       setLoading(false);
     }
@@ -248,7 +248,7 @@ export default function CleanerDashboard() {
                   onClick={() => {
                     import('@/lib/stripe/client').then(({ redirectToBillingPortal }) => {
                       redirectToBillingPortal().catch(error => {
-                        console.error('Failed to open billing portal:', error);
+                        // console.error('Failed to open billing portal:', error);
                         alert('Failed to open billing portal. Please try again.');
                       });
                     });

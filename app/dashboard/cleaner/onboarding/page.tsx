@@ -83,7 +83,7 @@ export default function CleanerOnboardingPage() {
         }
         setCompletedSteps(completed)
       } catch (err) {
-        console.error('Error loading draft:', err)
+        // console.error('Error loading draft:', err)
         setError('Failed to load your progress. Please refresh the page.')
       } finally {
         setLoading(false)
@@ -123,7 +123,7 @@ export default function CleanerOnboardingPage() {
       setSaveStatus('saved')
       setTimeout(() => setSaveStatus('idle'), 2000)
     } catch (err) {
-      console.error('Error saving draft:', err)
+      // console.error('Error saving draft:', err)
       setSaveStatus('error')
     } finally {
       setSaving(false)
@@ -202,7 +202,7 @@ export default function CleanerOnboardingPage() {
         router.push('/dashboard/cleaner')
       }, 3000)
     } catch (err: any) {
-      console.error('Error submitting:', err)
+      // console.error('Error submitting:', err)
       setError(err.message || 'Failed to submit. Please try again.')
     } finally {
       setSubmitting(false)

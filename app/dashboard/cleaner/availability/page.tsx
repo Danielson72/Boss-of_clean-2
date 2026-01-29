@@ -91,7 +91,7 @@ export default function AvailabilityPage() {
         })));
       }
     } catch (error) {
-      console.error('Error loading availability:', error);
+      // console.error('Error loading availability:', error);
       setMessage('Error loading availability settings');
     } finally {
       setLoading(false);
@@ -147,7 +147,7 @@ export default function AvailabilityPage() {
       setMessage('Availability saved successfully!');
       setTimeout(() => setMessage(''), 3000);
     } catch (error) {
-      console.error('Error saving availability:', error);
+      // console.error('Error saving availability:', error);
       setMessage('Error saving availability settings');
     } finally {
       setSaving(false);
@@ -178,7 +178,7 @@ export default function AvailabilityPage() {
       setNewBlockedDate('');
       setNewBlockedReason('');
     } catch (error) {
-      console.error('Error adding blocked date:', error);
+      // console.error('Error adding blocked date:', error);
       setMessage('Error adding blocked date');
     }
   };
@@ -194,7 +194,7 @@ export default function AvailabilityPage() {
 
       setBlockedDates(blockedDates.filter((d) => d.id !== dateId));
     } catch (error) {
-      console.error('Error removing blocked date:', error);
+      // console.error('Error removing blocked date:', error);
       setMessage('Error removing blocked date');
     }
   };

@@ -37,7 +37,7 @@ export default function EarningsPage() {
       .single();
 
     if (error) {
-      console.error('Error fetching cleaner:', error);
+      // Error fetching cleaner - silently fail for client component
       return;
     }
 
@@ -52,7 +52,7 @@ export default function EarningsPage() {
       const data = await analyticsService.getEarningsData(cleanerId);
       setEarningsData(data);
     } catch (error) {
-      console.error('Error loading earnings data:', error);
+      // console.error('Error loading earnings data:', error);
     } finally {
       setLoading(false);
     }
@@ -88,7 +88,7 @@ export default function EarningsPage() {
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
     } catch (error) {
-      console.error('Error exporting CSV:', error);
+      // console.error('Error exporting CSV:', error);
       alert('Failed to export earnings data. Please try again.');
     } finally {
       setExporting(false);

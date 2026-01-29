@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { sendNewMessageEmail } from '@/lib/email/new-message';
+import { rateLimitRoute, RATE_LIMITS } from '@/lib/middleware/rate-limit';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger({ file: 'api/messages/route' });
 
 interface CreateMessageBody {
   cleanerId: string;
@@ -67,7 +71,7 @@ export async function GET() {
   const { data: conversations, error } = await query;
 
   if (error) {
-    console.error('Error fetching conversations:', error);
+    logger.error('Error fetching conversations', { function: 'GET' }, error);
     return NextResponse.json({ error: 'Failed to fetch conversations' }, { status: 500 });
   }
 
@@ -104,6 +108,10 @@ export async function POST(request: NextRequest) {
   if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
+
+  // Rate limit: 60 messages per hour per user
+  const messageRateLimited = rateLimitRoute('message-user', user.id, RATE_LIMITS.messageSend);
+  if (messageRateLimited) return messageRateLimited;
 
   let body: CreateMessageBody;
   try {
@@ -183,7 +191,7 @@ export async function POST(request: NextRequest) {
           .single();
 
         if (convError) {
-          console.error('Error creating conversation:', convError);
+          logger.error('Error creating conversation', { function: 'POST' }, convError);
           return NextResponse.json({ error: 'Failed to create conversation' }, { status: 500 });
         }
 
@@ -258,7 +266,7 @@ export async function POST(request: NextRequest) {
     .single();
 
   if (msgError) {
-    console.error('Error creating message:', msgError);
+    logger.error('Error creating message', { function: 'POST' }, msgError);
     return NextResponse.json({ error: 'Failed to send message' }, { status: 500 });
   }
 
@@ -270,7 +278,7 @@ export async function POST(request: NextRequest) {
       senderName,
       messagePreview: content.trim().substring(0, 100),
       conversationId: actualConversationId!,
-    }).catch((err) => console.error('Email send error:', err));
+    }).catch((err) => logger.error('Email send error', { function: 'POST' }, err));
   }
 
   return NextResponse.json({

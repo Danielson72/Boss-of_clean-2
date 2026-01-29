@@ -1,5 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
+import { createLogger } from '@/lib/utils/logger'
+
+const logger = createLogger({ file: 'api/cleaners/onboarding/route' })
 
 // GET /api/cleaners/onboarding - Get current onboarding draft
 export async function GET(request: NextRequest) {
@@ -19,7 +22,7 @@ export async function GET(request: NextRequest) {
       .single()
 
     if (error && error.code !== 'PGRST116') { // PGRST116 = no rows found
-      console.error('Error fetching cleaner:', error)
+      logger.error('Error fetching cleaner', { function: 'GET' }, error)
       return NextResponse.json({ error: 'Failed to fetch onboarding data' }, { status: 500 })
     }
 
@@ -54,7 +57,7 @@ export async function GET(request: NextRequest) {
       }
     })
   } catch (error) {
-    console.error('Error in GET /api/cleaners/onboarding:', error)
+    logger.error('Error in GET /api/cleaners/onboarding', { function: 'GET' }, error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -84,7 +87,7 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (fetchError && fetchError.code !== 'PGRST116') {
-      console.error('Error fetching cleaner:', fetchError)
+      logger.error('Error fetching cleaner', { function: 'POST' }, fetchError)
       return NextResponse.json({ error: 'Failed to fetch cleaner profile' }, { status: 500 })
     }
 
@@ -116,7 +119,7 @@ export async function POST(request: NextRequest) {
         .eq('id', existingCleaner.id)
 
       if (updateError) {
-        console.error('Error updating cleaner:', updateError)
+        logger.error('Error updating cleaner', { function: 'POST' }, updateError)
         return NextResponse.json({ error: 'Failed to save draft' }, { status: 500 })
       }
 
@@ -137,7 +140,7 @@ export async function POST(request: NextRequest) {
         .single()
 
       if (insertError) {
-        console.error('Error creating cleaner:', insertError)
+        logger.error('Error creating cleaner', { function: 'POST' }, insertError)
         return NextResponse.json({ error: 'Failed to create cleaner profile' }, { status: 500 })
       }
 
@@ -151,7 +154,7 @@ export async function POST(request: NextRequest) {
       message: 'Draft saved successfully'
     })
   } catch (error) {
-    console.error('Error in POST /api/cleaners/onboarding:', error)
+    logger.error('Error in POST /api/cleaners/onboarding', { function: 'POST' }, error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

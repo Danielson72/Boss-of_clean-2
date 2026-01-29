@@ -50,7 +50,7 @@ export default function CustomerFavoritesPage() {
       const data = await response.json();
       setFavorites(data.favorites || []);
     } catch (error) {
-      console.error('Error loading favorites:', error);
+      // console.error('Error loading favorites:', error);
     } finally {
       setLoading(false);
     }

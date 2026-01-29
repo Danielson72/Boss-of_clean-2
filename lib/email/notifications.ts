@@ -5,6 +5,9 @@
  * Replace with actual email provider (Resend, SendGrid, etc.) in production.
  */
 
+import { createLogger } from '../utils/logger';
+
+const logger = createLogger({ file: 'lib/email/notifications' });
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://bossofclean.com';
 
 export interface NewLeadEmailData {
@@ -38,14 +41,14 @@ export interface QuoteConfirmationEmailData {
  */
 export async function sendNewLeadEmail(data: NewLeadEmailData): Promise<boolean> {
   // TODO: Replace with actual email provider implementation
-  console.log('📧 [EMAIL] New Lead Notification');
-  console.log(`   To: ${data.to}`);
-  console.log(`   Subject: New cleaning lead in ${data.zipCode}!`);
-  console.log(`   Business: ${data.businessName}`);
-  console.log(`   Service: ${data.serviceType}`);
-  console.log(`   Date: ${data.preferredDate || 'Flexible'}`);
-  console.log(`   Lead URL: ${BASE_URL}/dashboard/cleaner/leads/${data.leadId}`);
-  console.log('');
+  logger.info('[EMAIL] New Lead Notification');
+  logger.info(`   To: ${data.to}`);
+  logger.info(`   Subject: New cleaning lead in ${data.zipCode}!`);
+  logger.info(`   Business: ${data.businessName}`);
+  logger.info(`   Service: ${data.serviceType}`);
+  logger.info(`   Date: ${data.preferredDate || 'Flexible'}`);
+  logger.info(`   Lead URL: ${BASE_URL}/dashboard/cleaner/leads/${data.leadId}`);
+  logger.info('');
 
   // In production, implement actual email sending:
   // return await resend.emails.send({
@@ -63,14 +66,14 @@ export async function sendNewLeadEmail(data: NewLeadEmailData): Promise<boolean>
  */
 export async function sendQuoteResponseEmail(data: QuoteResponseEmailData): Promise<boolean> {
   // TODO: Replace with actual email provider implementation
-  console.log('📧 [EMAIL] Quote Response Notification');
-  console.log(`   To: ${data.to}`);
-  console.log(`   Subject: ${data.businessName} sent you a quote!`);
-  console.log(`   Customer: ${data.customerName}`);
-  console.log(`   Quote Amount: $${data.quoteAmount}`);
-  console.log(`   Availability: ${data.availabilityDate || 'Contact for details'}`);
-  console.log(`   View URL: ${BASE_URL}/quote-request/status?id=${data.quoteId}`);
-  console.log('');
+  logger.info('[EMAIL] Quote Response Notification');
+  logger.info(`   To: ${data.to}`);
+  logger.info(`   Subject: ${data.businessName} sent you a quote!`);
+  logger.info(`   Customer: ${data.customerName}`);
+  logger.info(`   Quote Amount: $${data.quoteAmount}`);
+  logger.info(`   Availability: ${data.availabilityDate || 'Contact for details'}`);
+  logger.info(`   View URL: ${BASE_URL}/quote-request/status?id=${data.quoteId}`);
+  logger.info('');
 
   return true;
 }
@@ -80,14 +83,14 @@ export async function sendQuoteResponseEmail(data: QuoteResponseEmailData): Prom
  */
 export async function sendQuoteConfirmationEmail(data: QuoteConfirmationEmailData): Promise<boolean> {
   // TODO: Replace with actual email provider implementation
-  console.log('📧 [EMAIL] Quote Confirmation');
-  console.log(`   To: ${data.to}`);
-  console.log(`   Subject: Your cleaning quote request has been submitted!`);
-  console.log(`   Customer: ${data.customerName}`);
-  console.log(`   Quote ID: ${data.quoteId}`);
-  console.log(`   Matched Cleaners: ${data.matchCount}`);
-  console.log(`   Status URL: ${BASE_URL}/quote-request/status?id=${data.quoteId}`);
-  console.log('');
+  logger.info('[EMAIL] Quote Confirmation');
+  logger.info(`   To: ${data.to}`);
+  logger.info(`   Subject: Your cleaning quote request has been submitted!`);
+  logger.info(`   Customer: ${data.customerName}`);
+  logger.info(`   Quote ID: ${data.quoteId}`);
+  logger.info(`   Matched Cleaners: ${data.matchCount}`);
+  logger.info(`   Status URL: ${BASE_URL}/quote-request/status?id=${data.quoteId}`);
+  logger.info('');
 
   return true;
 }
@@ -102,13 +105,13 @@ export async function sendQuoteMatchEmail(data: {
   location: string;
   quoteId: string;
 }): Promise<boolean> {
-  console.log('📧 [EMAIL] Quote Match Notification');
-  console.log(`   To: ${data.to}`);
-  console.log(`   Subject: New quote request in your area!`);
-  console.log(`   Business: ${data.businessName}`);
-  console.log(`   Service: ${data.serviceType}`);
-  console.log(`   Location: ${data.location}`);
-  console.log('');
+  logger.info('[EMAIL] Quote Match Notification');
+  logger.info(`   To: ${data.to}`);
+  logger.info(`   Subject: New quote request in your area!`);
+  logger.info(`   Business: ${data.businessName}`);
+  logger.info(`   Service: ${data.serviceType}`);
+  logger.info(`   Location: ${data.location}`);
+  logger.info('');
 
   return true;
 }

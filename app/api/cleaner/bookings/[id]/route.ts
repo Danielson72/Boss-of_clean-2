@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger({ file: 'api/cleaner/bookings/[id]/route' });
 
 export async function PATCH(
   request: NextRequest,
@@ -74,7 +77,7 @@ export async function PATCH(
       .eq('id', params.id);
 
     if (updateError) {
-      console.error('Decline booking error:', updateError);
+      logger.error('Decline booking error', { function: 'PATCH' }, updateError);
       return NextResponse.json(
         { error: 'Failed to decline booking' },
         { status: 500 }
@@ -101,7 +104,7 @@ export async function PATCH(
       .eq('id', params.id);
 
     if (updateError) {
-      console.error('Complete booking error:', updateError);
+      logger.error('Complete booking error', { function: 'PATCH' }, updateError);
       return NextResponse.json(
         { error: 'Failed to complete booking' },
         { status: 500 }
@@ -118,7 +121,7 @@ export async function PATCH(
       });
     } catch {
       // Non-critical: review request table may not exist yet
-      console.log('Review request not created (table may not exist)');
+      logger.debug('Review request not created (table may not exist)');
     }
 
     return NextResponse.json({ success: true, message: 'Booking marked as completed' });

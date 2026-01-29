@@ -5,6 +5,9 @@
  * booking is marked as completed.
  */
 
+import { createLogger } from '../utils/logger';
+
+const logger = createLogger({ file: 'lib/email/review-request' });
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://bossofclean.com';
 
 export interface ReviewRequestData {
@@ -24,14 +27,14 @@ export async function sendReviewRequestEmail(
 ): Promise<boolean> {
   const reviewUrl = `${BASE_URL}/review/${data.bookingId}`;
 
-  console.log('[EMAIL] Review Request - Customer');
-  console.log(`   To: ${data.customerEmail}`);
-  console.log(`   Subject: How was your cleaning with ${data.businessName}?`);
-  console.log(`   Booking ID: ${data.bookingId}`);
-  console.log(`   Service: ${data.serviceType}`);
-  console.log(`   Date: ${data.bookingDate}`);
-  console.log(`   Review URL: ${reviewUrl}`);
-  console.log('');
+  logger.info('[EMAIL] Review Request - Customer');
+  logger.info(`   To: ${data.customerEmail}`);
+  logger.info(`   Subject: How was your cleaning with ${data.businessName}?`);
+  logger.info(`   Booking ID: ${data.bookingId}`);
+  logger.info(`   Service: ${data.serviceType}`);
+  logger.info(`   Date: ${data.bookingDate}`);
+  logger.info(`   Review URL: ${reviewUrl}`);
+  logger.info('');
 
   // TODO: Replace with actual email provider (Resend, SendGrid, etc.)
   // return await resend.emails.send({

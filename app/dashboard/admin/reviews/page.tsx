@@ -87,7 +87,7 @@ export default function AdminReviewsPage() {
       setStats(data.stats);
       setPagination(data.pagination);
     } catch (error) {
-      console.error('Error loading reviews:', error);
+      // console.error('Error loading reviews:', error);
     } finally {
       setLoading(false);
     }
@@ -107,7 +107,7 @@ export default function AdminReviewsPage() {
       // Refresh the list
       await loadReviews();
     } catch (error) {
-      console.error('Error approving review:', error);
+      // console.error('Error approving review:', error);
     } finally {
       setActionLoading(null);
     }
@@ -126,7 +126,7 @@ export default function AdminReviewsPage() {
 
       await loadReviews();
     } catch (error) {
-      console.error('Error rejecting review:', error);
+      // console.error('Error rejecting review:', error);
     } finally {
       setActionLoading(null);
     }
@@ -145,7 +145,7 @@ export default function AdminReviewsPage() {
 
       await loadReviews();
     } catch (error) {
-      console.error('Error flagging review:', error);
+      // console.error('Error flagging review:', error);
     } finally {
       setActionLoading(null);
     }
@@ -164,7 +164,7 @@ export default function AdminReviewsPage() {
 
       await loadReviews();
     } catch (error) {
-      console.error('Error editing review:', error);
+      // console.error('Error editing review:', error);
     } finally {
       setActionLoading(null);
     }

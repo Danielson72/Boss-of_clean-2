@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { STRIPE_PRICES, getSiteUrl, getStripe } from '@/lib/stripe/config';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger({ file: 'api/cleaner/billing/upgrade/route' });
 
 export async function POST(request: NextRequest) {
   try {
@@ -96,7 +99,7 @@ export async function POST(request: NextRequest) {
           });
         }
       } catch (subError) {
-        console.error('Error updating subscription, creating new checkout:', subError);
+        logger.error('Error updating subscription, creating new checkout', { function: 'POST' }, subError);
       }
     }
 
@@ -155,7 +158,7 @@ export async function POST(request: NextRequest) {
       url: session.url,
     });
   } catch (error) {
-    console.error('Upgrade API error:', error);
+    logger.error('Upgrade API error', { function: 'POST' }, error);
     return NextResponse.json(
       { error: 'Failed to process upgrade' },
       { status: 500 }

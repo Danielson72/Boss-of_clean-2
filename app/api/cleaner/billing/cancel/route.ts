@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { getStripe } from '@/lib/stripe/config';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger({ file: 'api/cleaner/billing/cancel/route' });
 
 export async function POST(request: NextRequest) {
   try {
@@ -75,7 +78,7 @@ export async function POST(request: NextRequest) {
       message: 'Subscription will be canceled at the end of the billing period',
     });
   } catch (error) {
-    console.error('Cancel API error:', error);
+    logger.error('Cancel API error', { function: 'POST' }, error);
     return NextResponse.json(
       { error: 'Failed to cancel subscription' },
       { status: 500 }

@@ -4,6 +4,9 @@
  * Sends email notifications when a user receives a new message.
  */
 
+import { createLogger } from '../utils/logger';
+
+const logger = createLogger({ file: 'lib/email/new-message' });
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://bossofclean.com';
 
 export interface NewMessageEmailData {
@@ -22,12 +25,12 @@ export async function sendNewMessageEmail(
 ): Promise<boolean> {
   const messagesUrl = `${BASE_URL}/dashboard/messages/${data.conversationId}`;
 
-  console.log('[EMAIL] New Message Notification');
-  console.log(`   To: ${data.recipientEmail}`);
-  console.log(`   Subject: New message from ${data.senderName}`);
-  console.log(`   Preview: ${data.messagePreview.substring(0, 50)}...`);
-  console.log(`   Messages URL: ${messagesUrl}`);
-  console.log('');
+  logger.info('[EMAIL] New Message Notification');
+  logger.info(`   To: ${data.recipientEmail}`);
+  logger.info(`   Subject: New message from ${data.senderName}`);
+  logger.info(`   Preview: ${data.messagePreview.substring(0, 50)}...`);
+  logger.info(`   Messages URL: ${messagesUrl}`);
+  logger.info('');
 
   // TODO: Replace with actual email provider (Resend, SendGrid, etc.)
   // return await resend.emails.send({

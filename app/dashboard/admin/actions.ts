@@ -2,6 +2,9 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { createLogger } from '@/lib/utils/logger'
+
+const logger = createLogger({ file: 'app/dashboard/admin/actions' })
 
 export interface ActionResult {
   success: boolean
@@ -46,7 +49,7 @@ export async function approveCleaner(cleanerId: string, notes?: string): Promise
   })
 
   if (error) {
-    console.error('Error approving cleaner:', error)
+    logger.error('Error approving cleaner', { function: 'approveCleaner' }, error)
     return { success: false, error: error.message }
   }
 
@@ -79,7 +82,7 @@ export async function rejectCleaner(cleanerId: string, reason: string): Promise<
   })
 
   if (error) {
-    console.error('Error rejecting cleaner:', error)
+    logger.error('Error rejecting cleaner', { function: 'rejectCleaner' }, error)
     return { success: false, error: error.message }
   }
 
@@ -112,7 +115,7 @@ export async function requestCleanerInfo(cleanerId: string, requestNotes: string
   })
 
   if (error) {
-    console.error('Error requesting info:', error)
+    logger.error('Error requesting info', { function: 'requestCleanerInfo' }, error)
     return { success: false, error: error.message }
   }
 
@@ -146,7 +149,7 @@ export async function verifyDocument(
   })
 
   if (error) {
-    console.error('Error verifying document:', error)
+    logger.error('Error verifying document', { function: 'verifyDocument' }, error)
     return { success: false, error: error.message }
   }
 
@@ -197,7 +200,7 @@ export async function getCleanerDetails(cleanerId: string): Promise<ActionResult
     .order('created_at', { ascending: false })
 
   if (docsError) {
-    console.error('Error fetching documents:', docsError)
+    logger.error('Error fetching documents', { function: 'getCleanerDetails' }, docsError)
   }
 
   // Get review history
@@ -214,7 +217,7 @@ export async function getCleanerDetails(cleanerId: string): Promise<ActionResult
     .order('created_at', { ascending: false })
 
   if (reviewsError) {
-    console.error('Error fetching reviews:', reviewsError)
+    logger.error('Error fetching reviews', { function: 'getCleanerDetails' }, reviewsError)
   }
 
   return {
@@ -274,11 +277,12 @@ Once you've provided the requested information, we'll continue reviewing your ap
     `
   }
 
-  console.log('=== Email Notification ===')
-  console.log(`To: ${email}`)
-  console.log(`Subject: ${subjects[status]}`)
-  console.log(`Body: ${bodies[status]}`)
-  console.log('========================')
+  logger.info('Email Notification', {
+    function: 'sendStatusEmail',
+    to: email,
+    subject: subjects[status],
+    status
+  })
 
   // TODO: Implement actual email sending
   // Example with Resend:

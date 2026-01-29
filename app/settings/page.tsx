@@ -57,7 +57,7 @@ export default function SettingsPage() {
         sms_notifications: data.sms_notifications ?? false
       });
     } catch (error) {
-      console.error('Error loading settings:', error);
+      // console.error('Error loading settings:', error);
       setMessage('Error loading settings');
     } finally {
       setLoading(false);
@@ -88,7 +88,7 @@ export default function SettingsPage() {
       setMessage('Settings saved successfully!');
       setTimeout(() => setMessage(''), 3000);
     } catch (error) {
-      console.error('Error saving settings:', error);
+      // console.error('Error saving settings:', error);
       setMessage('Error saving settings');
     } finally {
       setSaving(false);

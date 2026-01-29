@@ -1,81 +1,106 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { NextRequest } from 'next/server'
+import { createLogger } from '@/lib/utils/logger'
+
+const logger = createLogger({ file: 'auth/callback/route' })
+
+function getRedirectOrigin(request: NextRequest, requestUrl: URL): string {
+  // Netlify sets x-forwarded-host; use it to build the correct production origin
+  const forwardedHost = request.headers.get('x-forwarded-host')
+  if (forwardedHost) {
+    return `https://${forwardedHost}`
+  }
+  return requestUrl.origin
+}
 
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url)
   const code = requestUrl.searchParams.get('code')
+  const origin = getRedirectOrigin(request, requestUrl)
 
   if (code) {
     const supabase = await createClient()
-    await supabase.auth.exchangeCodeForSession(code)
+    const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
 
-    // Get user data to determine redirect
+    if (exchangeError) {
+      logger.error('OAuth code exchange error', { function: 'GET' }, exchangeError)
+      return NextResponse.redirect(new URL('/login?error=auth_callback_failed', origin))
+    }
+
     const { data: { user } } = await supabase.auth.getUser()
 
     if (user) {
-      // Check if user exists in public.users by their auth ID
-      const { data: userById } = await supabase
+      // The handle_new_user trigger on auth.users automatically creates a public.users record.
+      // Check if the user record exists (it should, from the trigger).
+      const { data: existingUser } = await supabase
         .from('users')
-        .select('id, role, email')
+        .select('id, role')
         .eq('id', user.id)
         .single()
 
-      if (userById) {
-        // User exists with this auth ID, redirect based on role
-        const role = userById.role || 'customer'
-        return NextResponse.redirect(new URL(`/dashboard/${role}`, requestUrl.origin))
+      if (existingUser) {
+        // Update avatar from Google profile metadata if available
+        const avatarUrl = user.user_metadata?.avatar_url || user.user_metadata?.picture
+        const fullName = user.user_metadata?.full_name || user.user_metadata?.name
+        const updates: Record<string, string> = { updated_at: new Date().toISOString() }
+        if (avatarUrl) updates.avatar_url = avatarUrl
+        if (fullName) updates.full_name = fullName
+
+        await supabase.from('users').update(updates).eq('id', user.id)
+
+        const role = existingUser.role || 'customer'
+        return NextResponse.redirect(new URL(`/dashboard/${role}`, origin))
       }
 
-      // User doesn't exist by ID - check if there's an existing account with same email
-      // This handles OAuth account linking for users who previously signed up with email/password
-      const { data: userByEmail } = await supabase
-        .from('users')
-        .select('id, role')
-        .eq('email', user.email)
-        .single()
-
-      if (userByEmail) {
-        // Found existing user with same email - link accounts by updating the user ID
-        // Note: This is safe because OAuth provider has verified the email ownership
-        await supabase
+      // Edge case: trigger didn't fire or email-based account linking needed.
+      // Check if there's an existing user with the same email (e.g. previously signed up with email/password).
+      if (user.email) {
+        const { data: userByEmail } = await supabase
           .from('users')
-          .update({
-            id: user.id,
-            email_verified: true,
-            profile_image_url: user.user_metadata?.avatar_url || user.user_metadata?.picture,
-            full_name: user.user_metadata?.full_name || user.user_metadata?.name,
-            updated_at: new Date().toISOString(),
-          })
+          .select('id, role')
           .eq('email', user.email)
+          .single()
 
-        // Redirect based on existing role
-        const role = userByEmail.role || 'customer'
-        return NextResponse.redirect(new URL(`/dashboard/${role}`, requestUrl.origin))
+        if (userByEmail) {
+          // Existing account with same email found. Update the record to point to the new auth ID.
+          // This is safe because the OAuth provider has verified email ownership.
+          const avatarUrl = user.user_metadata?.avatar_url || user.user_metadata?.picture
+          const fullName = user.user_metadata?.full_name || user.user_metadata?.name
+          const updates: Record<string, string> = {
+            id: user.id,
+            updated_at: new Date().toISOString(),
+          }
+          if (avatarUrl) updates.avatar_url = avatarUrl
+          if (fullName) updates.full_name = fullName
+
+          await supabase.from('users').update(updates).eq('email', user.email)
+
+          const role = userByEmail.role || 'customer'
+          return NextResponse.redirect(new URL(`/dashboard/${role}`, origin))
+        }
       }
 
-      // Completely new user - create record and redirect to role selection
+      // Completely new user and trigger didn't create record - insert manually
       const { error: insertError } = await supabase
         .from('users')
         .insert({
           id: user.id,
           email: user.email,
-          full_name: user.user_metadata?.full_name || user.user_metadata?.name,
-          profile_image_url: user.user_metadata?.avatar_url || user.user_metadata?.picture,
-          email_verified: true, // OAuth emails are verified
+          full_name: user.user_metadata?.full_name || user.user_metadata?.name || 'User',
+          avatar_url: user.user_metadata?.avatar_url || user.user_metadata?.picture,
           created_at: new Date().toISOString(),
         })
 
       if (insertError) {
-        console.error('Error creating user record:', insertError)
-        // Still try to redirect to role selection
+        logger.error('Error creating user record', { function: 'GET' }, insertError)
       }
 
-      // Redirect new OAuth users to role selection page
-      return NextResponse.redirect(new URL('/auth/select-role', requestUrl.origin))
+      // New OAuth users go to role selection
+      return NextResponse.redirect(new URL('/auth/select-role', origin))
     }
   }
 
-  // Return to login if no code or error
-  return NextResponse.redirect(new URL('/login', requestUrl.origin))
+  // No code or session - return to login
+  return NextResponse.redirect(new URL('/login', origin))
 }

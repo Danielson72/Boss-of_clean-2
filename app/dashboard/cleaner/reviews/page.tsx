@@ -60,7 +60,7 @@ export default function CleanerReviewsPage() {
       if (error) throw error;
       setReviews(data || []);
     } catch (error) {
-      console.error('Error loading reviews:', error);
+      // console.error('Error loading reviews:', error);
     } finally {
       setLoading(false);
     }

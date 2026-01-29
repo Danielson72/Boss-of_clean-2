@@ -1,5 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
+import { createLogger } from '@/lib/utils/logger'
+
+const logger = createLogger({ file: 'api/cleaners/onboarding/submit/route' })
 
 // POST /api/cleaners/onboarding/submit - Submit onboarding for approval
 export async function POST(request: NextRequest) {
@@ -54,7 +57,7 @@ export async function POST(request: NextRequest) {
       .eq('id', cleaner.id)
 
     if (updateError) {
-      console.error('Error updating cleaner:', updateError)
+      logger.error('Error updating cleaner', { function: 'POST' }, updateError)
       return NextResponse.json({ error: 'Failed to submit onboarding' }, { status: 500 })
     }
 
@@ -64,7 +67,7 @@ export async function POST(request: NextRequest) {
       cleaner_id: cleaner.id
     })
   } catch (error) {
-    console.error('Error in POST /api/cleaners/onboarding/submit:', error)
+    logger.error('Error in POST /api/cleaners/onboarding/submit', { function: 'POST' }, error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

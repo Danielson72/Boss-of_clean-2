@@ -1,5 +1,8 @@
 import { createClient } from '@/lib/supabase/client';
 import { createClient as createServerClient } from '@/lib/supabase/server';
+import { createLogger } from '../utils/logger';
+
+const logger = createLogger({ file: 'lib/services/quote-service' });
 
 export interface QuoteRequest {
   id: string;
@@ -83,7 +86,7 @@ export class QuoteService {
       .single();
 
     if (error) {
-      console.error('Error creating quote request:', error);
+      logger.error('Error creating quote request:', {}, error);
       throw new Error('Failed to create quote request');
     }
 
@@ -104,7 +107,7 @@ export class QuoteService {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching customer quotes:', error);
+      logger.error('Error fetching customer quotes:', {}, error);
       throw new Error('Failed to fetch quote requests');
     }
 
@@ -135,7 +138,7 @@ export class QuoteService {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching cleaner quotes:', error);
+      logger.error('Error fetching cleaner quotes:', {}, error);
       throw new Error('Failed to fetch quote requests');
     }
 
@@ -171,7 +174,7 @@ export class QuoteService {
       .single();
 
     if (error) {
-      console.error('Error responding to quote:', error);
+      logger.error('Error responding to quote:', {}, error);
       throw new Error('Failed to respond to quote');
     }
 
@@ -197,7 +200,7 @@ export class QuoteService {
       .single();
 
     if (error) {
-      console.error('Error accepting quote:', error);
+      logger.error('Error accepting quote:', {}, error);
       throw new Error('Failed to accept quote');
     }
 
@@ -220,7 +223,7 @@ export class QuoteService {
       .single();
 
     if (error) {
-      console.error('Error marking quote completed:', error);
+      logger.error('Error marking quote completed:', {}, error);
       throw new Error('Failed to mark quote as completed');
     }
 
@@ -240,7 +243,7 @@ export class QuoteService {
       .single();
 
     if (error) {
-      console.error('Error cancelling quote:', error);
+      logger.error('Error cancelling quote:', {}, error);
       throw new Error('Failed to cancel quote');
     }
 
@@ -275,13 +278,13 @@ export class QuoteService {
         await this.sendQuoteNotificationEmail(cleaner, quoteId);
       }
     } catch (error) {
-      console.error('Error notifying cleaners:', error);
+      logger.error('Error notifying cleaners:', {}, error);
     }
   }
 
   private async sendQuoteNotificationEmail(cleaner: any, quoteId: string) {
     // This would integrate with your email service (SendGrid, Resend, etc.)
-    console.log(`Sending quote notification to ${cleaner.business_name} for quote ${quoteId}`);
+    logger.debug(`Sending quote notification to ${cleaner.business_name} for quote ${quoteId}`);
     
     // Example: Add to email queue or send immediately
     // await emailService.sendQuoteNotification({
@@ -292,12 +295,12 @@ export class QuoteService {
   }
 
   private async sendQuoteResponseNotification(quote: QuoteRequest) {
-    console.log(`Sending quote response notification to customer ${quote.customer?.full_name}`);
+    logger.debug(`Sending quote response notification to customer ${quote.customer?.full_name}`);
     // Implement email notification to customer
   }
 
   private async sendQuoteAcceptedNotification(quote: QuoteRequest) {
-    console.log(`Sending quote accepted notification to cleaner ${quote.cleaner?.business_name}`);
+    logger.debug(`Sending quote accepted notification to cleaner ${quote.cleaner?.business_name}`);
     // Implement email notification to cleaner
   }
 
@@ -313,7 +316,7 @@ export class QuoteService {
       .single();
 
     if (error) {
-      console.error('Error fetching quote:', error);
+      logger.error('Error fetching quote:', {}, error);
       return null;
     }
 

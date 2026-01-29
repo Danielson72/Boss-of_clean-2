@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { rateLimitRoute, RATE_LIMITS } from '@/lib/middleware/rate-limit';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger({ file: 'api/reviews/create/route' });
 
 interface CreateReviewBody {
   bookingId: string;
@@ -19,6 +23,10 @@ export async function POST(request: NextRequest) {
   if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
+
+  // Rate limit: 10 reviews per hour per user
+  const reviewRateLimited = rateLimitRoute('review-user', user.id, RATE_LIMITS.reviewCreate);
+  if (reviewRateLimited) return reviewRateLimited;
 
   let body: CreateReviewBody;
   try {
@@ -114,7 +122,7 @@ export async function POST(request: NextRequest) {
     .single();
 
   if (reviewError) {
-    console.error('Review creation error:', reviewError);
+    logger.error('Review creation error', { function: 'POST' }, reviewError);
     return NextResponse.json(
       { error: 'Failed to submit review' },
       { status: 500 }

@@ -123,7 +123,7 @@ export function CleanerDetailModal({ cleanerId, isOpen, onClose }: CleanerDetail
         toast.error(result.error || 'Failed to load details')
       }
     } catch (error) {
-      console.error('Error loading details:', error)
+      // console.error('Error loading details:', error)
       toast.error('Failed to load cleaner details')
     } finally {
       setLoading(false)

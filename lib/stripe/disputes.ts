@@ -11,7 +11,10 @@ import {
   sendDisputeCleanerNotification,
   sendDisputeResolvedNotification,
 } from '@/lib/email/dispute-notification';
+import { createLogger } from '../utils/logger';
 import type Stripe from 'stripe';
+
+const logger = createLogger({ file: 'lib/stripe/disputes' });
 
 export async function handleDisputeCreated(dispute: Stripe.Dispute): Promise<void> {
   const supabase = createClient();
@@ -79,7 +82,7 @@ export async function handleDisputeCreated(dispute: Stripe.Dispute): Promise<voi
   }
 
   if (!cleanerId) {
-    console.error(`Could not find cleaner for dispute ${dispute.id}`);
+    logger.error(`Could not find cleaner for dispute ${dispute.id}`);
     // Still record the dispute with null cleaner for admin review
     await sendDisputeAdminAlert({
       disputeId: dispute.id,
@@ -169,7 +172,7 @@ export async function handleDisputeCreated(dispute: Stripe.Dispute): Promise<voi
     evidenceDueBy,
   });
 
-  console.log(`Dispute ${dispute.id} recorded for cleaner ${cleanerId} (${cleanerName})`);
+  logger.info(`Dispute ${dispute.id} recorded for cleaner ${cleanerId} (${cleanerName})`);
 }
 
 export async function handleDisputeClosed(dispute: Stripe.Dispute): Promise<void> {
@@ -195,7 +198,7 @@ export async function handleDisputeClosed(dispute: Stripe.Dispute): Promise<void
     .single();
 
   if (!disputeRecord) {
-    console.error(`Dispute record not found for ${dispute.id}`);
+    logger.error(`Dispute record not found for ${dispute.id}`);
     return;
   }
 
@@ -240,5 +243,5 @@ export async function handleDisputeClosed(dispute: Stripe.Dispute): Promise<void
     }
   }
 
-  console.log(`Dispute ${dispute.id} closed with outcome: ${outcome}`);
+  logger.info(`Dispute ${dispute.id} closed with outcome: ${outcome}`);
 }

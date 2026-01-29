@@ -98,7 +98,7 @@ export function FavoriteButton({
         }
       }
     } catch (error) {
-      console.error('Error toggling favorite:', error);
+      // Error toggling favorite - silently fail for client component
     } finally {
       setLoading(false);
     }

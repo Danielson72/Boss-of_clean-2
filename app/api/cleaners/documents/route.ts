@@ -1,5 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
+import { createLogger } from '@/lib/utils/logger'
+
+const logger = createLogger({ file: 'api/cleaners/documents/route' })
 
 // GET /api/cleaners/documents - Get cleaner's documents
 export async function GET(request: NextRequest) {
@@ -30,13 +33,13 @@ export async function GET(request: NextRequest) {
       .order('created_at', { ascending: false })
 
     if (error) {
-      console.error('Error fetching documents:', error)
+      logger.error('Error fetching documents', { function: 'GET' }, error)
       return NextResponse.json({ error: 'Failed to fetch documents' }, { status: 500 })
     }
 
     return NextResponse.json({ documents: documents || [] })
   } catch (error) {
-    console.error('Error in GET /api/cleaners/documents:', error)
+    logger.error('Error in GET /api/cleaners/documents', { function: 'GET' }, error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -91,7 +94,7 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (error) {
-      console.error('Error creating document:', error)
+      logger.error('Error creating document', { function: 'POST' }, error)
       return NextResponse.json({ error: 'Failed to save document' }, { status: 500 })
     }
 
@@ -100,7 +103,7 @@ export async function POST(request: NextRequest) {
       document
     })
   } catch (error) {
-    console.error('Error in POST /api/cleaners/documents:', error)
+    logger.error('Error in POST /api/cleaners/documents', { function: 'POST' }, error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -141,13 +144,13 @@ export async function DELETE(request: NextRequest) {
       .eq('cleaner_id', cleaner.id)
 
     if (error) {
-      console.error('Error deleting document:', error)
+      logger.error('Error deleting document', { function: 'DELETE' }, error)
       return NextResponse.json({ error: 'Failed to delete document' }, { status: 500 })
     }
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Error in DELETE /api/cleaners/documents:', error)
+    logger.error('Error in DELETE /api/cleaners/documents', { function: 'DELETE' }, error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

@@ -1,5 +1,8 @@
 import { createClient } from '@/lib/supabase/server';
+import { createLogger } from '../utils/logger';
 import type Stripe from 'stripe';
+
+const logger = createLogger({ file: 'lib/stripe/webhook-event-service' });
 
 export interface WebhookEventRecord {
   is_new: boolean;
@@ -41,7 +44,7 @@ export class WebhookEventService {
     });
 
     if (error) {
-      console.error('Error recording webhook event:', error);
+      logger.error('Error recording webhook event:', {}, error);
       // If we can't record, assume it's new to avoid missing events
       return { is_new: true, event_status: 'processing' };
     }
@@ -61,7 +64,7 @@ export class WebhookEventService {
     });
 
     if (error) {
-      console.error('Error marking webhook as processed:', error);
+      logger.error('Error marking webhook as processed:', {}, error);
     }
   }
 
@@ -77,7 +80,7 @@ export class WebhookEventService {
     });
 
     if (error) {
-      console.error('Error marking webhook as failed:', error);
+      logger.error('Error marking webhook as failed:', {}, error);
     }
   }
 
@@ -92,7 +95,7 @@ export class WebhookEventService {
     });
 
     if (error) {
-      console.error('Error checking webhook processed status:', error);
+      logger.error('Error checking webhook processed status:', {}, error);
       return false;
     }
 
@@ -112,7 +115,7 @@ export class WebhookEventService {
       .single();
 
     if (error) {
-      console.error('Error fetching webhook event:', error);
+      logger.error('Error fetching webhook event:', {}, error);
       return null;
     }
 
@@ -133,7 +136,7 @@ export class WebhookEventService {
       .limit(limit);
 
     if (error) {
-      console.error('Error fetching failed webhook events:', error);
+      logger.error('Error fetching failed webhook events:', {}, error);
       return [];
     }
 

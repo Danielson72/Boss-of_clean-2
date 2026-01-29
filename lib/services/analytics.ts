@@ -1,4 +1,7 @@
 import { createClient } from '@/lib/supabase/client';
+import { createLogger } from '../utils/logger';
+
+const logger = createLogger({ file: 'lib/services/analytics' });
 
 export interface MonthlyEarnings {
   month: string;
@@ -51,7 +54,7 @@ export class AnalyticsService {
       .order('booking_date', { ascending: false });
 
     if (bookingsError) {
-      console.error('Error fetching bookings:', bookingsError);
+      logger.error('Error fetching bookings:', {}, bookingsError);
       throw new Error('Failed to fetch bookings data');
     }
 
@@ -62,7 +65,7 @@ export class AnalyticsService {
       .eq('cleaner_id', cleanerId);
 
     if (leadsError) {
-      console.error('Error fetching leads:', leadsError);
+      logger.error('Error fetching leads:', {}, leadsError);
     }
 
     const completedBookings = bookings?.filter(b => b.status === 'completed') || [];
@@ -167,7 +170,7 @@ export class AnalyticsService {
       .order('booking_date', { ascending: false });
 
     if (error) {
-      console.error('Error exporting bookings:', error);
+      logger.error('Error exporting bookings:', {}, error);
       throw new Error('Failed to export bookings data');
     }
 
