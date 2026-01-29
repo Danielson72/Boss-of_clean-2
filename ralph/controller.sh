@@ -421,6 +421,14 @@ main() {
     echo "=============================================="
     echo ""
 
+    # Clean up stale dev server processes to prevent port conflicts
+    echo "Cleaning up stale processes..."
+    pkill -f "next dev" 2>/dev/null || true
+    pkill -f "next-router-worker" 2>/dev/null || true
+    lsof -ti:3000 | xargs kill -9 2>/dev/null || true
+    lsof -ti:3001 | xargs kill -9 2>/dev/null || true
+    sleep 2
+
     # Initialize log file
     echo "Ralph Development Session - $REPORT_DATE $REPORT_TIME" > "$LOG_FILE"
     echo "================================================" >> "$LOG_FILE"

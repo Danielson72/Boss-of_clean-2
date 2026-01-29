@@ -38,7 +38,12 @@
         "lib/services/lead-credits.ts",
         "app/api/webhooks/stripe/route.ts"
       ],
-      "tags": ["fix", "leads", "billing", "phase1"]
+      "tags": [
+        "fix",
+        "leads",
+        "billing",
+        "phase1"
+      ]
     },
     {
       "id": "FIX-002",
@@ -47,7 +52,9 @@
       "priority": "high",
       "status": "done",
       "estimatedMinutes": 45,
-      "dependencies": ["FIX-003"],
+      "dependencies": [
+        "FIX-003"
+      ],
       "acceptanceCriteria": [
         "charge.dispute.created webhook handled and logged",
         "charge.dispute.closed webhook handled with won/lost outcomes",
@@ -62,7 +69,12 @@
         "lib/stripe/disputes.ts",
         "lib/email/dispute-notification.ts"
       ],
-      "tags": ["fix", "stripe", "billing", "phase1"]
+      "tags": [
+        "fix",
+        "stripe",
+        "billing",
+        "phase1"
+      ]
     },
     {
       "id": "FIX-003",
@@ -84,7 +96,12 @@
         "app/api/stripe/webhook/route.ts",
         "app/api/webhooks/stripe/route.ts"
       ],
-      "tags": ["fix", "stripe", "cleanup", "phase1"]
+      "tags": [
+        "fix",
+        "stripe",
+        "cleanup",
+        "phase1"
+      ]
     },
     {
       "id": "UX-001",
@@ -111,14 +128,18 @@
         "app/dashboard/customer/error.tsx",
         "app/dashboard/admin/error.tsx"
       ],
-      "tags": ["ux", "error-handling", "phase1"]
+      "tags": [
+        "ux",
+        "error-handling",
+        "phase1"
+      ]
     },
     {
       "id": "UX-002",
       "title": "Add not-found and loading pages",
       "description": "Create branded 404 not-found.tsx page and skeleton loading states for key routes. Loading skeletons should match the layout of the page they precede.",
       "priority": "high",
-      "status": "pending",
+      "status": "done",
       "estimatedMinutes": 40,
       "dependencies": [],
       "acceptanceCriteria": [
@@ -137,14 +158,18 @@
         "app/dashboard/cleaner/leads/loading.tsx",
         "app/dashboard/customer/loading.tsx"
       ],
-      "tags": ["ux", "loading", "phase1"]
+      "tags": [
+        "ux",
+        "loading",
+        "phase1"
+      ]
     },
     {
       "id": "PERF-001",
       "title": "Optimize hero image and use next/image",
       "description": "The hero image (public/images/ChatGPT Image Aug 5, 2025, 05_04_11 PM.png) is 2.6MB. Convert to WebP format, create responsive sizes, and ensure all img tags across the app use next/image component for automatic optimization, lazy loading, and proper sizing.",
       "priority": "high",
-      "status": "pending",
+      "status": "done",
       "estimatedMinutes": 40,
       "dependencies": [],
       "acceptanceCriteria": [
@@ -161,7 +186,11 @@
         "app/page.tsx",
         "components/HeroSection.tsx"
       ],
-      "tags": ["performance", "images", "phase1"]
+      "tags": [
+        "performance",
+        "images",
+        "phase1"
+      ]
     },
     {
       "id": "SEC-001",
@@ -188,7 +217,11 @@
         "app/api/reviews/create/route.ts",
         "app/quote-request/actions.ts"
       ],
-      "tags": ["security", "api", "phase1"]
+      "tags": [
+        "security",
+        "api",
+        "phase1"
+      ]
     },
     {
       "id": "CLEAN-001",
@@ -210,7 +243,11 @@
       "files": [
         "lib/utils/logger.ts"
       ],
-      "tags": ["cleanup", "logging", "phase2"]
+      "tags": [
+        "cleanup",
+        "logging",
+        "phase2"
+      ]
     },
     {
       "id": "CLEAN-002",
@@ -234,7 +271,11 @@
         "lib/context/AuthContext.tsx",
         "lib/services/analytics.ts"
       ],
-      "tags": ["cleanup", "typescript", "phase2"]
+      "tags": [
+        "cleanup",
+        "typescript",
+        "phase2"
+      ]
     },
     {
       "id": "A11Y-001",
@@ -261,7 +302,11 @@
         "components/search/SearchFilters.tsx",
         "app/cleaner/[slug]/page.tsx"
       ],
-      "tags": ["accessibility", "wcag", "phase2"]
+      "tags": [
+        "accessibility",
+        "wcag",
+        "phase2"
+      ]
     },
     {
       "id": "ADMIN-001",
@@ -288,7 +333,11 @@
         "components/admin/RevenueChart.tsx",
         "lib/services/admin-analytics.ts"
       ],
-      "tags": ["admin", "analytics", "phase2"]
+      "tags": [
+        "admin",
+        "analytics",
+        "phase2"
+      ]
     },
     {
       "id": "FEAT-001",
@@ -315,7 +364,12 @@
         "app/api/cleaner/portfolio/route.ts",
         "app/cleaner/[slug]/page.tsx"
       ],
-      "tags": ["feature", "portfolio", "storage", "phase2"]
+      "tags": [
+        "feature",
+        "portfolio",
+        "storage",
+        "phase2"
+      ]
     },
     {
       "id": "SEO-002",
@@ -341,7 +395,11 @@
         "lib/seo/service-pages.ts",
         "components/seo/ServiceTypeContent.tsx"
       ],
-      "tags": ["seo", "landing-pages", "phase2"]
+      "tags": [
+        "seo",
+        "landing-pages",
+        "phase2"
+      ]
     },
     {
       "id": "FEAT-002",
@@ -366,7 +424,12 @@
         "lib/email/send-email.ts",
         "app/api/unsubscribe/route.ts"
       ],
-      "tags": ["feature", "notifications", "customer", "phase3"]
+      "tags": [
+        "feature",
+        "notifications",
+        "customer",
+        "phase3"
+      ]
     },
     {
       "id": "FEAT-003",
@@ -392,7 +455,12 @@
         "app/cleaner/[slug]/page.tsx",
         "components/search/CleanerCard.tsx"
       ],
-      "tags": ["feature", "badges", "gamification", "phase3"]
+      "tags": [
+        "feature",
+        "badges",
+        "gamification",
+        "phase3"
+      ]
     },
     {
       "id": "PERF-002",
@@ -418,7 +486,11 @@
         "app/dashboard/admin/analytics/page.tsx",
         "components/booking/RescheduleModal.tsx"
       ],
-      "tags": ["performance", "bundle-size", "phase3"]
+      "tags": [
+        "performance",
+        "bundle-size",
+        "phase3"
+      ]
     }
   ]
 }
