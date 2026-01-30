@@ -522,6 +522,59 @@ export interface ConversationSummary {
   lastMessage?: string;
 }
 
+/**
+ * Conversation detail with customer and cleaner info
+ */
+export interface ConversationDetail {
+  id: string;
+  customer_id: string;
+  cleaner_id: string;
+  customer?: {
+    id: string;
+    full_name: string | null;
+    email: string;
+  } | null;
+  cleaner?: {
+    id: string;
+    business_name: string;
+    user_id: string;
+  } | null;
+}
+
+/**
+ * MCP Stripe customer result (subset of Stripe Customer)
+ */
+export interface MCPStripeCustomer {
+  id: string;
+  email?: string | null;
+  name?: string | null;
+}
+
+/**
+ * MCP Stripe price result (subset of Stripe Price)
+ */
+export interface MCPStripePrice {
+  id: string;
+  active: boolean;
+  currency: string;
+  unit_amount?: number | null;
+}
+
+/**
+ * MCP Stripe tool interface for type safety
+ */
+export interface MCPStripeTool {
+  list_customers?: (params: { email: string; limit: number }) => Promise<{ data: MCPStripeCustomer[] }>;
+  list_prices?: (params: { limit: number }) => Promise<{ data: MCPStripePrice[] }>;
+}
+
+/**
+ * Extended globalThis type with MCP Stripe tool
+ */
+export interface GlobalWithMCP {
+  mcpStripeTool?: MCPStripeTool;
+}
+
 // =============================================
 // STRIPE TYPES (external)
 // =============================================

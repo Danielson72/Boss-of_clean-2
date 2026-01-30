@@ -73,7 +73,13 @@ export class SubscriptionService {
       .single();
 
     if (cleaner?.stripe_customer_id) {
-      return await stripe.customers.retrieve(cleaner.stripe_customer_id) as any;
+      const customer = await stripe.customers.retrieve(cleaner.stripe_customer_id);
+      // A deleted customer cannot be used; treat as if no customer exists
+      if (customer.deleted) {
+        // Continue to create a new customer
+      } else {
+        return customer;
+      }
     }
 
     // Create new Stripe customer

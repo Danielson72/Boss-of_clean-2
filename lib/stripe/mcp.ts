@@ -7,8 +7,17 @@
 
 import { getStripe } from './config'
 import { createLogger } from '../utils/logger'
+import type { GlobalWithMCP, MCPStripeCustomer } from '../types/api'
+import type Stripe from 'stripe'
 
 const logger = createLogger({ file: 'lib/stripe/mcp' })
+
+/**
+ * Type-safe access to MCP Stripe tool on globalThis
+ */
+function getMCPStripeTool(): GlobalWithMCP['mcpStripeTool'] {
+  return (globalThis as unknown as GlobalWithMCP).mcpStripeTool;
+}
 
 /**
  * Check if MCP Stripe integration should be used
@@ -87,17 +96,25 @@ export async function createBillingPortalSession(params: {
 }
 
 /**
+ * Customer list result type that works with both MCP and SDK
+ */
+type CustomerListResult = {
+  data: Array<{ id: string; email?: string | null; name?: string | null }>;
+};
+
+/**
  * MCP-compatible customer lookup with fallback
  */
-export async function findCustomerByEmail(email: string) {
+export async function findCustomerByEmail(email: string): Promise<CustomerListResult> {
   if (shouldUseMCP()) {
     try {
       // Try MCP first - using the available list_customers function
-      const mcpResult = await (globalThis as any).mcpStripeTool?.list_customers?.({ 
+      const mcpStripeTool = getMCPStripeTool();
+      const mcpResult = await mcpStripeTool?.list_customers?.({
         email: email,
-        limit: 1 
+        limit: 1
       })
-      
+
       if (mcpResult && mcpResult.data && mcpResult.data.length > 0) {
         logger.debug('Found customer via MCP')
         return mcpResult
@@ -109,10 +126,19 @@ export async function findCustomerByEmail(email: string) {
 
   // SDK fallback
   const stripe = getStripe()
-  return await stripe.customers.list({
+  const result = await stripe.customers.list({
     email: email,
     limit: 1,
   })
+
+  // Return in a format compatible with our type
+  return {
+    data: result.data.map((c) => ({
+      id: c.id,
+      email: c.email,
+      name: c.name,
+    })),
+  }
 }
 
 /**
@@ -123,7 +149,8 @@ export async function listPrices(limit = 10) {
   if (shouldUseMCP()) {
     try {
       // Try MCP first
-      const mcpResult = await (globalThis as any).mcpStripeTool?.list_prices?.({ limit })
+      const mcpStripeTool = getMCPStripeTool();
+      const mcpResult = await mcpStripeTool?.list_prices?.({ limit })
       if (mcpResult) {
         logger.debug('Prices retrieved via MCP')
         return mcpResult
@@ -148,11 +175,12 @@ export async function testMCPConnection(): Promise<{ available: boolean; error?:
 
   try {
     // Test with a simple list operation
-    const result = await (globalThis as any).mcpStripeTool?.list_prices?.({ limit: 1 })
+    const mcpStripeTool = getMCPStripeTool();
+    await mcpStripeTool?.list_prices?.({ limit: 1 })
     return { available: true }
   } catch (error) {
-    return { 
-      available: false, 
+    return {
+      available: false,
       error: error instanceof Error ? error.message : 'Unknown MCP error'
     }
   }

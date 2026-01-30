@@ -9,6 +9,7 @@ import { MessageInput } from '@/components/messaging/MessageInput';
 import { useMessages } from '@/lib/hooks/useMessages';
 import { ArrowLeft, Loader2, User } from 'lucide-react';
 import Link from 'next/link';
+import type { ConversationDetail } from '@/lib/types/api';
 
 interface PageProps {
   params: Promise<{ conversationId: string }>;
@@ -18,7 +19,7 @@ export default function ConversationPage({ params }: PageProps) {
   const { conversationId } = use(params);
   const { user, isCustomer } = useAuth();
   const router = useRouter();
-  const [conversation, setConversation] = useState<any>(null);
+  const [conversation, setConversation] = useState<ConversationDetail | null>(null);
   const [initialLoading, setInitialLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 

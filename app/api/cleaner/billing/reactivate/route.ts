@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { getStripe } from '@/lib/stripe/config';
 import { createLogger } from '@/lib/utils/logger';
+import type Stripe from 'stripe';
 
 const logger = createLogger({ file: 'api/cleaner/billing/reactivate/route' });
 
@@ -58,12 +59,18 @@ export async function POST(request: NextRequest) {
     }
 
     // Reactivate by removing cancel_at_period_end
-    const subscription = await stripe.subscriptions.update(
+    const subscriptionResponse = await stripe.subscriptions.update(
       cleaner.stripe_subscription_id,
       {
         cancel_at_period_end: false,
       }
     );
+
+    // Type assertion for subscription properties not in strict types
+    // The Response wrapper is cast via unknown to access subscription properties
+    const subscription = subscriptionResponse as unknown as Stripe.Subscription & {
+      current_period_end: number;
+    };
 
     // Update subscription record in database
     await supabase
@@ -74,12 +81,11 @@ export async function POST(request: NextRequest) {
       })
       .eq('stripe_subscription_id', cleaner.stripe_subscription_id);
 
-    const periodEnd = (subscription as any).current_period_end;
     return NextResponse.json({
       success: true,
       message: 'Subscription reactivated successfully',
-      nextBillingDate: periodEnd
-        ? new Date(periodEnd * 1000).toISOString()
+      nextBillingDate: subscription.current_period_end
+        ? new Date(subscription.current_period_end * 1000).toISOString()
         : null,
     });
   } catch (error) {
