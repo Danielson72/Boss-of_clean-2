@@ -7,10 +7,13 @@ import { createClient } from '@/lib/supabase/client';
 import {
   Settings, FileText, Clock, CheckCircle, Star, TrendingUp,
   DollarSign, MapPin, Calendar, User, Phone, MessageSquare,
-  Camera, Shield, Award, Zap, Crown, Gift, Inbox, CreditCard
+  Camera, Shield, Award, Zap, Crown, Gift, Inbox, CreditCard, Images
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger({ file: 'app/dashboard/cleaner/page.tsx' });
 
 interface CleanerProfile {
   id: string;
@@ -120,7 +123,7 @@ export default function CleanerDashboard() {
 
       setProfile(data);
     } catch (error) {
-      // console.error('Error loading profile:', error);
+      logger.error('Error loading profile', { function: 'loadCleanerProfile', error });
     }
   };
 
@@ -150,7 +153,7 @@ export default function CleanerDashboard() {
       if (error) throw error;
       setQuotes(data || []);
     } catch (error) {
-      // console.error('Error loading quotes:', error);
+      logger.error('Error loading quotes', { function: 'loadQuotes', error });
     } finally {
       setLoading(false);
     }
@@ -248,7 +251,7 @@ export default function CleanerDashboard() {
                   onClick={() => {
                     import('@/lib/stripe/client').then(({ redirectToBillingPortal }) => {
                       redirectToBillingPortal().catch(error => {
-                        // console.error('Failed to open billing portal:', error);
+                        logger.error('Failed to open billing portal', { function: 'onClick', error });
                         alert('Failed to open billing portal. Please try again.');
                       });
                     });
@@ -415,6 +418,13 @@ export default function CleanerDashboard() {
                       >
                         <Camera className="h-8 w-8 text-blue-600 mx-auto mb-2" />
                         <p className="font-medium">Update Profile</p>
+                      </Link>
+                      <Link
+                        href="/dashboard/cleaner/portfolio"
+                        className="p-4 border rounded-lg hover:shadow-md transition duration-300 text-center border-purple-200 bg-purple-50"
+                      >
+                        <Images className="h-8 w-8 text-purple-600 mx-auto mb-2" />
+                        <p className="font-medium">Portfolio Gallery</p>
                       </Link>
                       <Link
                         href="/dashboard/cleaner/availability"

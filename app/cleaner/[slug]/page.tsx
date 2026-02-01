@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { StartConversationButton } from '@/components/messaging/StartConversationButton';
+import { PublicGallery, PortfolioPhoto } from '@/components/portfolio/PublicGallery';
 import type { BusinessHours } from '@/lib/types/database';
 
 interface CleanerProfile {
@@ -103,6 +104,18 @@ async function getCleanerReviews(cleanerId: string): Promise<Review[]> {
   return data || [];
 }
 
+async function getCleanerPortfolio(cleanerId: string): Promise<PortfolioPhoto[]> {
+  const supabase = await createClient();
+
+  const { data } = await supabase
+    .from('portfolio_photos')
+    .select('id, image_url, thumbnail_url, caption, pair_id, photo_type, display_order')
+    .eq('cleaner_id', cleanerId)
+    .order('display_order', { ascending: true });
+
+  return (data || []) as PortfolioPhoto[];
+}
+
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
   const cleaner = await getCleanerBySlug(slug);
@@ -131,6 +144,7 @@ export default async function CleanerProfilePage({ params }: { params: Promise<{
   }
 
   const reviews = await getCleanerReviews(cleaner.id);
+  const portfolioPhotos = await getCleanerPortfolio(cleaner.id);
 
   const getTierBadge = (tier: string) => {
     const badges: Record<string, { color: string; text: string }> = {
@@ -341,6 +355,14 @@ export default async function CleanerProfilePage({ params }: { params: Promise<{
                 )}
               </div>
             </section>
+
+            {/* Portfolio Gallery */}
+            {portfolioPhotos.length > 0 && (
+              <PublicGallery
+                photos={portfolioPhotos}
+                businessName={cleaner.business_name}
+              />
+            )}
 
             {/* Reviews */}
             <section className="bg-white rounded-xl shadow-sm p-6">
