@@ -1,10 +1,11 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Users, Shield, CheckCircle, Clock } from 'lucide-react'
+import { Users, Shield, CheckCircle, Clock, BarChart3 } from 'lucide-react'
 import { AdminQueueWrapper } from './components/admin-queue-wrapper'
 
 export default async function AdminDashboard() {
@@ -76,11 +77,19 @@ export default async function AdminDashboard() {
 
   return (
     <div className="container mx-auto p-6">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-        <p className="text-muted-foreground mt-2">
-          Manage platform users and cleaner approvals
-        </p>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+        <div>
+          <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+          <p className="text-muted-foreground mt-2">
+            Manage platform users and cleaner approvals
+          </p>
+        </div>
+        <Button asChild>
+          <Link href="/dashboard/admin/analytics">
+            <BarChart3 className="h-4 w-4 mr-2" />
+            View Analytics
+          </Link>
+        </Button>
       </div>
 
       {/* Stats Cards */}
