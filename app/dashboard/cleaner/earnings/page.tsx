@@ -18,6 +18,9 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger({ file: 'app/dashboard/cleaner/earnings/page.tsx' });
 
 export default function EarningsPage() {
   const { user } = useAuth();
@@ -52,7 +55,7 @@ export default function EarningsPage() {
       const data = await analyticsService.getEarningsData(cleanerId);
       setEarningsData(data);
     } catch (error) {
-      // console.error('Error loading earnings data:', error);
+      logger.error('Error loading earnings data', { function: 'loadEarningsData', error });
     } finally {
       setLoading(false);
     }
@@ -88,7 +91,7 @@ export default function EarningsPage() {
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
     } catch (error) {
-      // console.error('Error exporting CSV:', error);
+      logger.error('Error exporting CSV', { function: 'handleExportCSV', error });
       alert('Failed to export earnings data. Please try again.');
     } finally {
       setExporting(false);

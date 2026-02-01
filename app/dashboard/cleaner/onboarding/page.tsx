@@ -16,6 +16,9 @@ import {
 } from '@/components/onboarding'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Loader2, AlertCircle, CheckCircle } from 'lucide-react'
+import { createLogger } from '@/lib/utils/logger'
+
+const logger = createLogger({ file: 'app/dashboard/cleaner/onboarding/page.tsx' })
 
 const AUTO_SAVE_DELAY = 30000 // 30 seconds
 
@@ -83,7 +86,7 @@ export default function CleanerOnboardingPage() {
         }
         setCompletedSteps(completed)
       } catch (err) {
-        // console.error('Error loading draft:', err)
+        logger.error('Error loading draft', { function: 'loadDraft', error: err })
         setError('Failed to load your progress. Please refresh the page.')
       } finally {
         setLoading(false)
@@ -123,7 +126,7 @@ export default function CleanerOnboardingPage() {
       setSaveStatus('saved')
       setTimeout(() => setSaveStatus('idle'), 2000)
     } catch (err) {
-      // console.error('Error saving draft:', err)
+      logger.error('Error saving draft', { function: 'saveDraft', error: err })
       setSaveStatus('error')
     } finally {
       setSaving(false)

@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { ArrowLeft, Star, Shield, Loader2 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/context/AuthContext';
@@ -266,9 +267,11 @@ export default function BookCleanerPage() {
         <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
           <div className="flex items-center gap-4">
             {cleaner.profile_image_url ? (
-              <img
+              <Image
                 src={cleaner.profile_image_url}
                 alt={cleaner.business_name}
+                width={64}
+                height={64}
                 className="w-16 h-16 rounded-full object-cover"
               />
             ) : (

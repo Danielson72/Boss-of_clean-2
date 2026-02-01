@@ -17,6 +17,9 @@ import {
 import type { Invoice, PaymentMethod } from '@/components/billing';
 import { ArrowLeft, CheckCircle, XCircle } from 'lucide-react';
 import Link from 'next/link';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger({ file: 'app/dashboard/cleaner/billing/page.tsx' });
 
 interface BillingData {
   subscription: {
@@ -91,7 +94,7 @@ export default function BillingPage() {
       const data = await response.json();
       setBillingData(data);
     } catch (error) {
-      // console.error('Error fetching billing data:', error);
+      logger.error('Error fetching billing data', { function: 'fetchBillingData', error });
       setNotification({
         type: 'error',
         message: 'Failed to load billing information. Please try again.',
@@ -110,7 +113,7 @@ export default function BillingPage() {
       setUpgradeLoading(true);
       await redirectToBillingPortal();
     } catch (error) {
-      // console.error('Error opening billing portal:', error);
+      logger.error('Error opening billing portal', { function: 'handleManageBilling', error });
       setNotification({
         type: 'error',
         message: 'Failed to open billing portal. Please try again.',
@@ -151,7 +154,7 @@ export default function BillingPage() {
         fetchBillingData();
       }
     } catch (error) {
-      // console.error('Error upgrading plan:', error);
+      logger.error('Error upgrading plan', { function: 'handleSelectPlan', error });
       setNotification({
         type: 'error',
         message: error instanceof Error ? error.message : 'Failed to upgrade plan',
@@ -166,7 +169,7 @@ export default function BillingPage() {
     try {
       await redirectToBillingPortal();
     } catch (error) {
-      // console.error('Error opening billing portal:', error);
+      logger.error('Error opening billing portal', { function: 'handleUpdatePayment', error });
       setNotification({
         type: 'error',
         message: 'Failed to open payment settings. Please try again.',

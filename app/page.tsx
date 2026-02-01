@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { Search, MapPin, Star, CheckCircle, Users, Clock, Shield, Home, Building2, Droplets, Sparkles, Wind, Brush, BadgeCheck, DollarSign, Phone } from 'lucide-react';
 import { HomePageStructuredData } from '@/components/seo';
 
@@ -102,26 +103,28 @@ export default function HomePage() {
       {/* Hero Section */}
       <section className="relative h-[78vh] sm:h-[82vh] md:h-[80vh] flex flex-col pt-8 sm:pt-10 md:pt-12">
         {/* Hero Background Image - Desktop */}
-        <div 
-          className="hidden sm:block absolute inset-0 bg-cover bg-no-repeat"
-          style={{
-            backgroundImage: "url('/images/ChatGPT Image Aug 5, 2025, 05_04_11 PM.png')",
-            backgroundPosition: 'center 20%',
-            backgroundSize: 'cover'
-          }}
-        />
-        
+        <div className="hidden sm:block absolute inset-0">
+          <Image
+            src="/images/hero-1920.webp"
+            alt="Boss of Clean - Florida's #1 Cleaning Directory"
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover object-[center_20%]"
+          />
+        </div>
+
         {/* Hero Background Image - Mobile (shows full scene) */}
-        <div
-          className="block sm:hidden absolute inset-0"
-          style={{
-            backgroundImage: "url('/images/ChatGPT Image Aug 5, 2025, 05_04_11 PM.png')",
-            backgroundPosition: '50% 20%',
-            backgroundSize: 'contain',
-            backgroundRepeat: 'no-repeat',
-            backgroundColor: '#e0f2fe'
-          }}
-        />
+        <div className="block sm:hidden absolute inset-0 bg-[#e0f2fe]">
+          <Image
+            src="/images/hero-640.webp"
+            alt="Boss of Clean - Florida's #1 Cleaning Directory"
+            fill
+            priority
+            sizes="100vw"
+            className="object-contain object-[50%_20%]"
+          />
+        </div>
         
         {/* Content Container */}
         <div className="relative flex-1 flex flex-col justify-end">

@@ -1,7 +1,38 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import {
+  rateLimitMiddleware,
+  getClientIp,
+  RATE_LIMITS,
+} from '@/lib/middleware/rate-limit'
 
 export async function middleware(request: NextRequest) {
+  const pathname = request.nextUrl.pathname
+
+  // --- Rate limiting for auth pages (login/signup) ---
+  if (pathname === '/login' || pathname === '/signup') {
+    // Only rate-limit POST-like mutations; Supabase Auth uses the client SDK
+    // which hits Supabase directly, but we still rate-limit page loads to
+    // deter credential-stuffing bots hammering the pages.
+    const ip = getClientIp(request)
+    const blocked = rateLimitMiddleware(request, 'auth', ip, RATE_LIMITS.auth)
+    if (blocked) return blocked
+  }
+
+  // --- Rate limiting for abuse-prone API routes ---
+  if (pathname === '/api/reviews/create' && request.method === 'POST') {
+    // Rate limit by IP at the middleware level; the route also checks per-user
+    const ip = getClientIp(request)
+    const blocked = rateLimitMiddleware(request, 'review-ip', ip, RATE_LIMITS.reviewCreate)
+    if (blocked) return blocked
+  }
+
+  if (pathname === '/api/messages' && request.method === 'POST') {
+    const ip = getClientIp(request)
+    const blocked = rateLimitMiddleware(request, 'message-ip', ip, RATE_LIMITS.messageSend)
+    if (blocked) return blocked
+  }
+
   let response = NextResponse.next({
     request: {
       headers: request.headers,
@@ -111,9 +142,8 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
-     * - api routes
      * Feel free to modify this pattern to include more paths.
      */
-    '/((?!_next/static|_next/image|favicon.ico|api|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }

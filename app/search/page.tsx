@@ -11,6 +11,9 @@ import {
   CleanerCardProps,
   AvailabilityFilter
 } from '@/components/search';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger({ file: 'app/search/page.tsx' });
 
 const SERVICE_TYPES = [
   'House Cleaning', 'Deep Cleaning', 'Move-in/Move-out Cleaning',
@@ -218,7 +221,7 @@ export default function SearchPage() {
       setTotalCount(count || 0);
       setPage(pageNum);
     } catch (error) {
-      // console.error('Error loading cleaners:', error);
+      logger.error('Error loading cleaners', { function: 'loadCleaners', error });
     } finally {
       setLoading(false);
       setLoadingMore(false);

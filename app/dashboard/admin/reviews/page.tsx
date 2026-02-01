@@ -18,6 +18,9 @@ import {
   Loader2
 } from 'lucide-react';
 import Link from 'next/link';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger({ file: 'app/dashboard/admin/reviews/page.tsx' });
 
 type FilterType = 'all' | 'pending' | 'flagged' | 'published';
 
@@ -87,7 +90,7 @@ export default function AdminReviewsPage() {
       setStats(data.stats);
       setPagination(data.pagination);
     } catch (error) {
-      // console.error('Error loading reviews:', error);
+      logger.error('Error loading reviews', { function: 'loadReviews', error });
     } finally {
       setLoading(false);
     }
@@ -107,7 +110,7 @@ export default function AdminReviewsPage() {
       // Refresh the list
       await loadReviews();
     } catch (error) {
-      // console.error('Error approving review:', error);
+      logger.error('Error approving review', { function: 'handleApprove', error });
     } finally {
       setActionLoading(null);
     }
@@ -126,7 +129,7 @@ export default function AdminReviewsPage() {
 
       await loadReviews();
     } catch (error) {
-      // console.error('Error rejecting review:', error);
+      logger.error('Error rejecting review', { function: 'handleReject', error });
     } finally {
       setActionLoading(null);
     }
@@ -145,7 +148,7 @@ export default function AdminReviewsPage() {
 
       await loadReviews();
     } catch (error) {
-      // console.error('Error flagging review:', error);
+      logger.error('Error flagging review', { function: 'handleFlag', error });
     } finally {
       setActionLoading(null);
     }
@@ -164,7 +167,7 @@ export default function AdminReviewsPage() {
 
       await loadReviews();
     } catch (error) {
-      // console.error('Error editing review:', error);
+      logger.error('Error editing review', { function: 'handleEdit', error });
     } finally {
       setActionLoading(null);
     }

@@ -12,6 +12,9 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger({ file: 'app/dashboard/cleaner/profile/page.tsx' });
 
 interface CleanerProfile {
   id: string;
@@ -97,7 +100,7 @@ export default function CleanerProfilePage() {
         setProfile(created);
       }
     } catch (error) {
-      // console.error('Error loading profile:', error);
+      logger.error('Error loading profile', { function: 'loadProfile', error });
       setMessage('Error loading profile');
     } finally {
       setLoading(false);
@@ -141,7 +144,7 @@ export default function CleanerProfilePage() {
 
       setMessage('Photo uploaded successfully!');
     } catch (error) {
-      // console.error('Error uploading photo:', error);
+      logger.error('Error uploading photo', { function: 'handlePhotoUpload', error });
       setMessage('Error uploading photo');
     } finally {
       setUploading(false);
@@ -182,7 +185,7 @@ export default function CleanerProfilePage() {
       setMessage('Profile updated successfully!');
       setTimeout(() => setMessage(''), 3000);
     } catch (error) {
-      // console.error('Error saving profile:', error);
+      logger.error('Error saving profile', { function: 'handleSave', error });
       setMessage('Error saving profile');
     } finally {
       setSaving(false);

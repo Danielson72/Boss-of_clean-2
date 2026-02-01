@@ -4,6 +4,9 @@ import { useState } from 'react'
 import { Check, Star, Zap, Crown, Gift, Loader2, Users, CheckCircle } from 'lucide-react'
 import { redirectToCheckout } from '@/lib/stripe/client'
 import Link from 'next/link'
+import { createLogger } from '@/lib/utils/logger'
+
+const logger = createLogger({ file: 'app/pricing/page.tsx' })
 
 export default function PricingPage() {
   const [loading, setLoading] = useState<string | null>(null)
@@ -102,7 +105,7 @@ export default function PricingPage() {
     try {
       await redirectToCheckout(planKey)
     } catch (error) {
-      // console.error('Failed to start checkout:', error)
+      logger.error('Failed to start checkout', { function: 'handlePlanSelection', error })
       alert('Failed to start checkout. Please try again.')
     } finally {
       setLoading(null)

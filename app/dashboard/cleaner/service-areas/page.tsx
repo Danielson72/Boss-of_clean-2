@@ -4,11 +4,14 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/context/AuthContext';
 import { ProtectedRoute } from '@/lib/auth/protected-route';
 import { createClient } from '@/lib/supabase/client';
-import { 
+import {
   MapPin, Plus, X, ArrowLeft, Save, DollarSign,
   Search, CheckCircle, AlertCircle
 } from 'lucide-react';
 import Link from 'next/link';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger({ file: 'app/dashboard/cleaner/service-areas/page.tsx' });
 
 interface ServiceArea {
   zip_code: string;
@@ -77,7 +80,7 @@ export default function ServiceAreasPage() {
 
       setServiceAreas(areas);
     } catch (error) {
-      // console.error('Error loading service areas:', error);
+      logger.error('Error loading service areas', { function: 'loadServiceAreas', error });
       setMessage('Error loading service areas');
     } finally {
       setLoading(false);
@@ -132,7 +135,7 @@ export default function ServiceAreasPage() {
       setMessage('Service areas updated successfully!');
       setTimeout(() => setMessage(''), 3000);
     } catch (error) {
-      // console.error('Error saving service areas:', error);
+      logger.error('Error saving service areas', { function: 'saveServiceAreas', error });
       setMessage('Error saving service areas');
     } finally {
       setSaving(false);

@@ -16,6 +16,9 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger({ file: 'app/dashboard/customer/bookings/page.tsx' });
 
 type BookingFilter = 'all' | 'upcoming' | 'past' | 'cancelled';
 
@@ -63,7 +66,7 @@ export default function CustomerBookingsPage() {
       if (error) throw error;
       setBookings(data || []);
     } catch (error) {
-      // console.error('Error loading bookings:', error);
+      logger.error('Error loading bookings', { function: 'loadBookings', error });
     } finally {
       setLoading(false);
     }

@@ -22,6 +22,9 @@ import {
   Phone,
 } from 'lucide-react';
 import Link from 'next/link';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger({ file: 'app/dashboard/cleaner/leads/page.tsx' });
 
 interface Lead {
   id: string;
@@ -151,7 +154,7 @@ export default function LeadsPage() {
       }));
       setLeads(normalized);
     } catch (error) {
-      // console.error('Error loading leads:', error);
+      logger.error('Error loading leads', { function: 'loadData', error });
     } finally {
       setLoading(false);
     }
@@ -206,7 +209,7 @@ export default function LeadsPage() {
       await loadData();
       setViewingLead(null);
     } catch (error) {
-      // console.error('Error claiming lead:', error);
+      logger.error('Error claiming lead', { function: 'handleClaimLead', error });
       alert('An error occurred while claiming the lead.');
     } finally {
       setClaimingLead(false);

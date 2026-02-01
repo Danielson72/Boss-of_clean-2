@@ -21,6 +21,9 @@ import {
   Search,
 } from 'lucide-react';
 import Link from 'next/link';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger({ file: 'app/dashboard/cleaner/quote-requests/page.tsx' });
 
 interface QuoteRequest {
   id: string;
@@ -139,7 +142,7 @@ export default function QuoteRequestsPage() {
         setQuotes(data || []);
       }
     } catch (error) {
-      // console.error('Error loading quotes:', error);
+      logger.error('Error loading quotes', { function: 'loadQuotes', error });
     } finally {
       setLoading(false);
     }
@@ -169,7 +172,7 @@ export default function QuoteRequestsPage() {
       setResponsePrice('');
       setResponseMessage('');
     } catch (error) {
-      // console.error('Error responding to quote:', error);
+      logger.error('Error responding to quote', { function: 'handleRespond', error });
     } finally {
       setSubmitting(false);
     }

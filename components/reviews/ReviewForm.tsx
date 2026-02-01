@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { Star, Upload, X, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -186,10 +187,12 @@ export function ReviewForm({ bookingId, cleanerName, onSuccess }: ReviewFormProp
         <div className="flex flex-wrap gap-3">
           {photoPreviewUrls.map((url, index) => (
             <div key={index} className="relative w-24 h-24">
-              <img
+              <Image
                 src={url}
                 alt={`Review photo ${index + 1}`}
-                className="w-full h-full object-cover rounded-lg border"
+                fill
+                sizes="96px"
+                className="object-cover rounded-lg border"
               />
               <button
                 type="button"

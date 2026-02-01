@@ -9,6 +9,9 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { WeeklySchedule, DaySchedule, createDefaultSchedule } from '@/components/availability/WeeklySchedule';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger({ file: 'app/dashboard/cleaner/availability/page.tsx' });
 
 interface BlockedDate {
   id?: string;
@@ -91,7 +94,7 @@ export default function AvailabilityPage() {
         })));
       }
     } catch (error) {
-      // console.error('Error loading availability:', error);
+      logger.error('Error loading availability', { function: 'loadAvailability', error });
       setMessage('Error loading availability settings');
     } finally {
       setLoading(false);
@@ -147,7 +150,7 @@ export default function AvailabilityPage() {
       setMessage('Availability saved successfully!');
       setTimeout(() => setMessage(''), 3000);
     } catch (error) {
-      // console.error('Error saving availability:', error);
+      logger.error('Error saving availability', { function: 'handleSave', error });
       setMessage('Error saving availability settings');
     } finally {
       setSaving(false);
@@ -178,7 +181,7 @@ export default function AvailabilityPage() {
       setNewBlockedDate('');
       setNewBlockedReason('');
     } catch (error) {
-      // console.error('Error adding blocked date:', error);
+      logger.error('Error adding blocked date', { function: 'addBlockedDate', error });
       setMessage('Error adding blocked date');
     }
   };
@@ -194,7 +197,7 @@ export default function AvailabilityPage() {
 
       setBlockedDates(blockedDates.filter((d) => d.id !== dateId));
     } catch (error) {
-      // console.error('Error removing blocked date:', error);
+      logger.error('Error removing blocked date', { function: 'removeBlockedDate', error });
       setMessage('Error removing blocked date');
     }
   };

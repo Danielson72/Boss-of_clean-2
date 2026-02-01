@@ -4,6 +4,9 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/context/AuthContext';
 import { ProtectedRoute } from '@/lib/auth/protected-route';
 import { createClient } from '@/lib/supabase/client';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger({ file: 'app/settings/page.tsx' });
 import { 
   ArrowLeft, Save, User, Bell, Shield, CreditCard, 
   LogOut, Trash2, Mail, Phone, MapPin, CheckCircle, X
@@ -57,7 +60,7 @@ export default function SettingsPage() {
         sms_notifications: data.sms_notifications ?? false
       });
     } catch (error) {
-      // console.error('Error loading settings:', error);
+      logger.error('Error loading settings', { function: 'loadSettings', error });
       setMessage('Error loading settings');
     } finally {
       setLoading(false);
@@ -88,7 +91,7 @@ export default function SettingsPage() {
       setMessage('Settings saved successfully!');
       setTimeout(() => setMessage(''), 3000);
     } catch (error) {
-      // console.error('Error saving settings:', error);
+      logger.error('Error saving settings', { function: 'handleSave', error });
       setMessage('Error saving settings');
     } finally {
       setSaving(false);

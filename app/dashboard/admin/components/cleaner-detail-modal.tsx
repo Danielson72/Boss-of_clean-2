@@ -32,6 +32,9 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { getCleanerDetails, verifyDocument, approveCleaner, rejectCleaner } from '../actions'
+import { createLogger } from '@/lib/utils/logger'
+
+const logger = createLogger({ file: 'app/dashboard/admin/components/cleaner-detail-modal.tsx' })
 
 interface CleanerDetailModalProps {
   cleanerId: string | null
@@ -123,7 +126,7 @@ export function CleanerDetailModal({ cleanerId, isOpen, onClose }: CleanerDetail
         toast.error(result.error || 'Failed to load details')
       }
     } catch (error) {
-      // console.error('Error loading details:', error)
+      logger.error('Error loading details', { function: 'loadDetails', error })
       toast.error('Failed to load cleaner details')
     } finally {
       setLoading(false)

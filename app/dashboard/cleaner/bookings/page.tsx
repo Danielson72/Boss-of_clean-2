@@ -15,6 +15,9 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger({ file: 'app/dashboard/cleaner/bookings/page.tsx' });
 
 type BookingFilter = 'all' | 'pending' | 'upcoming' | 'completed' | 'cancelled';
 type ViewMode = 'list' | 'calendar';
@@ -61,7 +64,7 @@ export default function CleanerBookingsPage() {
       if (error) throw error;
       setBookings(data || []);
     } catch (error) {
-      // console.error('Error loading bookings:', error);
+      logger.error('Error loading bookings', { function: 'loadBookings', error });
     } finally {
       setLoading(false);
     }

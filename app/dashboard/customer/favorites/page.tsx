@@ -7,6 +7,9 @@ import { FavoriteButton } from '@/components/FavoriteButton';
 import { Star, MapPin, Clock, Shield, Sparkles, Heart, ArrowLeft, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger({ file: 'app/dashboard/customer/favorites/page.tsx' });
 
 interface FavoriteCleaner {
   id: string;
@@ -50,7 +53,7 @@ export default function CustomerFavoritesPage() {
       const data = await response.json();
       setFavorites(data.favorites || []);
     } catch (error) {
-      // console.error('Error loading favorites:', error);
+      logger.error('Error loading favorites', { function: 'loadFavorites', error });
     } finally {
       setLoading(false);
     }

@@ -26,6 +26,9 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { approveCleaner, rejectCleaner, requestCleanerInfo } from '../actions'
+import { createLogger } from '@/lib/utils/logger'
+
+const logger = createLogger({ file: 'app/dashboard/admin/components/approval-queue.tsx' })
 
 interface CleanerApplication {
   id: string
@@ -116,7 +119,7 @@ export function ApprovalQueue({ applications, onViewDetails }: ApprovalQueueProp
         toast.error(result?.error || 'Action failed')
       }
     } catch (error) {
-      // console.error('Action error:', error)
+      logger.error('Action error', { function: 'handleAction', error })
       toast.error('An unexpected error occurred')
     } finally {
       setLoading(false)

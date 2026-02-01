@@ -197,7 +197,7 @@
       "title": "API rate limiting middleware",
       "description": "Add rate limiting to public-facing and abuse-prone API endpoints. Use in-memory rate limiter (or Supabase-backed for persistence) with configurable limits per endpoint. Apply to quote requests, reviews, messages, and auth endpoints.",
       "priority": "high",
-      "status": "pending",
+      "status": "done",
       "estimatedMinutes": 50,
       "dependencies": [],
       "acceptanceCriteria": [
@@ -228,7 +228,7 @@
       "title": "Remove console.log statements and add logger",
       "description": "Create a structured logger utility to replace ~127 console.log statements across the codebase. Logger should support log levels (debug, info, warn, error), be environment-aware (silent in production for debug/info), and provide consistent formatting.",
       "priority": "medium",
-      "status": "pending",
+      "status": "done",
       "estimatedMinutes": 60,
       "dependencies": [],
       "acceptanceCriteria": [
@@ -254,7 +254,7 @@
       "title": "Replace 'any' types with proper TypeScript types",
       "description": "Create centralized type definitions and replace ~26 usages of 'any' type across the codebase. Add database types generated from Supabase schema and shared API response types.",
       "priority": "medium",
-      "status": "pending",
+      "status": "done",
       "estimatedMinutes": 50,
       "dependencies": [],
       "acceptanceCriteria": [
@@ -282,7 +282,7 @@
       "title": "Accessibility audit and fixes",
       "description": "Comprehensive accessibility pass across the application. Add missing alt text to images, aria-labels to interactive elements, ensure keyboard navigation works for all flows, and proper focus management on modals and dynamic content.",
       "priority": "medium",
-      "status": "pending",
+      "status": "done",
       "estimatedMinutes": 60,
       "dependencies": [],
       "acceptanceCriteria": [
@@ -313,7 +313,7 @@
       "title": "Admin analytics dashboard",
       "description": "Build analytics dashboard for admin users with key business metrics. Show total users, cleaners, bookings, revenue, and conversion rates. Include charts for signups over time and revenue trends.",
       "priority": "medium",
-      "status": "pending",
+      "status": "done",
       "estimatedMinutes": 75,
       "dependencies": [],
       "acceptanceCriteria": [
@@ -344,7 +344,7 @@
       "title": "Cleaner portfolio gallery",
       "description": "Allow cleaners to upload before/after photos to showcase their work. Photos stored in Supabase Storage, displayed as gallery on cleaner profile. Support image upload, reorder, delete, and captions.",
       "priority": "medium",
-      "status": "pending",
+      "status": "done",
       "estimatedMinutes": 70,
       "dependencies": [],
       "acceptanceCriteria": [

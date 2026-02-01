@@ -16,6 +16,9 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger({ file: 'app/dashboard/cleaner/reviews/page.tsx' });
 
 interface Review {
   id: string;
@@ -60,7 +63,7 @@ export default function CleanerReviewsPage() {
       if (error) throw error;
       setReviews(data || []);
     } catch (error) {
-      // console.error('Error loading reviews:', error);
+      logger.error('Error loading reviews', { function: 'loadReviews', error });
     } finally {
       setLoading(false);
     }
