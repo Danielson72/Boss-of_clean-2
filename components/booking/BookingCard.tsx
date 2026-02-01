@@ -100,10 +100,13 @@ export function BookingCard({ booking, onReschedule, onCancel }: BookingCardProp
   const isPast = new Date(`${booking.booking_date}T${booking.end_time}`) < new Date();
 
   return (
-    <div className={cn(
-      'border rounded-lg p-6 transition duration-300',
-      booking.status === 'cancelled' ? 'opacity-75 bg-gray-50' : 'bg-white hover:shadow-md'
-    )}>
+    <article
+      className={cn(
+        'border rounded-lg p-6 transition duration-300',
+        booking.status === 'cancelled' ? 'opacity-75 bg-gray-50' : 'bg-white hover:shadow-md'
+      )}
+      aria-label={`Booking with ${booking.cleaner.business_name} on ${formatDate(booking.booking_date)}`}
+    >
       <div className="flex justify-between items-start">
         <div className="flex-1">
           {/* Header: business name + status */}
@@ -111,57 +114,73 @@ export function BookingCard({ booking, onReschedule, onCancel }: BookingCardProp
             <h3 className="text-lg font-semibold text-gray-900">
               {booking.cleaner.business_name}
             </h3>
-            <span className={cn(
-              'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium',
-              getStatusStyles(booking.status)
-            )}>
+            <span
+              className={cn(
+                'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium',
+                getStatusStyles(booking.status)
+              )}
+              role="status"
+              aria-label={`Booking status: ${booking.status}`}
+            >
               {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
             </span>
             {isPast && booking.status === 'confirmed' && (
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium text-blue-700 bg-blue-100">
+              <span
+                className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium text-blue-700 bg-blue-100"
+                role="status"
+              >
                 Past
               </span>
             )}
           </div>
 
           {/* Booking details grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-gray-600">
+          <dl className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-gray-600">
             <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-blue-600" />
-              <span>{formatDate(booking.booking_date)}</span>
+              <Calendar className="h-4 w-4 text-blue-600" aria-hidden="true" />
+              <dt className="sr-only">Date</dt>
+              <dd>{formatDate(booking.booking_date)}</dd>
             </div>
             <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-blue-600" />
-              <span>
+              <Clock className="h-4 w-4 text-blue-600" aria-hidden="true" />
+              <dt className="sr-only">Time</dt>
+              <dd>
                 {formatTime(booking.start_time)} - {formatTime(booking.end_time)} ({booking.estimated_hours}h)
-              </span>
+              </dd>
             </div>
             <div className="flex items-center gap-2">
-              <Home className="h-4 w-4 text-blue-600" />
-              <span>
+              <Home className="h-4 w-4 text-blue-600" aria-hidden="true" />
+              <dt className="sr-only">Service</dt>
+              <dd>
                 {formatServiceType(booking.service_type)} - {booking.bedrooms}bd/{booking.bathrooms}ba
-              </span>
+              </dd>
             </div>
             <div className="flex items-center gap-2">
-              <DollarSign className="h-4 w-4 text-blue-600" />
-              <span className="font-medium">${booking.estimated_price.toFixed(2)}</span>
+              <DollarSign className="h-4 w-4 text-blue-600" aria-hidden="true" />
+              <dt className="sr-only">Price</dt>
+              <dd className="font-medium">${booking.estimated_price.toFixed(2)}</dd>
             </div>
             <div className="flex items-center gap-2">
-              <MapPin className="h-4 w-4 text-blue-600" />
-              <span>{booking.address}</span>
+              <MapPin className="h-4 w-4 text-blue-600" aria-hidden="true" />
+              <dt className="sr-only">Address</dt>
+              <dd>{booking.address}</dd>
             </div>
             {booking.cleaner.business_phone && (
               <div className="flex items-center gap-2">
-                <Phone className="h-4 w-4 text-blue-600" />
-                <span>{booking.cleaner.business_phone}</span>
+                <Phone className="h-4 w-4 text-blue-600" aria-hidden="true" />
+                <dt className="sr-only">Phone</dt>
+                <dd>{booking.cleaner.business_phone}</dd>
               </div>
             )}
-          </div>
+          </dl>
 
           {/* Cleaner rating */}
           {booking.cleaner.average_rating > 0 && (
-            <div className="flex items-center gap-1 mt-3 text-sm text-gray-600">
-              <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
+            <div
+              className="flex items-center gap-1 mt-3 text-sm text-gray-600"
+              aria-label={`Cleaner rating: ${booking.cleaner.average_rating.toFixed(1)} out of 5 stars`}
+            >
+              <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" aria-hidden="true" />
               <span>{booking.cleaner.average_rating.toFixed(1)}</span>
             </div>
           )}
@@ -187,43 +206,45 @@ export function BookingCard({ booking, onReschedule, onCancel }: BookingCardProp
 
         {/* Action buttons */}
         {booking.status === 'confirmed' && !isPast && (
-          <div className="ml-4 flex flex-col gap-2">
+          <div className="ml-4 flex flex-col gap-2" role="group" aria-label="Booking actions">
             <button
               onClick={() => onReschedule(booking)}
               disabled={!modifiable}
               className={cn(
-                'flex items-center gap-1.5 px-3 py-2 text-sm rounded-md transition',
+                'flex items-center gap-1.5 px-3 py-2 text-sm rounded-md transition focus:outline-none focus:ring-2 focus:ring-blue-500',
                 modifiable
                   ? 'text-blue-700 bg-blue-50 hover:bg-blue-100'
                   : 'text-gray-400 bg-gray-50 cursor-not-allowed'
               )}
-              title={!modifiable ? 'Must reschedule at least 24 hours before service' : undefined}
+              aria-label={modifiable ? `Reschedule booking with ${booking.cleaner.business_name}` : 'Reschedule unavailable - must be at least 24 hours before service'}
+              aria-disabled={!modifiable}
             >
-              <RefreshCw className="h-4 w-4" />
+              <RefreshCw className="h-4 w-4" aria-hidden="true" />
               Reschedule
             </button>
             <button
               onClick={() => onCancel(booking)}
               disabled={!modifiable}
               className={cn(
-                'flex items-center gap-1.5 px-3 py-2 text-sm rounded-md transition',
+                'flex items-center gap-1.5 px-3 py-2 text-sm rounded-md transition focus:outline-none focus:ring-2 focus:ring-red-500',
                 modifiable
                   ? 'text-red-700 bg-red-50 hover:bg-red-100'
                   : 'text-gray-400 bg-gray-50 cursor-not-allowed'
               )}
-              title={!modifiable ? 'Must cancel at least 24 hours before service' : undefined}
+              aria-label={modifiable ? `Cancel booking with ${booking.cleaner.business_name}` : 'Cancel unavailable - must be at least 24 hours before service'}
+              aria-disabled={!modifiable}
             >
-              <XCircle className="h-4 w-4" />
+              <XCircle className="h-4 w-4" aria-hidden="true" />
               Cancel
             </button>
             {!modifiable && (
-              <p className="text-xs text-gray-500 max-w-[140px]">
+              <p className="text-xs text-gray-500 max-w-[140px]" aria-live="polite">
                 24h policy: too late to modify
               </p>
             )}
           </div>
         )}
       </div>
-    </div>
+    </article>
   );
 }

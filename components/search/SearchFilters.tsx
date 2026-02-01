@@ -98,70 +98,86 @@ export function SearchFilters({
         </h1>
 
         {/* Main Search Form */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <form role="search" onSubmit={(e) => e.preventDefault()} className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {/* Location Input */}
           <div className="relative">
-            <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <label htmlFor="location-input" className="sr-only">Enter ZIP, city, or county</label>
+            <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" aria-hidden="true" />
             <input
+              id="location-input"
               type="text"
               placeholder="Enter ZIP, city, or county"
               value={filters.location}
               onChange={(e) => updateFilter('location', e.target.value)}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              aria-describedby="location-help"
             />
+            <span id="location-help" className="sr-only">Search for cleaners by location</span>
           </div>
 
           {/* ZIP Code Dropdown */}
-          <select
-            value={filters.selectedZip}
-            onChange={(e) => updateFilter('selectedZip', e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            <option value="">Select ZIP Code</option>
-            {zipCodes.map(zip => (
-              <option key={zip} value={zip}>{zip}</option>
-            ))}
-          </select>
+          <div>
+            <label htmlFor="zip-select" className="sr-only">Select ZIP Code</label>
+            <select
+              id="zip-select"
+              value={filters.selectedZip}
+              onChange={(e) => updateFilter('selectedZip', e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="">Select ZIP Code</option>
+              {zipCodes.map(zip => (
+                <option key={zip} value={zip}>{zip}</option>
+              ))}
+            </select>
+          </div>
 
           {/* Service Type */}
-          <select
-            value={filters.selectedService}
-            onChange={(e) => updateFilter('selectedService', e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            <option value="">All Services</option>
-            {serviceTypes.map(service => (
-              <option key={service} value={service}>{service}</option>
-            ))}
-          </select>
+          <div>
+            <label htmlFor="service-select" className="sr-only">Select Service Type</label>
+            <select
+              id="service-select"
+              value={filters.selectedService}
+              onChange={(e) => updateFilter('selectedService', e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="">All Services</option>
+              {serviceTypes.map(service => (
+                <option key={service} value={service}>{service}</option>
+              ))}
+            </select>
+          </div>
 
           {/* Filter Toggle */}
           <button
+            type="button"
             onClick={() => setShowAdvanced(!showAdvanced)}
-            className="flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+            className="flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            aria-expanded={showAdvanced}
+            aria-controls="advanced-filters"
           >
-            <Filter className="h-4 w-4" />
+            <Filter className="h-4 w-4" aria-hidden="true" />
             Filters
             {activeFilterCount > 0 && (
-              <span className="bg-blue-600 text-white text-xs px-1.5 py-0.5 rounded-full min-w-[20px]">
+              <span className="bg-blue-600 text-white text-xs px-1.5 py-0.5 rounded-full min-w-[20px]" aria-label={`${activeFilterCount} active filters`}>
                 {activeFilterCount}
               </span>
             )}
-            <ChevronDown className={`h-4 w-4 transition-transform ${showAdvanced ? 'rotate-180' : ''}`} />
+            <ChevronDown className={`h-4 w-4 transition-transform ${showAdvanced ? 'rotate-180' : ''}`} aria-hidden="true" />
           </button>
-        </div>
+        </form>
 
         {/* Advanced Filters */}
         {showAdvanced && (
-          <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+          <div id="advanced-filters" className="mt-6 p-4 bg-gray-50 rounded-lg" role="region" aria-label="Advanced search filters">
             <div className="flex justify-between items-center mb-4">
-              <span className="text-sm font-medium text-gray-700">Advanced Filters</span>
+              <span className="text-sm font-medium text-gray-700" id="advanced-filters-heading">Advanced Filters</span>
               {hasActiveFilters && (
                 <button
                   onClick={clearFilters}
-                  className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                  className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
+                  aria-label="Clear all filters"
                 >
-                  <X className="h-3 w-3" />
+                  <X className="h-3 w-3" aria-hidden="true" />
                   Clear all
                 </button>
               )}
@@ -169,43 +185,48 @@ export function SearchFilters({
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {/* Minimum Rating */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  <Star className="h-4 w-4 inline mr-1 text-yellow-500" />
+              <fieldset>
+                <legend className="block text-sm font-medium text-gray-700 mb-2">
+                  <Star className="h-4 w-4 inline mr-1 text-yellow-500" aria-hidden="true" />
                   Minimum Rating
-                </label>
-                <div className="flex gap-1">
+                </legend>
+                <div className="flex gap-1" role="radiogroup" aria-label="Select minimum rating">
                   {[0, 1, 2, 3, 4, 5].map((rating) => (
                     <button
                       key={rating}
+                      type="button"
                       onClick={() => updateFilter('minRating', rating)}
-                      className={`flex items-center justify-center px-3 py-2 border rounded-md text-sm transition-colors ${
+                      className={`flex items-center justify-center px-3 py-2 border rounded-md text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                         filters.minRating === rating
                           ? 'bg-blue-600 text-white border-blue-600'
                           : 'bg-white text-gray-700 border-gray-300 hover:border-blue-400'
                       }`}
+                      role="radio"
+                      aria-checked={filters.minRating === rating}
+                      aria-label={rating === 0 ? 'Any rating' : `${rating} stars minimum`}
                     >
                       {rating === 0 ? 'Any' : (
                         <span className="flex items-center gap-0.5">
                           {rating}
-                          <Star className="h-3 w-3 fill-current" />
+                          <Star className="h-3 w-3 fill-current" aria-hidden="true" />
                         </span>
                       )}
                     </button>
                   ))}
                 </div>
-              </div>
+              </fieldset>
 
               {/* Availability */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  <Calendar className="h-4 w-4 inline mr-1 text-blue-500" />
+                <label htmlFor="availability-select" className="block text-sm font-medium text-gray-700 mb-2">
+                  <Calendar className="h-4 w-4 inline mr-1 text-blue-500" aria-hidden="true" />
                   Availability
                 </label>
                 <select
+                  id="availability-select"
                   value={filters.availability}
                   onChange={(e) => updateFilter('availability', e.target.value as AvailabilityFilter)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="any">Any Time</option>
                   <option value="today">Available Today</option>
@@ -216,10 +237,11 @@ export function SearchFilters({
 
               {/* Price Range */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="price-range" className="block text-sm font-medium text-gray-700 mb-2">
                   Max Price: ${filters.priceRange[1] >= 200 ? '200+' : filters.priceRange[1]}/hour
                 </label>
                 <input
+                  id="price-range"
                   type="range"
                   min="20"
                   max="200"
@@ -227,8 +249,12 @@ export function SearchFilters({
                   value={filters.priceRange[1]}
                   onChange={(e) => updateFilter('priceRange', [filters.priceRange[0], parseInt(e.target.value)])}
                   className="w-full accent-blue-600"
+                  aria-valuemin={20}
+                  aria-valuemax={200}
+                  aria-valuenow={filters.priceRange[1]}
+                  aria-valuetext={`$${filters.priceRange[1] >= 200 ? '200+' : filters.priceRange[1]} per hour maximum`}
                 />
-                <div className="flex justify-between text-xs text-gray-500 mt-1">
+                <div className="flex justify-between text-xs text-gray-500 mt-1" aria-hidden="true">
                   <span>$20</span>
                   <span>$200+</span>
                 </div>
@@ -236,13 +262,14 @@ export function SearchFilters({
 
               {/* Experience */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="experience-select" className="block text-sm font-medium text-gray-700 mb-2">
                   Minimum Experience
                 </label>
                 <select
+                  id="experience-select"
                   value={filters.experienceMin}
                   onChange={(e) => updateFilter('experienceMin', parseInt(e.target.value))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value={0}>Any Experience</option>
                   <option value={1}>1+ Years</option>
@@ -254,18 +281,18 @@ export function SearchFilters({
             </div>
 
             {/* Service Types Checkboxes */}
-            <div className="mt-6">
-              <label className="block text-sm font-medium text-gray-700 mb-3">
+            <fieldset className="mt-6">
+              <legend className="block text-sm font-medium text-gray-700 mb-3">
                 Service Types
                 {filters.selectedServices && filters.selectedServices.length > 0 && (
-                  <span className="ml-2 text-blue-600">({filters.selectedServices.length} selected)</span>
+                  <span className="ml-2 text-blue-600" aria-live="polite">({filters.selectedServices.length} selected)</span>
                 )}
-              </label>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+              </legend>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2" role="group">
                 {serviceTypes.map((service) => (
                   <label
                     key={service}
-                    className={`flex items-center p-2 rounded-md cursor-pointer border transition-colors ${
+                    className={`flex items-center p-2 rounded-md cursor-pointer border transition-colors focus-within:ring-2 focus-within:ring-blue-500 ${
                       (filters.selectedServices || []).includes(service)
                         ? 'bg-blue-50 border-blue-300'
                         : 'bg-white border-gray-200 hover:border-gray-300'
@@ -275,51 +302,55 @@ export function SearchFilters({
                       type="checkbox"
                       checked={(filters.selectedServices || []).includes(service)}
                       onChange={() => toggleService(service)}
-                      className="mr-2 h-4 w-4 text-blue-600 rounded"
+                      className="mr-2 h-4 w-4 text-blue-600 rounded focus:ring-blue-500"
+                      aria-label={`Filter by ${service}`}
                     />
                     <span className="text-sm text-gray-700 truncate">{service}</span>
                   </label>
                 ))}
               </div>
-            </div>
+            </fieldset>
 
             {/* Quick Filters Row */}
-            <div className="mt-6 flex flex-wrap gap-4">
-              <label className="flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={filters.instantBookingOnly}
-                  onChange={(e) => updateFilter('instantBookingOnly', e.target.checked)}
-                  className="mr-2 h-4 w-4 text-blue-600 rounded"
-                />
-                <span className="text-sm font-medium text-gray-700">
-                  Instant booking only
-                </span>
-              </label>
-              <label className="flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={filters.certifiedOnly}
-                  onChange={(e) => updateFilter('certifiedOnly', e.target.checked)}
-                  className="mr-2 h-4 w-4 text-blue-600 rounded"
-                />
-                <span className="text-sm font-medium text-gray-700 flex items-center gap-1">
-                  <BadgeCheck className="h-4 w-4 text-green-600" />
-                  Boss of Clean Certified
-                </span>
-              </label>
-              <label className="flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={filters.verifiedOnly}
-                  onChange={(e) => updateFilter('verifiedOnly', e.target.checked)}
-                  className="mr-2 h-4 w-4 text-blue-600 rounded"
-                />
-                <span className="text-sm font-medium text-gray-700">
-                  Verified cleaners only
-                </span>
-              </label>
-            </div>
+            <fieldset className="mt-6">
+              <legend className="sr-only">Quick filter options</legend>
+              <div className="flex flex-wrap gap-4">
+                <label className="flex items-center cursor-pointer focus-within:ring-2 focus-within:ring-blue-500 rounded p-1">
+                  <input
+                    type="checkbox"
+                    checked={filters.instantBookingOnly}
+                    onChange={(e) => updateFilter('instantBookingOnly', e.target.checked)}
+                    className="mr-2 h-4 w-4 text-blue-600 rounded focus:ring-blue-500"
+                  />
+                  <span className="text-sm font-medium text-gray-700">
+                    Instant booking only
+                  </span>
+                </label>
+                <label className="flex items-center cursor-pointer focus-within:ring-2 focus-within:ring-blue-500 rounded p-1">
+                  <input
+                    type="checkbox"
+                    checked={filters.certifiedOnly}
+                    onChange={(e) => updateFilter('certifiedOnly', e.target.checked)}
+                    className="mr-2 h-4 w-4 text-blue-600 rounded focus:ring-blue-500"
+                  />
+                  <span className="text-sm font-medium text-gray-700 flex items-center gap-1">
+                    <BadgeCheck className="h-4 w-4 text-green-600" aria-hidden="true" />
+                    Boss of Clean Certified
+                  </span>
+                </label>
+                <label className="flex items-center cursor-pointer focus-within:ring-2 focus-within:ring-blue-500 rounded p-1">
+                  <input
+                    type="checkbox"
+                    checked={filters.verifiedOnly}
+                    onChange={(e) => updateFilter('verifiedOnly', e.target.checked)}
+                    className="mr-2 h-4 w-4 text-blue-600 rounded focus:ring-blue-500"
+                  />
+                  <span className="text-sm font-medium text-gray-700">
+                    Verified cleaners only
+                  </span>
+                </label>
+              </div>
+            </fieldset>
           </div>
         )}
       </div>

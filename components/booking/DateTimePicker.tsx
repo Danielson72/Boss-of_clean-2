@@ -178,10 +178,12 @@ export function DateTimePicker({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" role="group" aria-labelledby="datetime-picker-heading">
+      <h2 id="datetime-picker-heading" className="sr-only">Select appointment date and time</h2>
+
       {/* Date Selection */}
-      <div>
-        <h3 className="text-sm font-medium text-gray-700 mb-2">Select a Date</h3>
+      <fieldset>
+        <legend className="text-sm font-medium text-gray-700 mb-2">Select a Date</legend>
         <div className="border rounded-lg p-2 inline-block">
           <Calendar
             mode="single"
@@ -191,42 +193,49 @@ export function DateTimePicker({
             fromDate={new Date()}
           />
         </div>
-      </div>
+      </fieldset>
 
       {/* Time Selection */}
       {selectedDate && (
-        <div>
-          <h3 className="text-sm font-medium text-gray-700 mb-2">
+        <fieldset>
+          <legend className="text-sm font-medium text-gray-700 mb-2">
             Available Times for{' '}
             {selectedDate.toLocaleDateString('en-US', {
               weekday: 'long',
               month: 'long',
               day: 'numeric',
             })}
-          </h3>
+          </legend>
           {timeSlots.length === 0 ? (
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-500" role="status">
               No available time slots for this date. Please select another date.
             </p>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            <div
+              className="grid grid-cols-2 sm:grid-cols-3 gap-2"
+              role="radiogroup"
+              aria-label="Select a time slot"
+            >
               {timeSlots.map((slot) => (
                 <button
                   key={slot.start_time}
                   type="button"
+                  role="radio"
+                  aria-checked={selectedTime === slot.start_time}
                   onClick={() => onTimeChange(slot.start_time)}
-                  className={`px-3 py-2 text-sm rounded-md border transition-colors ${
+                  className={`px-3 py-2 text-sm rounded-md border transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                     selectedTime === slot.start_time
                       ? 'bg-blue-600 text-white border-blue-600'
                       : 'bg-white text-gray-700 border-gray-300 hover:border-blue-400 hover:bg-blue-50'
                   }`}
+                  aria-label={`${formatTime(slot.start_time)} to ${formatTime(slot.end_time)}`}
                 >
                   {formatTime(slot.start_time)} - {formatTime(slot.end_time)}
                 </button>
               ))}
             </div>
           )}
-        </div>
+        </fieldset>
       )}
     </div>
   );
