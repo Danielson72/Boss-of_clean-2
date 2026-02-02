@@ -6,6 +6,8 @@ import {
   Star, DollarSign, Award, Shield, BadgeCheck,
   CheckCircle2, MessageSquare, Phone, User
 } from 'lucide-react';
+import { getCleanerBadges, type EarnedBadge } from '@/lib/services/badges';
+import { CompactBadgeDisplay } from '@/components/badges/BadgeDisplay';
 
 export interface CleanerCardProps {
   id: string;
@@ -28,6 +30,7 @@ export interface CleanerCardProps {
   isCertified?: boolean;
   instantBooking?: boolean;
   businessPhone?: string;
+  responseTimeHours?: number;
   onRequestQuote?: (cleanerId: string) => void;
 }
 
@@ -52,16 +55,27 @@ export function CleanerCard({
   isCertified,
   instantBooking,
   businessPhone,
+  responseTimeHours,
   onRequestQuote
 }: CleanerCardProps) {
+  // Calculate badges for this cleaner
+  const earnedBadges = getCleanerBadges({
+    id,
+    average_rating: averageRating,
+    total_reviews: totalReviews,
+    insurance_verified: insuranceVerified,
+    license_verified: licenseVerified,
+    response_time_hours: responseTimeHours,
+  });
+
   const getTierBadge = (tier: string) => {
-    const badges: Record<string, { color: string; text: string }> = {
+    const tierOptions: Record<string, { color: string; text: string }> = {
       'enterprise': { color: 'bg-yellow-100 text-yellow-800', text: 'Enterprise' },
       'pro': { color: 'bg-purple-100 text-purple-800', text: 'Pro' },
       'basic': { color: 'bg-blue-100 text-blue-800', text: 'Basic' },
       'free': { color: 'bg-gray-100 text-gray-800', text: 'Basic' }
     };
-    return badges[tier] || badges.free;
+    return tierOptions[tier] || tierOptions.free;
   };
 
   const tierBadge = getTierBadge(subscriptionTier);
@@ -123,7 +137,7 @@ export function CleanerCard({
 
       <div className="p-6">
         {/* Business Name & Rating */}
-        <div className="flex justify-between items-start mb-3">
+        <div className="flex justify-between items-start mb-2">
           <Link href={profileUrl} className="hover:text-blue-600">
             <h3 className="text-lg font-semibold text-gray-900">
               {businessName}
@@ -139,6 +153,13 @@ export function CleanerCard({
             </span>
           </div>
         </div>
+
+        {/* Achievement Badges */}
+        {earnedBadges.length > 0 && (
+          <div className="mb-3">
+            <CompactBadgeDisplay badges={earnedBadges} />
+          </div>
+        )}
 
         {/* Description */}
         <p className="text-gray-600 text-sm mb-4 line-clamp-2">

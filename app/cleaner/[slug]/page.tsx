@@ -11,6 +11,8 @@ import Link from 'next/link';
 import { StartConversationButton } from '@/components/messaging/StartConversationButton';
 import { PublicGallery, PortfolioPhoto } from '@/components/portfolio/PublicGallery';
 import type { BusinessHours } from '@/lib/types/database';
+import { getCleanerBadges } from '@/lib/services/badges';
+import { BadgeDisplay, BadgeList } from '@/components/badges/BadgeDisplay';
 
 interface CleanerProfile {
   id: string;
@@ -146,14 +148,24 @@ export default async function CleanerProfilePage({ params }: { params: Promise<{
   const reviews = await getCleanerReviews(cleaner.id);
   const portfolioPhotos = await getCleanerPortfolio(cleaner.id);
 
+  // Calculate badges based on cleaner metrics
+  const earnedBadges = getCleanerBadges({
+    id: cleaner.id,
+    average_rating: cleaner.average_rating || 0,
+    total_reviews: cleaner.total_reviews || 0,
+    insurance_verified: cleaner.insurance_verified,
+    license_verified: cleaner.license_verified,
+    response_time_hours: cleaner.response_time_hours,
+  });
+
   const getTierBadge = (tier: string) => {
-    const badges: Record<string, { color: string; text: string }> = {
+    const tierOptions: Record<string, { color: string; text: string }> = {
       'enterprise': { color: 'bg-yellow-100 text-yellow-800 border-yellow-300', text: 'Enterprise Partner' },
       'pro': { color: 'bg-purple-100 text-purple-800 border-purple-300', text: 'Pro Member' },
       'basic': { color: 'bg-blue-100 text-blue-800 border-blue-300', text: 'Basic Member' },
       'free': { color: 'bg-gray-100 text-gray-800 border-gray-300', text: 'Member' }
     };
-    return badges[tier] || badges.free;
+    return tierOptions[tier] || tierOptions.free;
   };
 
   const tierBadge = getTierBadge(cleaner.subscription_tier);
@@ -236,6 +248,13 @@ export default async function CleanerProfilePage({ params }: { params: Promise<{
                 <MapPin className="h-4 w-4" />
                 <span>{cleaner.users?.city}, {cleaner.users?.state || 'FL'}</span>
               </div>
+
+              {/* Achievement Badges */}
+              {earnedBadges.length > 0 && (
+                <div className="mb-3">
+                  <BadgeDisplay badges={earnedBadges} size="md" showLabels={true} />
+                </div>
+              )}
 
               {/* Verification Badges */}
               <div className="flex flex-wrap gap-2">
@@ -445,6 +464,14 @@ export default async function CleanerProfilePage({ params }: { params: Promise<{
                 )}
               </div>
             </div>
+
+            {/* Achievement Badges Section */}
+            {earnedBadges.length > 0 && (
+              <div className="bg-white rounded-xl shadow-sm p-6">
+                <h3 className="font-semibold text-gray-900 mb-4">Achievements</h3>
+                <BadgeList badges={earnedBadges} />
+              </div>
+            )}
 
             {/* Contact Info */}
             <div className="bg-white rounded-xl shadow-sm p-6">
