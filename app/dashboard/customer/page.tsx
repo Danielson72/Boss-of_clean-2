@@ -4,10 +4,10 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/context/AuthContext';
 import { ProtectedRoute } from '@/lib/auth/protected-route';
 import { createClient } from '@/lib/supabase/client';
-import { 
-  User, Settings, FileText, Clock, CheckCircle, 
+import {
+  User, Settings, FileText, Clock, CheckCircle,
   XCircle, AlertCircle, Calendar, MapPin, DollarSign,
-  MessageSquare, Star, Home, Phone, Mail, Save
+  MessageSquare, Star, Home, Phone, Mail, Save, Bell
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -571,6 +571,13 @@ export default function CustomerDashboard() {
                     <div className="mt-8 pt-6 border-t border-gray-200">
                       <h4 className="text-md font-semibold text-gray-900 mb-4">Account Settings</h4>
                       <div className="space-y-3">
+                        <Link
+                          href="/dashboard/customer/notifications"
+                          className="text-blue-600 hover:text-blue-700 font-medium flex items-center gap-2"
+                        >
+                          <Bell className="h-4 w-4" />
+                          Notification Preferences
+                        </Link>
                         <Link
                           href="/forgot-password"
                           className="text-blue-600 hover:text-blue-700 font-medium flex items-center gap-2"
