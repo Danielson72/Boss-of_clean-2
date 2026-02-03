@@ -1,11 +1,11 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import dynamic from 'next/dynamic';
 import { useAuth } from '@/lib/context/AuthContext';
 import { ProtectedRoute } from '@/lib/auth/protected-route';
 import { createClient } from '@/lib/supabase/client';
 import { analyticsService, type EarningsData } from '@/lib/services/analytics';
-import { EarningsChart } from '@/components/analytics/EarningsChart';
 import {
   DollarSign,
   TrendingUp,
@@ -19,6 +19,19 @@ import {
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { createLogger } from '@/lib/utils/logger';
+
+// Dynamic import for heavy chart component with loading fallback
+const EarningsChart = dynamic(
+  () => import('@/components/analytics/EarningsChart').then((mod) => mod.EarningsChart),
+  {
+    loading: () => (
+      <div className="h-[300px] w-full bg-gray-100 rounded-lg animate-pulse flex items-center justify-center">
+        <span className="text-gray-500 text-sm">Loading chart...</span>
+      </div>
+    ),
+    ssr: false,
+  }
+);
 
 const logger = createLogger({ file: 'app/dashboard/cleaner/earnings/page.tsx' });
 

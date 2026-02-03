@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import dynamic from 'next/dynamic';
 import { useAuth } from '@/lib/context/AuthContext';
 import { ProtectedRoute } from '@/lib/auth/protected-route';
 import { createClient } from '@/lib/supabase/client';
@@ -8,8 +9,25 @@ import {
   ArrowLeft, Save, Calendar, Clock, Zap, X, CheckCircle, CalendarOff, Trash2
 } from 'lucide-react';
 import Link from 'next/link';
-import { WeeklySchedule, DaySchedule, createDefaultSchedule } from '@/components/availability/WeeklySchedule';
+import { DaySchedule, createDefaultSchedule } from '@/components/availability/WeeklySchedule';
 import { createLogger } from '@/lib/utils/logger';
+
+// Dynamic import for the WeeklySchedule component with loading fallback
+const WeeklySchedule = dynamic(
+  () => import('@/components/availability/WeeklySchedule').then((mod) => mod.WeeklySchedule),
+  {
+    loading: () => (
+      <div className="space-y-3">
+        {Array.from({ length: 7 }).map((_, i) => (
+          <div key={i} className="border rounded-lg p-4 bg-gray-50 animate-pulse">
+            <div className="h-5 w-32 bg-gray-200 rounded" />
+          </div>
+        ))}
+      </div>
+    ),
+    ssr: false,
+  }
+);
 
 const logger = createLogger({ file: 'app/dashboard/cleaner/availability/page.tsx' });
 

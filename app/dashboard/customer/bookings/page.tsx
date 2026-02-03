@@ -1,11 +1,11 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import dynamic from 'next/dynamic';
 import { useAuth } from '@/lib/context/AuthContext';
 import { ProtectedRoute } from '@/lib/auth/protected-route';
 import { createClient } from '@/lib/supabase/client';
 import { BookingCard, Booking } from '@/components/booking/BookingCard';
-import { RescheduleModal } from '@/components/booking/RescheduleModal';
 import {
   Calendar,
   Clock,
@@ -17,6 +17,26 @@ import {
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { createLogger } from '@/lib/utils/logger';
+
+// Dynamic import for RescheduleModal (contains DateTimePicker with Calendar)
+const RescheduleModal = dynamic(
+  () => import('@/components/booking/RescheduleModal').then((mod) => mod.RescheduleModal),
+  {
+    loading: () => (
+      <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div className="absolute inset-0 bg-black/50" />
+        <div className="relative bg-white rounded-lg shadow-xl max-w-lg w-full mx-4 p-6">
+          <div className="animate-pulse space-y-4">
+            <div className="h-6 w-48 bg-gray-200 rounded" />
+            <div className="h-64 bg-gray-100 rounded" />
+            <div className="h-10 w-full bg-gray-200 rounded" />
+          </div>
+        </div>
+      </div>
+    ),
+    ssr: false,
+  }
+);
 
 const logger = createLogger({ file: 'app/dashboard/customer/bookings/page.tsx' });
 

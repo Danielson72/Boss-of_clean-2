@@ -1,15 +1,46 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { BarChart3, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { MetricsCards } from '@/components/admin/MetricsCards';
-import { SignupsChart } from '@/components/admin/SignupsChart';
-import { RevenueChart } from '@/components/admin/RevenueChart';
 import { TopCleanersTable } from '@/components/admin/TopCleanersTable';
 import { DateRangeSelector } from '@/components/admin/DateRangeSelector';
 import type { AdminAnalyticsData, DateRange } from '@/lib/services/admin-analytics';
+
+// Loading skeleton for chart cards
+const ChartSkeleton = () => (
+  <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
+    <div className="p-6 pb-2">
+      <div className="h-6 w-48 bg-gray-200 rounded animate-pulse mb-2" />
+      <div className="h-4 w-64 bg-gray-100 rounded animate-pulse" />
+    </div>
+    <div className="p-6 pt-0">
+      <div className="h-[300px] bg-gray-100 rounded animate-pulse flex items-center justify-center">
+        <span className="text-gray-400 text-sm">Loading chart...</span>
+      </div>
+    </div>
+  </div>
+);
+
+// Dynamic imports for heavy chart components
+const SignupsChart = dynamic(
+  () => import('@/components/admin/SignupsChart').then((mod) => mod.SignupsChart),
+  {
+    loading: () => <ChartSkeleton />,
+    ssr: false,
+  }
+);
+
+const RevenueChart = dynamic(
+  () => import('@/components/admin/RevenueChart').then((mod) => mod.RevenueChart),
+  {
+    loading: () => <ChartSkeleton />,
+    ssr: false,
+  }
+);
 
 interface AnalyticsDashboardProps {
   initialData: AdminAnalyticsData;
