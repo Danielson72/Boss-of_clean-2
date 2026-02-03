@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createLogger } from '@/lib/utils/logger';
+import { sendReviewPublishedEmail } from '@/lib/email/review-request';
 
 const logger = createLogger({ file: 'api/admin/reviews/[id]/route' });
 
@@ -86,17 +87,44 @@ export async function PATCH(
       return NextResponse.json({ error: 'Failed to update review' }, { status: 500 });
     }
 
-    // If approved, notify the cleaner (you could add email notification here)
+    // If approved, notify the cleaner via email
     if (action === 'approve') {
-      // Get cleaner info for notification
+      // Get cleaner and review info for notification
       const { data: reviewData } = await supabase
         .from('reviews')
-        .select('cleaner_id, cleaner:cleaners(user_id, business_name)')
+        .select(`
+          rating,
+          comment,
+          cleaner_id,
+          cleaner:cleaners(user_id, business_name),
+          customer:users!reviews_customer_id_fkey(full_name)
+        `)
         .eq('id', id)
         .single();
 
-      // TODO: Send email notification to cleaner about new published review
       const cleanerInfo = reviewData?.cleaner as unknown as { user_id: string; business_name: string } | null;
+      const customerInfo = reviewData?.customer as unknown as { full_name: string } | null;
+
+      if (cleanerInfo?.user_id) {
+        // Get cleaner's email
+        const { data: cleanerUser } = await supabase
+          .from('users')
+          .select('email')
+          .eq('id', cleanerInfo.user_id)
+          .single();
+
+        if (cleanerUser?.email) {
+          await sendReviewPublishedEmail({
+            to: cleanerUser.email,
+            businessName: cleanerInfo.business_name,
+            customerName: customerInfo?.full_name || 'A customer',
+            rating: reviewData?.rating || 5,
+            reviewExcerpt: reviewData?.comment?.substring(0, 150) || '',
+            reviewId: id,
+          });
+        }
+      }
+
       logger.info(`Review ${id} approved for cleaner: ${cleanerInfo?.business_name}`, { function: 'PATCH' });
     }
 

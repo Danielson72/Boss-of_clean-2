@@ -7,6 +7,7 @@
 
 import { createClient } from '@supabase/supabase-js';
 import { createLogger } from '../utils/logger';
+import { sendResendEmail, wrapEmailTemplate, DEFAULT_FROM } from './resend';
 
 const logger = createLogger({ file: 'lib/email/send-email' });
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://bossofclean.com';
@@ -210,40 +211,26 @@ export async function sendEmail(options: EmailOptions): Promise<{ sent: boolean;
 
     const htmlWithFooter = html.replace('</body>', `${unsubscribeFooter}</body>`);
 
-    // TODO: Replace with actual email provider (Resend, SendGrid, etc.)
-    logger.info('[EMAIL] Sending', {
-      function: 'sendEmail',
+    // Send via Resend
+    const result = await sendResendEmail({
       to,
       subject,
-      category,
+      html: htmlWithFooter,
+      text,
     });
-    logger.debug('Email HTML:', { function: 'sendEmail' }, htmlWithFooter);
-    if (text) {
-      logger.debug('Email Text:', { function: 'sendEmail' }, text);
-    }
 
-    // In production, implement actual email sending:
-    // return await resend.emails.send({
-    //   from: 'Boss of Clean <noreply@bossofclean.com>',
-    //   to,
-    //   subject,
-    //   html: htmlWithFooter,
-    //   text,
-    // });
-
-    return { sent: true };
+    return { sent: result.success, reason: result.error };
   }
 
   // No userId - send without preference check (e.g., welcome emails before user exists)
-  logger.info('[EMAIL] Sending (no preference check)', {
-    function: 'sendEmail',
+  const result = await sendResendEmail({
     to,
     subject,
-    category,
+    html,
+    text,
   });
 
-  // TODO: Replace with actual email provider
-  return { sent: true };
+  return { sent: result.success, reason: result.error };
 }
 
 /**

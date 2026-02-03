@@ -376,7 +376,7 @@
       "title": "Service type landing pages",
       "description": "Create SEO-optimized landing pages for each of the 10 service types (residential cleaning, commercial cleaning, deep cleaning, etc.). Dynamic content showing cleaners who offer that service, FAQs, and pricing info.",
       "priority": "medium",
-      "status": "pending",
+      "status": "done",
       "estimatedMinutes": 50,
       "dependencies": [],
       "acceptanceCriteria": [
@@ -406,7 +406,7 @@
       "title": "Customer notification preferences",
       "description": "Allow customers to manage their email notification preferences. Toggle individual notification types on/off, provide one-click unsubscribe links in emails, and respect preferences when sending notifications.",
       "priority": "low",
-      "status": "pending",
+      "status": "done",
       "estimatedMinutes": 45,
       "dependencies": [],
       "acceptanceCriteria": [
@@ -436,7 +436,7 @@
       "title": "Cleaner achievement badges",
       "description": "Implement achievement badges displayed on cleaner profiles. Badges earned automatically based on metrics: Fast Responder (avg response < 1hr), Top Rated (4.8+ with 10+ reviews), Verified (documents uploaded and approved). Badges shown on profile and search cards.",
       "priority": "low",
-      "status": "pending",
+      "status": "done",
       "estimatedMinutes": 50,
       "dependencies": [],
       "acceptanceCriteria": [
@@ -467,7 +467,7 @@
       "title": "Dynamic imports for heavy components",
       "description": "Code-split heavy components using Next.js dynamic imports to reduce initial bundle size. Target chart libraries, calendar components, modals, and rich text editors that aren't needed on initial page load.",
       "priority": "low",
-      "status": "pending",
+      "status": "done",
       "estimatedMinutes": 35,
       "dependencies": [],
       "acceptanceCriteria": [

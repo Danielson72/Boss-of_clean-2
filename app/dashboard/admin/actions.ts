@@ -3,8 +3,10 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { createLogger } from '@/lib/utils/logger'
+import { sendResendEmail, wrapEmailTemplate, generateButton } from '@/lib/email/resend'
 
 const logger = createLogger({ file: 'app/dashboard/admin/actions' })
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://bossofclean.com'
 
 export interface ActionResult {
   success: boolean
@@ -237,61 +239,84 @@ async function sendStatusEmail(
   status: 'approved' | 'rejected' | 'info_requested',
   reason?: string
 ): Promise<void> {
-  // In production, integrate with your email service (Resend, SendGrid, etc.)
-  // For now, just log the email that would be sent
-
   const subjects = {
     approved: 'Your Application Has Been Approved!',
     rejected: 'Application Status Update',
     info_requested: 'Additional Information Required'
   }
 
-  const bodies = {
-    approved: `
-Congratulations! Your cleaning business "${businessName}" has been approved on Boss of Clean.
+  let content: string
 
-You can now:
-- Receive quote requests from customers
-- Update your business profile
-- Manage your service areas
+  if (status === 'approved') {
+    content = `
+      <h2 style="color: #16a34a; font-size: 24px; margin: 0 0 8px 0;">Congratulations!</h2>
+      <p style="color: #6b7280; font-size: 16px; margin-bottom: 24px;">
+        Your cleaning business <strong>"${businessName}"</strong> has been approved on Boss of Clean.
+      </p>
 
-Log in to your dashboard to get started: ${process.env.NEXT_PUBLIC_APP_URL}/dashboard/cleaner
-    `,
-    rejected: `
-Thank you for your interest in Boss of Clean.
+      <div style="background: #ecfdf5; border-radius: 8px; padding: 16px; margin: 20px 0; border-left: 4px solid #16a34a;">
+        <p style="margin: 0 0 12px 0; color: #065f46; font-weight: 600;">You can now:</p>
+        <ul style="color: #047857; margin: 0; padding-left: 20px;">
+          <li>Receive quote requests from customers</li>
+          <li>Update your business profile</li>
+          <li>Manage your service areas</li>
+          <li>Start earning with Boss of Clean!</li>
+        </ul>
+      </div>
 
-Unfortunately, we are unable to approve your application for "${businessName}" at this time.
+      ${generateButton('Go to Your Dashboard', `${BASE_URL}/dashboard/cleaner`, 'success')}
+    `
+  } else if (status === 'rejected') {
+    content = `
+      <h2 style="color: #111827; font-size: 24px; margin: 0 0 8px 0;">Application Update</h2>
+      <p style="color: #6b7280; font-size: 16px; margin-bottom: 24px;">
+        Thank you for your interest in Boss of Clean.
+      </p>
 
-Reason: ${reason}
+      <p style="color: #374151; font-size: 16px; margin-bottom: 24px;">
+        Unfortunately, we are unable to approve your application for <strong>"${businessName}"</strong> at this time.
+      </p>
 
-If you believe this was in error or would like to reapply with updated information, please contact our support team.
-    `,
-    info_requested: `
-We're reviewing your application for "${businessName}" on Boss of Clean and need additional information.
+      <div style="background: #fef2f2; border-radius: 8px; padding: 16px; margin: 20px 0; border-left: 4px solid #dc2626;">
+        <p style="margin: 0; color: #991b1b; font-weight: 600;">Reason:</p>
+        <p style="margin: 8px 0 0 0; color: #b91c1c;">${reason || 'Please contact support for more information.'}</p>
+      </div>
 
-Request: ${reason}
+      <p style="color: #6b7280; font-size: 14px;">
+        If you believe this was in error or would like to reapply with updated information, please contact our support team.
+      </p>
+    `
+  } else {
+    content = `
+      <h2 style="color: #f59e0b; font-size: 24px; margin: 0 0 8px 0;">Additional Information Needed</h2>
+      <p style="color: #6b7280; font-size: 16px; margin-bottom: 24px;">
+        We're reviewing your application for <strong>"${businessName}"</strong> and need a bit more information.
+      </p>
 
-Please log in to your dashboard to update your application: ${process.env.NEXT_PUBLIC_APP_URL}/dashboard/cleaner/onboarding
+      <div style="background: #fef3c7; border-radius: 8px; padding: 16px; margin: 20px 0; border-left: 4px solid #f59e0b;">
+        <p style="margin: 0; color: #92400e; font-weight: 600;">What we need:</p>
+        <p style="margin: 8px 0 0 0; color: #78350f;">${reason || 'Please check your dashboard for details.'}</p>
+      </div>
 
-Once you've provided the requested information, we'll continue reviewing your application.
+      ${generateButton('Update Your Application', `${BASE_URL}/dashboard/cleaner/onboarding`, 'warning')}
+
+      <p style="color: #6b7280; font-size: 14px; margin-top: 24px;">
+        Once you've provided the requested information, we'll continue reviewing your application.
+      </p>
     `
   }
 
-  logger.info('Email Notification', {
+  logger.info('Sending status email', {
     function: 'sendStatusEmail',
     to: email,
-    subject: subjects[status],
-    status
+    status,
   })
 
-  // TODO: Implement actual email sending
-  // Example with Resend:
-  // await resend.emails.send({
-  //   from: 'Boss of Clean <noreply@bossofclean.com>',
-  //   to: email,
-  //   subject: subjects[status],
-  //   text: bodies[status]
-  // })
+  await sendResendEmail({
+    to: email,
+    subject: subjects[status],
+    html: wrapEmailTemplate(content),
+  })
 }
 
 export async function bulkApprovecleaners(cleanerIds: string[]): Promise<ActionResult> {

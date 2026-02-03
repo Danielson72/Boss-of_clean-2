@@ -6,6 +6,7 @@
  */
 
 import { createLogger } from '../utils/logger';
+import { sendResendEmail, wrapEmailTemplate, generateButton } from './resend';
 
 const logger = createLogger({ file: 'lib/email/review-request' });
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://bossofclean.com';
@@ -20,6 +21,43 @@ export interface ReviewRequestData {
 }
 
 /**
+ * Generate HTML for review request email
+ */
+export function generateReviewRequestHtml(
+  data: ReviewRequestData,
+  reviewUrl: string
+): string {
+  const content = `
+    <h2 style="color: #111827; font-size: 24px; margin: 0 0 8px 0;">How was your cleaning?</h2>
+    <p style="color: #6b7280; font-size: 16px; margin-bottom: 24px;">
+      Hi ${data.customerName}, your <strong>${data.serviceType.replace(/_/g, ' ')}</strong> with
+      <strong>${data.businessName}</strong> on ${data.bookingDate} is complete.
+    </p>
+
+    <p style="color: #6b7280; font-size: 16px; margin-bottom: 24px;">
+      Your feedback helps other customers find great cleaners and helps
+      ${data.businessName} improve their service.
+    </p>
+
+    <!-- Star Rating Preview -->
+    <div style="text-align: center; margin: 24px 0;">
+      <p style="color: #374151; font-size: 14px; margin-bottom: 12px;">How would you rate your experience?</p>
+      <div style="font-size: 32px; letter-spacing: 8px;">
+        ⭐⭐⭐⭐⭐
+      </div>
+    </div>
+
+    ${generateButton('Leave a Review', reviewUrl)}
+
+    <p style="color: #9ca3af; font-size: 14px; text-align: center; margin-top: 24px;">
+      It only takes a minute and means the world to ${data.businessName}!
+    </p>
+  `;
+
+  return wrapEmailTemplate(content);
+}
+
+/**
  * Send a review request email to a customer after booking completion
  */
 export async function sendReviewRequestEmail(
@@ -27,67 +65,70 @@ export async function sendReviewRequestEmail(
 ): Promise<boolean> {
   const reviewUrl = `${BASE_URL}/review/${data.bookingId}`;
 
-  logger.info('[EMAIL] Review Request - Customer');
-  logger.info(`   To: ${data.customerEmail}`);
-  logger.info(`   Subject: How was your cleaning with ${data.businessName}?`);
-  logger.info(`   Booking ID: ${data.bookingId}`);
-  logger.info(`   Service: ${data.serviceType}`);
-  logger.info(`   Date: ${data.bookingDate}`);
-  logger.info(`   Review URL: ${reviewUrl}`);
-  logger.info('');
+  logger.info('Sending review request email', {
+    function: 'sendReviewRequestEmail',
+    to: data.customerEmail,
+    bookingId: data.bookingId,
+  });
 
-  // TODO: Replace with actual email provider (Resend, SendGrid, etc.)
-  // return await resend.emails.send({
-  //   from: 'Boss of Clean <reviews@bossofclean.com>',
-  //   to: data.customerEmail,
-  //   subject: `How was your cleaning with ${data.businessName}?`,
-  //   html: generateReviewRequestHtml(data, reviewUrl),
-  // });
+  const result = await sendResendEmail({
+    to: data.customerEmail,
+    subject: `How was your cleaning with ${data.businessName}?`,
+    html: generateReviewRequestHtml(data, reviewUrl),
+  });
 
-  return true;
+  return result.success;
 }
 
 /**
- * Generate HTML for review request email
+ * Send a review published notification to a cleaner
  */
-export function generateReviewRequestHtml(
-  data: ReviewRequestData,
-  reviewUrl: string
-): string {
-  return `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="utf-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    </head>
-    <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 0; background-color: #f3f4f6;">
-      <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
-        <div style="background: white; border-radius: 12px; padding: 40px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-          <h1 style="color: #111827; font-size: 24px; margin-bottom: 8px;">
-            How was your cleaning?
-          </h1>
-          <p style="color: #6b7280; font-size: 16px; margin-bottom: 24px;">
-            Hi ${data.customerName}, your ${data.serviceType.replace(/_/g, ' ')} with
-            <strong>${data.businessName}</strong> on ${data.bookingDate} is complete.
-          </p>
-          <p style="color: #6b7280; font-size: 16px; margin-bottom: 32px;">
-            Your feedback helps other customers find great cleaners and helps
-            ${data.businessName} improve their service.
-          </p>
-          <div style="text-align: center; margin-bottom: 32px;">
-            <a href="${reviewUrl}"
-               style="display: inline-block; background-color: #2563eb; color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">
-              Leave a Review
-            </a>
-          </div>
-          <p style="color: #9ca3af; font-size: 14px; text-align: center;">
-            This email was sent by Boss of Clean. If you did not use this service,
-            please ignore this email.
-          </p>
-        </div>
+export async function sendReviewPublishedEmail(data: {
+  to: string;
+  businessName: string;
+  customerName: string;
+  rating: number;
+  reviewExcerpt: string;
+  reviewId: string;
+}): Promise<boolean> {
+  logger.info('Sending review published notification', {
+    function: 'sendReviewPublishedEmail',
+    to: data.to,
+    reviewId: data.reviewId,
+  });
+
+  const stars = '★'.repeat(data.rating) + '☆'.repeat(5 - data.rating);
+
+  const content = `
+    <h2 style="color: #111827; font-size: 24px; margin: 0 0 8px 0;">You received a new review!</h2>
+    <p style="color: #6b7280; font-size: 16px; margin-bottom: 24px;">
+      Hi ${data.businessName}, <strong>${data.customerName}</strong> left you a review.
+    </p>
+
+    <div style="background: #f9fafb; border-radius: 8px; padding: 20px; margin: 20px 0; text-align: center;">
+      <div style="color: #f59e0b; font-size: 28px; letter-spacing: 4px; margin-bottom: 12px;">
+        ${stars}
       </div>
-    </body>
-    </html>
+      <p style="color: #374151; font-style: italic; margin: 0;">
+        "${data.reviewExcerpt}${data.reviewExcerpt.length >= 100 ? '...' : ''}"
+      </p>
+      <p style="color: #9ca3af; font-size: 14px; margin: 12px 0 0 0;">
+        — ${data.customerName}
+      </p>
+    </div>
+
+    ${generateButton('View Full Review', `${BASE_URL}/dashboard/cleaner/reviews`)}
+
+    <p style="color: #6b7280; font-size: 14px; margin-top: 24px;">
+      Great reviews help you stand out and win more jobs. Keep up the great work!
+    </p>
   `;
+
+  const result = await sendResendEmail({
+    to: data.to,
+    subject: `You received a ${data.rating}-star review!`,
+    html: wrapEmailTemplate(content),
+  });
+
+  return result.success;
 }
