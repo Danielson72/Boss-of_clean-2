@@ -5,8 +5,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Users, Shield, CheckCircle, Clock, BarChart3 } from 'lucide-react'
+import { Users, Shield, CheckCircle, Clock, BarChart3, DollarSign } from 'lucide-react'
 import { AdminQueueWrapper } from './components/admin-queue-wrapper'
+import { PaymentMonitoring } from './components/PaymentMonitoring'
+import { getPaymentMonitoringData } from '@/lib/services/admin-payments'
 
 export default async function AdminDashboard() {
   const supabase = await createClient()
@@ -75,6 +77,14 @@ export default async function AdminDashboard() {
     .select('*', { count: 'exact', head: true })
     .eq('approval_status', 'rejected')
 
+  // Fetch payment monitoring data
+  let paymentData = null
+  try {
+    paymentData = await getPaymentMonitoringData()
+  } catch {
+    // Payment monitoring is non-critical; dashboard still works without it
+  }
+
   return (
     <div className="container mx-auto p-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
@@ -136,10 +146,14 @@ export default async function AdminDashboard() {
       </div>
 
       <Tabs defaultValue="approvals" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2 lg:w-[400px]">
+        <TabsList className="grid w-full grid-cols-3 lg:w-[600px]">
           <TabsTrigger value="approvals" className="gap-2">
             <Clock className="h-4 w-4" />
             Approval Queue
+          </TabsTrigger>
+          <TabsTrigger value="payments" className="gap-2">
+            <DollarSign className="h-4 w-4" />
+            Payments
           </TabsTrigger>
           <TabsTrigger value="users" className="gap-2">
             <Users className="h-4 w-4" />
@@ -159,6 +173,19 @@ export default async function AdminDashboard() {
               <AdminQueueWrapper applications={pendingCleaners || []} />
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="payments" className="space-y-4">
+          {paymentData ? (
+            <PaymentMonitoring data={paymentData} />
+          ) : (
+            <Card>
+              <CardContent className="py-8 text-center text-muted-foreground">
+                <DollarSign className="mx-auto h-12 w-12 mb-4 opacity-50" />
+                <p>Payment monitoring data unavailable</p>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
 
         <TabsContent value="users" className="space-y-4">
