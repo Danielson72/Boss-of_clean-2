@@ -142,7 +142,7 @@ test.describe('Pricing Page', () => {
     await expect(page.locator('text=Frequently Asked Questions')).toBeVisible()
     await expect(page.locator('text=How quickly can I start receiving leads?')).toBeVisible()
     await expect(page.locator('text=Can I change my plan at any time?')).toBeVisible()
-    await expect(page.locator('text=Do you offer any guarantees?')).toBeVisible()
+    await expect(page.locator('text=Do you offer a satisfaction commitment?')).toBeVisible()
     await expect(page.locator('text=Is there a setup fee?')).toBeVisible()
   })
 })
