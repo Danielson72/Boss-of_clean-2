@@ -25,12 +25,28 @@ export function createTestUser(): TestUser {
 }
 
 /**
+ * Wait for auth state to settle.
+ * The Header hides Login/Sign Up links while useAuth() is loading.
+ * This waits until auth-dependent links appear in the nav.
+ */
+export async function waitForAuthReady(page: Page) {
+  await page.waitForFunction(() => {
+    const links = document.querySelectorAll('header a, header button')
+    return Array.from(links).some(
+      el => el.textContent?.trim() === 'Login' || el.textContent?.trim() === 'Dashboard'
+    )
+  }, { timeout: 10000 })
+}
+
+/**
  * Navigate to the signup page and verify it loads
  */
 export async function navigateToSignup(page: Page) {
   await page.goto('/signup')
+  // Page title: "Sign Up | Boss of Clean"
   await expect(page).toHaveTitle(/Sign Up/)
-  await expect(page.locator('h1, h2')).toContainText(/sign up/i)
+  // CardTitle renders as <h3> with text "Create Account"
+  await expect(page.locator('h3:has-text("Create Account")')).toBeVisible()
 }
 
 /**
@@ -38,19 +54,18 @@ export async function navigateToSignup(page: Page) {
  */
 export async function navigateToLogin(page: Page) {
   await page.goto('/login')
-  await expect(page).toHaveTitle(/Login|Sign In/)
-  await expect(page.locator('h1, h2')).toContainText(/sign in|login/i)
+  // Page title: "Sign In | Boss of Clean"
+  await expect(page).toHaveTitle(/Sign In/)
+  // CardTitle renders as <h3> with text "Sign In"
+  await expect(page.locator('h3:has-text("Sign In")')).toBeVisible()
 }
 
 /**
  * Fill and submit the signup form
  */
 export async function signupUser(page: Page, user: TestUser) {
-  // Fill signup form
   await page.fill('input[type="email"]', user.email)
   await page.fill('input[type="password"]', user.password)
-  
-  // Submit form
   await page.click('button[type="submit"]')
 }
 
@@ -58,11 +73,8 @@ export async function signupUser(page: Page, user: TestUser) {
  * Fill and submit the login form
  */
 export async function loginUser(page: Page, user: TestUser) {
-  // Fill login form
   await page.fill('input[type="email"]', user.email)
   await page.fill('input[type="password"]', user.password)
-  
-  // Submit form
   await page.click('button[type="submit"]')
 }
 
@@ -70,10 +82,7 @@ export async function loginUser(page: Page, user: TestUser) {
  * Wait for redirect to customer dashboard and verify elements
  */
 export async function waitForCustomerDashboard(page: Page) {
-  // Wait for navigation to dashboard
   await page.waitForURL(/\/dashboard\/customer/)
-  
-  // Verify dashboard elements
   await expect(page).toHaveTitle(/Customer Dashboard/)
   await expect(page.locator('h1, h2')).toContainText(/dashboard|customer/i)
 }
@@ -82,33 +91,19 @@ export async function waitForCustomerDashboard(page: Page) {
  * Perform logout action
  */
 export async function logoutUser(page: Page) {
-  // Look for logout button/link
-  const logoutButton = page.locator('[data-testid="logout"], button:has-text("Sign Out"), a:has-text("Sign Out")')
-  
-  // If not found, try avatar dropdown menu
-  if (!(await logoutButton.isVisible())) {
-    // Click avatar to open dropdown
-    await page.click('[data-testid="user-avatar"], button[role="button"]:has([data-testid="avatar"])')
-    
-    // Wait for dropdown and click logout
-    await page.click('[data-testid="logout"], button:has-text("Sign out"), [role="menuitem"]:has-text("Sign out")')
-  } else {
-    await logoutButton.click()
-  }
+  // Header.tsx uses "Logout" as button text
+  const logoutButton = page.locator('button:has-text("Logout")')
+  await logoutButton.click()
 }
 
 /**
  * Verify user is on homepage and logged out
  */
 export async function verifyLoggedOut(page: Page) {
-  // Wait for redirect to home
   await page.waitForURL('/')
-  
-  // Verify we're on homepage
-  await expect(page).toHaveTitle(/Boss of Clean|BOSS OF CLEAN/)
-  
-  // Verify login/signup links are visible (indicating logged out state)
-  await expect(page.locator('a:has-text("Sign In"), a:has-text("Login")')).toBeVisible()
+  await expect(page).toHaveTitle(/Boss of Clean/)
+  await waitForAuthReady(page)
+  await expect(page.locator('a:has-text("Login")')).toBeVisible()
   await expect(page.locator('a:has-text("Sign Up")')).toBeVisible()
 }
 
@@ -124,11 +119,9 @@ export async function waitForPageLoad(page: Page, timeout = 10000) {
  */
 export async function verifyHomepage(page: Page) {
   await page.goto('/')
-  await expect(page).toHaveTitle(/Boss of Clean|BOSS OF CLEAN/)
-  
-  // Check for main branding/logo
-  await expect(page.locator('text=BOSS OF CLEAN, text=Boss of Clean')).toBeVisible()
-  
-  // Check for navigation elements
-  await expect(page.locator('nav')).toBeVisible()
+  await expect(page).toHaveTitle(/Boss of Clean/)
+  // Header logo contains "BOSS OF CLEAN" - use header scope to avoid strict mode
+  await expect(page.locator('header').locator('text=BOSS OF CLEAN')).toBeVisible()
+  // Scope to header nav to avoid matching footer nav
+  await expect(page.locator('header nav')).toBeVisible()
 }
