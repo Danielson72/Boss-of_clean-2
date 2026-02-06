@@ -19,6 +19,7 @@ import {
   MessageSquare,
   Filter,
   Search,
+  Lock,
 } from 'lucide-react';
 import Link from 'next/link';
 import { createLogger } from '@/lib/utils/logger';
@@ -43,6 +44,7 @@ interface QuoteRequest {
   cleaner_response: string;
   quoted_price: number | null;
   created_at: string;
+  cleaner_id: string | null;
   customer: {
     full_name: string;
     email: string;
@@ -70,6 +72,7 @@ export default function QuoteRequestsPage() {
   const [responsePrice, setResponsePrice] = useState('');
   const [responseMessage, setResponseMessage] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [myCleanerId, setMyCleanerId] = useState<string | null>(null);
   const supabase = createClient();
 
   useEffect(() => {
@@ -94,6 +97,8 @@ export default function QuoteRequestsPage() {
         return;
       }
 
+      setMyCleanerId(cleanerData.id);
+
       // Get quote requests for this cleaner's service areas
       const { data: serviceAreas } = await supabase
         .from('cleaner_service_areas')
@@ -102,44 +107,51 @@ export default function QuoteRequestsPage() {
 
       const zipCodes = serviceAreas?.map((sa) => sa.zip_code) || [];
 
-      if (zipCodes.length === 0) {
-        // If no service areas defined, get quotes directly assigned to this cleaner
-        const { data, error } = await supabase
-          .from('quote_requests')
-          .select(
-            `
-            *,
-            customer:users!quote_requests_customer_id_fkey(
-              full_name,
-              email,
-              phone
-            )
+      // Fetch own claimed quotes (with full contact info)
+      const { data: ownQuotes, error: ownError } = await supabase
+        .from('quote_requests')
+        .select(
           `
+          *,
+          customer:users!quote_requests_customer_id_fkey(
+            full_name,
+            email,
+            phone
           )
-          .eq('cleaner_id', cleanerData.id)
-          .order('created_at', { ascending: false });
+        `
+        )
+        .eq('cleaner_id', cleanerData.id)
+        .order('created_at', { ascending: false });
 
-        if (error) throw error;
-        setQuotes(data || []);
+      if (ownError) throw ownError;
+
+      if (zipCodes.length === 0) {
+        setQuotes(ownQuotes || []);
       } else {
-        // Get quotes in service areas
-        const { data, error } = await supabase
+        // Fetch unclaimed area quotes (contact info redacted - only full_name)
+        const { data: areaQuotes, error: areaError } = await supabase
           .from('quote_requests')
           .select(
             `
             *,
             customer:users!quote_requests_customer_id_fkey(
-              full_name,
-              email,
-              phone
+              full_name
             )
           `
           )
           .in('zip_code', zipCodes)
+          .is('cleaner_id', null)
           .order('created_at', { ascending: false });
 
-        if (error) throw error;
-        setQuotes(data || []);
+        if (areaError) throw areaError;
+
+        // Merge: own quotes first, then area quotes (deduplicated)
+        const ownIds = new Set((ownQuotes || []).map((q: QuoteRequest) => q.id));
+        const merged = [
+          ...(ownQuotes || []),
+          ...(areaQuotes || []).filter((q: QuoteRequest) => !ownIds.has(q.id)),
+        ];
+        setQuotes(merged);
       }
     } catch (error) {
       logger.error('Error loading quotes', { function: 'loadQuotes', error });
@@ -352,14 +364,23 @@ export default function QuoteRequestsPage() {
                           <DollarSign className="h-4 w-4 text-gray-400" />
                           <span>Budget: {quote.budget_range || 'Not specified'}</span>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <Mail className="h-4 w-4 text-gray-400" />
-                          <span>{quote.customer?.email}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Phone className="h-4 w-4 text-gray-400" />
-                          <span>{quote.customer?.phone || 'Not provided'}</span>
-                        </div>
+                        {quote.cleaner_id === myCleanerId ? (
+                          <>
+                            <div className="flex items-center gap-2">
+                              <Mail className="h-4 w-4 text-gray-400" />
+                              <span>{quote.customer?.email}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Phone className="h-4 w-4 text-gray-400" />
+                              <span>{quote.customer?.phone || 'Not provided'}</span>
+                            </div>
+                          </>
+                        ) : (
+                          <div className="flex items-center gap-2 col-span-2">
+                            <Lock className="h-4 w-4 text-gray-400" />
+                            <span className="text-gray-500 italic">Contact info available after claiming</span>
+                          </div>
+                        )}
                       </div>
 
                       {quote.special_instructions && (

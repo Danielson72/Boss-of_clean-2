@@ -41,7 +41,7 @@ export default function PricingPage() {
       planKey: 'free' as const
     },
     {
-      name: 'Professional',
+      name: 'Basic',
       basePrice: 79,
       price: `$${getPrice(79, billingCycle === 'annual')}`,
       originalPrice: billingCycle === 'annual' ? '$79' : null,
@@ -54,47 +54,45 @@ export default function PricingPage() {
       roi: 'Average ROI: 3,160%',
       features: [
         'Premium business listing',
+        '20 lead credits/month',
         'Unlimited photos',
         'Priority in search results',
-        'Advanced review management',
-        'Lead contact information',
         'Business analytics',
         'Phone & email support'
       ],
       popular: true,
       free: false,
-      planKey: 'pro' as const
+      planKey: 'basic' as const
     },
     {
-      name: 'Enterprise',
-      basePrice: 149,
-      price: `$${getPrice(149, billingCycle === 'annual')}`,
-      originalPrice: billingCycle === 'annual' ? '$149' : null,
+      name: 'Pro',
+      basePrice: 199,
+      price: `$${getPrice(199, billingCycle === 'annual')}`,
+      originalPrice: billingCycle === 'annual' ? '$199' : null,
       period: billingCycle === 'monthly' ? '/month' : '/year',
-      savings: billingCycle === 'annual' ? 'Save $447/year' : null,
+      savings: billingCycle === 'annual' ? 'Save $597/year' : null,
       icon: Crown,
       description: 'For established cleaning companies',
       revenueBoost: 'Earn up to $10,000+/month',
       customerIncrease: '50+ new customers',
-      roi: 'Average ROI: 6,700%',
+      roi: 'Average ROI: 5,000%',
       features: [
         'Featured business listing',
+        'Unlimited lead credits',
         'Unlimited photos & videos',
         'Top placement in search',
-        'Full review management suite',
         'Direct customer messaging',
         'Advanced analytics & insights',
-        'Multiple location support',
         'Dedicated account manager',
         '24/7 priority support'
       ],
       popular: false,
       free: false,
-      planKey: 'enterprise' as const
+      planKey: 'pro' as const
     }
   ]
 
-  const handlePlanSelection = async (planKey: 'free' | 'pro' | 'enterprise') => {
+  const handlePlanSelection = async (planKey: 'free' | 'basic' | 'pro') => {
     if (planKey === 'free') {
       // Free plan - redirect to signup
       window.location.href = '/signup'

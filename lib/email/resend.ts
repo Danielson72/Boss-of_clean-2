@@ -10,8 +10,19 @@ import { createLogger } from '../utils/logger';
 
 const logger = createLogger({ file: 'lib/email/resend' });
 
-// Initialize Resend client
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Initialize Resend client lazily to avoid build-time errors when env var is missing
+let resendInstance: Resend | null = null;
+
+function getResend(): Resend {
+  if (!resendInstance) {
+    const apiKey = process.env.RESEND_API_KEY;
+    if (!apiKey) {
+      throw new Error('RESEND_API_KEY is not set');
+    }
+    resendInstance = new Resend(apiKey);
+  }
+  return resendInstance;
+}
 
 // Default sender
 export const DEFAULT_FROM = 'Boss of Clean <noreply@bossofclean.com>';
@@ -42,7 +53,7 @@ export async function sendResendEmail(params: SendEmailParams): Promise<SendEmai
   const { to, subject, html, text, from = DEFAULT_FROM, replyTo } = params;
 
   try {
-    const { data, error } = await resend.emails.send({
+    const { data, error } = await getResend().emails.send({
       from,
       to: Array.isArray(to) ? to : [to],
       subject,
@@ -157,4 +168,4 @@ export function generateInfoBox(items: { label: string; value: string }[]): stri
   `;
 }
 
-export { resend };
+export { getResend };

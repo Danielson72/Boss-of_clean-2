@@ -107,15 +107,14 @@ export async function GET(request: NextRequest) {
 
     const usedCredits = leadContactsCount || 0;
 
-    // Determine lead credits based on plan
+    // Determine lead credits based on plan (matches PRD: Free=0 pay-per-lead, Basic=20, Pro=unlimited)
     const planCredits: Record<string, number> = {
-      free: 5,
-      basic: -1, // unlimited
-      pro: -1,   // unlimited
-      enterprise: -1, // unlimited
+      free: 0,     // Pay-per-lead
+      basic: 20,   // 20 credits/month
+      pro: -1,     // Unlimited
     };
 
-    const totalCredits = planCredits[cleaner.subscription_tier] || 5;
+    const totalCredits = planCredits[cleaner.subscription_tier] ?? 0;
     const isUnlimited = totalCredits === -1;
 
     // Calculate reset date (first of next month)
@@ -153,8 +152,7 @@ export async function GET(request: NextRequest) {
     const tierPrices: Record<string, number> = {
       free: 0,
       basic: 79,
-      pro: 79, // Using pro from config
-      enterprise: 149,
+      pro: 199,
     };
 
     // Determine subscription status

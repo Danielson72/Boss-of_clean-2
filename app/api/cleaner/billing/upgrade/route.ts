@@ -25,8 +25,8 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { planId } = body;
 
-    // Validate plan
-    const validPlans = ['basic', 'pro', 'enterprise'];
+    // Validate plan (Free/Basic/Pro - matching PRD)
+    const validPlans = ['basic', 'pro'];
     if (!planId || !validPlans.includes(planId)) {
       return NextResponse.json(
         { error: 'Invalid plan specified' },
@@ -51,11 +51,10 @@ export async function POST(request: NextRequest) {
     const stripe = getStripe();
     const siteUrl = getSiteUrl();
 
-    // Map planId to price
+    // Map planId to price (Free/Basic/Pro matching PRD)
     const priceMap: Record<string, string> = {
       basic: STRIPE_PRICES.basic,
       pro: STRIPE_PRICES.pro,
-      enterprise: STRIPE_PRICES.enterprise,
     };
 
     const priceId = priceMap[planId];

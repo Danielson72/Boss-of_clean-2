@@ -20,7 +20,7 @@ export const getStripe = () => {
 /**
  * Redirect to Stripe Checkout for subscription
  */
-export async function redirectToCheckout(plan: 'pro' | 'enterprise') {
+export async function redirectToCheckout(plan: 'basic' | 'pro') {
   try {
     const response = await fetch(`/api/stripe/checkout?plan=${plan}`, {
       method: 'POST',

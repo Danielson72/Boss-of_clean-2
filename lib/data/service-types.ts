@@ -437,6 +437,180 @@ export const SERVICE_TYPES: ServiceType[] = [
       }
     ],
     keywords: ['office cleaning Florida', 'janitorial services', 'commercial office cleaning', 'workplace cleaning', 'business cleaning services']
+  },
+  {
+    slug: 'pool-cleaning',
+    dbValue: 'pool_cleaning',
+    name: 'Pool Cleaning Services',
+    shortName: 'Pool Cleaning',
+    description: 'Professional pool cleaning and maintenance services across Florida. Keep your pool crystal clear year-round.',
+    longDescription: 'Florida pool cleaning services to keep your swimming pool sparkling and safe. Our verified pool professionals handle chemical balancing, skimming, vacuuming, filter cleaning, equipment inspection, and seasonal maintenance. With Florida\'s year-round swimming season, regular pool maintenance is essential to prevent algae, maintain water clarity, and extend the life of your pool equipment.',
+    priceRange: { min: 80, max: 250, unit: 'job' },
+    averageTime: '1-2 hours',
+    icon: 'Waves',
+    benefits: [
+      'Year-round crystal clear water',
+      'Proper chemical balance for safe swimming',
+      'Extended equipment lifespan',
+      'Algae and debris prevention',
+      'Licensed and insured pool technicians'
+    ],
+    faqs: [
+      {
+        question: 'How much does pool cleaning cost in Florida?',
+        answer: 'Regular weekly pool service typically costs $80-$150/month in Florida. One-time deep cleanings range from $150-$250 depending on pool size and condition. Green-to-clean services for neglected pools can cost $250-$500.'
+      },
+      {
+        question: 'How often should I have my pool cleaned in Florida?',
+        answer: 'In Florida\'s warm climate, weekly pool service is recommended year-round. Heavy rain, pollen, and leaf seasons may require more frequent attention. At minimum, chemical levels should be checked 2-3 times per week.'
+      },
+      {
+        question: 'What does regular pool maintenance include?',
+        answer: 'Standard weekly service includes skimming the surface, vacuuming the pool floor, brushing walls and tiles, emptying baskets, testing and balancing chemicals, checking equipment, and cleaning the waterline.'
+      }
+    ],
+    keywords: ['pool cleaning Florida', 'pool maintenance', 'swimming pool service', 'pool chemical balancing', 'pool technician']
+  },
+  {
+    slug: 'landscaping',
+    dbValue: 'landscaping',
+    name: 'Landscaping Services',
+    shortName: 'Landscaping',
+    description: 'Professional landscaping and lawn care services in Florida. Lawn mowing, hedge trimming, garden maintenance, and more.',
+    longDescription: 'Florida landscaping services to keep your property looking its best year-round. Our verified landscaping professionals handle lawn mowing, edging, hedge trimming, weed control, mulching, garden bed maintenance, tree trimming, and seasonal plantings. Florida\'s unique subtropical climate requires specialized knowledge of local plants, irrigation, and pest management.',
+    priceRange: { min: 50, max: 300, unit: 'job' },
+    averageTime: '1-4 hours',
+    icon: 'TreePine',
+    benefits: [
+      'Boost curb appeal and property value',
+      'Expert knowledge of Florida plants',
+      'Consistent weekly/biweekly maintenance',
+      'Proper irrigation management',
+      'Licensed and insured professionals'
+    ],
+    faqs: [
+      {
+        question: 'How much does landscaping cost in Florida?',
+        answer: 'Basic lawn mowing starts at $30-$60 per visit for standard lots. Full landscaping maintenance including mowing, edging, trimming, and blowing ranges from $100-$300/month depending on property size and services included.'
+      },
+      {
+        question: 'How often should I mow my lawn in Florida?',
+        answer: 'During Florida\'s growing season (spring through fall), lawns should be mowed weekly. In winter, biweekly mowing is usually sufficient. St. Augustine and Bermuda grass, common in Florida, grow quickly in warm months.'
+      },
+      {
+        question: 'Do you handle irrigation systems?',
+        answer: 'Many of our landscaping professionals can inspect, adjust, and perform basic maintenance on irrigation systems. For complex repairs or new installations, specialized irrigation companies are recommended.'
+      }
+    ],
+    keywords: ['landscaping Florida', 'lawn care', 'yard maintenance', 'lawn mowing service', 'garden maintenance']
+  },
+  {
+    slug: 'mobile-car-detailing',
+    dbValue: 'mobile_car_detailing',
+    name: 'Mobile Car Detailing',
+    shortName: 'Car Detailing',
+    description: 'Professional mobile car detailing services in Florida. Interior and exterior detailing at your location.',
+    longDescription: 'Mobile car detailing services that come to your home or office in Florida. Our professional detailers provide thorough interior and exterior cleaning including hand wash, clay bar treatment, polish, wax, interior vacuuming, leather conditioning, dashboard detailing, and paint correction. Perfect for Florida\'s harsh sun and salt air that can damage vehicle finishes.',
+    priceRange: { min: 75, max: 350, unit: 'job' },
+    averageTime: '2-5 hours',
+    icon: 'Car',
+    benefits: [
+      'Convenient mobile service at your location',
+      'Protection from Florida sun and salt damage',
+      'Professional-grade products and tools',
+      'Interior sanitization and deodorizing',
+      'Paint correction and ceramic coating options'
+    ],
+    faqs: [
+      {
+        question: 'How much does mobile car detailing cost in Florida?',
+        answer: 'Basic exterior hand wash and interior detail starts at $75-$150. Full detail packages including paint correction, clay bar, and ceramic coating range from $200-$350 for sedans and $250-$450 for SUVs and trucks.'
+      },
+      {
+        question: 'How often should I detail my car in Florida?',
+        answer: 'In Florida\'s harsh conditions, a full detail every 3-4 months is recommended. Monthly maintenance washes help protect your investment between details. Cars parked outdoors may need more frequent service due to UV exposure and bird droppings.'
+      },
+      {
+        question: 'Do mobile detailers need water access at my location?',
+        answer: 'Most mobile detailers bring their own water supply (typically 50-100 gallons). Some may request access to an outdoor spigot for rinsing. Waterless and eco-friendly options are available for locations without water access.'
+      }
+    ],
+    keywords: ['mobile car detailing Florida', 'auto detailing', 'car wash service', 'vehicle detailing', 'paint correction']
+  },
+  {
+    slug: 'air-duct-cleaning',
+    dbValue: 'air_duct_cleaning',
+    name: 'Air Duct Cleaning',
+    shortName: 'Air Duct Cleaning',
+    description: 'Professional air duct and HVAC cleaning services in Florida. Improve air quality and system efficiency.',
+    longDescription: 'Air duct cleaning services to improve indoor air quality in Florida homes and businesses. Our certified technicians remove dust, mold, allergens, and debris from your HVAC system using professional-grade equipment. In Florida\'s humid climate, ductwork is prone to mold growth and allergen buildup, making regular cleaning essential for healthy indoor air and optimal AC efficiency.',
+    priceRange: { min: 200, max: 600, unit: 'job' },
+    averageTime: '3-5 hours',
+    icon: 'Wind',
+    benefits: [
+      'Improved indoor air quality',
+      'Reduced allergens and mold',
+      'Better HVAC efficiency and lower energy bills',
+      'Essential for Florida humidity and mold prevention',
+      'NADCA-certified technicians'
+    ],
+    faqs: [
+      {
+        question: 'How much does air duct cleaning cost in Florida?',
+        answer: 'Air duct cleaning for a typical Florida home (1,500-2,500 sq ft) costs $200-$400. Larger homes or commercial properties range from $400-$600+. Mold remediation or sanitization treatments are additional $100-$200.'
+      },
+      {
+        question: 'How often should air ducts be cleaned in Florida?',
+        answer: 'In Florida\'s humid climate, air duct cleaning is recommended every 2-3 years. Homes with pets, allergies, recent renovations, or visible mold should clean more frequently. Annual inspections help determine when cleaning is needed.'
+      },
+      {
+        question: 'Does duct cleaning help with Florida mold issues?',
+        answer: 'Yes, air duct cleaning removes mold spores and prevents their spread through your HVAC system. Combined with proper humidity control (keeping indoor humidity below 60%), clean ducts significantly reduce mold-related health risks in Florida homes.'
+      }
+    ],
+    keywords: ['air duct cleaning Florida', 'HVAC cleaning', 'duct cleaning service', 'indoor air quality', 'mold removal ducts']
+  },
+  {
+    slug: 'str-turnover-cleaning',
+    dbValue: 'str_turnover',
+    name: 'STR Turnover Cleaning',
+    shortName: 'Airbnb Cleaning',
+    description: 'Professional short-term rental turnover cleaning for Airbnb, VRBO, and vacation rental hosts in Florida.',
+    longDescription: 'Fast, reliable turnover cleaning for Florida short-term rental hosts. Our verified STR cleaning professionals specialize in same-day turnovers between guests, ensuring your Airbnb, VRBO, or vacation rental is guest-ready every time. Services include full cleaning, linen changes, restocking amenities, damage inspection, and photo-ready staging. Built for property managers handling multiple units with tight checkout-to-checkin windows.',
+    priceRange: { min: 100, max: 350, unit: 'job' },
+    averageTime: '2-4 hours',
+    icon: 'KeyRound',
+    benefits: [
+      'Same-day turnovers between guests',
+      'Linen change and laundry service',
+      'Amenity restocking and staging',
+      'Damage and maintenance reporting',
+      'Consistent checklist-based cleaning',
+      'Multi-property management support'
+    ],
+    faqs: [
+      {
+        question: 'How much does Airbnb turnover cleaning cost in Florida?',
+        answer: 'STR turnover cleaning in Florida typically costs $100-$250 for a 1-2 bedroom unit and $200-$350 for larger properties. Pricing depends on property size, number of bedrooms/bathrooms, and whether linen service is included. Most hosts pass the cleaning fee to guests through their platform.'
+      },
+      {
+        question: 'How quickly can you turn over a rental between guests?',
+        answer: 'Most turnovers are completed within 2-4 hours depending on property size. Our cleaners are experienced with tight checkout-to-checkin windows and can handle same-day turnovers. For back-to-back bookings, we recommend scheduling at least a 4-hour gap between checkout and checkin.'
+      },
+      {
+        question: 'What does an STR turnover cleaning include?',
+        answer: 'A standard turnover includes full cleaning of all rooms, bathroom sanitization, kitchen cleaning, linen and towel changes, trash removal, amenity restocking (toiletries, coffee, etc.), dishwasher unloading, and a walkthrough to ensure the property is guest-ready. Many cleaners also provide a photo report confirming the property is staged correctly.'
+      },
+      {
+        question: 'Do you handle linen laundry for vacation rentals?',
+        answer: 'Many STR cleaners offer linen service — either laundering on-site, swapping with a clean set, or coordinating with a laundry service. Linen swap is the fastest option for tight turnovers. Discuss your preferred approach when booking.'
+      },
+      {
+        question: 'Can you manage cleaning for multiple rental properties?',
+        answer: 'Yes! Many of our cleaners specialize in managing turnover schedules for hosts and property managers with multiple units. They can coordinate across properties, maintain consistent quality with standardized checklists, and handle last-minute booking changes.'
+      }
+    ],
+    keywords: ['Airbnb cleaning Florida', 'VRBO cleaning service', 'vacation rental turnover', 'STR cleaning', 'short-term rental cleaning', 'Airbnb turnover cleaning']
   }
 ];
 

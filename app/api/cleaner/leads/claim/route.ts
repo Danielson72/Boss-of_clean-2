@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { chargeLeadFee, requiresPayment, getLeadFeeCents } from '@/lib/stripe/lead-fee-service';
 import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger({ file: 'api/cleaner/leads/claim/route' });
@@ -23,7 +24,7 @@ export async function POST(request: NextRequest) {
     // Get cleaner profile
     const { data: cleaner, error: cleanerError } = await supabase
       .from('cleaners')
-      .select('id, subscription_tier')
+      .select('id, subscription_tier, lead_credits_used, lead_credits_reset_at')
       .eq('user_id', user.id)
       .single();
 
@@ -31,11 +32,40 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Cleaner profile not found' }, { status: 404 });
     }
 
+    const tier = cleaner.subscription_tier || 'free';
+    const creditsUsed = cleaner.lead_credits_used || 0;
+    const needsPayment = requiresPayment(tier, creditsUsed);
+
+    // If payment is required, charge the cleaner's card first
+    if (needsPayment) {
+      const feeCents = getLeadFeeCents(tier);
+      logger.info('Charging lead fee', { cleanerId: cleaner.id, leadId, tier, feeCents });
+
+      const chargeResult = await chargeLeadFee(cleaner.id, leadId, tier);
+
+      if (!chargeResult.success) {
+        return NextResponse.json(
+          {
+            error: chargeResult.error,
+            needsPaymentMethod: chargeResult.needsPaymentMethod || false,
+            feeCents,
+          },
+          { status: 402 }
+        );
+      }
+
+      logger.info('Lead fee charged successfully', {
+        cleanerId: cleaner.id,
+        leadId,
+        paymentIntentId: chargeResult.paymentIntentId,
+      });
+    }
+
     // Use atomic RPC to check credits and claim lead
     const { data, error } = await supabase.rpc('claim_lead_with_credit', {
       p_cleaner_id: cleaner.id,
       p_lead_id: leadId,
-      p_tier: cleaner.subscription_tier || 'free',
+      p_tier: tier,
     });
 
     if (error) {
@@ -56,6 +86,8 @@ export async function POST(request: NextRequest) {
       success: true,
       credits_used: result.credits_used,
       credit_limit: result.credit_limit,
+      charged: needsPayment,
+      feeCents: needsPayment ? getLeadFeeCents(tier) : 0,
     });
   } catch (error) {
     logger.error('Claim lead error', { function: 'POST' }, error);

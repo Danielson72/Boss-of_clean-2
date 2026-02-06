@@ -31,9 +31,9 @@ export async function POST(request: NextRequest) {
 
     // Get plan from URL params
     const { searchParams } = new URL(request.url)
-    const plan = searchParams.get('plan') as 'basic' | 'pro' | 'enterprise' | null
-    
-    if (!plan || !['basic', 'pro', 'enterprise'].includes(plan)) {
+    const plan = searchParams.get('plan') as 'basic' | 'pro' | null
+
+    if (!plan || !['basic', 'pro'].includes(plan)) {
       return NextResponse.json(
         { error: 'Invalid plan specified' },
         { status: 400 }
@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
       subscriptionMetadata: {
         user_id: user.id,
         cleaner_id: cleaner.id,
-        plan: plan,
+        tier: plan,
       },
     })
 

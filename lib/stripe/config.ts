@@ -27,58 +27,64 @@ export const stripe = new Proxy({} as Stripe, {
   }
 })
 
-// Test mode price IDs - these should be replaced with actual Stripe price IDs
+// Stripe price IDs mapped to tier names (Free/Basic/Pro matching PRD)
 export const STRIPE_PRICES = {
-  basic: process.env.STRIPE_BASIC_PRICE_ID || 'price_test_basic_monthly',
-  pro: process.env.STRIPE_PRO_PRICE_ID || 'price_test_pro_monthly',
-  enterprise: process.env.STRIPE_ENTERPRISE_PRICE_ID || 'price_test_enterprise_monthly',
+  basic: process.env.STRIPE_BASIC_PRICE_ID || '',
+  pro: process.env.STRIPE_PRO_PRICE_ID || '',
 } as const
 
-export type SubscriptionTier = 'free' | 'pro' | 'enterprise'
+export type SubscriptionTier = 'free' | 'basic' | 'pro'
 
-export const PLAN_DETAILS = {
+export const PLAN_DETAILS: Record<SubscriptionTier, {
+  name: string
+  price: number
+  priceId?: string
+  leadCredits: number // -1 = unlimited
+  features: string[]
+}> = {
   free: {
     name: 'Free',
     price: 0,
+    leadCredits: 0,
     features: [
       'Basic business listing',
-      '1 photo only',
-      'Contact information display',
-      'Basic customer reviews',
+      'Pay-per-lead ($15/lead)',
+      '1 photo upload',
       'Email support'
     ]
   },
-  pro: {
-    name: 'Professional',
+  basic: {
+    name: 'Basic',
     price: 79,
-    priceId: STRIPE_PRICES.pro,
+    priceId: STRIPE_PRICES.basic,
+    leadCredits: 20,
     features: [
       'Premium business listing',
+      '20 lead credits/month',
+      'Additional leads $10 each',
       'Unlimited photos',
       'Priority in search results',
-      'Advanced review management',
-      'Lead contact information',
       'Business analytics',
       'Phone & email support'
     ]
   },
-  enterprise: {
-    name: 'Enterprise',
-    price: 149,
-    priceId: STRIPE_PRICES.enterprise,
+  pro: {
+    name: 'Pro',
+    price: 199,
+    priceId: STRIPE_PRICES.pro,
+    leadCredits: -1,
     features: [
       'Featured business listing',
+      'Unlimited lead credits',
       'Unlimited photos & videos',
       'Top placement in search',
-      'Full review management suite',
-      'Direct customer messaging',
       'Advanced analytics & insights',
-      'Multiple location support',
+      'Direct customer messaging',
       'Dedicated account manager',
       '24/7 priority support'
     ]
   }
-} as const
+}
 
 export const SUBSCRIPTION_TIERS = PLAN_DETAILS
 

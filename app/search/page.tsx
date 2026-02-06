@@ -17,9 +17,9 @@ const logger = createLogger({ file: 'app/search/page.tsx' });
 
 const SERVICE_TYPES = [
   'House Cleaning', 'Deep Cleaning', 'Move-in/Move-out Cleaning',
-  'Post-Construction Cleaning', 'Office Cleaning', 'Carpet Cleaning',
-  'Window Cleaning', 'Pressure Washing', 'Organizing Services',
-  'Laundry Services', 'Pet-Friendly Cleaning', 'Green/Eco Cleaning'
+  'Airbnb / STR Turnover', 'Post-Construction Cleaning', 'Office Cleaning',
+  'Carpet Cleaning', 'Window Cleaning', 'Pressure Washing',
+  'Pool Cleaning', 'Landscaping', 'Air Duct Cleaning'
 ];
 
 const FLORIDA_ZIP_CODES = [

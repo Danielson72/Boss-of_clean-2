@@ -10,7 +10,7 @@ const logger = createLogger({ file: 'quote-request/actions' });
 
 export interface QuoteRequestData {
   service_type: string;
-  property_type: 'home' | 'condo' | 'apartment' | 'office' | 'other';
+  property_type: 'home' | 'condo' | 'apartment' | 'vacation_rental' | 'office' | 'other';
   sqft_estimate?: number;
   bedrooms?: number;
   bathrooms?: number;

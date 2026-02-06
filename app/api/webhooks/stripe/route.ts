@@ -105,13 +105,50 @@ async function handleStripeEvent(event: Stripe.Event): Promise<void> {
       );
       break;
 
-    case 'payment_intent.succeeded':
-      logger.info('Payment intent succeeded', { paymentIntentId: (event.data.object as Stripe.PaymentIntent).id });
+    case 'payment_intent.succeeded': {
+      const pi = event.data.object as Stripe.PaymentIntent;
+      if (pi.metadata?.type === 'lead_fee') {
+        logger.info('Lead fee payment succeeded', {
+          paymentIntentId: pi.id,
+          cleanerId: pi.metadata.cleaner_id,
+          leadId: pi.metadata.lead_id,
+        });
+        // Lead charge record already updated in chargeLeadFee - this is a confirmation
+        await processEventWithRetry(event, async () => {
+          const supabase = (await import('@/lib/supabase/server')).createClient();
+          const sb = await supabase;
+          await sb
+            .from('lead_charges')
+            .update({ status: 'succeeded' })
+            .eq('stripe_payment_intent_id', pi.id);
+        });
+      } else {
+        logger.info('Payment intent succeeded', { paymentIntentId: pi.id });
+      }
       break;
+    }
 
-    case 'payment_intent.payment_failed':
-      logger.info('Payment intent failed', { paymentIntentId: (event.data.object as Stripe.PaymentIntent).id });
+    case 'payment_intent.payment_failed': {
+      const failedPi = event.data.object as Stripe.PaymentIntent;
+      if (failedPi.metadata?.type === 'lead_fee') {
+        logger.warn('Lead fee payment failed', {
+          paymentIntentId: failedPi.id,
+          cleanerId: failedPi.metadata.cleaner_id,
+          leadId: failedPi.metadata.lead_id,
+        });
+        await processEventWithRetry(event, async () => {
+          const supabase = (await import('@/lib/supabase/server')).createClient();
+          const sb = await supabase;
+          await sb
+            .from('lead_charges')
+            .update({ status: 'failed' })
+            .eq('stripe_payment_intent_id', failedPi.id);
+        });
+      } else {
+        logger.info('Payment intent failed', { paymentIntentId: failedPi.id });
+      }
       break;
+    }
 
     case 'charge.dispute.created':
       await processEventWithRetry(event, () =>

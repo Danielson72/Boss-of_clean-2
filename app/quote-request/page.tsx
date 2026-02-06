@@ -16,6 +16,7 @@ import {
   Square,
   Bath,
   Bed,
+  KeyRound,
 } from 'lucide-react';
 import Link from 'next/link';
 import { submitQuoteRequest, type QuoteRequestData } from './actions';
@@ -25,6 +26,7 @@ const SERVICE_TYPES = [
   { value: 'commercial', label: 'Commercial Cleaning', icon: Building2 },
   { value: 'deep_cleaning', label: 'Deep Cleaning', icon: Sparkles },
   { value: 'move_in_out', label: 'Move In/Out Cleaning', icon: Home },
+  { value: 'str_turnover', label: 'Airbnb / STR Turnover', icon: KeyRound },
   { value: 'recurring', label: 'Recurring Service', icon: Calendar },
 ];
 
@@ -32,6 +34,7 @@ const PROPERTY_TYPES = [
   { value: 'home', label: 'House' },
   { value: 'condo', label: 'Condo' },
   { value: 'apartment', label: 'Apartment' },
+  { value: 'vacation_rental', label: 'Vacation Rental' },
   { value: 'office', label: 'Office' },
   { value: 'other', label: 'Other' },
 ];
@@ -377,7 +380,7 @@ export default function QuoteRequestPage() {
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Property Type
                       </label>
-                      <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                      <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
                         {PROPERTY_TYPES.map((type) => (
                           <button
                             key={type.value}

@@ -1,4 +1,4 @@
-import { stripe, SUBSCRIPTION_TIERS, type SubscriptionTier } from './config';
+import { stripe, PLAN_DETAILS, type SubscriptionTier } from './config';
 import { createClient } from '@/lib/supabase/server';
 import { processDunningEvent, resetDunningState } from '@/lib/stripe/dunning';
 import { createLogger } from '../utils/logger';
@@ -22,7 +22,7 @@ export class SubscriptionService {
       throw new Error('Free tier does not require payment');
     }
 
-    const tierConfig = SUBSCRIPTION_TIERS[tier];
+    const tierConfig = PLAN_DETAILS[tier];
     
     try {
       // Create or retrieve Stripe customer
@@ -115,7 +115,7 @@ export class SubscriptionService {
       return;
     }
 
-    const tierConfig = SUBSCRIPTION_TIERS[tier];
+    const tierConfig = PLAN_DETAILS[tier];
     const periodStart = new Date(current_period_start * 1000).toISOString();
     const periodEnd = new Date(current_period_end * 1000).toISOString();
 
