@@ -319,7 +319,7 @@ export default function CleanerProfileForm({ cleanerData, userData, userId }: Cl
               disabled={loading}
             />
             <Label htmlFor="background" className="text-sm font-normal cursor-pointer">
-              I have completed a background check
+              I have background documentation available
             </Label>
           </div>
         </div>

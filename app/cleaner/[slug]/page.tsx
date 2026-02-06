@@ -279,7 +279,7 @@ export default async function CleanerProfilePage({ params }: { params: Promise<{
                 {cleaner.background_check && (
                   <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
                     <CheckCircle2 className="h-4 w-4" />
-                    Background Checked
+                    Profile on File
                   </span>
                 )}
               </div>

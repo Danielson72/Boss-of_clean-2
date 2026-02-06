@@ -68,7 +68,7 @@ export default function AboutPage() {
             <div className="grid grid-cols-2 gap-6 text-center">
               <div>
                 <div className="text-3xl font-bold text-blue-600 mb-2">500+</div>
-                <div className="text-gray-600">Verified Cleaners</div>
+                <div className="text-gray-600">Cleaning Professionals</div>
               </div>
               <div>
                 <div className="text-3xl font-bold text-blue-600 mb-2">67</div>

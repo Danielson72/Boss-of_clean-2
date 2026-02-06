@@ -7,7 +7,7 @@ import type { Metadata } from 'next';
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://bossofclean.com';
 const SITE_NAME = 'Boss of Clean';
-const DEFAULT_DESCRIPTION = 'Find professional cleaning services in Florida instantly. 500+ verified cleaners across all 67 counties. Residential, commercial, deep cleaning, pressure washing & more.';
+const DEFAULT_DESCRIPTION = 'Find professional cleaning services in Florida instantly. 500+ cleaning professionals across all 67 counties. Residential, commercial, deep cleaning, pressure washing & more.';
 
 export interface MetadataOptions {
   title: string;
@@ -146,7 +146,7 @@ export function generateServiceMetadata(
   const title = `${serviceName} Services in Florida`;
   const description =
     customDescription ||
-    `Find professional ${serviceName.toLowerCase()} services across Florida. Compare prices, read reviews, and book verified cleaners. Purrfection is our Standard.`;
+    `Find professional ${serviceName.toLowerCase()} services across Florida. Compare prices, read reviews, and book cleaning professionals. Purrfection is our Standard.`;
 
   return generatePageMetadata({
     title,
@@ -156,7 +156,7 @@ export function generateServiceMetadata(
       `${serviceName} Florida`,
       `${serviceName} near me`,
       'professional cleaning',
-      'verified cleaners',
+      'cleaning professionals',
     ],
     path: `/services/${serviceSlug}`,
   });
@@ -175,7 +175,7 @@ export function generateLocationMetadata(
 
   let description = `Find trusted cleaning professionals in ${locationStr}, FL.`;
   if (cleanerCount && cleanerCount > 0) {
-    description += ` Browse ${cleanerCount}+ verified cleaners.`;
+    description += ` Browse ${cleanerCount}+ cleaning professionals.`;
   }
   description += ' Compare prices, read reviews, and book today. Purrfection is our Standard.';
 
@@ -211,7 +211,7 @@ export function generateCountyMetadata(
 
   let description = `Find professional cleaning services in ${countyName} County, FL.`;
   if (cleanerCount && cleanerCount > 0) {
-    description += ` ${cleanerCount}+ verified cleaners available.`;
+    description += ` ${cleanerCount}+ cleaning professionals available.`;
   }
   description += ' Residential, commercial, and specialty cleaning. Purrfection is our Standard.';
 
@@ -254,7 +254,7 @@ export function generateSearchMetadata(
     description += ` ${resultCount} results found.`;
   }
 
-  description += ' Compare prices, read reviews, and book verified cleaners.';
+  description += ' Compare prices, read reviews, and book cleaning professionals.';
 
   return generatePageMetadata({
     title,

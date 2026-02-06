@@ -184,7 +184,7 @@ export function CleanerCard({
                 <BadgeCheck className="h-5 w-5 text-green-600" aria-hidden="true" />
                 <span className="text-green-800">Boss of Clean Certified</span>
               </div>
-              <p className="text-xs text-green-700 mt-1">Background checked, insured & verified</p>
+              <p className="text-xs text-green-700 mt-1">Independent cleaning professional</p>
             </div>
           ) : (
             <div className="space-y-1" role="list" aria-label="Verifications">
@@ -197,7 +197,7 @@ export function CleanerCard({
               {backgroundCheckVerified && (
                 <div className="flex items-center gap-2 text-xs" role="listitem">
                   <BadgeCheck className="h-3.5 w-3.5 text-blue-500" aria-hidden="true" />
-                  <span className="text-gray-600">Background Checked</span>
+                  <span className="text-gray-600">Profile on File</span>
                 </div>
               )}
               {licenseVerified && (

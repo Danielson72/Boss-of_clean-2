@@ -301,7 +301,7 @@ export default function HomePage() {
                       <div className="flex flex-wrap justify-center items-center gap-6 text-sm text-gray-600">
                         <div className="flex items-center">
                           <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
-                          <span className="font-medium">500+ Verified Cleaners</span>
+                          <span className="font-medium">500+ Cleaning Professionals</span>
                         </div>
                         <div className="flex items-center">
                           <Shield className="h-5 w-5 text-blue-500 mr-2" />
@@ -321,29 +321,29 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* $5,000 Guarantee Banner */}
+      {/* Purrfection Promise Banner */}
       <section className="bg-gradient-to-r from-green-600 to-green-700 text-white py-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row items-center justify-center gap-4 text-center md:text-left">
             <div className="flex items-center gap-3">
               <Shield className="h-12 w-12 text-green-300" />
               <div>
-                <h3 className="text-2xl font-bold">$5,000 Quality Guarantee</h3>
-                <p className="text-green-100">We stand behind every Boss of Clean Certified™ cleaner</p>
+                <h3 className="text-2xl font-bold">The Purrfection Promise</h3>
+                <p className="text-green-100">Committed to connecting you with quality cleaning professionals</p>
               </div>
             </div>
             <div className="flex items-center gap-6 ml-0 md:ml-auto">
               <div className="flex items-center gap-2">
                 <BadgeCheck className="h-6 w-6 text-green-300" />
-                <span className="font-medium">Background Checked</span>
+                <span className="font-medium">Quality Focused</span>
               </div>
               <div className="flex items-center gap-2">
                 <Shield className="h-6 w-6 text-green-300" />
-                <span className="font-medium">Fully Insured</span>
+                <span className="font-medium">Platform Support</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle className="h-6 w-6 text-green-300" />
-                <span className="font-medium">Photo Verified</span>
+                <span className="font-medium">Satisfaction Commitment</span>
               </div>
             </div>
           </div>
@@ -361,7 +361,7 @@ export default function HomePage() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
               <div className="bg-white rounded-lg p-4 shadow-sm">
                 <div className="text-2xl font-bold text-blue-600">500+</div>
-                <div className="text-sm text-gray-600">Verified Cleaners</div>
+                <div className="text-sm text-gray-600">Cleaning Professionals</div>
               </div>
               <div className="bg-white rounded-lg p-4 shadow-sm">
                 <div className="text-2xl font-bold text-green-600">10K+</div>
@@ -469,7 +469,7 @@ export default function HomePage() {
                 <Users className="h-8 w-8 mr-2" />
                 <span className="text-3xl font-bold">500+</span>
               </div>
-              <p className="text-blue-100">Verified Cleaners</p>
+              <p className="text-blue-100">Cleaning Professionals</p>
             </div>
             
             <div>
@@ -569,15 +569,15 @@ export default function HomePage() {
                 <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-3">
                   <CheckCircle className="h-6 w-6 text-white" />
                 </div>
-                <h4 className="font-semibold text-gray-900">Background Verified</h4>
-                <p className="text-sm text-gray-600">All cleaners screened & verified</p>
+                <h4 className="font-semibold text-gray-900">Quality Professionals</h4>
+                <p className="text-sm text-gray-600">Independent cleaning professionals</p>
               </div>
               <div className="text-center">
                 <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-3">
                   <Shield className="h-6 w-6 text-white" />
                 </div>
-                <h4 className="font-semibold text-gray-900">Insured & Bonded</h4>
-                <p className="text-sm text-gray-600">$5,000+ insurance coverage</p>
+                <h4 className="font-semibold text-gray-900">Platform Support</h4>
+                <p className="text-sm text-gray-600">Help when you need it</p>
               </div>
               <div className="text-center">
                 <div className="w-12 h-12 bg-yellow-500 rounded-full flex items-center justify-center mx-auto mb-3">

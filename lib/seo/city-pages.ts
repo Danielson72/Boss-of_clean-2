@@ -70,7 +70,7 @@ export function generateCityJsonLd(data: CityPageData): object {
     '@type': 'LocalBusiness',
     '@id': `${SITE_URL}/${city.slug}`,
     name: `Boss of Clean - ${city.name}`,
-    description: `Professional cleaning services in ${city.name}, ${city.county} County, Florida. ${cleanerCount}+ verified cleaners available.`,
+    description: `Professional cleaning services in ${city.name}, ${city.county} County, Florida. ${cleanerCount}+ cleaning professionals available.`,
     url: `${SITE_URL}/${city.slug}`,
     areaServed: {
       '@type': 'City',

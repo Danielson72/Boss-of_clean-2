@@ -34,7 +34,7 @@ export const SERVICE_TYPES: ServiceType[] = [
     name: 'Residential Cleaning',
     shortName: 'House Cleaning',
     description: 'Professional house cleaning services for Florida homes. Regular maintenance cleaning to keep your home spotless.',
-    longDescription: 'Our residential cleaning services provide thorough, professional house cleaning for Florida homeowners. From weekly maintenance to deep cleaning, our verified cleaners handle all aspects of home cleaning including dusting, vacuuming, mopping, bathroom sanitization, and kitchen cleaning. Perfect for busy families, professionals, and anyone who wants to enjoy a clean home without the hassle.',
+    longDescription: 'Our residential cleaning services provide thorough, professional house cleaning for Florida homeowners. From weekly maintenance to deep cleaning, our cleaning professionals handle all aspects of home cleaning including dusting, vacuuming, mopping, bathroom sanitization, and kitchen cleaning. Perfect for busy families, professionals, and anyone who wants to enjoy a clean home without the hassle.',
     priceRange: { min: 75, max: 200, unit: 'hour' },
     averageTime: '2-4 hours',
     icon: 'Home',
@@ -43,7 +43,7 @@ export const SERVICE_TYPES: ServiceType[] = [
       'Consistent, reliable cleaning schedules',
       'Customized cleaning checklists',
       'Eco-friendly product options available',
-      'Background-checked, insured professionals'
+      'Independent, insured professionals'
     ],
     faqs: [
       {
@@ -60,7 +60,7 @@ export const SERVICE_TYPES: ServiceType[] = [
       },
       {
         question: 'Do I need to be home during the cleaning?',
-        answer: 'No, most clients provide a key or entry code. All Boss of Clean verified cleaners are background-checked and insured. Many homeowners prefer to be away during cleaning so cleaners can work efficiently without disruption.'
+        answer: 'No, most clients provide a key or entry code. Boss of Clean connects you with independent cleaning professionals. Many homeowners prefer to be away during cleaning so cleaners can work efficiently without disruption.'
       },
       {
         question: 'Are cleaning supplies included?',
@@ -75,7 +75,7 @@ export const SERVICE_TYPES: ServiceType[] = [
     name: 'Commercial Cleaning',
     shortName: 'Office Cleaning',
     description: 'Professional commercial cleaning for Florida businesses. Keep your workplace clean and your employees healthy.',
-    longDescription: 'Our commercial cleaning services keep Florida businesses spotless and professional. From small offices to large commercial spaces, our verified cleaning professionals handle daily janitorial services, floor care, restroom sanitation, and specialized commercial cleaning needs. Create a healthier workplace and impress clients with a consistently clean business environment.',
+    longDescription: 'Our commercial cleaning services keep Florida businesses spotless and professional. From small offices to large commercial spaces, our cleaning professionals handle daily janitorial services, floor care, restroom sanitation, and specialized commercial cleaning needs. Create a healthier workplace and impress clients with a consistently clean business environment.',
     priceRange: { min: 100, max: 500, unit: 'job' },
     averageTime: '2-8 hours',
     icon: 'Building2',
@@ -93,7 +93,7 @@ export const SERVICE_TYPES: ServiceType[] = [
       },
       {
         question: 'What commercial spaces do you clean?',
-        answer: 'Our verified cleaners handle all types of commercial properties including offices, retail stores, medical facilities, restaurants, gyms, churches, schools, and industrial spaces. Specialized cleaning for medical or food service facilities is available with certified professionals.'
+        answer: 'Our cleaning professionals handle all types of commercial properties including offices, retail stores, medical facilities, restaurants, gyms, churches, schools, and industrial spaces. Specialized cleaning for medical or food service facilities is available with certified professionals.'
       },
       {
         question: 'Can cleaning be done after business hours?',
@@ -105,7 +105,7 @@ export const SERVICE_TYPES: ServiceType[] = [
       },
       {
         question: 'Are your commercial cleaners insured?',
-        answer: 'All Boss of Clean verified commercial cleaners carry liability insurance and workers compensation. This protects your business from any damages or injuries that may occur during cleaning.'
+        answer: 'Boss of Clean connects you with commercial cleaners who carry liability insurance. We recommend confirming insurance and workers compensation coverage directly with your cleaner before service begins.'
       }
     ],
     keywords: ['commercial cleaning Florida', 'office cleaning services', 'janitorial services', 'business cleaning', 'workplace cleaning']
@@ -157,7 +157,7 @@ export const SERVICE_TYPES: ServiceType[] = [
     name: 'Pressure Washing',
     shortName: 'Power Washing',
     description: 'Professional pressure washing for Florida homes and businesses. Remove mold, mildew, and stains from exterior surfaces.',
-    longDescription: 'Florida humidity creates the perfect environment for mold, mildew, and algae growth on exterior surfaces. Our professional pressure washing services restore driveways, sidewalks, patios, pool decks, siding, roofs, and fences to like-new condition. Protect your property value and curb appeal with regular pressure washing from verified Florida professionals.',
+    longDescription: 'Florida humidity creates the perfect environment for mold, mildew, and algae growth on exterior surfaces. Our professional pressure washing services restore driveways, sidewalks, patios, pool decks, siding, roofs, and fences to like-new condition. Protect your property value and curb appeal with regular pressure washing from experienced Florida professionals.',
     priceRange: { min: 100, max: 500, unit: 'job' },
     averageTime: '2-6 hours',
     icon: 'Droplets',
@@ -403,7 +403,7 @@ export const SERVICE_TYPES: ServiceType[] = [
     name: 'Office Cleaning',
     shortName: 'Office Clean',
     description: 'Professional office cleaning services in Florida. Daily, weekly, or monthly janitorial services for your business.',
-    longDescription: 'Keep your Florida office clean, healthy, and professional with our office cleaning services. From small professional suites to large corporate offices, our verified cleaners provide daily janitorial services, restroom sanitation, break room cleaning, and specialized office cleaning needs. Create a productive work environment and impress clients with spotless office spaces.',
+    longDescription: 'Keep your Florida office clean, healthy, and professional with our office cleaning services. From small professional suites to large corporate offices, our cleaning professionals provide daily janitorial services, restroom sanitation, break room cleaning, and specialized office cleaning needs. Create a productive work environment and impress clients with spotless office spaces.',
     priceRange: { min: 75, max: 400, unit: 'job' },
     averageTime: '1-4 hours',
     icon: 'Briefcase',
@@ -429,7 +429,7 @@ export const SERVICE_TYPES: ServiceType[] = [
       },
       {
         question: 'How do we handle office security during cleaning?',
-        answer: 'Professional cleaners are background-checked and trained in office security protocols. We work with your building management on key/access procedures. Cleaners follow sign-in/sign-out procedures and alarm codes as needed.'
+        answer: 'Professional cleaners are trained in office security protocols. We work with your building management on key/access procedures. Cleaners follow sign-in/sign-out procedures and alarm codes as needed.'
       },
       {
         question: 'Can you clean specialized office equipment?',
@@ -444,7 +444,7 @@ export const SERVICE_TYPES: ServiceType[] = [
     name: 'Pool Cleaning Services',
     shortName: 'Pool Cleaning',
     description: 'Professional pool cleaning and maintenance services across Florida. Keep your pool crystal clear year-round.',
-    longDescription: 'Florida pool cleaning services to keep your swimming pool sparkling and safe. Our verified pool professionals handle chemical balancing, skimming, vacuuming, filter cleaning, equipment inspection, and seasonal maintenance. With Florida\'s year-round swimming season, regular pool maintenance is essential to prevent algae, maintain water clarity, and extend the life of your pool equipment.',
+    longDescription: 'Florida pool cleaning services to keep your swimming pool sparkling and safe. Our pool cleaning professionals handle chemical balancing, skimming, vacuuming, filter cleaning, equipment inspection, and seasonal maintenance. With Florida\'s year-round swimming season, regular pool maintenance is essential to prevent algae, maintain water clarity, and extend the life of your pool equipment.',
     priceRange: { min: 80, max: 250, unit: 'job' },
     averageTime: '1-2 hours',
     icon: 'Waves',
@@ -477,7 +477,7 @@ export const SERVICE_TYPES: ServiceType[] = [
     name: 'Landscaping Services',
     shortName: 'Landscaping',
     description: 'Professional landscaping and lawn care services in Florida. Lawn mowing, hedge trimming, garden maintenance, and more.',
-    longDescription: 'Florida landscaping services to keep your property looking its best year-round. Our verified landscaping professionals handle lawn mowing, edging, hedge trimming, weed control, mulching, garden bed maintenance, tree trimming, and seasonal plantings. Florida\'s unique subtropical climate requires specialized knowledge of local plants, irrigation, and pest management.',
+    longDescription: 'Florida landscaping services to keep your property looking its best year-round. Our landscaping professionals handle lawn mowing, edging, hedge trimming, weed control, mulching, garden bed maintenance, tree trimming, and seasonal plantings. Florida\'s unique subtropical climate requires specialized knowledge of local plants, irrigation, and pest management.',
     priceRange: { min: 50, max: 300, unit: 'job' },
     averageTime: '1-4 hours',
     icon: 'TreePine',
@@ -576,7 +576,7 @@ export const SERVICE_TYPES: ServiceType[] = [
     name: 'STR Turnover Cleaning',
     shortName: 'Airbnb Cleaning',
     description: 'Professional short-term rental turnover cleaning for Airbnb, VRBO, and vacation rental hosts in Florida.',
-    longDescription: 'Fast, reliable turnover cleaning for Florida short-term rental hosts. Our verified STR cleaning professionals specialize in same-day turnovers between guests, ensuring your Airbnb, VRBO, or vacation rental is guest-ready every time. Services include full cleaning, linen changes, restocking amenities, damage inspection, and photo-ready staging. Built for property managers handling multiple units with tight checkout-to-checkin windows.',
+    longDescription: 'Fast, reliable turnover cleaning for Florida short-term rental hosts. Our STR cleaning professionals specialize in same-day turnovers between guests, ensuring your Airbnb, VRBO, or vacation rental is guest-ready every time. Services include full cleaning, linen changes, restocking amenities, damage inspection, and photo-ready staging. Built for property managers handling multiple units with tight checkout-to-checkin windows.',
     priceRange: { min: 100, max: 350, unit: 'job' },
     averageTime: '2-4 hours',
     icon: 'KeyRound',

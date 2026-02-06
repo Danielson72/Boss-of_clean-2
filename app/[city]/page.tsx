@@ -241,9 +241,9 @@ export default async function CityPage({ params }: CityPageProps) {
                   <li className="flex items-start gap-3">
                     <Shield className="h-6 w-6 text-green-400 flex-shrink-0" />
                     <div>
-                      <p className="font-medium">Verified Professionals</p>
+                      <p className="font-medium">Cleaning Professionals</p>
                       <p className="text-sm text-blue-200">
-                        All cleaners are background-checked and insured
+                        Independent cleaning professionals in your area
                       </p>
                     </div>
                   </li>

@@ -227,7 +227,7 @@ export function ApprovalQueue({ applications, onViewDetails }: ApprovalQueueProp
                     {cleaner.background_check && (
                       <Badge variant="outline" className="text-blue-600">
                         <Shield className="h-3 w-3 mr-1" />
-                        Background Checked
+                        Documentation on File
                       </Badge>
                     )}
                   </div>

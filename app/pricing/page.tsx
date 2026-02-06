@@ -391,10 +391,10 @@ export default function PricingPage() {
             
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Do you offer any guarantees?
+                Do you offer a satisfaction commitment?
               </h3>
               <p className="text-gray-600">
-                We offer a 30-day money-back guarantee for all new subscribers. If you're not satisfied with the results, we'll refund your first month's payment.
+                We offer a 30-day money-back policy for all new subscribers. If you&apos;re not satisfied with the results, we&apos;ll refund your first month&apos;s payment.
               </p>
             </div>
             

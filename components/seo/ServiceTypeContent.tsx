@@ -134,7 +134,7 @@ export function ServiceTypeContent({
               <p className="text-gray-600 mt-1">
                 {isLoading
                   ? 'Finding cleaners...'
-                  : `${totalCount} verified professional${totalCount !== 1 ? 's' : ''} available`}
+                  : `${totalCount} cleaning professional${totalCount !== 1 ? 's' : ''} available`}
               </p>
             </div>
             <Link

@@ -514,7 +514,7 @@ export default function CleanerProfilePage() {
                   <div className="flex items-center gap-3">
                     <BadgeCheck className={`h-5 w-5 ${profile.background_check ? 'text-green-600' : 'text-gray-400'}`} />
                     <div>
-                      <p className="font-medium">Background Check</p>
+                      <p className="font-medium">Background Documentation</p>
                       <p className="text-sm text-gray-600">Complete criminal background screening</p>
                     </div>
                   </div>

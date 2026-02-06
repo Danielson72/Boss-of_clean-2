@@ -155,7 +155,7 @@ export default function DocumentUploadForm({ data, onChange, onNext, onBack, isS
                   <p className="text-sm text-gray-500 mt-1">
                     {docType.value === 'insurance' && 'Proof of liability insurance coverage'}
                     {docType.value === 'license' && 'Business license or registration'}
-                    {docType.value === 'background_check' && 'Background check certificate'}
+                    {docType.value === 'background_check' && 'Background documentation'}
                     {docType.value === 'certification' && 'Professional certifications'}
                   </p>
                 </div>

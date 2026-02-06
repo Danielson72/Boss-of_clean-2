@@ -9,11 +9,11 @@ import { SERVICE_TYPES } from '@/lib/data/service-types';
 
 export const metadata: Metadata = {
   title: 'Cleaning Services in Florida | Boss of Clean',
-  description: 'Browse all professional cleaning services available in Florida. Residential, commercial, deep cleaning, pressure washing, and more. Find verified cleaners near you.',
+  description: 'Browse all professional cleaning services available in Florida. Residential, commercial, deep cleaning, pressure washing, and more. Find cleaning professionals near you.',
   keywords: 'cleaning services Florida, house cleaning, commercial cleaning, pressure washing, carpet cleaning, window cleaning',
   openGraph: {
     title: 'Cleaning Services in Florida | Boss of Clean',
-    description: 'Browse all professional cleaning services available in Florida. Find verified cleaners near you.',
+    description: 'Browse all professional cleaning services available in Florida. Find cleaning professionals near you.',
     type: 'website',
   },
 };
@@ -121,9 +121,9 @@ export default function ServicesPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Verified Professionals</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Quality Professionals</h3>
               <p className="text-gray-600">
-                All cleaners are background-checked, insured, and verified for quality service.
+                Independent cleaning professionals committed to quality service.
               </p>
             </div>
             <div className="text-center">

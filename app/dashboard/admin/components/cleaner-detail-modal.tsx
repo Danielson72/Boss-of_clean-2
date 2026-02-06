@@ -161,7 +161,7 @@ export function CleanerDetailModal({ cleanerId, isOpen, onClose }: CleanerDetail
     const labels: Record<string, string> = {
       license: 'Business License',
       insurance: 'Insurance Certificate',
-      background_check: 'Background Check',
+      background_check: 'Background Documentation',
       certification: 'Professional Certification',
       other: 'Other Document'
     }
@@ -346,7 +346,7 @@ export function CleanerDetailModal({ cleanerId, isOpen, onClose }: CleanerDetail
                     ) : (
                       <XCircle className="h-5 w-5 text-muted-foreground" />
                     )}
-                    <span>Background Check</span>
+                    <span>Background Documentation</span>
                   </div>
                 </CardContent>
               </Card>

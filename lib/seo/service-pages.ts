@@ -8,7 +8,7 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://bossofclean.com';
  */
 export function generateServicePageMetadata(serviceType: ServiceType): Metadata {
   const title = `${serviceType.name} in Florida | Boss of Clean`;
-  const description = `Find professional ${serviceType.name.toLowerCase()} in Florida. ${serviceType.description} Compare verified cleaners, read reviews, and get free quotes.`;
+  const description = `Find professional ${serviceType.name.toLowerCase()} in Florida. ${serviceType.description} Compare cleaning professionals, read reviews, and get free quotes.`;
 
   return {
     title,

@@ -210,7 +210,7 @@ export default function QuoteRequestPage() {
             <div>
               <h1 className="text-2xl font-bold text-gray-900">Get Free Quotes</h1>
               <p className="text-sm text-gray-600">
-                Compare quotes from verified cleaners in your area
+                Compare quotes from cleaning professionals in your area
               </p>
             </div>
           </div>
@@ -624,7 +624,7 @@ export default function QuoteRequestPage() {
             </span>
             <span className="flex items-center gap-1">
               <CheckCircle className="h-4 w-4 text-green-500" />
-              Verified cleaners
+              Cleaning professionals
             </span>
           </div>
         </div>

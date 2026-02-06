@@ -346,7 +346,7 @@ export function SearchFilters({
                     className="mr-2 h-4 w-4 text-blue-600 rounded focus:ring-blue-500"
                   />
                   <span className="text-sm font-medium text-gray-700">
-                    Verified cleaners only
+                    Reviewed professionals only
                   </span>
                 </label>
               </div>

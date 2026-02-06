@@ -41,7 +41,7 @@ export function generateOrganizationSchema() {
     '@id': `${BASE_URL}/#organization`,
     name: 'Boss of Clean',
     alternateName: 'Boss of Clean Florida',
-    description: 'Florida\'s premier cleaning service directory. Find verified professional cleaners across all 67 Florida counties. Purrfection is our Standard.',
+    description: 'Florida\'s premier cleaning service directory. Find professional cleaners across all 67 Florida counties. Purrfection is our Standard.',
     url: BASE_URL,
     logo: {
       '@type': 'ImageObject',
@@ -91,7 +91,7 @@ export function generateWebsiteSchema() {
     '@id': `${BASE_URL}/#website`,
     name: 'Boss of Clean',
     url: BASE_URL,
-    description: 'Find professional cleaning services in Florida instantly. 500+ verified cleaners across all 67 counties.',
+    description: 'Find professional cleaning services in Florida instantly. 500+ cleaning professionals across all 67 counties.',
     publisher: {
       '@id': `${BASE_URL}/#organization`,
     },

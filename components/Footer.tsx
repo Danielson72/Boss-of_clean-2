@@ -12,7 +12,7 @@ export default function Footer() {
               BOSS OF CLEAN
             </div>
             <p className="text-gray-300 mb-4">
-              Florida&apos;s premier cleaning directory connecting customers with trusted professional cleaning services across the state.
+              Florida&apos;s premier cleaning marketplace connecting customers with independent professional cleaning services across the state.
             </p>
             <address className="space-y-2 not-italic">
               <div className="flex items-center">
@@ -89,7 +89,11 @@ export default function Footer() {
         </div>
 
         <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-          <p>&copy; 2025 Boss of Clean. All rights reserved.</p>
+          <p className="mb-2">&copy; 2025 Boss of Clean. All rights reserved.</p>
+          <p className="text-xs text-gray-500 max-w-2xl mx-auto">
+            Boss of Clean is a marketplace connecting customers with independent service providers.
+            We are not a cleaning company and do not employ service providers.
+          </p>
         </div>
       </div>
     </footer>

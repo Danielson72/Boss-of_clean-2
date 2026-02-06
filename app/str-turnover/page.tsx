@@ -79,8 +79,8 @@ export default function STRTurnoverPage() {
               <div className="space-y-4 mt-8">
                 <div className="bg-white/10 backdrop-blur rounded-xl p-5">
                   <Shield className="h-8 w-8 text-cyan-300 mb-2" />
-                  <p className="font-semibold text-lg">$5K Guarantee</p>
-                  <p className="text-sm text-blue-200">Every booking is protected</p>
+                  <p className="font-semibold text-lg">Purrfection Promise</p>
+                  <p className="text-sm text-blue-200">Quality you can count on</p>
                 </div>
                 <div className="bg-white/10 backdrop-blur rounded-xl p-5">
                   <ClipboardList className="h-8 w-8 text-cyan-300 mb-2" />
@@ -114,7 +114,7 @@ export default function STRTurnoverPage() {
                 step: '2',
                 icon: Users,
                 title: 'Get Matched',
-                description: 'We match you with verified STR cleaners in your area who specialize in vacation rental turnovers.',
+                description: 'We match you with STR cleaning professionals in your area who specialize in vacation rental turnovers.',
               },
               {
                 step: '3',
@@ -262,7 +262,7 @@ export default function STRTurnoverPage() {
               },
               {
                 title: 'Last-Minute Coverage',
-                description: 'Unexpected booking? Our network of verified cleaners provides backup coverage so you never miss a turnover.',
+                description: 'Unexpected booking? Our network of cleaning professionals provides backup coverage so you never miss a turnover.',
               },
               {
                 title: 'Damage & Maintenance Alerts',
@@ -287,8 +287,8 @@ export default function STRTurnoverPage() {
               Ready to Streamline Your Turnovers?
             </h2>
             <p className="text-blue-100 max-w-xl mx-auto mb-8">
-              Get matched with verified STR cleaning professionals in your area.
-              Every turnover is backed by our $5,000 Service Guarantee.
+              Get matched with experienced STR cleaning professionals in your area.
+              Every turnover is backed by our Purrfection Promise.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
@@ -303,7 +303,7 @@ export default function STRTurnoverPage() {
                 className="inline-flex items-center justify-center gap-2 px-8 py-3 border-2 border-white/30 text-white rounded-lg font-semibold hover:bg-white/10 transition"
               >
                 <Shield className="h-5 w-5" />
-                $5,000 Guarantee
+                Purrfection Promise
               </Link>
             </div>
           </div>
