@@ -58,6 +58,10 @@ interface Review {
   customer_name: string;
   cleaner_response: string | null;
   cleaner_response_at: string | null;
+  quality_rating: number | null;
+  communication_rating: number | null;
+  timeliness_rating: number | null;
+  value_rating: number | null;
 }
 
 async function getCleanerBySlug(slug: string): Promise<CleanerProfile | null> {
@@ -97,7 +101,7 @@ async function getCleanerReviews(cleanerId: string): Promise<Review[]> {
 
   const { data } = await supabase
     .from('reviews')
-    .select('id, rating, comment, created_at, customer_name, cleaner_response, cleaner_response_at')
+    .select('id, rating, comment, created_at, customer_name, cleaner_response, cleaner_response_at, quality_rating, communication_rating, timeliness_rating, value_rating')
     .eq('cleaner_id', cleanerId)
     .eq('is_published', true)
     .order('created_at', { ascending: false })
@@ -388,6 +392,33 @@ export default async function CleanerProfilePage({ params }: { params: Promise<{
               <h2 className="text-xl font-semibold text-gray-900 mb-4">
                 Reviews ({cleaner.total_reviews || 0})
               </h2>
+
+              {reviews.length > 0 && (() => {
+                const subRatingLabels = ['Quality', 'Communication', 'Timeliness', 'Value'] as const;
+                const subRatingKeys = ['quality_rating', 'communication_rating', 'timeliness_rating', 'value_rating'] as const;
+                const subAvgs = subRatingKeys.map(key => {
+                  const vals = reviews.map(r => r[key]).filter((v): v is number => v !== null && v > 0);
+                  return vals.length > 0 ? vals.reduce((a, b) => a + b, 0) / vals.length : 0;
+                });
+                const hasSubRatings = subAvgs.some(v => v > 0);
+
+                return hasSubRatings ? (
+                  <div className="grid grid-cols-2 gap-3 mb-6 p-4 bg-gray-50 rounded-lg">
+                    {subRatingLabels.map((label, i) => subAvgs[i] > 0 && (
+                      <div key={label} className="flex items-center gap-2">
+                        <span className="text-sm text-gray-600 w-28">{label}</span>
+                        <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-yellow-400 rounded-full"
+                            style={{ width: `${(subAvgs[i] / 5) * 100}%` }}
+                          />
+                        </div>
+                        <span className="text-sm font-medium text-gray-700 w-8">{subAvgs[i].toFixed(1)}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : null;
+              })()}
 
               {reviews.length > 0 ? (
                 <div className="space-y-4">

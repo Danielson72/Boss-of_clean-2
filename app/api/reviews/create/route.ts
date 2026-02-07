@@ -10,6 +10,10 @@ interface CreateReviewBody {
   rating: number;
   comment: string;
   photos?: string[];
+  quality_rating?: number;
+  communication_rating?: number;
+  timeliness_rating?: number;
+  value_rating?: number;
 }
 
 export async function POST(request: NextRequest) {
@@ -35,7 +39,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
   }
 
-  const { bookingId, rating, comment, photos } = body;
+  const { bookingId, rating, comment, photos, quality_rating, communication_rating, timeliness_rating, value_rating } = body;
 
   // Validate required fields
   if (!bookingId || !rating || !comment) {
@@ -51,6 +55,17 @@ export async function POST(request: NextRequest) {
       { error: 'Rating must be an integer between 1 and 5' },
       { status: 400 }
     );
+  }
+
+  // Validate optional sub-ratings
+  const subRatings = [quality_rating, communication_rating, timeliness_rating, value_rating];
+  for (const sr of subRatings) {
+    if (sr !== undefined && (sr < 1 || sr > 5 || !Number.isInteger(sr))) {
+      return NextResponse.json(
+        { error: 'Sub-ratings must be integers between 1 and 5' },
+        { status: 400 }
+      );
+    }
   }
 
   // Validate comment length
@@ -117,6 +132,10 @@ export async function POST(request: NextRequest) {
       comment: trimmedComment,
       photos: photos || [],
       verified_purchase: true,
+      ...(quality_rating && { quality_rating }),
+      ...(communication_rating && { communication_rating }),
+      ...(timeliness_rating && { timeliness_rating }),
+      ...(value_rating && { value_rating }),
     })
     .select('id')
     .single();

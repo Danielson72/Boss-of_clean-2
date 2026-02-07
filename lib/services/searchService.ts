@@ -67,6 +67,7 @@ export interface SearchFilters {
   instantBooking?: boolean;
   verified?: boolean;
   certified?: boolean;
+  availability?: 'today' | 'this_week' | 'next_week';
   sortBy?: 'rating' | 'price' | 'experience' | 'response_time';
   page?: number;
   pageSize?: number;
@@ -221,6 +222,39 @@ export class SearchService {
     }
 
     let cleaners = data || [];
+
+    // Client-side availability filtering based on business_hours JSONB
+    if (filters.availability) {
+      const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+      const now = new Date();
+      const todayIndex = now.getDay();
+      const todayName = days[todayIndex];
+
+      cleaners = cleaners.filter(cleaner => {
+        // Cleaners with instant booking are always considered available for "today"
+        if (filters.availability === 'today' && cleaner.instant_booking) {
+          return true;
+        }
+
+        const hours = cleaner.business_hours as Record<string, { open: string; close: string; closed: boolean }> | null;
+        if (!hours) return true; // No hours set = assume available
+
+        if (filters.availability === 'today') {
+          const dayHours = hours[todayName];
+          return !dayHours || !dayHours.closed;
+        }
+
+        // this_week or next_week: has at least some open days
+        const daysToCheck = filters.availability === 'this_week'
+          ? days.slice(todayIndex).concat(days.slice(0, todayIndex))
+          : days;
+
+        return daysToCheck.some(day => {
+          const dayHours = hours[day];
+          return !dayHours || !dayHours.closed;
+        });
+      });
+    }
 
     // Client-side location filtering if location text provided
     if (filters.location) {

@@ -15,6 +15,10 @@ export function ReviewForm({ bookingId, cleanerName, onSuccess }: ReviewFormProp
   const [rating, setRating] = useState(0);
   const [hoveredRating, setHoveredRating] = useState(0);
   const [comment, setComment] = useState('');
+  const [qualityRating, setQualityRating] = useState(0);
+  const [communicationRating, setCommunicationRating] = useState(0);
+  const [timelinessRating, setTimelinessRating] = useState(0);
+  const [valueRating, setValueRating] = useState(0);
   const [photos, setPhotos] = useState<File[]>([]);
   const [photoPreviewUrls, setPhotoPreviewUrls] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
@@ -83,6 +87,10 @@ export function ReviewForm({ bookingId, cleanerName, onSuccess }: ReviewFormProp
           rating,
           comment: comment.trim(),
           photos: uploadedPhotoUrls,
+          ...(qualityRating > 0 && { quality_rating: qualityRating }),
+          ...(communicationRating > 0 && { communication_rating: communicationRating }),
+          ...(timelinessRating > 0 && { timeliness_rating: timelinessRating }),
+          ...(valueRating > 0 && { value_rating: valueRating }),
         }),
       });
 
@@ -140,6 +148,45 @@ export function ReviewForm({ bookingId, cleanerName, onSuccess }: ReviewFormProp
           )}
         </div>
       </div>
+
+      {/* Sub-Ratings (optional) */}
+      {rating > 0 && (
+        <div className="space-y-3">
+          <label className="block text-sm font-medium text-gray-700">
+            Rate specific areas (optional)
+          </label>
+          {[
+            { label: 'Quality', value: qualityRating, setter: setQualityRating },
+            { label: 'Communication', value: communicationRating, setter: setCommunicationRating },
+            { label: 'Timeliness', value: timelinessRating, setter: setTimelinessRating },
+            { label: 'Value', value: valueRating, setter: setValueRating },
+          ].map(({ label, value, setter }) => (
+            <div key={label} className="flex items-center gap-3">
+              <span className="text-sm text-gray-600 w-28">{label}</span>
+              <div className="flex items-center gap-0.5">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    type="button"
+                    onClick={() => setter(star === value ? 0 : star)}
+                    className="p-0.5 transition-transform hover:scale-110"
+                    aria-label={`Rate ${label} ${star} star${star > 1 ? 's' : ''}`}
+                  >
+                    <Star
+                      className={cn(
+                        'h-5 w-5 transition-colors',
+                        value >= star
+                          ? 'text-yellow-400 fill-yellow-400'
+                          : 'text-gray-300'
+                      )}
+                    />
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Written Feedback */}
       <div>

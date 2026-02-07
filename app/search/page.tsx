@@ -54,6 +54,7 @@ interface CleanerData {
   background_check?: boolean;
   is_certified?: boolean;
   instant_booking?: boolean;
+  business_hours?: Record<string, { open: string; close: string; closed: boolean }> | null;
   subscription_tier?: string;
   users?: {
     city?: string;
@@ -207,6 +208,37 @@ export default function SearchPage() {
           const userCity = cleaner.users?.city?.toLowerCase() || '';
           const userZip = cleaner.users?.zip_code || '';
           return userCity.includes(searchValue) || userZip.includes(searchValue);
+        });
+      }
+
+      // Client-side availability filtering based on business_hours
+      if (filters.availability && filters.availability !== 'any') {
+        const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+        const now = new Date();
+        const todayIndex = now.getDay();
+        const todayName = days[todayIndex];
+
+        filteredData = filteredData.filter((cleaner: CleanerData) => {
+          if (filters.availability === 'today' && cleaner.instant_booking) {
+            return true;
+          }
+
+          const hours = cleaner.business_hours as Record<string, { open: string; close: string; closed: boolean }> | null;
+          if (!hours) return true;
+
+          if (filters.availability === 'today') {
+            const dayHours = hours[todayName];
+            return !dayHours || !dayHours.closed;
+          }
+
+          const daysToCheck = filters.availability === 'this_week'
+            ? days.slice(todayIndex).concat(days.slice(0, todayIndex))
+            : days;
+
+          return daysToCheck.some(day => {
+            const dayHours = hours[day];
+            return !dayHours || !dayHours.closed;
+          });
         });
       }
 
