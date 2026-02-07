@@ -8,9 +8,13 @@ import {
   SearchFiltersState,
   SearchResultsGrid,
   LoadMorePagination,
+  RecentSearches,
   CleanerCardProps,
-  AvailabilityFilter
+  AvailabilityFilter,
+  SortByOption
 } from '@/components/search';
+import { useSearchHistory } from '@/lib/hooks/useSearchHistory';
+import { haversineDistance, type ZipCoordinates } from '@/lib/utils/distance';
 import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger({ file: 'app/search/page.tsx' });
@@ -73,6 +77,7 @@ export default function SearchPage() {
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [page, setPage] = useState(1);
+  const { recentSearches, addSearch, removeSearch, clearHistory } = useSearchHistory();
 
   // Parse URL params for initial filter state
   const initialFilters = useMemo((): SearchFiltersState => {
@@ -81,6 +86,8 @@ export default function SearchPage() {
     const ratingParam = searchParams?.get('rating');
     const availabilityParam = searchParams?.get('availability');
     const experienceParam = searchParams?.get('experience');
+
+    const sortParam = searchParams?.get('sort') as SortByOption | null;
 
     return {
       location: searchParams?.get('location') || '',
@@ -93,7 +100,8 @@ export default function SearchPage() {
       experienceMin: experienceParam ? parseInt(experienceParam) : 0,
       verifiedOnly: searchParams?.get('verified') === 'true',
       certifiedOnly: searchParams?.get('certified') === 'true',
-      instantBookingOnly: searchParams?.get('instant') === 'true'
+      instantBookingOnly: searchParams?.get('instant') === 'true',
+      sortBy: sortParam || 'recommended',
     };
   }, [searchParams]);
 
@@ -139,9 +147,28 @@ export default function SearchPage() {
           *,
           users!inner(full_name, phone, email, city, state, zip_code)
         `, { count: 'exact' })
-        .in('approval_status', ['approved', 'pending'])
-        .order('subscription_tier', { ascending: false })
-        .order('average_rating', { ascending: false });
+        .in('approval_status', ['approved', 'pending']);
+
+      // Apply sorting based on sortBy (distance is handled client-side after fetch)
+      const sortBy = filters.sortBy || 'recommended';
+      switch (sortBy) {
+        case 'rating':
+          query = query.order('average_rating', { ascending: false })
+                       .order('subscription_tier', { ascending: false });
+          break;
+        case 'price':
+          query = query.order('hourly_rate', { ascending: true })
+                       .order('subscription_tier', { ascending: false });
+          break;
+        case 'experience':
+          query = query.order('years_experience', { ascending: false })
+                       .order('subscription_tier', { ascending: false });
+          break;
+        default:
+          // 'recommended' and 'distance' use default ordering; distance is re-sorted client-side
+          query = query.order('subscription_tier', { ascending: false })
+                       .order('average_rating', { ascending: false });
+      }
 
       // Apply filters
 
@@ -242,7 +269,72 @@ export default function SearchPage() {
         });
       }
 
-      const mappedCleaners = filteredData.map(mapCleanerToCardProps);
+      // Distance computation and sorting
+      let distanceMap: Map<string, number> | null = null;
+
+      if (sortBy === 'distance' && filters.selectedZip) {
+        // Fetch coordinates for the search ZIP
+        const { data: searchZipData } = await supabase
+          .from('florida_zipcodes')
+          .select('latitude, longitude')
+          .eq('zip_code', filters.selectedZip)
+          .single();
+
+        if (searchZipData?.latitude && searchZipData?.longitude) {
+          const searchLat = Number(searchZipData.latitude);
+          const searchLng = Number(searchZipData.longitude);
+
+          // Collect all unique service area ZIPs
+          const allZips = new Set<string>();
+          filteredData.forEach((c: CleanerData) => {
+            (c.service_areas || []).forEach(z => allZips.add(z));
+          });
+
+          // Batch-fetch coordinates
+          const { data: zipCoords } = await supabase
+            .from('florida_zipcodes')
+            .select('zip_code, latitude, longitude')
+            .in('zip_code', Array.from(allZips));
+
+          const coordsMap = new Map<string, ZipCoordinates>();
+          (zipCoords || []).forEach((z: ZipCoordinates) => {
+            if (z.latitude && z.longitude) {
+              coordsMap.set(z.zip_code, z);
+            }
+          });
+
+          // Compute min distance for each cleaner
+          distanceMap = new Map<string, number>();
+          filteredData.forEach((cleaner: CleanerData) => {
+            let minDist = Infinity;
+            (cleaner.service_areas || []).forEach(zip => {
+              const coords = coordsMap.get(zip);
+              if (coords) {
+                const dist = haversineDistance(
+                  searchLat, searchLng,
+                  Number(coords.latitude), Number(coords.longitude)
+                );
+                if (dist < minDist) minDist = dist;
+              }
+            });
+            if (minDist === Infinity) minDist = 999;
+            distanceMap!.set(cleaner.id, minDist);
+          });
+
+          // Sort by distance
+          filteredData.sort((a: CleanerData, b: CleanerData) => {
+            return (distanceMap!.get(a.id) || 999) - (distanceMap!.get(b.id) || 999);
+          });
+        }
+      }
+
+      const mappedCleaners = filteredData.map((cleaner: CleanerData) => {
+        const props = mapCleanerToCardProps(cleaner);
+        if (distanceMap) {
+          props.distance = distanceMap.get(cleaner.id);
+        }
+        return props;
+      });
 
       if (append) {
         setCleaners(prev => [...prev, ...mappedCleaners]);
@@ -252,6 +344,23 @@ export default function SearchPage() {
 
       setTotalCount(count || 0);
       setPage(pageNum);
+
+      // Save to recent searches if meaningful filters are set
+      if (!append && (filters.selectedZip || filters.location || filters.selectedService)) {
+        const parts: string[] = [];
+        if (filters.selectedService) parts.push(filters.selectedService);
+        if (filters.location) parts.push(`in ${filters.location}`);
+        else if (filters.selectedZip) parts.push(`in ${filters.selectedZip}`);
+        const label = parts.join(' ') || 'Search';
+        addSearch({
+          label,
+          filters: {
+            location: filters.location,
+            selectedZip: filters.selectedZip,
+            selectedService: filters.selectedService,
+          },
+        });
+      }
     } catch (error) {
       logger.error('Error loading cleaners', { function: 'loadCleaners', error });
     } finally {
@@ -274,7 +383,8 @@ export default function SearchPage() {
     filters.experienceMin,
     filters.verifiedOnly,
     filters.certifiedOnly,
-    filters.instantBookingOnly
+    filters.instantBookingOnly,
+    filters.sortBy
   ]);
 
   // Update URL when filters change (persist all filters)
@@ -316,6 +426,11 @@ export default function SearchPage() {
     if (filters.certifiedOnly) params.set('certified', 'true');
     if (filters.instantBookingOnly) params.set('instant', 'true');
 
+    // Sort
+    if (filters.sortBy && filters.sortBy !== 'recommended') {
+      params.set('sort', filters.sortBy);
+    }
+
     const newUrl = params.toString() ? `?${params.toString()}` : '/search';
     router.replace(newUrl, { scroll: false });
   }, [
@@ -330,6 +445,7 @@ export default function SearchPage() {
     filters.verifiedOnly,
     filters.certifiedOnly,
     filters.instantBookingOnly,
+    filters.sortBy,
     router
   ]);
 
@@ -362,7 +478,8 @@ export default function SearchPage() {
       experienceMin: 0,
       verifiedOnly: false,
       certifiedOnly: false,
-      instantBookingOnly: false
+      instantBookingOnly: false,
+      sortBy: 'recommended',
     });
   };
 
@@ -373,6 +490,20 @@ export default function SearchPage() {
         onFiltersChange={handleFiltersChange}
         serviceTypes={SERVICE_TYPES}
         zipCodes={FLORIDA_ZIP_CODES}
+      />
+
+      <RecentSearches
+        searches={recentSearches}
+        onSelect={(savedFilters) => {
+          handleFiltersChange({
+            ...filters,
+            location: savedFilters.location,
+            selectedZip: savedFilters.selectedZip,
+            selectedService: savedFilters.selectedService,
+          });
+        }}
+        onRemove={removeSearch}
+        onClear={clearHistory}
       />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

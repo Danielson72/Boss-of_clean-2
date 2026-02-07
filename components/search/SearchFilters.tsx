@@ -1,9 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { MapPin, Filter, ChevronDown, BadgeCheck, X, Star, Calendar } from 'lucide-react';
+import { Filter, ChevronDown, BadgeCheck, X, Star, Calendar, ArrowUpDown } from 'lucide-react';
+import { LocationAutocomplete } from './LocationAutocomplete';
 
 export type AvailabilityFilter = 'any' | 'today' | 'this_week' | 'next_week';
+
+export type SortByOption = 'recommended' | 'rating' | 'price' | 'experience' | 'distance';
 
 export interface SearchFiltersState {
   location: string;
@@ -17,6 +20,7 @@ export interface SearchFiltersState {
   verifiedOnly: boolean;
   certifiedOnly: boolean;
   instantBookingOnly: boolean;
+  sortBy: SortByOption;
 }
 
 interface SearchFiltersProps {
@@ -53,7 +57,8 @@ export function SearchFilters({
       experienceMin: 0,
       verifiedOnly: false,
       certifiedOnly: false,
-      instantBookingOnly: false
+      instantBookingOnly: false,
+      sortBy: 'recommended',
     });
   };
 
@@ -76,7 +81,8 @@ export function SearchFilters({
     filters.experienceMin > 0 ||
     filters.verifiedOnly ||
     filters.certifiedOnly ||
-    filters.instantBookingOnly;
+    filters.instantBookingOnly ||
+    (filters.sortBy && filters.sortBy !== 'recommended');
 
   const activeFilterCount = [
     filters.location || filters.selectedZip,
@@ -87,7 +93,8 @@ export function SearchFilters({
     filters.experienceMin > 0,
     filters.verifiedOnly,
     filters.certifiedOnly,
-    filters.instantBookingOnly
+    filters.instantBookingOnly,
+    filters.sortBy && filters.sortBy !== 'recommended',
   ].filter(Boolean).length;
 
   return (
@@ -99,21 +106,18 @@ export function SearchFilters({
 
         {/* Main Search Form */}
         <form role="search" onSubmit={(e) => e.preventDefault()} className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {/* Location Input */}
-          <div className="relative">
-            <label htmlFor="location-input" className="sr-only">Enter ZIP, city, or county</label>
-            <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" aria-hidden="true" />
-            <input
-              id="location-input"
-              type="text"
-              placeholder="Enter ZIP, city, or county"
-              value={filters.location}
-              onChange={(e) => updateFilter('location', e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              aria-describedby="location-help"
-            />
-            <span id="location-help" className="sr-only">Search for cleaners by location</span>
-          </div>
+          {/* Location Input with Autocomplete */}
+          <LocationAutocomplete
+            value={filters.location}
+            onChange={(val) => updateFilter('location', val)}
+            onSelectLocation={(loc) => {
+              onFiltersChange({
+                ...filters,
+                location: `${loc.city}, FL`,
+                selectedZip: loc.zip_code,
+              });
+            }}
+          />
 
           {/* ZIP Code Dropdown */}
           <div>
@@ -278,6 +282,28 @@ export function SearchFilters({
                   <option value={10}>10+ Years</option>
                 </select>
               </div>
+            </div>
+
+            {/* Sort By */}
+            <div className="mt-6">
+              <label htmlFor="sort-select" className="block text-sm font-medium text-gray-700 mb-2">
+                <ArrowUpDown className="h-4 w-4 inline mr-1 text-gray-500" aria-hidden="true" />
+                Sort By
+              </label>
+              <select
+                id="sort-select"
+                value={filters.sortBy || 'recommended'}
+                onChange={(e) => updateFilter('sortBy', e.target.value as SortByOption)}
+                className="w-full max-w-xs px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="recommended">Recommended</option>
+                <option value="rating">Highest Rated</option>
+                <option value="price">Lowest Price</option>
+                <option value="experience">Most Experienced</option>
+                <option value="distance" disabled={!filters.selectedZip}>
+                  Nearest{!filters.selectedZip ? ' (select a ZIP first)' : ''}
+                </option>
+              </select>
             </div>
 
             {/* Service Types Checkboxes */}

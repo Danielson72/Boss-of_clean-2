@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import {
   Star, DollarSign, Award, Shield, BadgeCheck,
-  CheckCircle2, MessageSquare, Phone, User
+  CheckCircle2, MessageSquare, Phone, User, MapPin
 } from 'lucide-react';
 import { getCleanerBadges, type EarnedBadge } from '@/lib/services/badges';
 import { CompactBadgeDisplay } from '@/components/badges/BadgeDisplay';
@@ -31,6 +31,7 @@ export interface CleanerCardProps {
   instantBooking?: boolean;
   businessPhone?: string;
   responseTimeHours?: number;
+  distance?: number;
   onRequestQuote?: (cleanerId: string) => void;
 }
 
@@ -56,6 +57,7 @@ export function CleanerCard({
   instantBooking,
   businessPhone,
   responseTimeHours,
+  distance,
   onRequestQuote
 }: CleanerCardProps) {
   // Calculate badges for this cleaner
@@ -176,6 +178,12 @@ export function CleanerCard({
             <Award className="h-4 w-4 text-gray-400" aria-hidden="true" />
             <span>{yearsExperience || 0} years experience</span>
           </div>
+          {distance !== undefined && (
+            <div className="flex items-center gap-2 text-sm text-gray-500">
+              <MapPin className="h-4 w-4 text-gray-400" aria-hidden="true" />
+              <span>{distance.toFixed(1)} mi away</span>
+            </div>
+          )}
 
           {/* Certification or Individual Verifications */}
           {isCertified ? (
