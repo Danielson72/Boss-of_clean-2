@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import { Lock, AlertCircle, CheckCircle, Eye, EyeOff } from 'lucide-react';
+import { Lock, AlertCircle, CheckCircle, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { validatePasswordStrength } from '@/lib/email/password-reset';
 
 export default function ResetPasswordPage() {
@@ -13,8 +13,55 @@ export default function ResetPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [sessionReady, setSessionReady] = useState(false);
+  const [initializing, setInitializing] = useState(true);
   const router = useRouter();
+  const searchParams = useSearchParams();
   const supabase = createClient();
+
+  // Exchange PKCE code for session if present, or verify existing session
+  useEffect(() => {
+    const initSession = async () => {
+      // Check for PKCE code in URL (direct links from older reset emails)
+      const code = searchParams.get('code');
+      if (code) {
+        const { error } = await supabase.auth.exchangeCodeForSession(code);
+        if (error) {
+          setError('Reset link has expired or is invalid. Please request a new one.');
+          setInitializing(false);
+          return;
+        }
+        setSessionReady(true);
+        setInitializing(false);
+        return;
+      }
+
+      // No code - check if session was already established (via callback redirect)
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        setSessionReady(true);
+      } else {
+        setError('Password reset session expired. Please request a new reset link.');
+      }
+      setInitializing(false);
+    };
+
+    // Also listen for PASSWORD_RECOVERY event (handles hash fragment tokens)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setSessionReady(true);
+        setInitializing(false);
+        setError('');
+      }
+    });
+
+    initSession();
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const strength = validatePasswordStrength(password);
 
@@ -60,6 +107,41 @@ export default function ResetPasswordPage() {
       setLoading(false);
     }
   };
+
+  if (initializing) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md w-full text-center">
+          <Loader2 className="h-8 w-8 animate-spin text-blue-600 mx-auto mb-4" />
+          <p className="text-gray-600">Verifying reset link...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!sessionReady && !success) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md w-full">
+          <div className="bg-white rounded-lg shadow-md p-8 text-center">
+            <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">
+              Reset Link Expired
+            </h2>
+            <p className="text-gray-600 mb-6">
+              {error || 'This password reset link has expired or is invalid.'}
+            </p>
+            <a
+              href="/forgot-password"
+              className="inline-block bg-blue-600 text-white px-6 py-2 rounded-md font-semibold hover:bg-blue-700 transition duration-300"
+            >
+              Request a New Reset Link
+            </a>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 sm:px-6 lg:px-8">
