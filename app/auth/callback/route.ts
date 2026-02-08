@@ -28,6 +28,12 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(new URL('/login?error=auth_callback_failed', origin))
     }
 
+    // Handle password reset and other redirect flows
+    const next = requestUrl.searchParams.get('next')
+    if (next && next.startsWith('/') && !next.startsWith('//')) {
+      return NextResponse.redirect(new URL(next, origin))
+    }
+
     const { data: { user } } = await supabase.auth.getUser()
 
     if (user) {
