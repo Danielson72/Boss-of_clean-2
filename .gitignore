@@ -50,3 +50,10 @@ ralph/reports/
 
 # supabase temp files
 supabase/.temp/
+
+# middleware backups (obsolete snapshots)
+middleware.ts.backup
+middleware.ts.disabled
+
+# local netlify config
+netlify.toml.local
