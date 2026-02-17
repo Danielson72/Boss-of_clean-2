@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { Phone, Mail, MapPin } from 'lucide-react';
 
 export default function Footer() {
@@ -8,8 +9,17 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Company Info */}
           <div className="col-span-1 md:col-span-2">
-            <div className="text-2xl font-bold text-blue-400 mb-4">
-              BOSS OF CLEAN
+            <div className="flex items-center gap-3 mb-4">
+              <Image
+                src="/boss-of-clean-logo.png"
+                alt="Boss of Clean"
+                width={36}
+                height={36}
+                className="rounded-md"
+              />
+              <span className="text-2xl font-bold text-blue-400">
+                BOSS OF CLEAN
+              </span>
             </div>
             <p className="text-gray-300 mb-4">
               Florida&apos;s premier cleaning marketplace connecting customers with independent professional cleaning services across the state.
@@ -28,11 +38,11 @@ export default function Footer() {
               <div className="flex items-center">
                 <Mail className="h-5 w-5 text-blue-400 mr-2" aria-hidden="true" />
                 <a
-                  href="mailto:dalvarez@sotsvc.com"
+                  href={`mailto:${process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'info@bossofclean.com'}`}
                   className="hover:text-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400 rounded"
-                  aria-label="Email us at dalvarez@sotsvc.com"
+                  aria-label={`Email us at ${process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'info@bossofclean.com'}`}
                 >
-                  dalvarez@sotsvc.com
+                  {process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'info@bossofclean.com'}
                 </a>
               </div>
               <div className="flex items-center">
