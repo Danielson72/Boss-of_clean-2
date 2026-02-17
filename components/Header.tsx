@@ -67,9 +67,9 @@ export default function Header() {
               className="rounded-md"
               priority
             />
-            <div className="text-2xl font-bold text-blue-600">
+            <span className="text-2xl font-bold text-blue-600">
               BOSS OF CLEAN
-            </div>
+            </span>
           </Link>
 
           {/* Desktop Navigation */}

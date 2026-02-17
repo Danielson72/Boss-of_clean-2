@@ -28,11 +28,11 @@ export default function Footer() {
               <div className="flex items-center">
                 <Phone className="h-5 w-5 text-blue-400 mr-2" aria-hidden="true" />
                 <a
-                  href="tel:407-461-6039"
+                  href={`tel:${process.env.NEXT_PUBLIC_CONTACT_PHONE || '407-461-6039'}`}
                   className="hover:text-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400 rounded"
-                  aria-label="Call us at 407-461-6039"
+                  aria-label={`Call us at ${process.env.NEXT_PUBLIC_CONTACT_PHONE || '407-461-6039'}`}
                 >
-                  407-461-6039
+                  {process.env.NEXT_PUBLIC_CONTACT_PHONE || '407-461-6039'}
                 </a>
               </div>
               <div className="flex items-center">
@@ -99,7 +99,7 @@ export default function Footer() {
         </div>
 
         <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-          <p className="mb-2">&copy; 2025 Boss of Clean. All rights reserved.</p>
+          <p className="mb-2">&copy; 2026 Boss of Clean. All rights reserved.</p>
           <p className="text-xs text-gray-500 max-w-2xl mx-auto">
             Boss of Clean is a marketplace connecting customers with independent service providers.
             We are not a cleaning company and do not employ service providers.

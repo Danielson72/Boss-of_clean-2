@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -202,10 +203,21 @@ export function AuthForm({ mode }: AuthFormProps) {
 
   return (
     <Card className="w-full max-w-md">
-      <CardHeader>
+      <CardHeader className="text-center">
+        <div className="flex flex-col items-center mb-4">
+          <Image
+            src="/boss-of-clean-logo.png"
+            alt="Boss of Clean"
+            width={80}
+            height={80}
+            className="rounded-full"
+          />
+          <h1 className="text-2xl font-bold mt-3">Boss of Clean</h1>
+          <p className="text-gray-500 text-sm">Purrfection is our Standard</p>
+        </div>
         <CardTitle>{mode === 'login' ? 'Sign In' : 'Create Account'}</CardTitle>
         <CardDescription>
-          {mode === 'login' 
+          {mode === 'login'
             ? 'Enter your email and password to access your account'
             : 'Sign up to start finding or offering cleaning services'}
         </CardDescription>
