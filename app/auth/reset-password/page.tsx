@@ -23,7 +23,7 @@ export default function ResetPasswordPage() {
   useEffect(() => {
     const initSession = async () => {
       // Check for PKCE code in URL (direct links from older reset emails)
-      const code = searchParams.get('code');
+      const code = searchParams?.get('code') ?? null;
       if (code) {
         const { error } = await supabase.auth.exchangeCodeForSession(code);
         if (error) {
