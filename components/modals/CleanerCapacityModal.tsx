@@ -106,7 +106,7 @@ export default function CleanerCapacityModal({
             Close
           </button>
           <a
-            href="/pros"
+            href="/search"
             className="flex-1 flex items-center justify-center gap-2 px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors font-medium"
           >
             <Search className="w-4 h-4" />
