@@ -15,11 +15,16 @@ import { GoogleSignInButton } from '@/components/auth/GoogleSignInButton'
 
 interface AuthFormProps {
   mode: 'login' | 'signup'
+  role?: 'customer' | 'cleaner'
 }
 
-export function AuthForm({ mode }: AuthFormProps) {
+export function AuthForm({ mode, role = 'customer' }: AuthFormProps) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [fullName, setFullName] = useState('')
+  const [businessName, setBusinessName] = useState('')
+  const [phone, setPhone] = useState('')
+  const [zipCode, setZipCode] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [verificationPending, setVerificationPending] = useState(false)
@@ -28,6 +33,7 @@ export function AuthForm({ mode }: AuthFormProps) {
   const [resendCooldown, setResendCooldown] = useState(0)
   const router = useRouter()
   const supabase = createClient()
+  const isCleaner = mode === 'signup' && role === 'cleaner'
 
   // Countdown timer for resend cooldown
   useEffect(() => {
@@ -80,19 +86,25 @@ export function AuthForm({ mode }: AuthFormProps) {
           password,
           options: {
             emailRedirectTo: `${window.location.origin}/auth/callback`,
+            data: {
+              role,
+              full_name: fullName || undefined,
+            },
           },
         })
 
         if (signUpError) throw signUpError
 
         if (authData.user) {
-          // Create user record in public.users table if it doesn't exist
+          // Create user record in public.users table
           const { error: userError } = await supabase
             .from('users')
             .upsert({
               id: authData.user.id,
               email: authData.user.email,
-              role: 'customer', // Default role for new signups
+              full_name: fullName || null,
+              phone: phone || null,
+              role,
               created_at: new Date().toISOString(),
             }, {
               onConflict: 'id'
@@ -100,6 +112,50 @@ export function AuthForm({ mode }: AuthFormProps) {
 
           if (userError) {
             // Error creating user record - silently fail for client component
+          }
+
+          // If cleaner, create cleaner profile
+          if (role === 'cleaner') {
+            const { error: cleanerError } = await supabase
+              .from('cleaners')
+              .insert({
+                user_id: authData.user.id,
+                business_name: businessName || fullName || email.split('@')[0],
+                approval_status: 'pending',
+              })
+
+            if (cleanerError && cleanerError.code !== '23505') {
+              // Ignore duplicate key errors
+            }
+
+            // Seed initial service area if zip provided
+            if (zipCode) {
+              const { data: zipData } = await supabase
+                .from('florida_zipcodes')
+                .select('city, county')
+                .eq('zip_code', zipCode)
+                .single()
+
+              if (zipData) {
+                const { data: cleanerData } = await supabase
+                  .from('cleaners')
+                  .select('id')
+                  .eq('user_id', authData.user.id)
+                  .single()
+
+                if (cleanerData) {
+                  await supabase
+                    .from('service_areas')
+                    .insert({
+                      cleaner_id: cleanerData.id,
+                      zip_code: zipCode,
+                      city: zipData.city,
+                      county: zipData.county,
+                      is_primary: true,
+                    })
+                }
+              }
+            }
           }
         }
 
@@ -112,7 +168,7 @@ export function AuthForm({ mode }: AuthFormProps) {
           return
         }
 
-        router.push('/dashboard/customer')
+        router.push(role === 'cleaner' ? '/dashboard/cleaner/setup' : '/dashboard/customer')
       } else {
         const { error: signInError } = await supabase.auth.signInWithPassword({
           email,
@@ -215,11 +271,13 @@ export function AuthForm({ mode }: AuthFormProps) {
           <h1 className="text-2xl font-bold mt-3">Boss of Clean</h1>
           <p className="text-gray-500 text-sm">Purrfection is our Standard</p>
         </div>
-        <CardTitle>{mode === 'login' ? 'Sign In' : 'Create Account'}</CardTitle>
+        <CardTitle>{mode === 'login' ? 'Sign In' : isCleaner ? 'Pro Account' : 'Create Account'}</CardTitle>
         <CardDescription>
           {mode === 'login'
             ? 'Enter your email and password to access your account'
-            : 'Sign up to start finding or offering cleaning services'}
+            : isCleaner
+              ? 'Set up your professional cleaning account'
+              : 'Sign up to find professional cleaners in your area'}
         </CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit}>
@@ -230,6 +288,63 @@ export function AuthForm({ mode }: AuthFormProps) {
             </Alert>
           )}
           
+          {isCleaner && (
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="fullName">Full Name</Label>
+                <Input
+                  id="fullName"
+                  type="text"
+                  placeholder="John Smith"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  required
+                  disabled={loading}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="businessName">Business Name</Label>
+                <Input
+                  id="businessName"
+                  type="text"
+                  placeholder="Smith's Cleaning Services"
+                  value={businessName}
+                  onChange={(e) => setBusinessName(e.target.value)}
+                  required
+                  disabled={loading}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Phone</Label>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    placeholder="(407) 555-0123"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    required
+                    disabled={loading}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="zipCode">Zip Code</Label>
+                  <Input
+                    id="zipCode"
+                    type="text"
+                    placeholder="32801"
+                    value={zipCode}
+                    onChange={(e) => setZipCode(e.target.value)}
+                    required
+                    disabled={loading}
+                    maxLength={5}
+                    pattern="[0-9]{5}"
+                  />
+                </div>
+              </div>
+            </>
+          )}
+
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input
@@ -275,8 +390,14 @@ export function AuthForm({ mode }: AuthFormProps) {
             disabled={loading}
           >
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {mode === 'login' ? 'Sign In' : 'Sign Up'}
+            {mode === 'login' ? 'Sign In' : isCleaner ? 'Create Pro Account' : 'Sign Up'}
           </Button>
+
+          {isCleaner && (
+            <p className="text-xs text-center text-muted-foreground">
+              You&apos;ll complete your full profile after signup
+            </p>
+          )}
           
           <div className="relative w-full">
             <div className="absolute inset-0 flex items-center">
