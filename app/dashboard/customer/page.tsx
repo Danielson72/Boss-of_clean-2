@@ -7,12 +7,14 @@ import { createClient } from '@/lib/supabase/client';
 import {
   User, Settings, FileText, Clock, CheckCircle,
   XCircle, AlertCircle, Calendar, MapPin, DollarSign,
-  MessageSquare, Star, Home, Phone, Mail, Save, Bell
+  MessageSquare, Star, Home, Phone, Mail, Save, Bell,
+  Gift, ThumbsUp, Loader2
 } from 'lucide-react';
 import Link from 'next/link';
 
 interface QuoteRequest {
   id: string;
+  cleaner_id: string;
   service_type: string;
   service_date: string;
   service_time: string;
@@ -43,10 +45,23 @@ interface CustomerProfile {
   email: string;
 }
 
+interface CustomerCredit {
+  id: string;
+  amount_cents: number;
+  reason: string;
+  redeemed: boolean;
+  redeemed_at: string | null;
+  expires_at: string;
+  created_at: string;
+}
+
 export default function CustomerDashboard() {
   const { user } = useAuth();
   const [quotes, setQuotes] = useState<QuoteRequest[]>([]);
   const [profile, setProfile] = useState<CustomerProfile | null>(null);
+  const [credits, setCredits] = useState<CustomerCredit[]>([]);
+  const [confirmedQuotes, setConfirmedQuotes] = useState<Set<string>>(new Set());
+  const [confirmingHire, setConfirmingHire] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState('quotes');
@@ -58,6 +73,8 @@ export default function CustomerDashboard() {
     if (user) {
       loadQuotes();
       loadProfile();
+      loadCredits();
+      loadHireConfirmations();
     }
   }, [user]);
 
@@ -150,6 +167,88 @@ export default function CustomerDashboard() {
     setProfile({ ...profile, [field]: value });
   };
 
+  const loadCredits = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('customer_credits')
+        .select('*')
+        .eq('customer_id', user?.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setCredits(data || []);
+    } catch {
+      // silently fail
+    }
+  };
+
+  const loadHireConfirmations = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('hire_confirmations')
+        .select('quote_request_id')
+        .eq('customer_id', user?.id);
+
+      if (error) throw error;
+      setConfirmedQuotes(new Set((data || []).map(h => h.quote_request_id)));
+    } catch {
+      // silently fail
+    }
+  };
+
+  const handleConfirmHire = async (quoteId: string, cleanerId: string) => {
+    if (!user?.id) return;
+    setConfirmingHire(quoteId);
+
+    try {
+      // 1. Create hire confirmation
+      const { data: confirmation, error: confirmError } = await supabase
+        .from('hire_confirmations')
+        .insert({
+          quote_request_id: quoteId,
+          customer_id: user.id,
+          cleaner_id: cleanerId,
+        })
+        .select('id')
+        .single();
+
+      if (confirmError) throw confirmError;
+
+      // 2. Issue $10 credit
+      const { error: creditError } = await supabase
+        .from('customer_credits')
+        .insert({
+          customer_id: user.id,
+          amount_cents: 1000,
+          reason: 'hire_confirmation',
+          source_hire_confirmation_id: confirmation.id,
+        });
+
+      if (creditError) throw creditError;
+
+      // 3. Mark credit as issued
+      await supabase
+        .from('hire_confirmations')
+        .update({ credit_issued: true })
+        .eq('id', confirmation.id);
+
+      // 4. Refresh state
+      setConfirmedQuotes(prev => { const next = new Set(Array.from(prev)); next.add(quoteId); return next; });
+      await loadCredits();
+      setMessage('Hire confirmed! $10 credit added to your account.');
+      setTimeout(() => setMessage(''), 5000);
+    } catch {
+      setMessage('Error confirming hire. Please try again.');
+      setTimeout(() => setMessage(''), 5000);
+    } finally {
+      setConfirmingHire(null);
+    }
+  };
+
+  const availableCredits = credits
+    .filter(c => !c.redeemed && new Date(c.expires_at) > new Date())
+    .reduce((sum, c) => sum + c.amount_cents, 0);
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'pending': return 'text-yellow-600 bg-yellow-100';
@@ -205,6 +304,13 @@ export default function CustomerDashboard() {
                   Messages
                 </Link>
                 <Link
+                  href="/quote-request"
+                  className="flex items-center gap-1 text-gray-600 hover:text-gray-900 font-medium"
+                >
+                  <FileText className="h-5 w-5" />
+                  Request Quote
+                </Link>
+                <Link
                   href="/search"
                   className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition duration-300"
                 >
@@ -223,7 +329,7 @@ export default function CustomerDashboard() {
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Stats Overview */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
             <div className="bg-white rounded-lg shadow-sm p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -269,7 +375,37 @@ export default function CustomerDashboard() {
                 <Star className="h-8 w-8 text-gray-600" />
               </div>
             </div>
+
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600">Credits</p>
+                  <p className="text-2xl font-bold text-emerald-600">
+                    ${(availableCredits / 100).toFixed(0)}
+                  </p>
+                </div>
+                <Gift className="h-8 w-8 text-emerald-600" />
+              </div>
+            </div>
           </div>
+
+          {/* Global message */}
+          {message && (
+            <div className={`mb-4 p-4 rounded-md ${
+              message.includes('Error')
+                ? 'bg-red-50 text-red-700 border border-red-200'
+                : 'bg-green-50 text-green-700 border border-green-200'
+            }`}>
+              <div className="flex items-center gap-2">
+                {message.includes('Error') ? (
+                  <XCircle className="h-5 w-5" />
+                ) : (
+                  <CheckCircle className="h-5 w-5" />
+                )}
+                {message}
+              </div>
+            </div>
+          )}
 
           {/* Tabs */}
           <div className="bg-white rounded-lg shadow-sm mb-8">
@@ -284,6 +420,16 @@ export default function CustomerDashboard() {
                   }`}
                 >
                   Quote Requests
+                </button>
+                <button
+                  onClick={() => setActiveTab('credits')}
+                  className={`px-6 py-3 font-medium border-b-2 transition duration-300 ${
+                    activeTab === 'credits'
+                      ? 'border-blue-600 text-blue-600'
+                      : 'border-transparent text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  My Credits
                 </button>
                 <button
                   onClick={() => setActiveTab('profile')}
@@ -385,15 +531,110 @@ export default function CustomerDashboard() {
                                 </button>
                               )}
                               {quote.status === 'accepted' && (
-                                <div className="text-sm text-gray-600">
-                                  <p className="font-medium">Contact:</p>
-                                  <p>{quote.cleaner.business_phone}</p>
+                                <div className="text-sm space-y-2">
+                                  <div className="text-gray-600">
+                                    <p className="font-medium">Contact:</p>
+                                    <p>{quote.cleaner.business_phone}</p>
+                                  </div>
+                                  {!confirmedQuotes.has(quote.id) ? (
+                                    <button
+                                      onClick={() => handleConfirmHire(quote.id, quote.cleaner_id)}
+                                      disabled={confirmingHire === quote.id}
+                                      className="flex items-center gap-1 bg-emerald-600 text-white px-3 py-1.5 rounded-md hover:bg-emerald-700 disabled:bg-emerald-400 transition duration-300 text-xs font-medium"
+                                    >
+                                      {confirmingHire === quote.id ? (
+                                        <Loader2 className="h-3 w-3 animate-spin" />
+                                      ) : (
+                                        <ThumbsUp className="h-3 w-3" />
+                                      )}
+                                      Confirm Hire
+                                    </button>
+                                  ) : (
+                                    <span className="flex items-center gap-1 text-emerald-600 text-xs font-medium">
+                                      <CheckCircle className="h-3 w-3" />
+                                      Hire Confirmed
+                                    </span>
+                                  )}
                                 </div>
                               )}
                             </div>
                           </div>
                         </div>
                       ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {activeTab === 'credits' && (
+                <div>
+                  {/* Credits Balance */}
+                  <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-6 mb-6">
+                    <div className="flex items-center gap-3">
+                      <Gift className="h-8 w-8 text-emerald-600" />
+                      <div>
+                        <p className="text-sm text-emerald-700 font-medium">Available Balance</p>
+                        <p className="text-3xl font-bold text-emerald-800">
+                          ${(availableCredits / 100).toFixed(2)}
+                        </p>
+                      </div>
+                    </div>
+                    <p className="text-xs text-emerald-600 mt-2">
+                      Earn $10 each time you confirm a hire. Credits expire 90 days after issue.
+                    </p>
+                  </div>
+
+                  {/* Credits History */}
+                  {credits.length === 0 ? (
+                    <div className="text-center py-12">
+                      <Gift className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">No credits yet</h3>
+                      <p className="text-gray-600">
+                        Confirm a hire from an accepted quote to earn your first $10 credit.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Credit History</h3>
+                      {credits.map((credit) => {
+                        const isExpired = new Date(credit.expires_at) < new Date();
+                        const statusLabel = credit.redeemed ? 'Redeemed' : isExpired ? 'Expired' : 'Active';
+                        const statusColor = credit.redeemed
+                          ? 'text-blue-600 bg-blue-100'
+                          : isExpired
+                            ? 'text-red-600 bg-red-100'
+                            : 'text-emerald-600 bg-emerald-100';
+
+                        return (
+                          <div key={credit.id} className="flex items-center justify-between p-4 border rounded-lg">
+                            <div className="flex items-center gap-3">
+                              <div className="p-2 bg-emerald-100 rounded-full">
+                                <DollarSign className="h-4 w-4 text-emerald-600" />
+                              </div>
+                              <div>
+                                <p className="text-sm font-medium text-gray-900">
+                                  ${(credit.amount_cents / 100).toFixed(2)} Credit
+                                </p>
+                                <p className="text-xs text-gray-500">
+                                  {credit.reason === 'hire_confirmation' ? 'Hire Confirmation Bonus' : credit.reason}
+                                  {' \u00B7 '}
+                                  {new Date(credit.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${statusColor}`}>
+                                {statusLabel}
+                              </span>
+                              {!credit.redeemed && !isExpired && (
+                                <p className="text-xs text-gray-500 mt-1">
+                                  Expires {new Date(credit.expires_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
                 </div>
