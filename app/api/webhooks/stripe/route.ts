@@ -61,6 +61,73 @@ async function handleStripeEvent(event: Stripe.Event): Promise<void> {
       if (session.mode === 'subscription') {
         logger.info('Subscription checkout completed', { sessionId: session.id });
         // Subscription will be created via customer.subscription.created event
+      } else if (session.mode === 'payment' && session.metadata?.type === 'lead_unlock') {
+        await processEventWithRetry(event, async () => {
+          const { createClient } = await import('@/lib/supabase/server');
+          const supabase = await createClient();
+
+          const { quote_request_id, cleaner_id, amount_cents } = session.metadata!;
+          const amountCents = parseInt(amount_cents, 10);
+
+          logger.info('Lead unlock payment completed', {
+            sessionId: session.id,
+            quoteRequestId: quote_request_id,
+            cleanerId: cleaner_id,
+            amountCents,
+          });
+
+          // Update lead_unlocks: pending → paid
+          const { error: unlockError } = await supabase
+            .from('lead_unlocks')
+            .update({
+              status: 'paid',
+              unlocked_at: new Date().toISOString(),
+              stripe_payment_intent_id: session.payment_intent as string,
+            })
+            .eq('stripe_checkout_session_id', session.id);
+
+          if (unlockError) {
+            logger.error('Failed to update lead_unlocks', { function: 'handleStripeEvent' }, unlockError);
+            throw unlockError;
+          }
+
+          // Update spending cap
+          if (cleaner_id && amountCents > 0) {
+            const { data: cap } = await supabase
+              .from('pro_spending_caps')
+              .select('id, current_week_spent_cents, week_started_at')
+              .eq('cleaner_id', cleaner_id)
+              .single();
+
+            if (cap) {
+              const weekStart = new Date(cap.week_started_at);
+              const daysSinceStart = (Date.now() - weekStart.getTime()) / (1000 * 60 * 60 * 24);
+
+              if (daysSinceStart >= 7) {
+                // New week — reset and start fresh
+                await supabase
+                  .from('pro_spending_caps')
+                  .update({
+                    current_week_spent_cents: amountCents,
+                    week_started_at: new Date().toISOString(),
+                  })
+                  .eq('id', cap.id);
+              } else {
+                await supabase
+                  .from('pro_spending_caps')
+                  .update({
+                    current_week_spent_cents: cap.current_week_spent_cents + amountCents,
+                  })
+                  .eq('id', cap.id);
+              }
+            }
+          }
+
+          logger.info('Lead unlock fully processed', {
+            sessionId: session.id,
+            quoteRequestId: quote_request_id,
+          });
+        });
       }
       break;
     }
