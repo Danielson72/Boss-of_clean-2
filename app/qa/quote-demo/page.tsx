@@ -14,7 +14,7 @@ export default function QuoteDemoPage() {
   const [showCleanerCap, setShowCleanerCap] = useState(false);
 
   // Form state
-  const [cleanerId, setCleanerId] = useState('c65ce362-ba2e-43ff-9966-eaa2f68a8444'); // Sonz of Thunder
+  const [cleanerId, setCleanerId] = useState('c65ce362-ba2e-43ff-9966-eaa2f68a8444'); // default test cleaner
   const [serviceType, setServiceType] = useState('residential');
   const [customerEmail, setCustomerEmail] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
@@ -160,7 +160,7 @@ export default function QuoteDemoPage() {
                   required
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  Default: Sonz of Thunder Services UUID
+                  Default test cleaner UUID
                 </p>
               </div>
 
@@ -341,7 +341,7 @@ export default function QuoteDemoPage() {
           isOpen={showCleanerCap}
           onClose={() => setShowCleanerCap(false)}
           errorData={response}
-          cleanerName="Sonz of Thunder Services"
+          cleanerName="Test Cleaning Service"
         />
       )}
     </div>

@@ -41,7 +41,7 @@ test.describe('Boss of Clean - Smoke Tests', () => {
 
   test('Cleaner profile page loads at /cleaner/[slug]', async ({ page }) => {
     // Navigate to a cleaner profile route
-    const response = await page.goto('/cleaner/sotsvc');
+    const response = await page.goto('/cleaner/test-cleaner');
 
     // Should get a valid response (200 for existing, 404 for not found - both OK)
     expect(response?.status()).toBeLessThan(500);
