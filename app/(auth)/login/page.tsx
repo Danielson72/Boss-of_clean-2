@@ -1,5 +1,13 @@
 import Image from 'next/image'
 import { AuthForm } from '@/components/auth/AuthForm'
+import { generatePageMetadata } from '@/lib/seo/metadata'
+
+export const metadata = generatePageMetadata({
+  title: 'Log In',
+  description: 'Log in to your Boss of Clean account. Access your dashboard, manage bookings, and connect with cleaning professionals across Florida.',
+  path: '/login',
+  noIndex: true,
+})
 
 export default function LoginPage() {
   return (
@@ -19,7 +27,3 @@ export default function LoginPage() {
   )
 }
 
-export const metadata = {
-  title: 'Sign In | Boss of Clean',
-  description: 'Sign in to your Boss of Clean account',
-}

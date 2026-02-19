@@ -1,4 +1,12 @@
 import { Target, Users, Award, MapPin, Phone, Mail } from 'lucide-react';
+import { generatePageMetadata } from '@/lib/seo/metadata';
+
+export const metadata = generatePageMetadata({
+  title: 'About Us',
+  description: 'Boss of Clean connects Florida homeowners and businesses with trusted cleaning professionals across all 67 counties. Learn about our mission, values, and team.',
+  path: '/about',
+  keywords: ['about Boss of Clean', 'Florida cleaning marketplace', 'cleaning service platform'],
+});
 
 export default function AboutPage() {
   const team = [

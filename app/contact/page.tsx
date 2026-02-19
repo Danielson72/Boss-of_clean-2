@@ -1,4 +1,12 @@
 import { Mail, Phone, MapPin, Clock } from 'lucide-react';
+import { generatePageMetadata } from '@/lib/seo/metadata';
+
+export const metadata = generatePageMetadata({
+  title: 'Contact Us',
+  description: 'Get in touch with Boss of Clean. Questions about our platform, support for cleaners or customers, partnership inquiries — we are here to help.',
+  path: '/contact',
+  keywords: ['contact Boss of Clean', 'cleaning service support', 'customer support Florida'],
+});
 
 export default function ContactPage() {
   return (
