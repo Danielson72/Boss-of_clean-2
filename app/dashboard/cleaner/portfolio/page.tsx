@@ -6,8 +6,17 @@ import { ProtectedRoute } from '@/lib/auth/protected-route';
 import { createClient } from '@/lib/supabase/client';
 import { ArrowLeft, Image as ImageIcon, Info, CheckCircle, X } from 'lucide-react';
 import Link from 'next/link';
-import { PhotoUploader } from '@/components/portfolio/PhotoUploader';
-import { GalleryGrid, PortfolioPhoto } from '@/components/portfolio/GalleryGrid';
+import dynamic from 'next/dynamic';
+import type { PortfolioPhoto } from '@/components/portfolio/GalleryGrid';
+
+const PhotoUploader = dynamic(
+  () => import('@/components/portfolio/PhotoUploader').then(mod => mod.PhotoUploader),
+  { ssr: false, loading: () => <div className="h-40 bg-gray-100 rounded-lg animate-pulse" /> }
+);
+const GalleryGrid = dynamic(
+  () => import('@/components/portfolio/GalleryGrid').then(mod => mod.GalleryGrid),
+  { ssr: false, loading: () => <div className="h-60 bg-gray-100 rounded-lg animate-pulse" /> }
+);
 import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger({ file: 'app/dashboard/cleaner/portfolio/page.tsx' });

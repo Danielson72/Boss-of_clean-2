@@ -5,16 +5,27 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/lib/context/AuthContext';
 import { ProtectedRoute } from '@/lib/auth/protected-route';
 import { redirectToBillingPortal } from '@/lib/stripe/client';
+import dynamic from 'next/dynamic';
 import {
   SubscriptionStatusCard,
   LeadCreditsCard,
-  PlanComparison,
-  BillingHistory,
   PaymentMethodCard,
-  CancelSubscriptionDialog,
   defaultPlans,
 } from '@/components/billing';
 import type { Invoice, PaymentMethod } from '@/components/billing';
+
+const PlanComparison = dynamic(
+  () => import('@/components/billing/PlanComparison').then(mod => mod.PlanComparison),
+  { ssr: false, loading: () => <div className="h-80 bg-gray-100 rounded-lg animate-pulse" /> }
+);
+const BillingHistory = dynamic(
+  () => import('@/components/billing/BillingHistory').then(mod => mod.BillingHistory),
+  { ssr: false, loading: () => <div className="h-40 bg-gray-100 rounded-lg animate-pulse" /> }
+);
+const CancelSubscriptionDialog = dynamic(
+  () => import('@/components/billing/CancelSubscriptionDialog').then(mod => mod.CancelSubscriptionDialog),
+  { ssr: false }
+);
 import { ArrowLeft, CheckCircle, XCircle } from 'lucide-react';
 import Link from 'next/link';
 import { createLogger } from '@/lib/utils/logger';

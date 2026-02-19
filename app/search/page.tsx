@@ -3,16 +3,23 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import dynamic from 'next/dynamic';
 import {
-  SearchFilters,
-  SearchFiltersState,
   SearchResultsGrid,
   LoadMorePagination,
   RecentSearches,
+} from '@/components/search';
+import type {
+  SearchFiltersState,
   CleanerCardProps,
   AvailabilityFilter,
   SortByOption
 } from '@/components/search';
+
+const SearchFilters = dynamic(
+  () => import('@/components/search/SearchFilters').then(mod => mod.SearchFilters),
+  { ssr: false, loading: () => <div className="h-16 bg-gray-100 rounded-lg animate-pulse" /> }
+);
 import { useSearchHistory } from '@/lib/hooks/useSearchHistory';
 import { haversineDistance, type ZipCoordinates } from '@/lib/utils/distance';
 import { createLogger } from '@/lib/utils/logger';

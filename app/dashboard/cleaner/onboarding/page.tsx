@@ -4,16 +4,35 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/context/AuthContext'
 import { ProtectedRoute } from '@/lib/auth/protected-route'
+import dynamic from 'next/dynamic'
 import {
   ProgressIndicator,
-  BusinessInfoForm,
-  LocationServicesForm,
-  DocumentUploadForm,
-  TrainingModule,
-  ReviewSubmitForm,
   OnboardingStep,
-  OnboardingData
 } from '@/components/onboarding'
+import type { OnboardingData } from '@/components/onboarding'
+
+const StepSkeleton = () => <div className="h-60 bg-gray-100 rounded-lg animate-pulse" />
+
+const BusinessInfoForm = dynamic(
+  () => import('@/components/onboarding/BusinessInfoForm'),
+  { ssr: false, loading: StepSkeleton }
+)
+const LocationServicesForm = dynamic(
+  () => import('@/components/onboarding/LocationServicesForm'),
+  { ssr: false, loading: StepSkeleton }
+)
+const DocumentUploadForm = dynamic(
+  () => import('@/components/onboarding/DocumentUploadForm'),
+  { ssr: false, loading: StepSkeleton }
+)
+const TrainingModule = dynamic(
+  () => import('@/components/onboarding/TrainingModule'),
+  { ssr: false, loading: StepSkeleton }
+)
+const ReviewSubmitForm = dynamic(
+  () => import('@/components/onboarding/ReviewSubmitForm'),
+  { ssr: false, loading: StepSkeleton }
+)
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Loader2, AlertCircle, CheckCircle } from 'lucide-react'
 import { createLogger } from '@/lib/utils/logger'
