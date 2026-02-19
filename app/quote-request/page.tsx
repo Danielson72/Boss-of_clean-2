@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import {
   Calendar,
   MapPin,
@@ -41,11 +41,9 @@ const PROPERTY_TYPES = [
 
 export default function QuoteRequestPage() {
   const searchParams = useSearchParams();
-  const router = useRouter();
   const [step, setStep] = useState(1);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [matchCount, setMatchCount] = useState(0);
   const [quoteId, setQuoteId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -126,7 +124,6 @@ export default function QuoteRequestPage() {
 
       if (result.success) {
         setSubmitted(true);
-        setMatchCount(result.matchCount || 0);
         setQuoteId(result.quoteId || null);
       } else {
         setError(result.error || 'Failed to submit quote request');
@@ -150,17 +147,9 @@ export default function QuoteRequestPage() {
             Quote Request Sent!
           </h2>
           <p className="text-gray-600 mb-6">
-            {matchCount > 0 ? (
-              <>
-                We&apos;ve matched your request with <strong>{matchCount} cleaning professionals</strong> in your area.
-                You&apos;ll receive quotes within 24-48 hours.
-              </>
-            ) : (
-              <>
-                Your request has been submitted. We&apos;re working to find cleaners in your area.
-                Check back soon for quotes.
-              </>
-            )}
+            Your request has been submitted! Cleaning professionals in your area
+            will be able to view your request and reach out with quotes.
+            You&apos;ll receive an email confirmation shortly.
           </p>
 
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 text-left">

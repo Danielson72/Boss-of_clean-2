@@ -1,37 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { getStripe } from '@/lib/stripe/config';
-
-// Service type → fee tier mapping
-function getFeeTier(serviceType: string): 'standard' | 'deep_clean' | 'specialty' {
-  const lower = serviceType.toLowerCase();
-  if (['deep clean', 'deep_clean', 'move-in', 'move-out', 'move_in_out'].some(t => lower.includes(t))) {
-    return 'deep_clean';
-  }
-  if (['commercial', 'specialty', 'industrial', 'post-construction'].some(t => lower.includes(t))) {
-    return 'specialty';
-  }
-  return 'standard';
-}
+import { unlockLeadSchema } from '@/lib/validations/leads';
+import { deriveFeeTier, FEE_TIER_CENTS } from '@/lib/types/lead-dto';
+import type { FeeTier } from '@/lib/types/lead-dto';
 
 // Fee tier → Stripe Price ID
-function getPriceId(feeTier: 'standard' | 'deep_clean' | 'specialty'): string {
+function getPriceId(feeTier: FeeTier): string {
   const prices: Record<string, string> = {
     standard: process.env.STRIPE_LEAD_UNLOCK_STANDARD_PRICE_ID || '',
     deep_clean: process.env.STRIPE_LEAD_UNLOCK_DEEPCLEAN_PRICE_ID || '',
     specialty: process.env.STRIPE_LEAD_UNLOCK_SPECIALTY_PRICE_ID || '',
   };
   return prices[feeTier];
-}
-
-// Fee tier → amount in cents
-function getAmountCents(feeTier: 'standard' | 'deep_clean' | 'specialty'): number {
-  const amounts: Record<string, number> = {
-    standard: 1200,
-    deep_clean: 1800,
-    specialty: 2500,
-  };
-  return amounts[feeTier];
 }
 
 export async function POST(request: NextRequest) {
@@ -43,10 +24,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { quote_request_id } = await request.json();
-    if (!quote_request_id) {
-      return NextResponse.json({ error: 'quote_request_id is required' }, { status: 400 });
+    // Zod validation
+    const body = await request.json();
+    const parsed = unlockLeadSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json({
+        error: 'Validation failed',
+        details: parsed.error.flatten().fieldErrors,
+      }, { status: 400 });
     }
+    const { quote_request_id } = parsed.data;
 
     // Get cleaner profile
     const { data: cleaner, error: cleanerError } = await supabase
@@ -59,10 +46,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Cleaner profile not found' }, { status: 404 });
     }
 
-    // Get quote request to determine service type
+    // Get quote request — must be marketplace lead (cleaner_id IS NULL) and pending
     const { data: quote, error: quoteError } = await supabase
       .from('quote_requests')
-      .select('id, service_type')
+      .select('id, service_type, cleaner_id, status')
       .eq('id', quote_request_id)
       .single();
 
@@ -70,36 +57,75 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Quote request not found' }, { status: 404 });
     }
 
-    // Check if already unlocked by this cleaner
-    const { data: existing } = await supabase
-      .from('lead_unlocks')
-      .select('id, status')
-      .eq('quote_request_id', quote_request_id)
-      .eq('cleaner_id', cleaner.id)
-      .single();
-
-    if (existing) {
-      if (existing.status === 'paid' || existing.status === 'credited') {
-        return NextResponse.json({ error: 'Already unlocked' }, { status: 409 });
-      }
-      if (existing.status === 'pending') {
-        return NextResponse.json({ error: 'Unlock payment pending' }, { status: 409 });
-      }
+    if (quote.cleaner_id !== null) {
+      return NextResponse.json({ error: 'This is a direct request, not a marketplace lead' }, { status: 400 });
     }
 
-    // Check competition cap (max 3 paid/credited unlocks)
-    const { count: unlockCount } = await supabase
-      .from('lead_unlocks')
-      .select('id', { count: 'exact', head: true })
-      .eq('quote_request_id', quote_request_id)
-      .in('status', ['paid', 'credited']);
-
-    if ((unlockCount || 0) >= 3) {
-      return NextResponse.json({ error: 'Competition cap reached (max 3 pros)' }, { status: 409 });
+    if (quote.status !== 'pending') {
+      return NextResponse.json({ error: 'Lead is no longer available' }, { status: 409 });
     }
 
-    const feeTier = getFeeTier(quote.service_type);
-    const amountCents = getAmountCents(feeTier);
+    // Verify pro covers this lead's zip via service_areas
+    const { data: matchCheck } = await supabase.rpc('match_lead_pros', {
+      p_quote_request_id: quote_request_id,
+    });
+
+    const isEligible = (matchCheck || []).some(
+      (m: { cleaner_id: string }) => m.cleaner_id === cleaner.id
+    );
+
+    if (!isEligible) {
+      return NextResponse.json({ error: 'You are not eligible for this lead (service area or approval)' }, { status: 403 });
+    }
+
+    // Race-safe competition cap check with SELECT ... FOR UPDATE
+    // We use a raw SQL transaction to prevent double-unlock race conditions
+    const { data: capCheck, error: capError } = await supabase.rpc('check_lead_unlock_cap', {
+      p_quote_request_id: quote_request_id,
+      p_cleaner_id: cleaner.id,
+    });
+
+    // If the RPC doesn't exist yet, fall back to client-side check
+    let unlockCount = 0;
+    let alreadyUnlocked = false;
+
+    if (capError) {
+      // Fallback: standard client-side check
+      const { data: existing } = await supabase
+        .from('lead_unlocks')
+        .select('id, status')
+        .eq('quote_request_id', quote_request_id)
+        .eq('cleaner_id', cleaner.id)
+        .maybeSingle();
+
+      if (existing && ['paid', 'credited', 'pending'].includes(existing.status)) {
+        alreadyUnlocked = true;
+      }
+
+      const { count } = await supabase
+        .from('lead_unlocks')
+        .select('id', { count: 'exact', head: true })
+        .eq('quote_request_id', quote_request_id)
+        .in('status', ['paid', 'credited']);
+
+      unlockCount = count || 0;
+    } else {
+      // RPC returned { count, already_unlocked }
+      const result = Array.isArray(capCheck) ? capCheck[0] : capCheck;
+      unlockCount = result?.unlock_count ?? 0;
+      alreadyUnlocked = result?.already_unlocked ?? false;
+    }
+
+    if (alreadyUnlocked) {
+      return NextResponse.json({ error: 'Already unlocked or payment pending' }, { status: 409 });
+    }
+
+    if (unlockCount >= 3) {
+      return NextResponse.json({ error: 'Competition cap reached (max 3 pros per lead)' }, { status: 409 });
+    }
+
+    const feeTier = deriveFeeTier(quote.service_type);
+    const amountCents = FEE_TIER_CENTS[feeTier];
 
     // Check for included credits (pro_lead_credits for current billing period)
     const now = new Date().toISOString();
@@ -109,7 +135,7 @@ export async function POST(request: NextRequest) {
       .eq('cleaner_id', cleaner.id)
       .lte('billing_period_start', now)
       .gte('billing_period_end', now)
-      .single();
+      .maybeSingle();
 
     if (proCredits && (proCredits.credits_total === -1 || proCredits.credits_used < proCredits.credits_total)) {
       // Use included credit — no payment needed
@@ -126,7 +152,13 @@ export async function POST(request: NextRequest) {
         .select('id')
         .single();
 
-      if (unlockError) throw unlockError;
+      if (unlockError) {
+        // Competition cap trigger may reject the insert
+        if (unlockError.message?.includes('competition_cap') || unlockError.code === '23514') {
+          return NextResponse.json({ error: 'Competition cap reached (max 3 pros)' }, { status: 409 });
+        }
+        throw unlockError;
+      }
 
       // Increment credits used (unless unlimited)
       if (proCredits.credits_total !== -1) {
@@ -144,10 +176,9 @@ export async function POST(request: NextRequest) {
       .from('pro_spending_caps')
       .select('weekly_cap_cents, current_week_spent_cents, week_started_at')
       .eq('cleaner_id', cleaner.id)
-      .single();
+      .maybeSingle();
 
     if (spendingCap) {
-      // Reset if new week
       const weekStart = new Date(spendingCap.week_started_at);
       const daysSinceStart = (Date.now() - weekStart.getTime()) / (1000 * 60 * 60 * 24);
       const currentSpent = daysSinceStart >= 7 ? 0 : spendingCap.current_week_spent_cents;
@@ -174,10 +205,7 @@ export async function POST(request: NextRequest) {
       mode: 'payment',
       payment_method_types: ['card'],
       customer: cleaner.stripe_customer_id || undefined,
-      line_items: [{
-        price: priceId,
-        quantity: 1,
-      }],
+      line_items: [{ price: priceId, quantity: 1 }],
       metadata: {
         type: 'lead_unlock',
         quote_request_id,
@@ -189,8 +217,8 @@ export async function POST(request: NextRequest) {
       cancel_url: `${origin}/dashboard/cleaner/leads?unlock=cancelled`,
     });
 
-    // Insert pending unlock record
-    const { error: unlockError } = await supabase
+    // Insert pending unlock — DB trigger enforces cap at INSERT time
+    const { error: insertError } = await supabase
       .from('lead_unlocks')
       .insert({
         quote_request_id,
@@ -201,7 +229,13 @@ export async function POST(request: NextRequest) {
         status: 'pending',
       });
 
-    if (unlockError) throw unlockError;
+    if (insertError) {
+      // If DB trigger rejected it, the Stripe session exists but won't complete (no harm)
+      if (insertError.message?.includes('competition_cap') || insertError.code === '23514') {
+        return NextResponse.json({ error: 'Competition cap reached (max 3 pros)' }, { status: 409 });
+      }
+      throw insertError;
+    }
 
     return NextResponse.json({ checkout_url: session.url });
   } catch (error) {

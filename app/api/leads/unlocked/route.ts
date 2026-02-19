@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import type { UnlockedLeadDTO } from '@/lib/types/lead-dto';
 
 export async function GET() {
   try {
@@ -39,8 +40,8 @@ export async function GET() {
           address,
           city,
           zip_code,
-          property_size,
           property_type,
+          property_size,
           description,
           special_requests,
           frequency,
@@ -58,9 +59,9 @@ export async function GET() {
 
     if (unlocksError) throw unlocksError;
 
-    // Check for existing refund requests
+    // Check for existing refund requests in one batch query
     const unlockIds = (unlocks || []).map(u => u.id);
-    let refundStatuses: Record<string, string> = {};
+    const refundStatuses: Record<string, string> = {};
 
     if (unlockIds.length > 0) {
       const { data: refunds } = await supabase
@@ -73,10 +74,46 @@ export async function GET() {
       }
     }
 
-    const leads = (unlocks || []).map(u => ({
-      ...u,
-      refund_status: refundStatuses[u.id] || null,
-    }));
+    // For marketplace leads, customer contact may come from quote_requests contact_* fields
+    // (guests don't have a user record). Normalize the response.
+    const leads: UnlockedLeadDTO[] = (unlocks || []).map(u => {
+      // Supabase FK joins can return array or object
+      const qr = Array.isArray(u.quote_request) ? u.quote_request[0] : u.quote_request;
+
+      // Customer from user FK join
+      const customerFromUser = qr?.customer
+        ? (Array.isArray(qr.customer) ? qr.customer[0] : qr.customer)
+        : null;
+
+      return {
+        id: u.id,
+        fee_tier: u.fee_tier,
+        amount_cents: u.amount_cents,
+        status: u.status,
+        unlocked_at: u.unlocked_at,
+        created_at: u.created_at,
+        refund_status: refundStatuses[u.id] || null,
+        quote_request: {
+          id: qr?.id || '',
+          service_type: qr?.service_type || '',
+          service_date: qr?.service_date || null,
+          service_time: qr?.service_time || null,
+          address: qr?.address || '',
+          city: qr?.city || '',
+          zip_code: qr?.zip_code || '',
+          property_type: qr?.property_type || null,
+          property_size: qr?.property_size || null,
+          description: qr?.description || null,
+          special_requests: qr?.special_requests || null,
+          frequency: qr?.frequency || null,
+          customer: {
+            full_name: customerFromUser?.full_name || '',
+            phone: customerFromUser?.phone || null,
+            email: customerFromUser?.email || '',
+          },
+        },
+      };
+    });
 
     return NextResponse.json({ leads });
   } catch (error) {

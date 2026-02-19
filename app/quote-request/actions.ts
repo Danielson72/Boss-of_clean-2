@@ -2,7 +2,7 @@
 
 import { headers } from 'next/headers';
 import { createClient } from '@/lib/supabase/server';
-import { sendQuoteMatchEmail, sendNewLeadEmail } from '@/lib/email/notifications';
+import { sendQuoteConfirmationEmail } from '@/lib/email/notifications';
 import { checkRateLimit, RATE_LIMITS } from '@/lib/middleware/rate-limit';
 import { createLogger } from '@/lib/utils/logger';
 
@@ -32,8 +32,9 @@ export interface QuoteRequestResult {
 }
 
 /**
- * Submit a public quote request (no auth required)
- * This creates the quote request and matches it to eligible cleaners
+ * Submit a public quote request (no auth required).
+ * Creates a marketplace lead with cleaner_id = NULL so all matching pros
+ * in the area can see it via /api/leads/available and unlock it.
  */
 export async function submitQuoteRequest(
   data: QuoteRequestData
@@ -50,7 +51,7 @@ export async function submitQuoteRequest(
     };
   }
 
-  const supabase = createClient();
+  const supabase = await createClient();
 
   try {
     // Validate required fields
@@ -70,24 +71,40 @@ export async function submitQuoteRequest(
       return { success: false, error: 'Invalid zip code format' };
     }
 
-    // Insert quote request
+    // Build property size string from sqft_estimate
+    let propertySize: string | null = null;
+    if (data.sqft_estimate) {
+      propertySize = `${data.sqft_estimate} sqft`;
+    }
+
+    // Build description from notes + property details the DB doesn't have dedicated columns for
+    const descriptionParts: string[] = [];
+    if (data.bedrooms) descriptionParts.push(`${data.bedrooms} bedrooms`);
+    if (data.bathrooms) descriptionParts.push(`${data.bathrooms} bathrooms`);
+    if (data.flexibility && data.flexibility !== 'flexible') {
+      descriptionParts.push(`Scheduling: ${data.flexibility}`);
+    }
+    if (data.notes) descriptionParts.push(data.notes);
+    const description = descriptionParts.length > 0 ? descriptionParts.join(' | ') : null;
+
+    // Insert marketplace lead — cleaner_id is intentionally NULL
     const { data: quote, error: insertError } = await supabase
       .from('quote_requests')
       .insert({
         service_type: data.service_type,
         property_type: data.property_type || 'home',
-        sqft_estimate: data.sqft_estimate,
-        bedrooms: data.bedrooms,
-        bathrooms: data.bathrooms,
+        property_size: propertySize,
         zip_code: data.zip_code,
-        city: data.city,
-        preferred_date: data.preferred_date || null,
-        flexibility: data.flexibility || 'flexible',
+        city: data.city || '',
+        description,
+        service_date: data.preferred_date || null,
+        address: '',
         contact_name: data.contact_name,
         contact_email: data.contact_email,
-        contact_phone: data.contact_phone,
-        notes: data.notes,
+        contact_phone: data.contact_phone || null,
         status: 'pending',
+        // cleaner_id defaults to NULL — this is a marketplace lead
+        // customer_id left NULL — guest user, no auth required
       })
       .select('id')
       .single();
@@ -97,80 +114,24 @@ export async function submitQuoteRequest(
       return { success: false, error: 'Failed to submit quote request' };
     }
 
-    // Match to cleaners using RPC function
-    const { data: matchCount, error: matchError } = await supabase.rpc(
-      'match_quote_to_cleaners',
-      { p_quote_id: quote.id, p_max_matches: 5 }
-    );
-
-    if (matchError) {
-      logger.error('Error matching quote to cleaners', { function: 'submitQuoteRequest' }, matchError);
-      // Don't fail the request, just log the error
-    }
-
-    // Send email notifications to matched cleaners (async, don't block)
-    notifyMatchedCleaners(quote.id).catch((err) =>
-      logger.error('Error sending cleaner notifications', { function: 'submitQuoteRequest' }, err)
+    // Send confirmation email to the customer (fire-and-forget)
+    sendQuoteConfirmationEmail({
+      to: data.contact_email,
+      customerName: data.contact_name,
+      quoteId: quote.id,
+      matchCount: 0,
+    }).catch((err) =>
+      logger.error('Error sending confirmation email', { function: 'submitQuoteRequest' }, err)
     );
 
     return {
       success: true,
       quoteId: quote.id,
-      matchCount: matchCount || 0,
+      matchCount: 0,
     };
   } catch (error) {
     logger.error('Error in submitQuoteRequest', { function: 'submitQuoteRequest' }, error);
     return { success: false, error: 'An unexpected error occurred' };
-  }
-}
-
-/**
- * Notify matched cleaners about a new lead
- */
-async function notifyMatchedCleaners(quoteId: string): Promise<void> {
-  const supabase = createClient();
-
-  // Get quote details and matched cleaners
-  const { data: matches } = await supabase
-    .from('lead_matches')
-    .select(`
-      id,
-      cleaner_id,
-      cleaners (
-        id,
-        business_name,
-        business_email,
-        user_id
-      )
-    `)
-    .eq('quote_request_id', quoteId);
-
-  const { data: quote } = await supabase
-    .from('quote_requests')
-    .select('*')
-    .eq('id', quoteId)
-    .single();
-
-  if (!matches || !quote) return;
-
-  // Send email to each matched cleaner
-  for (const match of matches) {
-    const cleaner = match.cleaners as unknown as {
-      id: string;
-      business_name: string;
-      business_email: string;
-    } | null;
-
-    if (cleaner?.business_email) {
-      await sendNewLeadEmail({
-        to: cleaner.business_email,
-        businessName: cleaner.business_name,
-        serviceType: quote.service_type,
-        zipCode: quote.zip_code,
-        preferredDate: quote.preferred_date,
-        leadId: match.id,
-      });
-    }
   }
 }
 
@@ -185,26 +146,20 @@ export async function getQuoteStatus(
   quote?: {
     id: string;
     status: string;
-    match_count: number;
-    response_count: number;
     created_at: string;
-    responses: Array<{
-      business_name: string;
-      quote_amount: number;
-      availability_date: string;
-      message: string;
-      responded_at: string;
-    }>;
+    service_type: string;
+    zip_code: string;
+    city: string;
   };
   error?: string;
 }> {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   try {
     // Verify email matches the quote
     const { data: quote, error } = await supabase
       .from('quote_requests')
-      .select('*')
+      .select('id, status, created_at, service_type, zip_code, city')
       .eq('id', quoteId)
       .eq('contact_email', email)
       .single();
@@ -213,36 +168,15 @@ export async function getQuoteStatus(
       return { success: false, error: 'Quote not found or email does not match' };
     }
 
-    // Get responses from cleaners
-    const { data: responses } = await supabase
-      .from('lead_matches')
-      .select(`
-        quote_amount,
-        availability_date,
-        response_message,
-        responded_at,
-        cleaners (
-          business_name
-        )
-      `)
-      .eq('quote_request_id', quoteId)
-      .eq('status', 'responded');
-
     return {
       success: true,
       quote: {
         id: quote.id,
         status: quote.status,
-        match_count: quote.match_count,
-        response_count: quote.response_count,
         created_at: quote.created_at,
-        responses: (responses || []).map((r) => ({
-          business_name: (r.cleaners as unknown as { business_name: string } | null)?.business_name || 'Unknown',
-          quote_amount: r.quote_amount,
-          availability_date: r.availability_date,
-          message: r.response_message,
-          responded_at: r.responded_at,
-        })),
+        service_type: quote.service_type,
+        zip_code: quote.zip_code,
+        city: quote.city,
       },
     };
   } catch (error) {
