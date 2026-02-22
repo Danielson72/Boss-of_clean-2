@@ -16,7 +16,16 @@ A two-sided marketplace connecting customers who need cleaning services with ver
 - **Approved Cleaners:** 30
 - **Quote Requests:** 17
 - **Reviews:** 8
-- **Status:** MVP functional, needs polish and feature completion
+- **PRD Status:** 16/16 tasks complete
+- **Status:** MVP complete, entering UI Redesign + Feature Expansion phase
+
+### Last Session: 2026-02-22
+- **Security:** booking_transactions RLS tightened, 15 FK indexes added, 4 duplicate indexes removed
+- **Note:** `pro_lead_credits` table is orphaned (0 references) — flag for future cleanup
+- **Note:** `/root/Boss-of_clean-2` is a deprecated duplicate directory — do not use
+  - Contains unique files not in main repo: `.env`, favicon/logo PNGs, ralph logs/reports (Jan 2026)
+  - These are historical artifacts only; no code changes needed from this directory
+- **Branding leak:** `sotsvc.com` email in `app/about/page.tsx` and `components/Footer.tsx` — fix in next session
 
 ---
 
@@ -322,7 +331,7 @@ git push origin feature/name  # Push to remote
 
 ---
 
-*Last Updated: January 2025 | Ralph Wiggum v1.1*
+*Last Updated: 2026-02-22 | Ralph Wiggum v1.1*
 
 
 ---
