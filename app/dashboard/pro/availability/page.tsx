@@ -29,7 +29,7 @@ const WeeklySchedule = dynamic(
   }
 );
 
-const logger = createLogger({ file: 'app/dashboard/cleaner/availability/page.tsx' });
+const logger = createLogger({ file: 'app/dashboard/pro/availability/page.tsx' });
 
 interface BlockedDate {
   id?: string;
@@ -240,7 +240,7 @@ export default function AvailabilityPage() {
             <div className="flex justify-between items-center py-6">
               <div className="flex items-center gap-4">
                 <Link
-                  href="/dashboard/cleaner"
+                  href="/dashboard/pro"
                   className="text-gray-600 hover:text-gray-900"
                 >
                   <ArrowLeft className="h-6 w-6" />

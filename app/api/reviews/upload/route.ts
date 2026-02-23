@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
   }
 
   // Rate limit: 10 uploads per hour per user
-  const limited = rateLimitRoute('review-upload', user.id, RATE_LIMITS.reviewCreate);
+  const limited = await rateLimitRoute('review-upload', user.id, RATE_LIMITS.reviewCreate);
   if (limited) return limited;
 
   let formData: FormData;

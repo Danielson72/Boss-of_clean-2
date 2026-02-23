@@ -107,7 +107,7 @@ After your site is deployed and you have the URL:
 
 ### Role-Based Dashboards
 - [ ] Customer dashboard accessible at `/dashboard/customer`
-- [ ] Cleaner dashboard accessible at `/dashboard/cleaner`
+- [ ] Cleaner dashboard accessible at `/dashboard/pro`
 - [ ] Admin dashboard accessible at `/dashboard/admin`
 - [ ] Unauthorized access redirects to login
 - [ ] Role-based redirects work correctly

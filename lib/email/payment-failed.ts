@@ -60,7 +60,7 @@ function generatePaymentFailedHtml(data: PaymentFailedEmailData): string {
       </p>
     </div>
 
-    ${generateButton('Update Payment Method', `${BASE_URL}/dashboard/cleaner/billing`, 'warning')}
+    ${generateButton('Update Payment Method', `${BASE_URL}/dashboard/pro/billing`, 'warning')}
 
     <p style="color: #6b7280; font-size: 14px; margin-top: 24px;">
       If you believe this is an error, please check with your bank or contact our support team.
@@ -102,7 +102,7 @@ function generateFinalWarningHtml(data: FinalWarningEmailData): string {
       <li>Advanced analytics</li>
     </ul>
 
-    ${generateButton('Update Payment Now', `${BASE_URL}/dashboard/cleaner/billing`, 'warning')}
+    ${generateButton('Update Payment Now', `${BASE_URL}/dashboard/pro/billing`, 'warning')}
 
     <p style="color: #6b7280; font-size: 14px; margin-top: 24px;">
       Questions? Reply to this email or contact support. We're here to help!
@@ -135,7 +135,7 @@ function generateDowngradeHtml(data: DowngradeEmailData): string {
       Ready to get back to growing your business? Resubscribe anytime to restore your premium features.
     </p>
 
-    ${generateButton('Resubscribe Now', `${BASE_URL}/dashboard/cleaner/billing`, 'success')}
+    ${generateButton('Resubscribe Now', `${BASE_URL}/dashboard/pro/billing`, 'success')}
 
     <p style="color: #6b7280; font-size: 14px; margin-top: 24px;">
       We hope to see you back soon!

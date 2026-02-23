@@ -133,8 +133,8 @@ export async function POST(request: NextRequest) {
         },
       ],
       mode: 'subscription',
-      success_url: `${siteUrl}/dashboard/cleaner/billing?success=true&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${siteUrl}/dashboard/cleaner/billing?canceled=true`,
+      success_url: `${siteUrl}/dashboard/pro/billing?success=true&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${siteUrl}/dashboard/pro/billing?canceled=true`,
       allow_promotion_codes: true,
       billing_address_collection: 'required',
       metadata: {

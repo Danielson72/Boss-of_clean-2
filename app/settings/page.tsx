@@ -130,7 +130,7 @@ export default function SettingsPage() {
             <div className="flex justify-between items-center py-6">
               <div className="flex items-center gap-4">
                 <Link
-                  href={settings?.role === 'cleaner' ? '/dashboard/cleaner' : '/dashboard/customer'}
+                  href={settings?.role === 'cleaner' ? '/dashboard/pro' : '/dashboard/customer'}
                   className="text-gray-600 hover:text-gray-900"
                 >
                   <ArrowLeft className="h-6 w-6" />
@@ -423,7 +423,7 @@ export default function SettingsPage() {
                           Manage your subscription and billing details through your cleaner dashboard.
                         </p>
                         <Link
-                          href="/dashboard/cleaner"
+                          href="/dashboard/pro"
                           className="inline-flex items-center mt-3 text-blue-600 hover:text-blue-700 font-medium text-sm"
                         >
                           Go to Dashboard →

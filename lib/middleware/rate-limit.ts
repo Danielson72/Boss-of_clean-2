@@ -1,10 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-interface RateLimitEntry {
-  count: number;
-  resetAt: number;
-}
-
 interface RateLimitConfig {
   /** Maximum number of requests allowed in the window */
   maxRequests: number;
@@ -12,81 +7,79 @@ interface RateLimitConfig {
   windowSeconds: number;
 }
 
-/**
- * In-memory rate limiter store.
- * Keys are formatted as `${prefix}:${identifier}`.
- * Each entry tracks a request count and the time when the window resets.
- */
-const store = new Map<string, RateLimitEntry>();
-
-/** Interval handle for periodic cleanup (lazy-initialized) */
-let cleanupInterval: ReturnType<typeof setInterval> | null = null;
-
-function ensureCleanup() {
-  if (cleanupInterval) return;
-  // Run cleanup every 60 seconds to evict expired entries
-  cleanupInterval = setInterval(() => {
-    const now = Date.now();
-    store.forEach((entry, key) => {
-      if (now >= entry.resetAt) {
-        store.delete(key);
-      }
-    });
-  }, 60_000);
-  // Allow the Node.js process to exit even if the interval is active
-  if (typeof cleanupInterval === 'object' && 'unref' in cleanupInterval) {
-    cleanupInterval.unref();
-  }
-}
-
-/**
- * Check rate limit for a given identifier.
- * Returns { allowed, remaining, resetAt } where resetAt is a Unix timestamp (seconds).
- */
-function checkLimit(
-  key: string,
-  config: RateLimitConfig
-): { allowed: boolean; remaining: number; resetAt: number } {
-  ensureCleanup();
-
-  const now = Date.now();
-  const entry = store.get(key);
-
-  // No entry or window has expired — start a fresh window
-  if (!entry || now >= entry.resetAt) {
-    const resetAt = now + config.windowSeconds * 1000;
-    store.set(key, { count: 1, resetAt });
-    return {
-      allowed: true,
-      remaining: config.maxRequests - 1,
-      resetAt: Math.ceil(resetAt / 1000),
-    };
-  }
-
-  // Window still active
-  entry.count += 1;
-  const allowed = entry.count <= config.maxRequests;
-  return {
-    allowed,
-    remaining: Math.max(0, config.maxRequests - entry.count),
-    resetAt: Math.ceil(entry.resetAt / 1000),
-  };
-}
-
 // ---------------------------------------------------------------------------
-// Pre-configured rate limit profiles
+// Pre-configured rate limit profiles (60-second rolling windows)
 // ---------------------------------------------------------------------------
 
 export const RATE_LIMITS = {
-  /** Quote requests: 5 per hour per IP */
-  quoteRequest: { maxRequests: 5, windowSeconds: 3600 } as RateLimitConfig,
-  /** Review creation: 10 per hour per user */
-  reviewCreate: { maxRequests: 10, windowSeconds: 3600 } as RateLimitConfig,
-  /** Message sending: 60 per hour per user */
-  messageSend: { maxRequests: 60, windowSeconds: 3600 } as RateLimitConfig,
-  /** Auth endpoints (login/signup): 10 per 15 minutes per IP */
-  auth: { maxRequests: 10, windowSeconds: 900 } as RateLimitConfig,
+  /** Quote requests: 10 per minute per IP */
+  quoteRequest: { maxRequests: 10, windowSeconds: 60 } as RateLimitConfig,
+  /** Review creation: 10 per minute per user */
+  reviewCreate: { maxRequests: 10, windowSeconds: 60 } as RateLimitConfig,
+  /** Message sending: 20 per minute per user */
+  messageSend: { maxRequests: 20, windowSeconds: 60 } as RateLimitConfig,
+  /** Auth endpoints (login/signup): 5 per minute per IP */
+  auth: { maxRequests: 5, windowSeconds: 60 } as RateLimitConfig,
 } as const;
+
+// ---------------------------------------------------------------------------
+// Supabase RPC call — single atomic DB round-trip
+// Uses direct fetch() so it works in both Node and Edge runtimes.
+// ---------------------------------------------------------------------------
+
+interface RpcResult {
+  allowed: boolean;
+  retryAfter: number;
+  requestCount: number;
+}
+
+async function checkLimitViaRpc(
+  identifier: string,
+  endpoint: string,
+  config: RateLimitConfig,
+): Promise<RpcResult> {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!url || !key) {
+    // Missing env vars — fail open so users aren't blocked
+    return { allowed: true, retryAfter: 0, requestCount: 0 };
+  }
+
+  try {
+    const res = await fetch(`${url}/rest/v1/rpc/check_rate_limit`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        apikey: key,
+        Authorization: `Bearer ${key}`,
+      },
+      body: JSON.stringify({
+        p_identifier: identifier,
+        p_endpoint: endpoint,
+        p_max_requests: config.maxRequests,
+        p_window_seconds: config.windowSeconds,
+      }),
+      // Prevent caching of rate-limit checks
+      cache: 'no-store',
+    });
+
+    if (!res.ok) {
+      // RPC failure — fail open
+      return { allowed: true, retryAfter: 0, requestCount: 0 };
+    }
+
+    const data = await res.json();
+    return {
+      allowed: data.allowed,
+      retryAfter: data.retry_after_seconds || 0,
+      requestCount: data.request_count || 0,
+    };
+  } catch {
+    // Network error — fail open
+    return { allowed: true, retryAfter: 0, requestCount: 0 };
+  }
+}
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -100,10 +93,23 @@ export const RATE_LIMITS = {
 export function getClientIp(request: NextRequest): string {
   const forwarded = request.headers.get('x-forwarded-for');
   if (forwarded) {
-    // x-forwarded-for can contain a comma-separated list; take the first
     return forwarded.split(',')[0].trim();
   }
   return request.headers.get('x-real-ip') || 'unknown';
+}
+
+function build429Response(config: RateLimitConfig, retryAfter: number): NextResponse {
+  return NextResponse.json(
+    { error: 'Too many requests. Please try again later.' },
+    {
+      status: 429,
+      headers: {
+        'Retry-After': String(Math.max(1, retryAfter)),
+        'X-RateLimit-Limit': String(config.maxRequests),
+        'X-RateLimit-Remaining': '0',
+      },
+    },
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -115,32 +121,14 @@ export function getClientIp(request: NextRequest): string {
  * Apply rate limiting inside Next.js middleware.
  * Returns a 429 NextResponse if the limit is exceeded, or null if allowed.
  */
-export function rateLimitMiddleware(
-  request: NextRequest,
+export async function rateLimitMiddleware(
+  _request: NextRequest,
   prefix: string,
   identifier: string,
-  config: RateLimitConfig
-): NextResponse | null {
-  const key = `${prefix}:${identifier}`;
-  const result = checkLimit(key, config);
-
-  if (!result.allowed) {
-    const retryAfter = Math.max(1, result.resetAt - Math.ceil(Date.now() / 1000));
-    return NextResponse.json(
-      { error: 'Too many requests. Please try again later.' },
-      {
-        status: 429,
-        headers: {
-          'Retry-After': String(retryAfter),
-          'X-RateLimit-Limit': String(config.maxRequests),
-          'X-RateLimit-Remaining': '0',
-          'X-RateLimit-Reset': String(result.resetAt),
-        },
-      }
-    );
-  }
-
-  return null;
+  config: RateLimitConfig,
+): Promise<NextResponse | null> {
+  const result = await checkLimitViaRpc(identifier, prefix, config);
+  return result.allowed ? null : build429Response(config, result.retryAfter);
 }
 
 // ---------------------------------------------------------------------------
@@ -148,51 +136,31 @@ export function rateLimitMiddleware(
 // ---------------------------------------------------------------------------
 
 /**
- * Apply rate limiting inside an API route or Server Action.
+ * Apply rate limiting inside an API route.
  * Returns a NextResponse with 429 if limit is exceeded, or null if allowed.
  */
-export function rateLimitRoute(
+export async function rateLimitRoute(
   prefix: string,
   identifier: string,
-  config: RateLimitConfig
-): NextResponse | null {
-  const key = `${prefix}:${identifier}`;
-  const result = checkLimit(key, config);
-
-  if (!result.allowed) {
-    const retryAfter = Math.max(1, result.resetAt - Math.ceil(Date.now() / 1000));
-    return NextResponse.json(
-      { error: 'Too many requests. Please try again later.' },
-      {
-        status: 429,
-        headers: {
-          'Retry-After': String(retryAfter),
-          'X-RateLimit-Limit': String(config.maxRequests),
-          'X-RateLimit-Remaining': '0',
-          'X-RateLimit-Reset': String(result.resetAt),
-        },
-      }
-    );
-  }
-
-  return null;
+  config: RateLimitConfig,
+): Promise<NextResponse | null> {
+  const result = await checkLimitViaRpc(identifier, prefix, config);
+  return result.allowed ? null : build429Response(config, result.retryAfter);
 }
 
 /**
  * Check rate limit and return a result object (for Server Actions that
  * cannot return NextResponse directly).
  */
-export function checkRateLimit(
+export async function checkRateLimit(
   prefix: string,
   identifier: string,
-  config: RateLimitConfig
-): { allowed: boolean; retryAfter?: number } {
-  const key = `${prefix}:${identifier}`;
-  const result = checkLimit(key, config);
+  config: RateLimitConfig,
+): Promise<{ allowed: boolean; retryAfter?: number }> {
+  const result = await checkLimitViaRpc(identifier, prefix, config);
 
   if (!result.allowed) {
-    const retryAfter = Math.max(1, result.resetAt - Math.ceil(Date.now() / 1000));
-    return { allowed: false, retryAfter };
+    return { allowed: false, retryAfter: result.retryAfter };
   }
 
   return { allowed: true };

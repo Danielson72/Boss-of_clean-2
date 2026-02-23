@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
     // Create billing portal session (with MCP integration)
     const portalSession = await createBillingPortalSession({
       customerId: customer.id,
-      returnUrl: `${siteUrl}/dashboard/cleaner`,
+      returnUrl: `${siteUrl}/dashboard/pro`,
     })
 
     return NextResponse.json({ url: portalSession.url })

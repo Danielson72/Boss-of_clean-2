@@ -151,7 +151,7 @@ export default function CleanerSetupPage() {
 
       setSuccess('Profile created successfully! Redirecting to dashboard...');
       setTimeout(() => {
-        router.push('/dashboard/cleaner');
+        router.push('/dashboard/pro');
       }, 2000);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to create profile';

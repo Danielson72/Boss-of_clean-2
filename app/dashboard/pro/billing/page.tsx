@@ -30,7 +30,7 @@ import { ArrowLeft, CheckCircle, XCircle } from 'lucide-react';
 import Link from 'next/link';
 import { createLogger } from '@/lib/utils/logger';
 
-const logger = createLogger({ file: 'app/dashboard/cleaner/billing/page.tsx' });
+const logger = createLogger({ file: 'app/dashboard/pro/billing/page.tsx' });
 
 interface BillingData {
   subscription: {
@@ -76,13 +76,13 @@ export default function BillingPage() {
         message: 'Your subscription has been upgraded successfully!',
       });
       // Clear the URL params
-      router.replace('/dashboard/cleaner/billing');
+      router.replace('/dashboard/pro/billing');
     } else if (canceled === 'true') {
       setNotification({
         type: 'error',
         message: 'Checkout was canceled. Your subscription remains unchanged.',
       });
-      router.replace('/dashboard/cleaner/billing');
+      router.replace('/dashboard/pro/billing');
     }
   }, [searchParams, router]);
 
@@ -278,7 +278,7 @@ export default function BillingPage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center py-6">
               <Link
-                href="/dashboard/cleaner"
+                href="/dashboard/pro"
                 className="mr-4 p-2 hover:bg-gray-100 rounded-full transition"
               >
                 <ArrowLeft className="h-5 w-5 text-gray-600" />

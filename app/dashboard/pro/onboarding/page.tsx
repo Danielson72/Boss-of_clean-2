@@ -37,7 +37,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Loader2, AlertCircle, CheckCircle } from 'lucide-react'
 import { createLogger } from '@/lib/utils/logger'
 
-const logger = createLogger({ file: 'app/dashboard/cleaner/onboarding/page.tsx' })
+const logger = createLogger({ file: 'app/dashboard/pro/onboarding/page.tsx' })
 
 const AUTO_SAVE_DELAY = 30000 // 30 seconds
 
@@ -85,7 +85,7 @@ export default function CleanerOnboardingPage() {
 
         if (result.onboarding_completed_at) {
           // Already completed, redirect to dashboard
-          router.push('/dashboard/cleaner')
+          router.push('/dashboard/pro')
           return
         }
 
@@ -221,7 +221,7 @@ export default function CleanerOnboardingPage() {
 
       // Redirect to dashboard after a delay
       setTimeout(() => {
-        router.push('/dashboard/cleaner')
+        router.push('/dashboard/pro')
       }, 3000)
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to submit. Please try again.';

@@ -94,7 +94,7 @@ function generateCleanerNotificationHtml(data: BookingConfirmationData): string 
       </div>
     ` : ''}
 
-    ${generateButton('View Booking Details', `${BASE_URL}/dashboard/cleaner/bookings/${data.bookingId}`)}
+    ${generateButton('View Booking Details', `${BASE_URL}/dashboard/pro/bookings/${data.bookingId}`)}
 
     <p style="color: #6b7280; font-size: 14px; margin-top: 24px;">
       Make sure to confirm with the customer and arrive on time. Great service leads to great reviews!

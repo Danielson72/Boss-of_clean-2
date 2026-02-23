@@ -110,7 +110,7 @@ export async function POST(request: NextRequest) {
   }
 
   // Rate limit: 60 messages per hour per user
-  const messageRateLimited = rateLimitRoute('message-user', user.id, RATE_LIMITS.messageSend);
+  const messageRateLimited = await rateLimitRoute('message-user', user.id, RATE_LIMITS.messageSend);
   if (messageRateLimited) return messageRateLimited;
 
   let body: CreateMessageBody;
@@ -124,6 +124,10 @@ export async function POST(request: NextRequest) {
 
   if (!content || content.trim().length === 0) {
     return NextResponse.json({ error: 'Message content is required' }, { status: 400 });
+  }
+
+  if (content.length > 2000) {
+    return NextResponse.json({ error: 'Message too long' }, { status: 400 });
   }
 
   // Get user's role

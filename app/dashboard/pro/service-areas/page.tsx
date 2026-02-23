@@ -11,7 +11,7 @@ import {
 import Link from 'next/link';
 import { createLogger } from '@/lib/utils/logger';
 
-const logger = createLogger({ file: 'app/dashboard/cleaner/service-areas/page.tsx' });
+const logger = createLogger({ file: 'app/dashboard/pro/service-areas/page.tsx' });
 
 interface ServiceArea {
   zip_code: string;
@@ -169,7 +169,7 @@ export default function ServiceAreasPage() {
             <div className="flex justify-between items-center py-6">
               <div className="flex items-center gap-4">
                 <Link
-                  href="/dashboard/cleaner"
+                  href="/dashboard/pro"
                   className="text-gray-600 hover:text-gray-900"
                 >
                   <ArrowLeft className="h-6 w-6" />

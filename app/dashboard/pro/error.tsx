@@ -14,7 +14,7 @@ export default function CleanerDashboardError({
       error={error}
       reset={reset}
       title="Cleaner dashboard error"
-      backHref="/dashboard/cleaner"
+      backHref="/dashboard/pro"
       backLabel="Back to dashboard"
     />
   );

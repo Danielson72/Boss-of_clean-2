@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
   }
 
   // Rate limit: 10 reviews per hour per user
-  const reviewRateLimited = rateLimitRoute('review-user', user.id, RATE_LIMITS.reviewCreate);
+  const reviewRateLimited = await rateLimitRoute('review-user', user.id, RATE_LIMITS.reviewCreate);
   if (reviewRateLimited) return reviewRateLimited;
 
   let body: CreateReviewBody;

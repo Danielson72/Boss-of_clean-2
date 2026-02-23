@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { roleToDashboardPath } from '@/lib/utils/dashboard-path'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -34,7 +35,7 @@ export default function SelectRolePage() {
 
       if (userData?.role) {
         // User already has a role, redirect to dashboard
-        router.push(`/dashboard/${userData.role}`)
+        router.push(roleToDashboardPath(userData.role))
         return
       }
 
@@ -86,7 +87,7 @@ export default function SelectRolePage() {
 
       // Redirect to appropriate dashboard
       if (selectedRole === 'cleaner') {
-        router.push('/dashboard/cleaner/setup')
+        router.push('/dashboard/pro/setup')
       } else {
         router.push('/dashboard/customer')
       }

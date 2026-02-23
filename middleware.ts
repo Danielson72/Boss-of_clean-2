@@ -6,6 +6,12 @@ import {
   RATE_LIMITS,
 } from '@/lib/middleware/rate-limit'
 
+// Map DB role to dashboard path segment
+function roleToDashboardPath(role: string): string {
+  if (role === 'cleaner') return '/dashboard/pro'
+  return `/dashboard/${role}`
+}
+
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
 
@@ -15,7 +21,7 @@ export async function middleware(request: NextRequest) {
     // which hits Supabase directly, but we still rate-limit page loads to
     // deter credential-stuffing bots hammering the pages.
     const ip = getClientIp(request)
-    const blocked = rateLimitMiddleware(request, 'auth', ip, RATE_LIMITS.auth)
+    const blocked = await rateLimitMiddleware(request, 'auth', ip, RATE_LIMITS.auth)
     if (blocked) return blocked
   }
 
@@ -23,19 +29,19 @@ export async function middleware(request: NextRequest) {
   if (pathname === '/api/reviews/create' && request.method === 'POST') {
     // Rate limit by IP at the middleware level; the route also checks per-user
     const ip = getClientIp(request)
-    const blocked = rateLimitMiddleware(request, 'review-ip', ip, RATE_LIMITS.reviewCreate)
+    const blocked = await rateLimitMiddleware(request, 'review-ip', ip, RATE_LIMITS.reviewCreate)
     if (blocked) return blocked
   }
 
   if (pathname === '/api/messages' && request.method === 'POST') {
     const ip = getClientIp(request)
-    const blocked = rateLimitMiddleware(request, 'message-ip', ip, RATE_LIMITS.messageSend)
+    const blocked = await rateLimitMiddleware(request, 'message-ip', ip, RATE_LIMITS.messageSend)
     if (blocked) return blocked
   }
 
   if (pathname === '/api/quote' && request.method === 'POST') {
     const ip = getClientIp(request)
-    const blocked = rateLimitMiddleware(request, 'quote-ip', ip, RATE_LIMITS.quoteRequest)
+    const blocked = await rateLimitMiddleware(request, 'quote-ip', ip, RATE_LIMITS.quoteRequest)
     if (blocked) return blocked
   }
 
@@ -100,26 +106,26 @@ export async function middleware(request: NextRequest) {
     // Check role-based access
     if (requestedPath.startsWith('/dashboard/admin') && userRole !== 'admin') {
       const url = request.nextUrl.clone()
-      url.pathname = `/dashboard/${userRole}`
+      url.pathname = roleToDashboardPath(userRole)
       return NextResponse.redirect(url)
     }
 
-    if (requestedPath.startsWith('/dashboard/cleaner') && userRole !== 'cleaner') {
+    if (requestedPath.startsWith('/dashboard/pro') && userRole !== 'cleaner') {
       const url = request.nextUrl.clone()
-      url.pathname = `/dashboard/${userRole}`
+      url.pathname = roleToDashboardPath(userRole)
       return NextResponse.redirect(url)
     }
 
     if (requestedPath.startsWith('/dashboard/customer') && userRole !== 'customer') {
       const url = request.nextUrl.clone()
-      url.pathname = `/dashboard/${userRole}`
+      url.pathname = roleToDashboardPath(userRole)
       return NextResponse.redirect(url)
     }
 
     // Redirect /dashboard to role-specific dashboard
     if (requestedPath === '/dashboard' || requestedPath === '/dashboard/') {
       const url = request.nextUrl.clone()
-      url.pathname = `/dashboard/${userRole}`
+      url.pathname = roleToDashboardPath(userRole)
       return NextResponse.redirect(url)
     }
   }
@@ -134,7 +140,7 @@ export async function middleware(request: NextRequest) {
 
     const userRole = userData?.role || 'customer'
     const url = request.nextUrl.clone()
-    url.pathname = `/dashboard/${userRole}`
+    url.pathname = roleToDashboardPath(userRole)
     return NextResponse.redirect(url)
   }
 

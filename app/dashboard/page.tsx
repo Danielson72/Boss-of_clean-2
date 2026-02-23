@@ -12,7 +12,7 @@ export default function DashboardPage() {
   useEffect(() => {
     if (user) {
       if (isCleaner) {
-        router.push('/dashboard/cleaner');
+        router.push('/dashboard/pro');
       } else if (isCustomer) {
         router.push('/dashboard/customer');
       } else {

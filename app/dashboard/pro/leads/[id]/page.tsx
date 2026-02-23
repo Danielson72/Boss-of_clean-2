@@ -146,7 +146,7 @@ export default function LeadDetailPage() {
     setSubmitting(true);
     const result = await declineLead(leadId);
     if (result.success) {
-      router.push('/dashboard/cleaner/leads');
+      router.push('/dashboard/pro/leads');
     } else {
       setSubmitError(result.error || 'Failed to decline lead');
     }
@@ -171,7 +171,7 @@ export default function LeadDetailPage() {
           <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
           <p className="text-gray-900 font-medium">{error || 'Lead not found'}</p>
           <Link
-            href="/dashboard/cleaner/leads"
+            href="/dashboard/pro/leads"
             className="mt-4 inline-block text-blue-600 hover:text-blue-700"
           >
             Return to Leads
@@ -193,7 +193,7 @@ export default function LeadDetailPage() {
           <div className="flex items-center justify-between py-6">
             <div className="flex items-center gap-4">
               <Link
-                href="/dashboard/cleaner/leads"
+                href="/dashboard/pro/leads"
                 className="text-gray-500 hover:text-gray-700"
               >
                 <ArrowLeft className="h-5 w-5" />

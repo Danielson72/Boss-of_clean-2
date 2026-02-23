@@ -114,7 +114,7 @@ function generateCleanerDisputeHtml(data: DisputeCleanerNotifyData): string {
       <li>Our team will contact you if we need additional information</li>
     </ul>
 
-    ${generateButton('View Account Details', `${BASE_URL}/dashboard/cleaner/billing`)}
+    ${generateButton('View Account Details', `${BASE_URL}/dashboard/pro/billing`)}
 
     <p style="color: #6b7280; font-size: 14px; margin-top: 24px;">
       Questions? Reply to this email and our support team will assist you.
@@ -161,7 +161,7 @@ function generateDisputeResolvedHtml(data: DisputeResolvedData): string {
       </p>
     `}
 
-    ${generateButton('View Billing Details', `${BASE_URL}/dashboard/cleaner/billing`)}
+    ${generateButton('View Billing Details', `${BASE_URL}/dashboard/pro/billing`)}
   `;
 
   return wrapEmailTemplate(content);

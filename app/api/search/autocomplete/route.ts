@@ -4,7 +4,7 @@ import { rateLimitRoute, getClientIp } from '@/lib/middleware/rate-limit';
 
 export async function GET(request: NextRequest) {
   const ip = getClientIp(request);
-  const rateLimited = rateLimitRoute('autocomplete', ip, {
+  const rateLimited = await rateLimitRoute('autocomplete', ip, {
     maxRequests: 60,
     windowSeconds: 60,
   });
@@ -20,13 +20,19 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ results: [] });
   }
 
+  // Sanitize: strip characters that have meaning in PostgREST filter syntax
+  const sanitized = q.replace(/[,()."'\\]/g, '');
+  if (!sanitized || sanitized.length < 2) {
+    return NextResponse.json({ results: [] });
+  }
+
   const supabase = createClient();
 
   const { data, error } = await supabase
     .from('florida_zipcodes')
     .select('zip_code, city, county')
     .or(
-      `city.ilike.%${q}%,county.ilike.%${q}%,zip_code.like.${q}%`
+      `city.ilike.%${sanitized}%,county.ilike.%${sanitized}%,zip_code.like.${sanitized}%`
     )
     .order('population', { ascending: false, nullsFirst: false })
     .limit(limit);

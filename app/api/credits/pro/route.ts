@@ -62,7 +62,7 @@ export async function GET() {
       } : null,
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Internal server error';
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error('Unhandled error in /api/credits/pro:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

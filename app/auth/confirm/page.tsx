@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
+import { roleToDashboardPath } from '@/lib/utils/dashboard-path';
 
 export default function EmailConfirmPage() {
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
@@ -43,7 +44,7 @@ export default function EmailConfirmPage() {
 
             const role = userData?.role || 'customer';
             setTimeout(() => {
-              router.push(`/dashboard/${role}`);
+              router.push(roleToDashboardPath(role));
             }, 2000);
           }
         });

@@ -52,7 +52,7 @@ function generateNewLeadEmailHtml(data: NewLeadEmailData): string {
       { label: 'Preferred Date', value: data.preferredDate || 'Flexible' },
     ])}
 
-    ${generateButton('View Lead Details', `${BASE_URL}/dashboard/cleaner/leads/${data.leadId}`)}
+    ${generateButton('View Lead Details', `${BASE_URL}/dashboard/pro/leads/${data.leadId}`)}
 
     <div style="background: #fef3c7; border-radius: 8px; padding: 16px; margin: 20px 0; border-left: 4px solid #f59e0b;">
       <p style="margin: 0; color: #92400e; font-size: 14px;">
@@ -202,7 +202,7 @@ export async function sendQuoteMatchEmail(data: {
       Hi ${data.businessName}, a customer in <strong>${data.location}</strong> is requesting quotes for <strong>${data.serviceType.replace(/_/g, ' ')}</strong>.
     </p>
 
-    ${generateButton('View & Respond', `${BASE_URL}/dashboard/cleaner/quote-requests/${data.quoteId}`)}
+    ${generateButton('View & Respond', `${BASE_URL}/dashboard/pro/quote-requests/${data.quoteId}`)}
 
     <p style="color: #6b7280; font-size: 14px; margin-top: 24px;">
       Respond quickly to increase your chances of winning this job!

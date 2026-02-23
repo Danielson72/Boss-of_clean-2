@@ -164,7 +164,7 @@ test.describe('Billing Page - Subscription Management', () => {
       })
     })
 
-    await page.goto('/dashboard/cleaner/billing?success=true')
+    await page.goto('/dashboard/pro/billing?success=true')
     // eslint-disable-next-line playwright/no-skipped-test
     test.skip(wasRedirectedToLogin(page), 'Requires authenticated cleaner session')
 
@@ -185,7 +185,7 @@ test.describe('Billing Page - Subscription Management', () => {
       })
     })
 
-    await page.goto('/dashboard/cleaner/billing?canceled=true')
+    await page.goto('/dashboard/pro/billing?canceled=true')
     // eslint-disable-next-line playwright/no-skipped-test
     test.skip(wasRedirectedToLogin(page), 'Requires authenticated cleaner session')
 
@@ -219,7 +219,7 @@ test.describe('Billing Page - Subscription Management', () => {
 
     await page.route('https://checkout.stripe.com/**', (route) => route.abort())
 
-    await page.goto('/dashboard/cleaner/billing')
+    await page.goto('/dashboard/pro/billing')
     await page.waitForLoadState('networkidle')
 
     // Skip if not authenticated
@@ -253,7 +253,7 @@ test.describe('Billing Page - Subscription Management', () => {
       })
     })
 
-    await page.goto('/dashboard/cleaner/billing')
+    await page.goto('/dashboard/pro/billing')
     await page.waitForLoadState('networkidle')
 
     // Skip if not authenticated
@@ -347,7 +347,7 @@ test.describe('Lead Claims - Contact Info Redaction', () => {
       })
     })
 
-    await page.goto('/dashboard/cleaner/leads')
+    await page.goto('/dashboard/pro/leads')
     await page.waitForLoadState('networkidle')
     // eslint-disable-next-line playwright/no-skipped-test
     test.skip(wasRedirectedToLogin(page), 'Requires authenticated cleaner session')
@@ -372,7 +372,7 @@ test.describe('Lead Claims - Contact Info Redaction', () => {
 
   test('lead cards show lock icon indicating hidden contact info', async ({ page }) => {
     // Simplified test - just check the leads page loads without server errors
-    await page.goto('/dashboard/cleaner/leads')
+    await page.goto('/dashboard/pro/leads')
     await page.waitForLoadState('networkidle')
 
     const body = await page.textContent('body')
@@ -451,7 +451,7 @@ test.describe('Lead Claim - Payment Flow', () => {
       })
     })
 
-    await page.goto('/dashboard/cleaner/leads')
+    await page.goto('/dashboard/pro/leads')
     await page.waitForLoadState('networkidle')
     // eslint-disable-next-line playwright/no-skipped-test
     test.skip(wasRedirectedToLogin(page), 'Requires authenticated cleaner session')
@@ -536,7 +536,7 @@ test.describe('Lead Claim - Payment Flow', () => {
       })
     })
 
-    await page.goto('/dashboard/cleaner/leads')
+    await page.goto('/dashboard/pro/leads')
     await page.waitForLoadState('networkidle')
     // eslint-disable-next-line playwright/no-skipped-test
     test.skip(wasRedirectedToLogin(page), 'Requires authenticated cleaner session')
@@ -618,7 +618,7 @@ test.describe('Lead Claim - Payment Flow', () => {
       })
     })
 
-    await page.goto('/dashboard/cleaner/leads')
+    await page.goto('/dashboard/pro/leads')
     await page.waitForLoadState('networkidle')
     // eslint-disable-next-line playwright/no-skipped-test
     test.skip(wasRedirectedToLogin(page), 'Requires authenticated cleaner session')
@@ -679,7 +679,7 @@ test.describe('Lead Claim - Payment Flow', () => {
       })
     })
 
-    await page.goto('/dashboard/cleaner/leads')
+    await page.goto('/dashboard/pro/leads')
     await page.waitForLoadState('networkidle')
     // eslint-disable-next-line playwright/no-skipped-test
     test.skip(wasRedirectedToLogin(page), 'Requires authenticated cleaner session')
@@ -755,7 +755,7 @@ test.describe('Lead Claim - Payment Flow', () => {
       })
     })
 
-    await page.goto('/dashboard/cleaner/leads')
+    await page.goto('/dashboard/pro/leads')
     await page.waitForLoadState('networkidle')
     // eslint-disable-next-line playwright/no-skipped-test
     test.skip(wasRedirectedToLogin(page), 'Requires authenticated cleaner session')
@@ -819,7 +819,7 @@ test.describe('Subscription Upgrade Path - Free to Basic to Pro', () => {
       })
     })
 
-    await page.goto('/dashboard/cleaner/leads')
+    await page.goto('/dashboard/pro/leads')
     await page.waitForLoadState('networkidle')
     // eslint-disable-next-line playwright/no-skipped-test
     test.skip(wasRedirectedToLogin(page), 'Requires authenticated cleaner session')
@@ -828,7 +828,7 @@ test.describe('Subscription Upgrade Path - Free to Basic to Pro', () => {
     await expect(page.locator('a:has-text("Upgrade Now")')).toBeVisible()
 
     const upgradeLink = page.locator('a:has-text("Upgrade Now")')
-    await expect(upgradeLink).toHaveAttribute('href', '/dashboard/cleaner/billing')
+    await expect(upgradeLink).toHaveAttribute('href', '/dashboard/pro/billing')
   })
 
   test('billing page shows plan comparison with current plan marked', async ({ page }) => {
@@ -845,7 +845,7 @@ test.describe('Subscription Upgrade Path - Free to Basic to Pro', () => {
       })
     })
 
-    await page.goto('/dashboard/cleaner/billing')
+    await page.goto('/dashboard/pro/billing')
     await page.waitForLoadState('networkidle')
     // eslint-disable-next-line playwright/no-skipped-test
     test.skip(wasRedirectedToLogin(page), 'Requires authenticated cleaner session')

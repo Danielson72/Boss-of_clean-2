@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
     // Create Stripe checkout session (with MCP integration)
     const session = await createCheckoutSession({
       priceId,
-      successUrl: `${siteUrl}/dashboard/cleaner?session_id={CHECKOUT_SESSION_ID}`,
+      successUrl: `${siteUrl}/dashboard/pro?session_id={CHECKOUT_SESSION_ID}`,
       cancelUrl: `${siteUrl}/pricing`,
       customerEmail: user.email,
       metadata: {

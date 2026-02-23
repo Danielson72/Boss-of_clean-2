@@ -99,7 +99,7 @@ export async function GET() {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Internal server error';
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error('Unhandled error in /api/admin/email-health:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

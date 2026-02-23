@@ -20,7 +20,7 @@ export default function MessagesPage() {
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center gap-4 py-6">
               <Link
-                href={isCustomer ? '/dashboard/customer' : '/dashboard/cleaner'}
+                href={isCustomer ? '/dashboard/customer' : '/dashboard/pro'}
                 className="text-gray-600 hover:text-gray-900"
               >
                 <ArrowLeft className="h-5 w-5" />

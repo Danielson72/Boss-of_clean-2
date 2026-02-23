@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { sendQuoteResponseEmail } from '@/lib/email/notifications';
 import { createLogger } from '@/lib/utils/logger';
 
-const logger = createLogger({ file: 'app/dashboard/cleaner/leads/actions' });
+const logger = createLogger({ file: 'app/dashboard/pro/leads/actions' });
 
 export interface LeadMatch {
   id: string;

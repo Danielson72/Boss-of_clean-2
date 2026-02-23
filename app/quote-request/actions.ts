@@ -43,7 +43,7 @@ export async function submitQuoteRequest(
   const headersList = await headers();
   const forwarded = headersList.get('x-forwarded-for');
   const ip = forwarded ? forwarded.split(',')[0].trim() : headersList.get('x-real-ip') || 'unknown';
-  const rateLimitResult = checkRateLimit('quote-request', ip, RATE_LIMITS.quoteRequest);
+  const rateLimitResult = await checkRateLimit('quote-request', ip, RATE_LIMITS.quoteRequest);
   if (!rateLimitResult.allowed) {
     return {
       success: false,

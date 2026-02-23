@@ -13,7 +13,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createLogger } from '@/lib/utils/logger';
 
-const logger = createLogger({ file: 'app/dashboard/cleaner/page.tsx' });
+const logger = createLogger({ file: 'app/dashboard/pro/page.tsx' });
 
 interface CleanerProfile {
   id: string;
@@ -109,7 +109,7 @@ export default function CleanerDashboard() {
 
       if (error && error.code === 'PGRST116') {
         // No cleaner profile exists, redirect to onboarding wizard
-        router.push('/dashboard/cleaner/onboarding');
+        router.push('/dashboard/pro/onboarding');
         return;
       }
 
@@ -117,7 +117,7 @@ export default function CleanerDashboard() {
 
       // Check if onboarding is incomplete
       if (!data.onboarding_completed_at && data.onboarding_step && data.onboarding_step < 5) {
-        router.push('/dashboard/cleaner/onboarding');
+        router.push('/dashboard/pro/onboarding');
         return;
       }
 
@@ -165,7 +165,7 @@ export default function CleanerDashboard() {
 
   const handleRespondToQuote = (quoteId: string) => {
     // Navigate to quote response page
-    router.push(`/dashboard/cleaner/quotes/${quoteId}`);
+    router.push(`/dashboard/pro/quotes/${quoteId}`);
   };
 
   if (loading) {
@@ -198,7 +198,7 @@ export default function CleanerDashboard() {
               </div>
               <div className="flex items-center gap-4">
                 <Link
-                  href="/dashboard/cleaner/profile"
+                  href="/dashboard/pro/profile"
                   className="text-gray-600 hover:text-gray-900"
                 >
                   <Settings className="h-6 w-6" />
@@ -406,56 +406,56 @@ export default function CleanerDashboard() {
                         <p className="font-medium">Messages</p>
                       </Link>
                       <Link
-                        href="/dashboard/cleaner/leads"
+                        href="/dashboard/pro/leads"
                         className="p-4 border rounded-lg hover:shadow-md transition duration-300 text-center"
                       >
                         <Inbox className="h-8 w-8 text-blue-600 mx-auto mb-2" />
                         <p className="font-medium">View Leads</p>
                       </Link>
                       <Link
-                        href="/dashboard/cleaner/profile"
+                        href="/dashboard/pro/profile"
                         className="p-4 border rounded-lg hover:shadow-md transition duration-300 text-center"
                       >
                         <Camera className="h-8 w-8 text-blue-600 mx-auto mb-2" />
                         <p className="font-medium">Update Profile</p>
                       </Link>
                       <Link
-                        href="/dashboard/cleaner/portfolio"
+                        href="/dashboard/pro/portfolio"
                         className="p-4 border rounded-lg hover:shadow-md transition duration-300 text-center border-purple-200 bg-purple-50"
                       >
                         <Images className="h-8 w-8 text-purple-600 mx-auto mb-2" />
                         <p className="font-medium">Portfolio Gallery</p>
                       </Link>
                       <Link
-                        href="/dashboard/cleaner/availability"
+                        href="/dashboard/pro/availability"
                         className="p-4 border rounded-lg hover:shadow-md transition duration-300 text-center"
                       >
                         <Calendar className="h-8 w-8 text-orange-600 mx-auto mb-2" />
                         <p className="font-medium">Availability</p>
                       </Link>
                       <Link
-                        href="/dashboard/cleaner/service-areas"
+                        href="/dashboard/pro/service-areas"
                         className="p-4 border rounded-lg hover:shadow-md transition duration-300 text-center"
                       >
                         <MapPin className="h-8 w-8 text-green-600 mx-auto mb-2" />
                         <p className="font-medium">Manage Service Areas</p>
                       </Link>
                       <Link
-                        href="/dashboard/cleaner/earnings"
+                        href="/dashboard/pro/earnings"
                         className="p-4 border rounded-lg hover:shadow-md transition duration-300 text-center border-green-200 bg-green-50"
                       >
                         <DollarSign className="h-8 w-8 text-green-600 mx-auto mb-2" />
                         <p className="font-medium">Earnings</p>
                       </Link>
                       <Link
-                        href="/dashboard/cleaner/billing"
+                        href="/dashboard/pro/billing"
                         className="p-4 border rounded-lg hover:shadow-md transition duration-300 text-center"
                       >
                         <CreditCard className="h-8 w-8 text-indigo-600 mx-auto mb-2" />
                         <p className="font-medium">Billing</p>
                       </Link>
                       <Link
-                        href="/dashboard/cleaner/reviews"
+                        href="/dashboard/pro/reviews"
                         className="p-4 border rounded-lg hover:shadow-md transition duration-300 text-center"
                       >
                         <Star className="h-8 w-8 text-yellow-500 mx-auto mb-2" />
@@ -577,7 +577,7 @@ export default function CleanerDashboard() {
                   
                   <div className="mt-6">
                     <Link
-                      href="/dashboard/cleaner/service-areas"
+                      href="/dashboard/pro/service-areas"
                       className="text-blue-600 hover:text-blue-700 font-medium"
                     >
                       Manage Services & Areas →

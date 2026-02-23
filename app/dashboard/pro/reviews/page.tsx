@@ -18,7 +18,7 @@ import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { createLogger } from '@/lib/utils/logger';
 
-const logger = createLogger({ file: 'app/dashboard/cleaner/reviews/page.tsx' });
+const logger = createLogger({ file: 'app/dashboard/pro/reviews/page.tsx' });
 
 interface Review {
   id: string;
@@ -121,7 +121,7 @@ export default function CleanerReviewsPage() {
           <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center py-6">
               <Link
-                href="/dashboard/cleaner"
+                href="/dashboard/pro"
                 className="mr-4 text-gray-400 hover:text-gray-600 transition"
               >
                 <ArrowLeft className="h-5 w-5" />

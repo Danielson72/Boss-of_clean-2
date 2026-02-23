@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { NextRequest } from 'next/server'
 import { createLogger } from '@/lib/utils/logger'
+import { roleToDashboardPath } from '@/lib/utils/dashboard-path'
 
 const logger = createLogger({ file: 'auth/callback/route' })
 
@@ -56,7 +57,7 @@ export async function GET(request: NextRequest) {
         await supabase.from('users').update(updates).eq('id', user.id)
 
         const role = existingUser.role || 'customer'
-        return NextResponse.redirect(new URL(`/dashboard/${role}`, origin))
+        return NextResponse.redirect(new URL(roleToDashboardPath(role), origin))
       }
 
       // Edge case: trigger didn't fire or email-based account linking needed.
@@ -83,7 +84,7 @@ export async function GET(request: NextRequest) {
           await supabase.from('users').update(updates).eq('email', user.email)
 
           const role = userByEmail.role || 'customer'
-          return NextResponse.redirect(new URL(`/dashboard/${role}`, origin))
+          return NextResponse.redirect(new URL(roleToDashboardPath(role), origin))
         }
       }
 

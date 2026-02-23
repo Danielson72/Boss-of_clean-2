@@ -86,7 +86,7 @@ We need to build:
 - **Reviews**: Leave reviews for completed jobs
 - **Account Settings**: Profile, preferences
 
-### Cleaner Dashboard (`app/dashboard/cleaner/`)
+### Cleaner Dashboard (`app/dashboard/pro/`)
 - **Business Profile**: Edit profile, photos, services
 - **Leads**: View and respond to quote requests
 - **Analytics**: Performance metrics, earnings

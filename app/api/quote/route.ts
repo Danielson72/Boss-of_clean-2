@@ -1,8 +1,10 @@
 export const runtime = 'nodejs';
 
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
+import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger({ file: 'api/quote/route' });
 
 interface QuoteRequest {
   cleaner_id: string;
@@ -33,21 +35,20 @@ interface QuoteRequest {
  */
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
-  console.log('[QUOTE] Starting quote request orchestration');
+  logger.info('Starting quote request orchestration', { function: 'POST' });
 
   try {
     // Parse request body
     const body: QuoteRequest = await request.json();
-    console.log('[QUOTE] Request body received:', {
+    logger.info('Request body received', {
+      function: 'POST',
       cleaner_id: body.cleaner_id,
       service_type: body.service_type,
-      has_customer_email: !!body.customer_email,
-      has_customer_phone: !!body.customer_phone,
     });
 
     // Validate required fields
     if (!body.cleaner_id || !body.service_type) {
-      console.log('[QUOTE] Validation failed: missing required fields');
+      logger.warn('Validation failed: missing required fields', { function: 'POST' });
       return NextResponse.json(
         {
           error: 'validation_error',
@@ -61,30 +62,25 @@ export async function POST(request: NextRequest) {
     const forwardedFor = request.headers.get('x-forwarded-for');
     const realIp = request.headers.get('x-real-ip');
     const ipAddress = forwardedFor?.split(',')[0]?.trim() || realIp || '127.0.0.1';
-    console.log('[QUOTE] Client IP:', ipAddress);
 
     // Initialize Supabase client
-    const supabase = createRouteHandlerClient({ cookies });
+    const supabase = createClient();
 
     // Get current user (may be null for guests)
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     if (authError) {
-      console.log('[QUOTE] Auth check error (non-fatal):', authError.message);
+      logger.info('Auth check returned error (non-fatal)', { function: 'POST' });
     }
 
     const customerId = user?.id || null;
     const isGuest = !customerId;
-    console.log('[QUOTE] User status:', {
-      is_guest: isGuest,
-      customer_id: customerId,
-      email_verified: user?.email_confirmed_at ? true : false,
-    });
+    logger.info('User status resolved', { function: 'POST', is_guest: isGuest });
 
     // ============================================
     // STEP 1: Check customer limits (WITHOUT incrementing)
     // ============================================
-    console.log('[QUOTE] Step 1: Checking customer limits...');
+    logger.info('Step 1: Checking customer limits', { function: 'POST' });
 
     const { data: limitCheckData, error: limitCheckError } = await supabase.rpc(
       'check_and_increment_customer_limits',
@@ -96,27 +92,20 @@ export async function POST(request: NextRequest) {
     );
 
     if (limitCheckError) {
-      console.error('[QUOTE] Customer limit check failed:', limitCheckError);
+      logger.error('Customer limit check failed', { function: 'POST' }, limitCheckError);
       return NextResponse.json(
-        {
-          error: 'limit_check_failed',
-          detail: limitCheckError.message,
-        },
+        { error: 'Internal server error' },
         { status: 500 }
       );
     }
 
-    console.log('[QUOTE] Customer limit check result:', limitCheckData);
+    logger.debug('Customer limit check result', { function: 'POST' });
 
     // Handle limit exceeded (daily or monthly) - function returns array
     const limitResult = Array.isArray(limitCheckData) ? limitCheckData[0] : limitCheckData;
 
     if (!limitResult.allowed) {
-      console.log('[QUOTE] Customer limit exceeded:', {
-        reason: limitResult.reason,
-        daily_count: limitResult.daily,
-        monthly_count: limitResult.monthly,
-      });
+      logger.info('Customer limit exceeded', { function: 'POST', reason: limitResult.reason });
 
       // Determine recommended action
       let action: string;
@@ -140,15 +129,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('[QUOTE] Customer limit check passed:', {
-      daily_count: limitResult.daily,
-      monthly_count: limitResult.monthly,
-    });
+    logger.info('Customer limit check passed', { function: 'POST' });
 
     // ============================================
     // STEP 2: Check cleaner tier limit
     // ============================================
-    console.log('[QUOTE] Step 2: Checking cleaner tier limit...');
+    logger.info('Step 2: Checking cleaner tier limit', { function: 'POST' });
 
     // First, fetch cleaner details including subscription_tier
     const { data: cleaner, error: cleanerError } = await supabase
@@ -158,12 +144,9 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (cleanerError) {
-      console.error('[QUOTE] Failed to fetch cleaner:', cleanerError);
+      logger.error('Failed to fetch cleaner', { function: 'POST' }, cleanerError);
       return NextResponse.json(
-        {
-          error: 'cleaner_not_found',
-          detail: cleanerError.message,
-        },
+        { error: 'Cleaner not found' },
         { status: 404 }
       );
     }
@@ -175,29 +158,22 @@ export async function POST(request: NextRequest) {
     );
 
     if (tierError) {
-      console.error('[QUOTE] Tier check error:', tierError);
+      logger.error('Tier check error', { function: 'POST' }, tierError);
       return NextResponse.json(
-        {
-          error: 'tier_check_failed',
-          detail: tierError.message,
-        },
+        { error: 'Internal server error' },
         { status: 500 }
       );
     }
 
-    console.log('[QUOTE] Cleaner tier limit check result:', {
-      canReceiveQuotes,
+    logger.info('Cleaner tier limit check result', {
+      function: 'POST',
+      canReceiveQuotes: String(canReceiveQuotes),
       tier: cleaner.subscription_tier,
-      cleanerId: body.cleaner_id,
-      businessName: cleaner.business_name,
     });
 
     // Handle cleaner at monthly cap (function returns boolean)
     if (!canReceiveQuotes) {
-      console.log('[QUOTE] Cleaner at monthly cap:', {
-        tier: cleaner.subscription_tier,
-        business_name: cleaner.business_name,
-      });
+      logger.info('Cleaner at monthly cap', { function: 'POST', tier: cleaner.subscription_tier });
 
       return NextResponse.json(
         {
@@ -210,15 +186,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('[QUOTE] Cleaner tier limit check passed:', {
-      tier: cleaner.subscription_tier,
-      business_name: cleaner.business_name,
-    });
+    logger.info('Cleaner tier limit check passed', { function: 'POST', tier: cleaner.subscription_tier });
 
     // ============================================
     // STEP 3: Create quote request
     // ============================================
-    console.log('[QUOTE] Step 3: Creating quote request...');
+    logger.info('Step 3: Creating quote request', { function: 'POST' });
 
     const { data: quoteData, error: quoteError } = await supabase.rpc(
       'create_quote_request',
@@ -243,12 +216,9 @@ export async function POST(request: NextRequest) {
     );
 
     if (quoteError) {
-      console.error('[QUOTE] Quote creation failed:', quoteError);
+      logger.error('Quote creation failed', { function: 'POST' }, quoteError);
       return NextResponse.json(
-        {
-          error: 'quote_create_failed',
-          detail: quoteError.message,
-        },
+        { error: 'Internal server error' },
         { status: 500 }
       );
     }
@@ -256,12 +226,12 @@ export async function POST(request: NextRequest) {
     const quoteId = quoteData?.quote_id || quoteData;
     const duration = Date.now() - startTime;
 
-    console.log(`[QUOTE] Quote created successfully: ${quoteId} (${duration}ms)`);
+    logger.info(`Quote created successfully (${duration}ms)`, { function: 'POST' });
 
     // ============================================
     // STEP 4: NOW increment the customer limit counter
     // ============================================
-    console.log('[QUOTE] Step 4: Incrementing customer limit counter...');
+    logger.info('Step 4: Incrementing customer limit counter', { function: 'POST' });
 
     const { error: incrementError } = await supabase.rpc(
       'check_and_increment_customer_limits',
@@ -274,9 +244,9 @@ export async function POST(request: NextRequest) {
 
     if (incrementError) {
       // Log but don't fail the request - quote was already created
-      console.error('[QUOTE] Failed to increment counter (non-fatal):', incrementError);
+      logger.error('Failed to increment counter (non-fatal)', { function: 'POST' }, incrementError);
     } else {
-      console.log('[QUOTE] Counter incremented successfully');
+      logger.info('Counter incremented successfully', { function: 'POST' });
     }
 
     // ============================================
@@ -291,16 +261,11 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     );
 
-  } catch (error: any) {
-    const duration = Date.now() - startTime;
-    console.error('[QUOTE] Unexpected error:', error);
-    console.error('[QUOTE] Error stack:', error.stack);
+  } catch (error) {
+    logger.error('Unexpected error', { function: 'POST' }, error);
 
     return NextResponse.json(
-      {
-        error: 'internal_error',
-        detail: error.message || 'An unexpected error occurred',
-      },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }

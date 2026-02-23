@@ -93,7 +93,7 @@ test.describe('Pro Leads - Available Leads Tab', () => {
       })
     })
 
-    await page.goto('/dashboard/cleaner/leads')
+    await page.goto('/dashboard/pro/leads')
     await page.waitForLoadState('networkidle')
     // eslint-disable-next-line playwright/no-skipped-test
     test.skip(wasRedirectedToLogin(page), 'Requires authenticated cleaner session')
@@ -169,7 +169,7 @@ test.describe('Pro Leads - Available Leads Tab', () => {
       })
     })
 
-    await page.goto('/dashboard/cleaner/leads')
+    await page.goto('/dashboard/pro/leads')
     await page.waitForLoadState('networkidle')
     // eslint-disable-next-line playwright/no-skipped-test
     test.skip(wasRedirectedToLogin(page), 'Requires authenticated cleaner session')
@@ -240,7 +240,7 @@ test.describe('Pro Leads - Available Leads Tab', () => {
       })
     })
 
-    await page.goto('/dashboard/cleaner/leads')
+    await page.goto('/dashboard/pro/leads')
     await page.waitForLoadState('networkidle')
     // eslint-disable-next-line playwright/no-skipped-test
     test.skip(wasRedirectedToLogin(page), 'Requires authenticated cleaner session')
@@ -326,7 +326,7 @@ test.describe('Pro Leads - Unlocked Leads Tab', () => {
       })
     })
 
-    await page.goto('/dashboard/cleaner/leads')
+    await page.goto('/dashboard/pro/leads')
     await page.waitForLoadState('networkidle')
     // eslint-disable-next-line playwright/no-skipped-test
     test.skip(wasRedirectedToLogin(page), 'Requires authenticated cleaner session')
@@ -415,7 +415,7 @@ test.describe('Pro Leads - Unlocked Leads Tab', () => {
       })
     })
 
-    await page.goto('/dashboard/cleaner/leads')
+    await page.goto('/dashboard/pro/leads')
     await page.waitForLoadState('networkidle')
     // eslint-disable-next-line playwright/no-skipped-test
     test.skip(wasRedirectedToLogin(page), 'Requires authenticated cleaner session')
@@ -500,7 +500,7 @@ test.describe('Pro Leads - Unlocked Leads Tab', () => {
       })
     })
 
-    await page.goto('/dashboard/cleaner/leads')
+    await page.goto('/dashboard/pro/leads')
     await page.waitForLoadState('networkidle')
     // eslint-disable-next-line playwright/no-skipped-test
     test.skip(wasRedirectedToLogin(page), 'Requires authenticated cleaner session')
@@ -604,7 +604,7 @@ test.describe('Stripe Checkout Return', () => {
       })
     })
 
-    await page.goto('/dashboard/cleaner/leads?unlock=success')
+    await page.goto('/dashboard/pro/leads?unlock=success')
     await page.waitForLoadState('networkidle')
     // eslint-disable-next-line playwright/no-skipped-test
     test.skip(wasRedirectedToLogin(page), 'Requires authenticated cleaner session')
@@ -642,7 +642,7 @@ test.describe('Stripe Checkout Return', () => {
       })
     })
 
-    await page.goto('/dashboard/cleaner/leads?unlock=cancelled')
+    await page.goto('/dashboard/pro/leads?unlock=cancelled')
     await page.waitForLoadState('networkidle')
     // eslint-disable-next-line playwright/no-skipped-test
     test.skip(wasRedirectedToLogin(page), 'Requires authenticated cleaner session')

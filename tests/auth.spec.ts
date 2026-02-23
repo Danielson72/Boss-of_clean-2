@@ -110,7 +110,7 @@ test.describe('Boss of Clean - Authentication Smoke Tests', () => {
     await page.goto('/dashboard/customer')
     await expect(page).toHaveURL(/\/login/)
 
-    await page.goto('/dashboard/cleaner')
+    await page.goto('/dashboard/pro')
     await expect(page).toHaveURL(/\/login/)
 
     await page.goto('/dashboard/admin')

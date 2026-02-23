@@ -24,7 +24,7 @@ import {
 import Link from 'next/link';
 import { createLogger } from '@/lib/utils/logger';
 
-const logger = createLogger({ file: 'app/dashboard/cleaner/quote-requests/page.tsx' });
+const logger = createLogger({ file: 'app/dashboard/pro/quote-requests/page.tsx' });
 
 interface QuoteRequest {
   id: string;
@@ -234,7 +234,7 @@ export default function QuoteRequestsPage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center py-6">
               <Link
-                href="/dashboard/cleaner"
+                href="/dashboard/pro"
                 className="mr-4 p-2 hover:bg-gray-100 rounded-full transition"
               >
                 <ArrowLeft className="h-5 w-5 text-gray-600" />

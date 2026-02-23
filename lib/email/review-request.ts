@@ -117,7 +117,7 @@ export async function sendReviewPublishedEmail(data: {
       </p>
     </div>
 
-    ${generateButton('View Full Review', `${BASE_URL}/dashboard/cleaner/reviews`)}
+    ${generateButton('View Full Review', `${BASE_URL}/dashboard/pro/reviews`)}
 
     <p style="color: #6b7280; font-size: 14px; margin-top: 24px;">
       Great reviews help you stand out and win more jobs. Keep up the great work!

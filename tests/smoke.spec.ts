@@ -70,7 +70,7 @@ test.describe('Boss of Clean - Smoke Tests', () => {
   });
 
   test('Cleaner dashboard redirects to login when unauthenticated', async ({ page }) => {
-    const response = await page.goto('/dashboard/cleaner');
+    const response = await page.goto('/dashboard/pro');
 
     // Protected route should redirect to login or handle client-side
     expect(response?.status()).toBeLessThan(500);

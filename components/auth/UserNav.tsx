@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { roleToDashboardPath } from '@/lib/utils/dashboard-path'
 import { User } from '@supabase/supabase-js'
 import { Button } from '@/components/ui/button'
 import {
@@ -118,7 +119,7 @@ export default function UserNav() {
     )
   }
 
-  const dashboardPath = userData?.role ? `/dashboard/${userData.role}` : '/dashboard'
+  const dashboardPath = userData?.role ? roleToDashboardPath(userData.role) : '/dashboard'
 
   return (
     <div className="flex items-center space-x-4">

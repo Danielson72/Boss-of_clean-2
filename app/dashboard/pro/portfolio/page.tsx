@@ -19,7 +19,7 @@ const GalleryGrid = dynamic(
 );
 import { createLogger } from '@/lib/utils/logger';
 
-const logger = createLogger({ file: 'app/dashboard/cleaner/portfolio/page.tsx' });
+const logger = createLogger({ file: 'app/dashboard/pro/portfolio/page.tsx' });
 
 const MAX_PHOTOS = 20;
 
@@ -275,7 +275,7 @@ export default function CleanerPortfolioPage() {
             <div className="flex justify-between items-center py-6">
               <div className="flex items-center gap-4">
                 <Link
-                  href="/dashboard/cleaner"
+                  href="/dashboard/pro"
                   className="text-gray-600 hover:text-gray-900"
                 >
                   <ArrowLeft className="h-6 w-6" />

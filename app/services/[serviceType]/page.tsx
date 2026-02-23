@@ -63,7 +63,7 @@ export default async function ServicePage({ params }: ServicePageProps) {
       {/* JSON-LD Structured Data */}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: jsonLd }}
+        dangerouslySetInnerHTML={{ __html: jsonLd.replace(/</g, '\\u003c') }}
       />
 
       {/* Client component handles data fetching and interactivity */}

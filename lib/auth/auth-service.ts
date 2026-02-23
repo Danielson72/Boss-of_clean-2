@@ -5,7 +5,7 @@ import type { UserUpdate } from '@/lib/types/database';
 export class AuthService {
   private supabase = createClient();
 
-  async signUp(email: string, password: string, fullName: string, role: 'customer' | 'cleaner' | 'admin' = 'customer') {
+  async signUp(email: string, password: string, fullName: string, role: 'customer' | 'cleaner' = 'customer') {
     try {
       // Sign up the user
       const { data, error } = await this.supabase.auth.signUp({

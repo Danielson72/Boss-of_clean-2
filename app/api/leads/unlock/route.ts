@@ -213,8 +213,8 @@ export async function POST(request: NextRequest) {
         fee_tier: feeTier,
         amount_cents: String(amountCents),
       },
-      success_url: `${origin}/dashboard/cleaner/leads?unlock=success`,
-      cancel_url: `${origin}/dashboard/cleaner/leads?unlock=cancelled`,
+      success_url: `${origin}/dashboard/pro/leads?unlock=success`,
+      cancel_url: `${origin}/dashboard/pro/leads?unlock=cancelled`,
     });
 
     // Insert pending unlock — DB trigger enforces cap at INSERT time
@@ -239,7 +239,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ checkout_url: session.url });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Internal server error';
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error('Unhandled error in /api/leads/unlock:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

@@ -33,7 +33,7 @@ const EarningsChart = dynamic(
   }
 );
 
-const logger = createLogger({ file: 'app/dashboard/cleaner/earnings/page.tsx' });
+const logger = createLogger({ file: 'app/dashboard/pro/earnings/page.tsx' });
 
 export default function EarningsPage() {
   const { user } = useAuth();
@@ -140,7 +140,7 @@ export default function EarningsPage() {
             <div className="flex items-center justify-between py-6">
               <div className="flex items-center">
                 <Link
-                  href="/dashboard/cleaner"
+                  href="/dashboard/pro"
                   className="mr-4 text-gray-400 hover:text-gray-600 transition"
                 >
                   <ArrowLeft className="h-5 w-5" />

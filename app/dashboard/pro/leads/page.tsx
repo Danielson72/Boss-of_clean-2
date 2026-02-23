@@ -353,7 +353,7 @@ export default function LeadsPage() {
             <div className="flex items-center justify-between py-6">
               <div className="flex items-center">
                 <Link
-                  href="/dashboard/cleaner"
+                  href="/dashboard/pro"
                   className="mr-4 p-2 hover:bg-gray-100 rounded-full transition"
                 >
                   <ArrowLeft className="h-5 w-5 text-gray-600" />
@@ -534,7 +534,7 @@ export default function LeadsPage() {
                     New leads in your service areas will appear here. Make sure you have service areas configured.
                   </p>
                   <Link
-                    href="/dashboard/cleaner/service-areas"
+                    href="/dashboard/pro/service-areas"
                     className="inline-block mt-4 text-blue-600 hover:text-blue-700 font-medium"
                   >
                     Manage Service Areas

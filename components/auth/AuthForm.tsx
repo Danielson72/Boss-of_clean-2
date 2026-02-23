@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
+import { roleToDashboardPath } from '@/lib/utils/dashboard-path'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -168,7 +169,7 @@ export function AuthForm({ mode, role = 'customer' }: AuthFormProps) {
           return
         }
 
-        router.push(role === 'cleaner' ? '/dashboard/cleaner/setup' : '/dashboard/customer')
+        router.push(role === 'cleaner' ? '/dashboard/pro/setup' : '/dashboard/customer')
       } else {
         const { error: signInError } = await supabase.auth.signInWithPassword({
           email,
@@ -185,7 +186,7 @@ export function AuthForm({ mode, role = 'customer' }: AuthFormProps) {
           .single()
 
         const role = userData?.role || 'customer'
-        router.push(`/dashboard/${role}`)
+        router.push(roleToDashboardPath(role))
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : 'An error occurred during authentication';

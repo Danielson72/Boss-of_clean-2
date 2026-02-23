@@ -122,7 +122,7 @@ Test the following functionality in order after deployment:
   - Accessible only when logged in as customer
   - Redirects to login when not authenticated
 
-- [ ] **Cleaner Dashboard** (`/dashboard/cleaner`):
+- [ ] **Cleaner Dashboard** (`/dashboard/pro`):
   - Accessible only when logged in as cleaner  
   - Redirects to cleaner setup if no profile exists
   - Shows subscription status correctly

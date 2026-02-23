@@ -8,7 +8,7 @@
 Build a billing dashboard for cleaners to view their subscription status, manage plans, track lead credit usage, and access billing history. This is essential for the revenue model and cleaner self-service.
 
 ## Acceptance Criteria
-- [ ] Billing dashboard page at `/dashboard/cleaner/billing`
+- [ ] Billing dashboard page at `/dashboard/pro/billing`
 - [ ] Display current subscription plan and status
 - [ ] Show lead credits remaining and usage this month
 - [ ] Plan comparison with upgrade/downgrade buttons
@@ -22,7 +22,7 @@ Build a billing dashboard for cleaners to view their subscription status, manage
 
 ### Billing Dashboard Page
 ```typescript
-// /dashboard/cleaner/billing/page.tsx
+// /dashboard/pro/billing/page.tsx
 interface BillingDashboard {
   subscription: {
     tier: 'free' | 'basic' | 'pro' | 'enterprise';
@@ -202,8 +202,8 @@ async function createUpgradeCheckout(customerId: string, priceId: string) {
     customer: customerId,
     mode: 'subscription',
     line_items: [{ price: priceId, quantity: 1 }],
-    success_url: `${baseUrl}/dashboard/cleaner/billing?upgraded=true`,
-    cancel_url: `${baseUrl}/dashboard/cleaner/billing`
+    success_url: `${baseUrl}/dashboard/pro/billing?upgraded=true`,
+    cancel_url: `${baseUrl}/dashboard/pro/billing`
   });
 }
 
@@ -211,7 +211,7 @@ async function createUpgradeCheckout(customerId: string, priceId: string) {
 async function createPortalSession(customerId: string) {
   return stripe.billingPortal.sessions.create({
     customer: customerId,
-    return_url: `${baseUrl}/dashboard/cleaner/billing`
+    return_url: `${baseUrl}/dashboard/pro/billing`
   });
 }
 

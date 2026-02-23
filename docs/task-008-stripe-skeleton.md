@@ -59,7 +59,7 @@ In your Stripe dashboard (test mode):
 │   ├── config.ts            # Server-side Stripe configuration
 │   └── client.ts            # Client-side Stripe utilities
 ├── app/pricing/page.tsx     # Updated pricing page with functional buttons
-└── app/dashboard/cleaner/page.tsx  # Enhanced with billing management
+└── app/dashboard/pro/page.tsx  # Enhanced with billing management
 ```
 
 ## Features Implemented
@@ -137,7 +137,7 @@ Webhook events automatically update this field based on Stripe subscription stat
    - Click "Start Professional"
    - Should redirect to Stripe Checkout
    - Complete test payment
-   - Should return to `/dashboard/cleaner`
+   - Should return to `/dashboard/pro`
    - Verify subscription tier updated in dashboard
 
 3. **Billing Portal**:

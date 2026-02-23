@@ -4,19 +4,31 @@
 -- This script sets up authentication triggers and functions
 
 -- Function to handle new user registration
+-- SECURITY: Only 'customer' and 'cleaner' are allowed from signup metadata.
+-- Admin accounts must be promoted via direct SQL: UPDATE users SET role = 'admin' WHERE ...
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
+DECLARE
+  _role text;
 BEGIN
+    _role := COALESCE(NEW.raw_user_meta_data->>'role', 'customer');
+
+    -- Only allow 'customer' or 'cleaner' from signup metadata.
+    -- Any other value (including 'admin') falls back to 'customer'.
+    IF _role NOT IN ('customer', 'cleaner') THEN
+        _role := 'customer';
+    END IF;
+
     INSERT INTO public.users (id, email, full_name, role)
     VALUES (
         NEW.id,
         NEW.email,
         COALESCE(NEW.raw_user_meta_data->>'full_name', 'User'),
-        COALESCE(NEW.raw_user_meta_data->>'role', 'customer')::user_role
+        _role::public.user_role
     );
     RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp;
 
 -- Trigger to create user profile on signup
 CREATE OR REPLACE TRIGGER on_auth_user_created

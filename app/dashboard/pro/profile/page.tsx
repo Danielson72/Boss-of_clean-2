@@ -14,7 +14,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createLogger } from '@/lib/utils/logger';
 
-const logger = createLogger({ file: 'app/dashboard/cleaner/profile/page.tsx' });
+const logger = createLogger({ file: 'app/dashboard/pro/profile/page.tsx' });
 
 interface CleanerProfile {
   id: string;
@@ -222,7 +222,7 @@ export default function CleanerProfilePage() {
             <div className="flex justify-between items-center py-6">
               <div className="flex items-center gap-4">
                 <Link
-                  href="/dashboard/cleaner"
+                  href="/dashboard/pro"
                   className="text-gray-600 hover:text-gray-900"
                 >
                   <ArrowLeft className="h-6 w-6" />

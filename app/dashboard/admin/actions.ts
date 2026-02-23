@@ -264,7 +264,7 @@ async function sendStatusEmail(
         </ul>
       </div>
 
-      ${generateButton('Go to Your Dashboard', `${BASE_URL}/dashboard/cleaner`, 'success')}
+      ${generateButton('Go to Your Dashboard', `${BASE_URL}/dashboard/pro`, 'success')}
     `
   } else if (status === 'rejected') {
     content = `
@@ -298,7 +298,7 @@ async function sendStatusEmail(
         <p style="margin: 8px 0 0 0; color: #78350f;">${reason || 'Please check your dashboard for details.'}</p>
       </div>
 
-      ${generateButton('Update Your Application', `${BASE_URL}/dashboard/cleaner/onboarding`, 'warning')}
+      ${generateButton('Update Your Application', `${BASE_URL}/dashboard/pro/onboarding`, 'warning')}
 
       <p style="color: #6b7280; font-size: 14px; margin-top: 24px;">
         Once you've provided the requested information, we'll continue reviewing your application.
