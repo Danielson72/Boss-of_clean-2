@@ -7,3 +7,4 @@ export { default as TestimonialSection } from './TestimonialSection';
 export { default as ForProfessionals } from './ForProfessionals';
 export { default as TrustSection } from './TrustSection';
 export { default as FloatingTools } from './FloatingTools';
+export { default as ToolParticleSection } from './ToolParticleSection';

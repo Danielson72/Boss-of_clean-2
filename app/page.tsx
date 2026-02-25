@@ -9,6 +9,7 @@ import {
   ForProfessionals,
   TrustSection,
   FloatingTools,
+  ToolParticleSection,
 } from '@/components/home';
 
 export default function HomePage() {
@@ -20,6 +21,7 @@ export default function HomePage() {
         <ServiceCategories />
       </FloatingTools>
       <HowItWorks />
+      <ToolParticleSection />
       <ValueProposition />
       <GrowthSection />
       <TestimonialSection />

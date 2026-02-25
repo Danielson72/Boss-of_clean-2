@@ -111,6 +111,10 @@ const config: Config = {
           '0%': { opacity: '0', transform: 'translateY(10px)' },
           '100%': { opacity: '1', transform: 'translateY(0)' },
         },
+        'pulse-slow': {
+          '0%, 100%': { opacity: '0.6' },
+          '50%': { opacity: '1' },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
@@ -121,6 +125,7 @@ const config: Config = {
         'drift-up': 'drift-up 8s ease-in-out infinite',
         'float-gentle': 'float-gentle 6s ease-in-out infinite',
         'count-up': 'count-up 0.6s ease-out forwards',
+        'pulse-slow': 'pulse-slow 3s ease-in-out infinite',
       },
     },
   },

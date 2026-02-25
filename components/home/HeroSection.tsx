@@ -69,7 +69,7 @@ export default function HeroSection() {
 
             {/* Subheadline */}
             <p className="text-lg sm:text-xl text-gray-300 max-w-2xl mx-auto lg:mx-0 mb-10 leading-relaxed">
-              Connect with independent cleaning professionals across Florida.
+              Connect with independent home service professionals across Florida.
               Compare options. Choose with confidence.
             </p>
 
@@ -128,14 +128,15 @@ export default function HeroSection() {
 
           {/* Right column — CEO Cat Image */}
           <div className="relative flex-shrink-0 order-1 lg:order-2 w-64 sm:w-80 md:w-96 lg:w-[420px] xl:w-[480px]">
-            {/* Gold glow behind the frame */}
-            <div className="absolute -inset-4 bg-brand-gold/10 rounded-3xl blur-3xl" />
-            <div className="absolute -inset-2 bg-brand-gold/5 rounded-2xl blur-2xl" />
+            {/* Gold glow behind the frame — layered for rich highlight effect */}
+            <div className="absolute -inset-8 bg-brand-gold/20 rounded-[2rem] blur-[60px] animate-pulse-slow" />
+            <div className="absolute -inset-5 bg-brand-gold/15 rounded-3xl blur-3xl" />
+            <div className="absolute -inset-3 bg-brand-gold/10 rounded-2xl blur-2xl" />
 
             {/* Picture frame with float animation */}
             <div className="relative animate-float motion-reduce:animate-none">
               {/* The frame border — layered for depth */}
-              <div className="relative rounded-2xl overflow-hidden border-[3px] border-brand-gold/60 shadow-[0_8px_32px_rgba(200,163,95,0.25),0_2px_8px_rgba(0,0,0,0.3)]">
+              <div className="relative rounded-2xl overflow-hidden border-[3px] border-brand-gold/70 shadow-[0_0_20px_rgba(200,163,95,0.4),0_0_60px_rgba(200,163,95,0.15),0_8px_32px_rgba(0,0,0,0.3)]">
                 {/* Inner gold accent line */}
                 <div className="absolute inset-0 rounded-2xl border-[1px] border-brand-gold/20 pointer-events-none z-10" />
 
