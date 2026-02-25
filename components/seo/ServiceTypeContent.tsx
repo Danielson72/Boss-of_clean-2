@@ -303,14 +303,6 @@ export function ServiceTypeContent({
                 Deep Cleaning
               </Link>
             )}
-            {serviceType.slug !== 'commercial-cleaning' && (
-              <Link
-                href="/services/commercial-cleaning"
-                className="px-4 py-2 bg-white rounded-full text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors border"
-              >
-                Commercial Cleaning
-              </Link>
-            )}
             {serviceType.slug !== 'move-in-out-cleaning' && (
               <Link
                 href="/services/move-in-out-cleaning"

@@ -57,11 +57,11 @@ test.describe('Pro Leads - Available Leads Tab', () => {
             },
             {
               id: 'q3',
-              service_type: 'commercial',
+              service_type: 'post_construction', // COMMERCIAL_DISABLED: was 'commercial'
               zip_code: '33102',
               city: 'Miami',
               property_size: '5000 sqft',
-              property_type: 'Office',
+              property_type: 'House',
               service_date: null,
               frequency: 'weekly',
               created_at: new Date().toISOString(),

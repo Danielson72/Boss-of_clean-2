@@ -1,17 +1,27 @@
 import './globals.css';
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { DM_Sans, Playfair_Display } from 'next/font/google';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { AuthProvider } from '@/lib/context/AuthContext';
 
-const inter = Inter({ subsets: ['latin'] });
+const dmSans = DM_Sans({
+  subsets: ['latin'],
+  variable: '--font-body',
+  display: 'swap',
+});
+
+const playfair = Playfair_Display({
+  subsets: ['latin'],
+  variable: '--font-display',
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
   title: 'Boss of Clean — Purrfection is our Standard',
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'https://bossofclean.com'),
-  description: 'Find professional cleaning services in Florida instantly. 500+ cleaning professionals across all 67 counties. Residential, commercial, deep cleaning, pressure washing & more. Licensed & insured cleaning professionals.',
-  keywords: 'cleaning services Florida, house cleaning Florida, commercial cleaning, pressure washing, carpet cleaning, residential cleaning, professional cleaners Florida',
+  description: 'Florida\'s residential cleaning and home services marketplace. Connect with independent cleaning professionals across all 67 counties. House cleaning, deep cleaning, pressure washing and more.',
+  keywords: 'cleaning services Florida, house cleaning Florida, residential cleaning, pressure washing, carpet cleaning, deep cleaning, professional cleaners Florida, home services marketplace',
   icons: {
     icon: [
       { url: '/favicon.ico', sizes: 'any' },
@@ -22,8 +32,8 @@ export const metadata: Metadata = {
   },
   manifest: '/site.webmanifest',
   openGraph: {
-    title: 'Boss of Clean - Florida\'s #1 Cleaning Directory',
-    description: 'Find Any Cleaner in 60 Seconds. 500+ Professional Cleaners Across All 67 Florida Counties.',
+    title: 'Boss of Clean — Purrfection is our Standard',
+    description: 'Florida\'s residential cleaning marketplace. Connect with independent cleaning professionals across all 67 counties.',
     type: 'website',
     locale: 'en_US',
     images: [{ url: '/og-logo.png', width: 1200, height: 630 }],
@@ -37,7 +47,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <body className={`${dmSans.variable} ${playfair.variable} font-sans`}>
         <AuthProvider>
           {/* Skip to main content link for keyboard users */}
           <a

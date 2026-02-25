@@ -186,7 +186,7 @@ INSERT INTO public.users (id, email, full_name, role) VALUES
 
 INSERT INTO public.cleaners (user_id, business_name, services, hourly_rate, subscription_tier, approval_status) VALUES 
 ('550e8400-e29b-41d4-a716-446655440001', 'Sparkle Clean Services', '{"residential","deep_cleaning"}', 35.00, 'pro', 'approved'),
-('550e8400-e29b-41d4-a716-446655440002', 'Sunshine Cleaning Co', '{"commercial","pressure_washing"}', 45.00, 'enterprise', 'approved');
+('550e8400-e29b-41d4-a716-446655440002', 'Sunshine Cleaning Co', '{"pressure_washing"}', 45.00, 'enterprise', 'approved'); -- COMMERCIAL_DISABLED: removed 'commercial'
 ```
 
 ---

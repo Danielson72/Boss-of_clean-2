@@ -49,7 +49,7 @@ paths:
             type: array
             items:
               type: string
-              enum: [residential, commercial, deep_clean, move_in_out]
+              enum: [residential, deep_clean, move_in_out] # COMMERCIAL_DISABLED: removed 'commercial'
         - name: hourly_rate_min
           in: query
           schema:
@@ -276,7 +276,7 @@ components:
       properties:
         service_type:
           type: string
-          enum: [residential, commercial, deep_clean, move_in_out]
+          enum: [residential, deep_clean, move_in_out] # COMMERCIAL_DISABLED: removed 'commercial'
         property_type:
           type: string
           enum: [apartment, house, office, retail]

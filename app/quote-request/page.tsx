@@ -23,7 +23,7 @@ import { submitQuoteRequest, type QuoteRequestData } from './actions';
 
 const SERVICE_TYPES = [
   { value: 'residential', label: 'Residential Cleaning', icon: Home },
-  { value: 'commercial', label: 'Commercial Cleaning', icon: Building2 },
+  // COMMERCIAL_DISABLED: { value: 'commercial', label: 'Commercial Cleaning', icon: Building2 },
   { value: 'deep_cleaning', label: 'Deep Cleaning', icon: Sparkles },
   { value: 'move_in_out', label: 'Move In/Out Cleaning', icon: Home },
   { value: 'str_turnover', label: 'Airbnb / STR Turnover', icon: KeyRound },

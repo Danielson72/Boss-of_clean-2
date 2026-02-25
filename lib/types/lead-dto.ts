@@ -64,6 +64,7 @@ export function deriveFeeTier(serviceType: string): FeeTier {
   if (['deep clean', 'deep_clean', 'move-in', 'move-out', 'move_in_out'].some(t => lower.includes(t))) {
     return 'deep_clean';
   }
+  // COMMERCIAL_DISABLED: 'commercial' and 'industrial' kept for legacy data compatibility
   if (['commercial', 'specialty', 'industrial', 'post-construction'].some(t => lower.includes(t))) {
     return 'specialty';
   }

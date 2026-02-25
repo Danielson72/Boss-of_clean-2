@@ -97,7 +97,7 @@ function generateCityMeta(city: string, state: string) {
 /directory                          # Main directory
 /directory/orlando-fl               # City pages
 /directory/orlando-fl/residential   # Service-specific pages
-/directory/orlando-fl/commercial    # Commercial cleaning
+# COMMERCIAL_DISABLED: /directory/orlando-fl/commercial    # Commercial cleaning
 /cleaner/[id]                      # Individual profiles
 ```
 

@@ -17,7 +17,7 @@ export function generateCityMetadata(data: CityPageData): Metadata {
   const { city, cleanerCount, averageRating } = data;
 
   const title = `House Cleaning Services in ${city.name}, FL | Boss of Clean`;
-  const description = `Find ${cleanerCount}+ verified cleaning professionals in ${city.name}, Florida. Average ${averageRating.toFixed(1)}-star rating. Residential & commercial cleaning, deep cleaning, move-in/out cleaning. Book instantly!`;
+  const description = `Find cleaning professionals in ${city.name}, Florida. Residential cleaning, deep cleaning, move-in/out cleaning, pressure washing and more. Browse and connect with local pros.`;
 
   return {
     title,
@@ -26,7 +26,7 @@ export function generateCityMetadata(data: CityPageData): Metadata {
       `cleaning services ${city.name}`,
       `house cleaning ${city.name} FL`,
       `maid service ${city.name}`,
-      `commercial cleaning ${city.name}`,
+      `residential cleaning ${city.name}`,
       `${city.name} cleaning company`,
       `deep cleaning ${city.name}`,
       `move in cleaning ${city.name}`,
@@ -142,9 +142,9 @@ export const SERVICE_DESCRIPTIONS: Record<string, { title: string; description: 
     title: 'Move-In/Move-Out Cleaning',
     description: 'Complete cleaning for empty homes ensuring properties are spotless for new occupants.',
   },
-  'Office Cleaning': {
-    title: 'Commercial Office Cleaning',
-    description: 'Professional cleaning for offices and commercial spaces, available daily, weekly, or monthly.',
+  'Pool Cleaning': {
+    title: 'Pool Cleaning & Maintenance',
+    description: 'Professional pool cleaning and maintenance to keep your pool sparkling and swim-ready.',
   },
   'Carpet Cleaning': {
     title: 'Carpet & Upholstery Cleaning',

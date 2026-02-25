@@ -8,7 +8,7 @@ Public-facing cleaning service directory that allows homeowners to discover, fil
 ### Anonymous Visitors
 - **Browse Directory**: View approved cleaning businesses without authentication
 - **Location Filter**: Find cleaners serving specific zip codes or cities
-- **Service Filter**: Filter by cleaning types (residential, commercial, deep cleaning, etc.)
+- **Service Filter**: Filter by cleaning types (residential, deep cleaning, etc.) <!-- COMMERCIAL_DISABLED -->
 - **Verification Status**: See trust indicators (background check, insurance, ratings)
 - **Business Profiles**: View cleaner photos, descriptions, pricing, availability
 
@@ -27,7 +27,7 @@ Public-facing cleaning service directory that allows homeowners to discover, fil
 
 ### Search & Filtering
 - **Location Search**: ZIP code, city, address autocomplete
-- **Service Type**: Residential, commercial, move-in/out, deep clean, regular maintenance
+- **Service Type**: Residential, move-in/out, deep clean, regular maintenance <!-- COMMERCIAL_DISABLED -->
 - **Availability**: Today, this week, specific date ranges
 - **Price Range**: Hourly rate filters
 - **Verification Filters**: Background checked, insured, licensed

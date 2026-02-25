@@ -8,11 +8,19 @@ import { useAuth } from '@/lib/context/AuthContext';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const { user, signOut, loading } = useAuth();
   const mobileMenuRef = useRef<HTMLDivElement>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
 
-  // Close menu on escape key
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isMenuOpen) {
@@ -20,12 +28,10 @@ export default function Header() {
         menuButtonRef.current?.focus();
       }
     };
-
     document.addEventListener('keydown', handleEscape);
     return () => document.removeEventListener('keydown', handleEscape);
   }, [isMenuOpen]);
 
-  // Focus trap for mobile menu
   useEffect(() => {
     if (isMenuOpen && mobileMenuRef.current) {
       const focusableElements = mobileMenuRef.current.querySelectorAll(
@@ -36,7 +42,6 @@ export default function Header() {
 
       const handleTabKey = (e: KeyboardEvent) => {
         if (e.key !== 'Tab') return;
-
         if (e.shiftKey && document.activeElement === firstElement) {
           e.preventDefault();
           lastElement?.focus();
@@ -48,72 +53,86 @@ export default function Header() {
 
       document.addEventListener('keydown', handleTabKey);
       firstElement?.focus();
-
       return () => document.removeEventListener('keydown', handleTabKey);
     }
   }, [isMenuOpen]);
 
+  const navLinkClass = `text-sm font-medium tracking-wide transition-colors duration-200 ${
+    isScrolled
+      ? 'text-brand-dark/80 hover:text-brand-gold'
+      : 'text-brand-dark/80 hover:text-brand-gold'
+  }`;
+
   return (
-    <header className="bg-white shadow-md sticky top-0 z-50" role="banner">
+    <header
+      className={`sticky top-0 z-50 transition-all duration-300 ${
+        isScrolled
+          ? 'bg-white/95 backdrop-blur-md shadow-sm border-b border-gray-100'
+          : 'bg-white border-b border-gray-100'
+      }`}
+      role="banner"
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+        <div className="flex justify-between items-center h-16 lg:h-18">
           {/* Logo */}
-          <Link href="/" className="flex-shrink-0 flex items-center gap-2" aria-label="Boss of Clean - Home">
+          <Link href="/" className="flex-shrink-0 flex items-center gap-2.5" aria-label="Boss of Clean - Home">
             <Image
               src="/boss-of-clean-logo.png"
               alt="Boss of Clean"
-              width={40}
-              height={40}
+              width={38}
+              height={38}
               className="rounded-md"
               priority
             />
-            <span className="text-2xl font-bold text-blue-600">
-              BOSS OF CLEAN
-            </span>
+            <div className="flex flex-col">
+              <span className="text-lg font-bold tracking-tight text-brand-dark font-display">
+                Boss of Clean
+              </span>
+              <span className="text-[10px] tracking-[0.15em] uppercase text-brand-gold font-medium -mt-0.5 hidden sm:block">
+                Purrfection is our Standard
+              </span>
+            </div>
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex space-x-8" aria-label="Main navigation">
-            <Link href="/" className="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium">
-              Home
-            </Link>
-            <Link href="/search" className="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium">
-              Search
-            </Link>
-            <Link href="/pricing" className="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium">
-              Pricing
-            </Link>
-            <Link href="/about" className="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium">
-              About
-            </Link>
-            <Link href="/contact" className="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium">
-              Contact
-            </Link>
+          <nav className="hidden md:flex items-center gap-8" aria-label="Main navigation">
+            <Link href="/" className={navLinkClass}>Home</Link>
+            <Link href="/search" className={navLinkClass}>Search</Link>
+            <Link href="/pricing" className={navLinkClass}>Pricing</Link>
+            <Link href="/about" className={navLinkClass}>About</Link>
+            <Link href="/contact" className={navLinkClass}>Contact</Link>
+
+            <div className="w-px h-5 bg-gray-200 mx-1" />
 
             {!loading && (
               <>
                 {user ? (
-                  <div className="flex items-center space-x-4">
-                    <Link href="/dashboard" className="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium flex items-center">
-                      <User className="h-4 w-4 mr-1" aria-hidden="true" />
+                  <div className="flex items-center gap-3">
+                    <Link
+                      href="/dashboard"
+                      className="text-sm font-medium text-brand-dark/80 hover:text-brand-gold transition-colors flex items-center gap-1.5"
+                    >
+                      <User className="h-4 w-4" aria-hidden="true" />
                       Dashboard
                     </Link>
                     <button
                       onClick={signOut}
-                      className="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium flex items-center"
+                      className="text-sm font-medium text-brand-dark/60 hover:text-brand-dark transition-colors flex items-center gap-1.5"
                       aria-label="Log out of your account"
                     >
-                      <LogOut className="h-4 w-4 mr-1" aria-hidden="true" />
-                      Logout
+                      <LogOut className="h-4 w-4" aria-hidden="true" />
                     </button>
                   </div>
                 ) : (
-                  <div className="flex items-center space-x-2">
-                    <Link href="/login" className="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium">
-                      Login
+                  <div className="flex items-center gap-3">
+                    <Link href="/login" className={navLinkClass}>
+                      Sign In
                     </Link>
-                    <Link href="/signup" className="bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded-md text-sm font-medium">
-                      Sign Up
+                    <Link
+                      href="/signup"
+                      className="bg-brand-gold hover:bg-brand-gold-light text-white px-5 py-2 rounded-lg text-sm font-semibold tracking-wide transition-all duration-200 shadow-sm hover:shadow-md"
+                    >
+                      List Your Business
                     </Link>
                   </div>
                 )}
@@ -125,15 +144,15 @@ export default function Header() {
           <button
             ref={menuButtonRef}
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="md:hidden inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:text-blue-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="md:hidden inline-flex items-center justify-center p-2 rounded-lg text-brand-dark hover:bg-brand-cream transition-colors"
             aria-expanded={isMenuOpen}
             aria-controls="mobile-menu"
             aria-label={isMenuOpen ? 'Close main menu' : 'Open main menu'}
           >
             {isMenuOpen ? (
-              <X className="h-6 w-6" aria-hidden="true" />
+              <X className="h-5 w-5" aria-hidden="true" />
             ) : (
-              <Menu className="h-6 w-6" aria-hidden="true" />
+              <Menu className="h-5 w-5" aria-hidden="true" />
             )}
           </button>
         </div>
@@ -143,46 +162,23 @@ export default function Header() {
           <nav
             id="mobile-menu"
             ref={mobileMenuRef}
-            className="md:hidden"
+            className="md:hidden border-t border-gray-100"
             aria-label="Mobile navigation"
             role="navigation"
           >
-            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white border-t">
-              <Link
-                href="/"
-                className="text-gray-700 hover:text-blue-600 block px-3 py-2 text-base font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-md"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Home
-              </Link>
-              <Link
-                href="/search"
-                className="text-gray-700 hover:text-blue-600 block px-3 py-2 text-base font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-md"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Search
-              </Link>
-              <Link
-                href="/pricing"
-                className="text-gray-700 hover:text-blue-600 block px-3 py-2 text-base font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-md"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Pricing
-              </Link>
-              <Link
-                href="/about"
-                className="text-gray-700 hover:text-blue-600 block px-3 py-2 text-base font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-md"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                About
-              </Link>
-              <Link
-                href="/contact"
-                className="text-gray-700 hover:text-blue-600 block px-3 py-2 text-base font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-md"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Contact
-              </Link>
+            <div className="py-3 space-y-1">
+              {['Home', 'Search', 'Pricing', 'About', 'Contact'].map((item) => (
+                <Link
+                  key={item}
+                  href={item === 'Home' ? '/' : `/${item.toLowerCase()}`}
+                  className="block px-3 py-2.5 text-sm font-medium text-brand-dark/80 hover:text-brand-gold hover:bg-brand-cream rounded-lg transition-colors"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  {item}
+                </Link>
+              ))}
+
+              <div className="my-2 border-t border-gray-100" />
 
               {!loading && (
                 <>
@@ -190,39 +186,36 @@ export default function Header() {
                     <>
                       <Link
                         href="/dashboard"
-                        className="text-gray-700 hover:text-blue-600 block px-3 py-2 text-base font-medium flex items-center focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-md"
+                        className="flex items-center gap-2 px-3 py-2.5 text-sm font-medium text-brand-dark/80 hover:text-brand-gold hover:bg-brand-cream rounded-lg transition-colors"
                         onClick={() => setIsMenuOpen(false)}
                       >
-                        <User className="h-4 w-4 mr-2" aria-hidden="true" />
+                        <User className="h-4 w-4" aria-hidden="true" />
                         Dashboard
                       </Link>
                       <button
-                        onClick={() => {
-                          signOut();
-                          setIsMenuOpen(false);
-                        }}
-                        className="text-gray-700 hover:text-blue-600 block w-full px-3 py-2 text-base font-medium text-left flex items-center focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-md"
+                        onClick={() => { signOut(); setIsMenuOpen(false); }}
+                        className="flex items-center gap-2 w-full px-3 py-2.5 text-sm font-medium text-brand-dark/60 hover:text-brand-dark hover:bg-brand-cream rounded-lg transition-colors text-left"
                         aria-label="Log out of your account"
                       >
-                        <LogOut className="h-4 w-4 mr-2" aria-hidden="true" />
-                        Logout
+                        <LogOut className="h-4 w-4" aria-hidden="true" />
+                        Sign Out
                       </button>
                     </>
                   ) : (
                     <>
                       <Link
                         href="/login"
-                        className="text-gray-700 hover:text-blue-600 block px-3 py-2 text-base font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-md"
+                        className="block px-3 py-2.5 text-sm font-medium text-brand-dark/80 hover:text-brand-gold hover:bg-brand-cream rounded-lg transition-colors"
                         onClick={() => setIsMenuOpen(false)}
                       >
-                        Login
+                        Sign In
                       </Link>
                       <Link
                         href="/signup"
-                        className="bg-blue-600 text-white hover:bg-blue-700 block px-3 py-2 rounded-md text-base font-medium mx-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                        className="block mx-3 mt-2 text-center bg-brand-gold hover:bg-brand-gold-light text-white px-4 py-2.5 rounded-lg text-sm font-semibold tracking-wide transition-all"
                         onClick={() => setIsMenuOpen(false)}
                       >
-                        Sign Up
+                        List Your Business
                       </Link>
                     </>
                   )}

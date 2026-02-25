@@ -153,7 +153,7 @@ INSERT INTO public.cleaners (
     'Eco-friendly cleaning services using only natural products.',
     '407-555-0200',
     'hello@greencleansolutions.com',
-    ARRAY['residential', 'commercial', 'window_cleaning'],
+    ARRAY['residential', 'window_cleaning'], -- COMMERCIAL_DISABLED: removed 'commercial'
     ARRAY['32801', '32803', '32804', '32806'],
     55.00,
     2,

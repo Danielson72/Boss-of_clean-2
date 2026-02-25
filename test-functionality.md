@@ -16,7 +16,7 @@
 - [ ] Responsive design on mobile
 
 ### Functional Search Form
-- [ ] Service type dropdown works (residential, commercial, etc.)
+- [ ] Service type dropdown works (residential, deep cleaning, etc.) <!-- COMMERCIAL_DISABLED -->
 - [ ] ZIP code input field functional
 - [ ] "Find a Cleaner Now" button redirects to search results
 - [ ] "List Your Business" button redirects to signup page

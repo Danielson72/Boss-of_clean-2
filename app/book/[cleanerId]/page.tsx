@@ -18,8 +18,8 @@ const SERVICE_TYPES = [
   { value: 'carpet_cleaning', label: 'Carpet Cleaning' },
   { value: 'window_cleaning', label: 'Window Cleaning' },
   { value: 'pressure_washing', label: 'Pressure Washing' },
-  { value: 'office_cleaning', label: 'Office Cleaning' },
-  { value: 'commercial', label: 'Commercial Cleaning' },
+  // COMMERCIAL_DISABLED: { value: 'office_cleaning', label: 'Office Cleaning' },
+  // COMMERCIAL_DISABLED: { value: 'commercial', label: 'Commercial Cleaning' },
   { value: 'post_construction', label: 'Post Construction' },
 ];
 
@@ -55,8 +55,8 @@ const SERVICE_MULTIPLIERS: Record<string, number> = {
   carpet_cleaning: 1.25,
   window_cleaning: 1.1,
   pressure_washing: 1.3,
-  office_cleaning: 1.2,
-  commercial: 1.4,
+  // COMMERCIAL_DISABLED: office_cleaning: 1.2,
+  // COMMERCIAL_DISABLED: commercial: 1.4,
   post_construction: 2.0,
 };
 

@@ -54,7 +54,7 @@ export interface StepProps {
 
 export const SERVICE_TYPES = [
   { value: 'residential', label: 'Residential Cleaning' },
-  { value: 'commercial', label: 'Commercial Cleaning' },
+  // COMMERCIAL_DISABLED: { value: 'commercial', label: 'Commercial Cleaning' },
   { value: 'deep_cleaning', label: 'Deep Cleaning' },
   { value: 'pressure_washing', label: 'Pressure Washing' },
   { value: 'window_cleaning', label: 'Window Cleaning' },
@@ -62,7 +62,7 @@ export const SERVICE_TYPES = [
   { value: 'move_in_out', label: 'Move-In/Out Cleaning' },
   { value: 'post_construction', label: 'Post-Construction Cleanup' },
   { value: 'maid_service', label: 'Maid Service' },
-  { value: 'office_cleaning', label: 'Office Cleaning' }
+  // COMMERCIAL_DISABLED: { value: 'office_cleaning', label: 'Office Cleaning' },
 ]
 
 export const DOCUMENT_TYPES = [

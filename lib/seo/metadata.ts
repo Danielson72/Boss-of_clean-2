@@ -7,7 +7,7 @@ import type { Metadata } from 'next';
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://bossofclean.com';
 const SITE_NAME = 'Boss of Clean';
-const DEFAULT_DESCRIPTION = 'Find professional cleaning services in Florida instantly. 500+ cleaning professionals across all 67 counties. Residential, commercial, deep cleaning, pressure washing & more.';
+const DEFAULT_DESCRIPTION = 'Florida\'s residential cleaning and home services marketplace. Connect with independent cleaning professionals across all 67 counties. House cleaning, deep cleaning, pressure washing and more.';
 
 export interface MetadataOptions {
   title: string;
@@ -40,7 +40,7 @@ export function generatePageMetadata(options: MetadataOptions): Metadata {
   const defaultKeywords = [
     'cleaning services Florida',
     'house cleaning',
-    'commercial cleaning',
+    'residential cleaning',
     'professional cleaners',
     'Boss of Clean',
   ];
@@ -213,7 +213,7 @@ export function generateCountyMetadata(
   if (cleanerCount && cleanerCount > 0) {
     description += ` ${cleanerCount}+ cleaning professionals available.`;
   }
-  description += ' Residential, commercial, and specialty cleaning. Purrfection is our Standard.';
+  description += ' Residential and specialty cleaning. Purrfection is our Standard.';
 
   return generatePageMetadata({
     title,

@@ -73,7 +73,7 @@ CREATE TABLE lead_matches (
 ```typescript
 // /quote-request/page.tsx - Public form
 interface QuoteRequestForm {
-  service_type: 'residential' | 'commercial' | 'deep_cleaning' | 'move_in_out' | 'recurring';
+  service_type: 'residential' | 'deep_cleaning' | 'move_in_out' | 'recurring'; // COMMERCIAL_DISABLED: removed 'commercial'
   property_type: 'home' | 'condo' | 'apartment' | 'office' | 'other';
   sqft_estimate: number;
   bedrooms: number;

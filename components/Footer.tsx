@@ -1,15 +1,39 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { Phone, Mail, MapPin } from 'lucide-react';
+import { Phone, Mail } from 'lucide-react';
+
+const serviceCategories = [
+  'House Cleaning',
+  'Deep Cleaning',
+  'Move-In / Move-Out Cleaning',
+  'Pressure Washing',
+  'Pool Cleaning',
+  'Window Cleaning',
+  'Carpet Cleaning',
+  'Air Duct Cleaning',
+  'Landscaping',
+  'Mobile Car Wash / Auto Detailing',
+];
+
+const quickLinks = [
+  { label: 'Home', href: '/' },
+  { label: 'Search', href: '/search' },
+  { label: 'Pricing', href: '/pricing' },
+  { label: 'About', href: '/about' },
+  { label: 'Contact', href: '/contact' },
+  { label: 'Privacy Policy', href: '/privacy' },
+  { label: 'Terms of Service', href: '/terms' },
+];
 
 export default function Footer() {
   return (
-    <footer className="bg-gray-900 text-white" role="contentinfo">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          {/* Company Info */}
-          <div className="col-span-1 md:col-span-2">
-            <div className="flex items-center gap-3 mb-4">
+    <footer className="bg-brand-dark text-white" role="contentinfo">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Main footer content */}
+        <div className="py-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-8">
+          {/* Brand */}
+          <div className="lg:col-span-1">
+            <div className="flex items-center gap-2.5 mb-4">
               <Image
                 src="/boss-of-clean-logo.png"
                 alt="Boss of Clean"
@@ -17,92 +41,88 @@ export default function Footer() {
                 height={36}
                 className="rounded-md"
               />
-              <span className="text-2xl font-bold text-blue-400">
-                BOSS OF CLEAN
-              </span>
+              <div>
+                <span className="text-lg font-bold font-display text-white">
+                  Boss of Clean
+                </span>
+              </div>
             </div>
-            <p className="text-gray-300 mb-4">
-              Florida&apos;s premier cleaning marketplace connecting customers with independent professional cleaning services across the state.
+            <p className="text-gray-400 text-sm leading-relaxed mb-6">
+              Florida&apos;s residential cleaning and home services marketplace.
             </p>
-            <address className="space-y-2 not-italic">
-              <div className="flex items-center">
-                <Phone className="h-5 w-5 text-blue-400 mr-2" aria-hidden="true" />
-                <a
-                  href={`tel:${process.env.NEXT_PUBLIC_CONTACT_PHONE || '407-461-6039'}`}
-                  className="hover:text-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400 rounded"
-                  aria-label={`Call us at ${process.env.NEXT_PUBLIC_CONTACT_PHONE || '407-461-6039'}`}
-                >
-                  {process.env.NEXT_PUBLIC_CONTACT_PHONE || '407-461-6039'}
-                </a>
-              </div>
-              <div className="flex items-center">
-                <Mail className="h-5 w-5 text-blue-400 mr-2" aria-hidden="true" />
-                <a
-                  href={`mailto:${process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'info@bossofclean.com'}`}
-                  className="hover:text-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400 rounded"
-                  aria-label={`Email us at ${process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'info@bossofclean.com'}`}
-                >
-                  {process.env.NEXT_PUBLIC_CONTACT_EMAIL || 'info@bossofclean.com'}
-                </a>
-              </div>
-              <div className="flex items-center">
-                <MapPin className="h-5 w-5 text-blue-400 mr-2" aria-hidden="true" />
-                <span>Serving All of Florida</span>
-              </div>
+            <address className="space-y-3 not-italic text-sm">
+              <a
+                href="tel:407-461-6039"
+                className="flex items-center gap-2.5 text-gray-400 hover:text-brand-gold transition-colors"
+                aria-label="Call us at 407-461-6039"
+              >
+                <Phone className="h-4 w-4 text-brand-gold flex-shrink-0" aria-hidden="true" />
+                407-461-6039
+              </a>
+              <a
+                href="mailto:admin@bossofclean.com"
+                className="flex items-center gap-2.5 text-gray-400 hover:text-brand-gold transition-colors"
+                aria-label="Email us at admin@bossofclean.com"
+              >
+                <Mail className="h-4 w-4 text-brand-gold flex-shrink-0" aria-hidden="true" />
+                admin@bossofclean.com
+              </a>
             </address>
           </div>
 
           {/* Quick Links */}
           <nav aria-label="Footer navigation">
-            <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
-            <ul className="space-y-2">
-              <li>
-                <Link href="/" className="text-gray-300 hover:text-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400 rounded">
-                  Home
-                </Link>
-              </li>
-              <li>
-                <Link href="/search" className="text-gray-300 hover:text-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400 rounded">
-                  Search Cleaners
-                </Link>
-              </li>
-              <li>
-                <Link href="/pricing" className="text-gray-300 hover:text-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400 rounded">
-                  Pricing
-                </Link>
-              </li>
-              <li>
-                <Link href="/about" className="text-gray-300 hover:text-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400 rounded">
-                  About Us
-                </Link>
-              </li>
-              <li>
-                <Link href="/contact" className="text-gray-300 hover:text-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400 rounded">
-                  Contact
-                </Link>
-              </li>
+            <h3 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">
+              Quick Links
+            </h3>
+            <ul className="space-y-2.5">
+              {quickLinks.map((link) => (
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    className="text-gray-400 hover:text-brand-gold text-sm transition-colors duration-200"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </nav>
 
           {/* Services */}
-          <div>
-            <h3 className="text-lg font-semibold mb-4">Services</h3>
-            <ul className="space-y-2 text-gray-300" aria-label="Available cleaning services">
-              <li>Residential Cleaning</li>
-              <li>Commercial Cleaning</li>
-              <li>Deep Cleaning</li>
-              <li>Pressure Washing</li>
-              <li>Window Cleaning</li>
-              <li>Carpet Cleaning</li>
+          <div className="lg:col-span-2">
+            <h3 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">
+              Services
+            </h3>
+            <ul
+              className="grid grid-cols-2 gap-x-6 gap-y-2.5"
+              aria-label="Available cleaning services"
+            >
+              {serviceCategories.map((service) => (
+                <li key={service}>
+                  <span className="text-gray-400 text-sm">{service}</span>
+                </li>
+              ))}
             </ul>
+            <p className="text-gray-500 text-xs mt-4">
+              Serving All 67 Florida Counties
+            </p>
           </div>
         </div>
 
-        <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-          <p className="mb-2">&copy; 2026 Boss of Clean. All rights reserved.</p>
-          <p className="text-xs text-gray-500 max-w-2xl mx-auto">
-            Boss of Clean is a marketplace connecting customers with independent service providers.
-            We are not a cleaning company and do not employ service providers.
+        {/* Bottom bar */}
+        <div className="border-t border-white/10 py-8">
+          {/* Disclaimer */}
+          <p className="text-xs text-gray-500 leading-relaxed max-w-4xl mx-auto text-center mb-4">
+            Boss of Clean is a residential cleaning and home services marketplace
+            connecting homeowners with independent service providers. We are not a
+            cleaning company and do not directly employ, supervise, or control
+            service providers listed on our platform. All service providers are
+            independent businesses responsible for their own licensing, insurance,
+            quality of work, and compliance with applicable laws.
+          </p>
+          <p className="text-center text-xs text-gray-500">
+            &copy; 2026 Boss of Clean LLC. All rights reserved.
           </p>
         </div>
       </div>

@@ -31,6 +31,7 @@ const statusConfig: Record<string, { label: string; color: string; bgColor: stri
 
 const serviceTypeLabels: Record<string, string> = {
   residential: 'Residential Cleaning',
+  // COMMERCIAL_DISABLED: kept for legacy data display
   commercial: 'Commercial Cleaning',
   deep_cleaning: 'Deep Cleaning',
   move_in_out: 'Move In/Out Cleaning',

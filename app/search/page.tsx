@@ -28,7 +28,7 @@ const logger = createLogger({ file: 'app/search/page.tsx' });
 
 const SERVICE_TYPES = [
   'House Cleaning', 'Deep Cleaning', 'Move-in/Move-out Cleaning',
-  'Airbnb / STR Turnover', 'Post-Construction Cleaning', 'Office Cleaning',
+  'Airbnb / STR Turnover', 'Post-Construction Cleaning',
   'Carpet Cleaning', 'Window Cleaning', 'Pressure Washing',
   'Pool Cleaning', 'Landscaping', 'Air Duct Cleaning'
 ];

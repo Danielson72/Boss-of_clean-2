@@ -61,12 +61,12 @@ export default function CleanerProfileForm({ cleanerData, userData, userId }: Cl
 
   const serviceOptions = [
     'residential',
-    'commercial',
+    // COMMERCIAL_DISABLED: 'commercial',
     'deep_clean',
     'move_in_out',
     'post_construction',
-    'office',
-    'retail'
+    // COMMERCIAL_DISABLED: 'office',
+    // COMMERCIAL_DISABLED: 'retail',
   ]
 
   const handleSubmit = async (e: React.FormEvent) => {

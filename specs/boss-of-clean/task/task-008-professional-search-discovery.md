@@ -11,7 +11,7 @@ Build a customer-facing search and discovery experience for finding cleaning pro
 ## Acceptance Criteria
 - [x] Customer search page at `/search` (existing) or `/find-cleaners`
 - [x] Location search by city, zip code, or county
-- [x] Filter by service type (residential, commercial, deep cleaning, etc.)
+- [x] Filter by service type (residential, deep cleaning, etc.) <!-- COMMERCIAL_DISABLED -->
 - [x] Filter by rating (4+ stars, 3+ stars, etc.)
 - [x] Filter by price range (hourly rate)
 - [x] Filter by availability/accepting new clients
@@ -32,7 +32,7 @@ interface SearchFilters {
     type: 'city' | 'zip' | 'county';
     value: string;
   };
-  serviceTypes: string[];      // residential, commercial, deep_cleaning, etc.
+  serviceTypes: string[];      // residential, deep_cleaning, etc. (COMMERCIAL_DISABLED)
   minRating: number | null;    // 3, 4, 4.5, etc.
   priceRange: {
     min: number | null;

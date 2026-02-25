@@ -66,7 +66,7 @@
 5. **Component Architecture**: Modular and maintainable ✅
 
 ### ✅ **BUSINESS FEATURES**
-1. **Service Types**: Residential, Commercial, Deep Cleaning, etc. ✅
+1. **Service Types**: Residential, Deep Cleaning, etc. ✅ <!-- COMMERCIAL_DISABLED -->
 2. **Florida Focus**: ZIP code search for all 67 counties ✅
 3. **User Roles**: Customer and Cleaner account types ✅
 4. **Search Filters**: Rating, price, verification status ✅

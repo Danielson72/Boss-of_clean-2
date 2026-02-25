@@ -172,10 +172,10 @@ INSERT INTO public.cleaners (
 (
     'YOUR-USER-UUID-HERE',
     'Miami Sparkle Cleaning',
-    'Professional residential and commercial cleaning services in Miami-Dade area. We use eco-friendly products and guarantee satisfaction.',
+    'Professional residential cleaning services in Miami-Dade area. We use eco-friendly products and guarantee satisfaction.',
     '305-555-0123',
     'info@miamisparkle.com',
-    ARRAY['residential', 'commercial', 'deep_cleaning', 'move_in_out'],
+    ARRAY['residential', 'deep_cleaning', 'move_in_out'], -- COMMERCIAL_DISABLED: removed 'commercial'
     ARRAY['33101', '33109', '33125', '33126', '33131', '33134'],
     75.00,
     3,

@@ -9,11 +9,11 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- Create custom types
 CREATE TYPE user_role AS ENUM ('customer', 'cleaner', 'admin');
 CREATE TYPE service_type AS ENUM (
-  'residential', 
-  'commercial', 
-  'deep_cleaning', 
-  'pressure_washing', 
-  'window_cleaning', 
+  'residential',
+  'commercial', -- COMMERCIAL_DISABLED: kept in enum for data compatibility
+  'deep_cleaning',
+  'pressure_washing',
+  'window_cleaning',
   'carpet_cleaning',
   'move_in_out',
   'post_construction',

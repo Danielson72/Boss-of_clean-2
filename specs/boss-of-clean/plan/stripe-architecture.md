@@ -24,7 +24,7 @@ const PPL_PRICING = {
   base: 500, // $5.00
   multipliers: {
     urgent: 1.5,
-    commercial: 2.0,
+    // COMMERCIAL_DISABLED: commercial: 2.0,
     high_value: 3.0
   }
 };

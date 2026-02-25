@@ -9,8 +9,8 @@ import { SERVICE_TYPES } from '@/lib/data/service-types';
 
 export const metadata: Metadata = {
   title: 'Cleaning Services in Florida | Boss of Clean',
-  description: 'Browse all professional cleaning services available in Florida. Residential, commercial, deep cleaning, pressure washing, and more. Find cleaning professionals near you.',
-  keywords: 'cleaning services Florida, house cleaning, commercial cleaning, pressure washing, carpet cleaning, window cleaning',
+  description: 'Browse all professional cleaning services available in Florida. Residential, deep cleaning, pressure washing, and more. Find cleaning professionals near you.',
+  keywords: 'cleaning services Florida, house cleaning, residential cleaning, pressure washing, carpet cleaning, window cleaning',
   openGraph: {
     title: 'Cleaning Services in Florida | Boss of Clean',
     description: 'Browse all professional cleaning services available in Florida. Find cleaning professionals near you.',

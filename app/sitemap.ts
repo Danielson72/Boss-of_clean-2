@@ -8,7 +8,7 @@ const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://bossofclean.com';
 // Service types for dynamic pages
 const SERVICE_TYPES = [
   'residential',
-  'commercial',
+  // COMMERCIAL_DISABLED: 'commercial',
   'deep-cleaning',
   'move-in-out',
   'pressure-washing',

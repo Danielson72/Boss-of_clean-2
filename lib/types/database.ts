@@ -11,7 +11,7 @@ export type UserRole = 'customer' | 'cleaner' | 'admin';
 
 export type ServiceType =
   | 'residential'
-  | 'commercial'
+  | 'commercial' // COMMERCIAL_DISABLED: kept for data compatibility
   | 'deep_cleaning'
   | 'pressure_washing'
   | 'window_cleaning'
@@ -19,7 +19,7 @@ export type ServiceType =
   | 'move_in_out'
   | 'post_construction'
   | 'maid_service'
-  | 'office_cleaning';
+  | 'office_cleaning'; // COMMERCIAL_DISABLED: kept for data compatibility
 
 export type SubscriptionTier = 'free' | 'basic' | 'pro' | 'enterprise';
 

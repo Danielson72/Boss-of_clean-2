@@ -1,3 +1,17 @@
+// ============================================================
+// SERVICE CATEGORY CONFIGURATION
+// ============================================================
+// COMMERCIAL CATEGORIES TEMPORARILY DISABLED
+// Commercial Cleaning, Office Cleaning, and Janitorial services
+// are disabled for the initial residential-focused launch.
+//
+// TO RE-ENABLE: Search for "COMMERCIAL_DISABLED" in this file
+// and uncomment those entries. Then rebuild and redeploy.
+//
+// Last updated: February 2026
+// Reason: Initial launch focuses on residential services only
+// ============================================================
+
 /**
  * Service type definitions for SEO landing pages
  * Matches the service_type enum in the database
@@ -69,47 +83,48 @@ export const SERVICE_TYPES: ServiceType[] = [
     ],
     keywords: ['house cleaning Florida', 'residential cleaning services', 'home cleaning', 'maid service Florida', 'housekeeping services']
   },
-  {
-    slug: 'commercial-cleaning',
-    dbValue: 'commercial',
-    name: 'Commercial Cleaning',
-    shortName: 'Office Cleaning',
-    description: 'Professional commercial cleaning for Florida businesses. Keep your workplace clean and your employees healthy.',
-    longDescription: 'Our commercial cleaning services keep Florida businesses spotless and professional. From small offices to large commercial spaces, our cleaning professionals handle daily janitorial services, floor care, restroom sanitation, and specialized commercial cleaning needs. Create a healthier workplace and impress clients with a consistently clean business environment.',
-    priceRange: { min: 100, max: 500, unit: 'job' },
-    averageTime: '2-8 hours',
-    icon: 'Building2',
-    benefits: [
-      'Healthier workplace environment',
-      'Professional appearance for clients',
-      'Flexible scheduling (nights/weekends)',
-      'Reduces sick days and absenteeism',
-      'Customized cleaning contracts'
-    ],
-    faqs: [
-      {
-        question: 'How much does commercial cleaning cost in Florida?',
-        answer: 'Commercial cleaning costs vary by space size and frequency. Small offices (under 2,000 sq ft) typically cost $100-$200 per visit. Larger spaces are often priced per square foot ($0.05-$0.20/sqft). Most businesses opt for daily or weekly service with monthly contracts.'
-      },
-      {
-        question: 'What commercial spaces do you clean?',
-        answer: 'Our cleaning professionals handle all types of commercial properties including offices, retail stores, medical facilities, restaurants, gyms, churches, schools, and industrial spaces. Specialized cleaning for medical or food service facilities is available with certified professionals.'
-      },
-      {
-        question: 'Can cleaning be done after business hours?',
-        answer: 'Yes! Most commercial cleaning is performed during evening or early morning hours to avoid disrupting business operations. Weekend cleaning is also available. Scheduling is flexible to meet your business needs.'
-      },
-      {
-        question: 'Do you offer contract cleaning services?',
-        answer: 'Yes, most commercial cleaners offer monthly or annual contracts with significant savings over one-time service. Contracts include guaranteed service levels, consistent crews, and priority scheduling.'
-      },
-      {
-        question: 'Are your commercial cleaners insured?',
-        answer: 'Boss of Clean connects you with commercial cleaners who carry liability insurance. We recommend confirming insurance and workers compensation coverage directly with your cleaner before service begins.'
-      }
-    ],
-    keywords: ['commercial cleaning Florida', 'office cleaning services', 'janitorial services', 'business cleaning', 'workplace cleaning']
-  },
+  // COMMERCIAL_DISABLED - Uncomment to re-enable commercial cleaning
+  // {
+  //   slug: 'commercial-cleaning',
+  //   dbValue: 'commercial',
+  //   name: 'Commercial Cleaning',
+  //   shortName: 'Office Cleaning',
+  //   description: 'Professional commercial cleaning for Florida businesses. Keep your workplace clean and your employees healthy.',
+  //   longDescription: 'Our commercial cleaning services keep Florida businesses spotless and professional. From small offices to large commercial spaces, our cleaning professionals handle daily janitorial services, floor care, restroom sanitation, and specialized commercial cleaning needs. Create a healthier workplace and impress clients with a consistently clean business environment.',
+  //   priceRange: { min: 100, max: 500, unit: 'job' },
+  //   averageTime: '2-8 hours',
+  //   icon: 'Building2',
+  //   benefits: [
+  //     'Healthier workplace environment',
+  //     'Professional appearance for clients',
+  //     'Flexible scheduling (nights/weekends)',
+  //     'Reduces sick days and absenteeism',
+  //     'Customized cleaning contracts'
+  //   ],
+  //   faqs: [
+  //     {
+  //       question: 'How much does commercial cleaning cost in Florida?',
+  //       answer: 'Commercial cleaning costs vary by space size and frequency. Small offices (under 2,000 sq ft) typically cost $100-$200 per visit. Larger spaces are often priced per square foot ($0.05-$0.20/sqft). Most businesses opt for daily or weekly service with monthly contracts.'
+  //     },
+  //     {
+  //       question: 'What commercial spaces do you clean?',
+  //       answer: 'Our cleaning professionals handle all types of commercial properties including offices, retail stores, medical facilities, restaurants, gyms, churches, schools, and industrial spaces. Specialized cleaning for medical or food service facilities is available with certified professionals.'
+  //     },
+  //     {
+  //       question: 'Can cleaning be done after business hours?',
+  //       answer: 'Yes! Most commercial cleaning is performed during evening or early morning hours to avoid disrupting business operations. Weekend cleaning is also available. Scheduling is flexible to meet your business needs.'
+  //     },
+  //     {
+  //       question: 'Do you offer contract cleaning services?',
+  //       answer: 'Yes, most commercial cleaners offer monthly or annual contracts with significant savings over one-time service. Contracts include guaranteed service levels, consistent crews, and priority scheduling.'
+  //     },
+  //     {
+  //       question: 'Are your commercial cleaners insured?',
+  //       answer: 'Boss of Clean connects you with commercial cleaners who carry liability insurance. We recommend confirming insurance and workers compensation coverage directly with your cleaner before service begins.'
+  //     }
+  //   ],
+  //   keywords: ['commercial cleaning Florida', 'office cleaning services', 'janitorial services', 'business cleaning', 'workplace cleaning']
+  // },
   {
     slug: 'deep-cleaning',
     dbValue: 'deep_cleaning',
@@ -198,7 +213,7 @@ export const SERVICE_TYPES: ServiceType[] = [
     name: 'Window Cleaning',
     shortName: 'Window Wash',
     description: 'Professional window cleaning for Florida homes and businesses. Crystal-clear windows inside and out.',
-    longDescription: 'Florida sun, salt air, and seasonal pollen quickly cloud your windows. Our professional window cleaners deliver streak-free results for residential and commercial properties. Services include interior and exterior window cleaning, screen cleaning, track and sill cleaning, and high-rise window washing. See Florida sunshine clearly through spotless windows.',
+    longDescription: 'Florida sun, salt air, and seasonal pollen quickly cloud your windows. Our professional window cleaners deliver streak-free results for homes and multi-story properties. Services include interior and exterior window cleaning, screen cleaning, track and sill cleaning, and high-rise window washing. See Florida sunshine clearly through spotless windows.',
     priceRange: { min: 75, max: 300, unit: 'job' },
     averageTime: '2-4 hours',
     icon: 'RectangleHorizontal',
@@ -216,7 +231,7 @@ export const SERVICE_TYPES: ServiceType[] = [
       },
       {
         question: 'How often should I have my windows professionally cleaned?',
-        answer: 'In Florida, quarterly window cleaning is ideal due to pollen, humidity, and coastal salt air. At minimum, twice-yearly cleaning (spring and fall) keeps windows looking good. Commercial properties may need monthly cleaning for appearance.'
+        answer: 'In Florida, quarterly window cleaning is ideal due to pollen, humidity, and coastal salt air. At minimum, twice-yearly cleaning (spring and fall) keeps windows looking good. Larger properties may need monthly cleaning for appearance.'
       },
       {
         question: 'Do you clean both inside and outside?',
@@ -224,7 +239,7 @@ export const SERVICE_TYPES: ServiceType[] = [
       },
       {
         question: 'Can you clean windows on a multi-story home?',
-        answer: 'Yes, professional window cleaners have equipment for multi-story buildings including extension poles, ladders, and water-fed pole systems. High-rise commercial buildings may require specialized equipment and trained technicians.'
+        answer: 'Yes, professional window cleaners have equipment for multi-story buildings including extension poles, ladders, and water-fed pole systems. High-rise buildings may require specialized equipment and trained technicians.'
       },
       {
         question: 'Do you clean screens and tracks?',
@@ -397,47 +412,48 @@ export const SERVICE_TYPES: ServiceType[] = [
     ],
     keywords: ['maid service Florida', 'recurring house cleaning', 'scheduled cleaning service', 'regular maid', 'weekly cleaning']
   },
-  {
-    slug: 'office-cleaning',
-    dbValue: 'office_cleaning',
-    name: 'Office Cleaning',
-    shortName: 'Office Clean',
-    description: 'Professional office cleaning services in Florida. Daily, weekly, or monthly janitorial services for your business.',
-    longDescription: 'Keep your Florida office clean, healthy, and professional with our office cleaning services. From small professional suites to large corporate offices, our cleaning professionals provide daily janitorial services, restroom sanitation, break room cleaning, and specialized office cleaning needs. Create a productive work environment and impress clients with spotless office spaces.',
-    priceRange: { min: 75, max: 400, unit: 'job' },
-    averageTime: '1-4 hours',
-    icon: 'Briefcase',
-    benefits: [
-      'Healthier work environment',
-      'Reduced employee sick days',
-      'Professional client impressions',
-      'Flexible after-hours scheduling',
-      'Customized to office needs'
-    ],
-    faqs: [
-      {
-        question: 'How much does office cleaning cost?',
-        answer: 'Office cleaning costs vary by size and frequency. Small offices (1,000-2,000 sq ft) typically cost $75-$150 per visit. Larger offices price at $0.05-$0.15 per square foot. Daily service costs more than weekly but often includes volume discounts.'
-      },
-      {
-        question: 'What does standard office cleaning include?',
-        answer: 'Standard office cleaning includes: emptying trash and recycling, vacuuming/mopping floors, dusting surfaces, cleaning restrooms, wiping down common areas, cleaning break rooms, and sanitizing high-touch surfaces (doorknobs, light switches, etc.).'
-      },
-      {
-        question: 'Do you clean during business hours or after?',
-        answer: 'Most office cleaning occurs after business hours to avoid disrupting work. Evening cleaning (after 6pm) is most common. Some offices prefer early morning service before employees arrive. Discuss scheduling during your consultation.'
-      },
-      {
-        question: 'How do we handle office security during cleaning?',
-        answer: 'Professional cleaners are trained in office security protocols. We work with your building management on key/access procedures. Cleaners follow sign-in/sign-out procedures and alarm codes as needed.'
-      },
-      {
-        question: 'Can you clean specialized office equipment?',
-        answer: 'Standard office cleaning includes wiping down keyboards, phones, and monitors. Specialized equipment (medical, laboratory, IT server rooms) may require specific cleaning protocols. Discuss specialized needs during consultation.'
-      }
-    ],
-    keywords: ['office cleaning Florida', 'janitorial services', 'commercial office cleaning', 'workplace cleaning', 'business cleaning services']
-  },
+  // COMMERCIAL_DISABLED - Uncomment to re-enable office cleaning
+  // {
+  //   slug: 'office-cleaning',
+  //   dbValue: 'office_cleaning',
+  //   name: 'Office Cleaning',
+  //   shortName: 'Office Clean',
+  //   description: 'Professional office cleaning services in Florida. Daily, weekly, or monthly janitorial services for your business.',
+  //   longDescription: 'Keep your Florida office clean, healthy, and professional with our office cleaning services. From small professional suites to large corporate offices, our cleaning professionals provide daily janitorial services, restroom sanitation, break room cleaning, and specialized office cleaning needs. Create a productive work environment and impress clients with spotless office spaces.',
+  //   priceRange: { min: 75, max: 400, unit: 'job' },
+  //   averageTime: '1-4 hours',
+  //   icon: 'Briefcase',
+  //   benefits: [
+  //     'Healthier work environment',
+  //     'Reduced employee sick days',
+  //     'Professional client impressions',
+  //     'Flexible after-hours scheduling',
+  //     'Customized to office needs'
+  //   ],
+  //   faqs: [
+  //     {
+  //       question: 'How much does office cleaning cost?',
+  //       answer: 'Office cleaning costs vary by size and frequency. Small offices (1,000-2,000 sq ft) typically cost $75-$150 per visit. Larger offices price at $0.05-$0.15 per square foot. Daily service costs more than weekly but often includes volume discounts.'
+  //     },
+  //     {
+  //       question: 'What does standard office cleaning include?',
+  //       answer: 'Standard office cleaning includes: emptying trash and recycling, vacuuming/mopping floors, dusting surfaces, cleaning restrooms, wiping down common areas, cleaning break rooms, and sanitizing high-touch surfaces (doorknobs, light switches, etc.).'
+  //     },
+  //     {
+  //       question: 'Do you clean during business hours or after?',
+  //       answer: 'Most office cleaning occurs after business hours to avoid disrupting work. Evening cleaning (after 6pm) is most common. Some offices prefer early morning service before employees arrive. Discuss scheduling during your consultation.'
+  //     },
+  //     {
+  //       question: 'How do we handle office security during cleaning?',
+  //       answer: 'Professional cleaners are trained in office security protocols. We work with your building management on key/access procedures. Cleaners follow sign-in/sign-out procedures and alarm codes as needed.'
+  //     },
+  //     {
+  //       question: 'Can you clean specialized office equipment?',
+  //       answer: 'Standard office cleaning includes wiping down keyboards, phones, and monitors. Specialized equipment (medical, laboratory, IT server rooms) may require specific cleaning protocols. Discuss specialized needs during consultation.'
+  //     }
+  //   ],
+  //   keywords: ['office cleaning Florida', 'janitorial services', 'commercial office cleaning', 'workplace cleaning', 'business cleaning services']
+  // },
   {
     slug: 'pool-cleaning',
     dbValue: 'pool_cleaning',
@@ -557,7 +573,7 @@ export const SERVICE_TYPES: ServiceType[] = [
     faqs: [
       {
         question: 'How much does air duct cleaning cost in Florida?',
-        answer: 'Air duct cleaning for a typical Florida home (1,500-2,500 sq ft) costs $200-$400. Larger homes or commercial properties range from $400-$600+. Mold remediation or sanitization treatments are additional $100-$200.'
+        answer: 'Air duct cleaning for a typical Florida home (1,500-2,500 sq ft) costs $200-$400. Larger homes range from $400-$600+. Mold remediation or sanitization treatments are additional $100-$200.'
       },
       {
         question: 'How often should air ducts be cleaned in Florida?',

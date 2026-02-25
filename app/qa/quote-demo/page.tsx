@@ -176,7 +176,7 @@ export default function QuoteDemoPage() {
                 >
                   <option value="residential">Residential</option>
                   <option value="deep_cleaning">Deep Cleaning</option>
-                  <option value="commercial">Commercial</option>
+                  {/* COMMERCIAL_DISABLED: <option value="commercial">Commercial</option> */}
                   <option value="pressure_washing">Pressure Washing</option>
                   <option value="window_cleaning">Window Cleaning</option>
                 </select>

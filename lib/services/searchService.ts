@@ -401,7 +401,7 @@ export class SearchService {
   getServiceTypes() {
     return [
       { value: 'residential', label: 'Residential Cleaning' },
-      { value: 'commercial', label: 'Commercial Cleaning' },
+      // COMMERCIAL_DISABLED: { value: 'commercial', label: 'Commercial Cleaning' },
       { value: 'deep_cleaning', label: 'Deep Cleaning' },
       { value: 'pressure_washing', label: 'Pressure Washing' },
       { value: 'window_cleaning', label: 'Window Cleaning' },

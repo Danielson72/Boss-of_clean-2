@@ -38,7 +38,7 @@ interface CleanerProfile {
 
 const AVAILABLE_SERVICES = [
   'House Cleaning', 'Deep Cleaning', 'Move-in/Move-out Cleaning',
-  'Post-Construction Cleaning', 'Office Cleaning', 'Carpet Cleaning',
+  'Post-Construction Cleaning', 'Carpet Cleaning',
   'Window Cleaning', 'Pressure Washing', 'Organizing Services',
   'Laundry Services', 'Pet-Friendly Cleaning', 'Green/Eco Cleaning'
 ];

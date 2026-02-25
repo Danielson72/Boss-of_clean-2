@@ -32,7 +32,7 @@ Streamlined onboarding flow for cleaning professionals to join the Boss of Clean
 - **Business Name**: Legal entity name and DBA
 - **Contact Details**: Business phone, email, website
 - **Service Area**: ZIP codes, cities served
-- **Service Types**: Residential, commercial, specialties
+- **Service Types**: Residential, specialties <!-- COMMERCIAL_DISABLED: was "Residential, commercial, specialties" -->
 - **Team Size**: Solo operator vs team, employee count
 - **Experience**: Years in business, previous platforms
 
