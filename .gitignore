@@ -57,3 +57,6 @@ middleware.ts.disabled
 
 # local netlify config
 netlify.toml.local
+
+# Local Netlify folder
+.netlify
