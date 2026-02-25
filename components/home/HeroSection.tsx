@@ -127,21 +127,46 @@ export default function HeroSection() {
           </div>
 
           {/* Right column — CEO Cat Image */}
-          <div className="relative flex-shrink-0 order-1 lg:order-2 w-64 h-64 sm:w-80 sm:h-80 md:w-96 md:h-96 lg:w-[420px] lg:h-[420px] xl:w-[480px] xl:h-[480px]">
-            {/* Gold glow behind the cat */}
-            <div className="absolute inset-0 bg-brand-gold/10 rounded-full blur-3xl scale-110" />
-            <div className="absolute inset-4 bg-brand-gold/5 rounded-full blur-2xl" />
+          <div className="relative flex-shrink-0 order-1 lg:order-2 w-64 sm:w-80 md:w-96 lg:w-[420px] xl:w-[480px]">
+            {/* Gold glow behind the frame */}
+            <div className="absolute -inset-4 bg-brand-gold/10 rounded-3xl blur-3xl" />
+            <div className="absolute -inset-2 bg-brand-gold/5 rounded-2xl blur-2xl" />
 
-            {/* CEO Cat with float animation */}
-            <div className="relative w-full h-full animate-float motion-reduce:animate-none">
-              <Image
-                src="/images/ceo-cat-hero.png"
-                alt="Boss of Clean mascot — a professional cat CEO in a business suit"
-                fill
-                sizes="(max-width: 640px) 256px, (max-width: 768px) 320px, (max-width: 1024px) 384px, 480px"
-                className="object-contain drop-shadow-2xl"
-                priority
-              />
+            {/* Picture frame with float animation */}
+            <div className="relative animate-float motion-reduce:animate-none">
+              {/* The frame border — layered for depth */}
+              <div className="relative rounded-2xl overflow-hidden border-[3px] border-brand-gold/60 shadow-[0_8px_32px_rgba(200,163,95,0.25),0_2px_8px_rgba(0,0,0,0.3)]">
+                {/* Inner gold accent line */}
+                <div className="absolute inset-0 rounded-2xl border-[1px] border-brand-gold/20 pointer-events-none z-10" />
+
+                {/* The actual image */}
+                <div className="relative aspect-[3/4]">
+                  <Image
+                    src="/images/ceo-cat-hero.png"
+                    alt="Boss of Clean mascot — a professional cat CEO in a business suit with Orlando skyline"
+                    fill
+                    sizes="(max-width: 640px) 256px, (max-width: 768px) 320px, (max-width: 1024px) 384px, 480px"
+                    className="object-cover"
+                    priority
+                  />
+                </div>
+
+                {/* Bottom nameplate bar — like a business card or award plaque */}
+                <div className="relative bg-gradient-to-r from-brand-dark via-brand-navy to-brand-dark px-4 py-3 text-center border-t border-brand-gold/30">
+                  <p className="font-display text-brand-gold text-sm sm:text-base font-bold tracking-wide">
+                    Boss of Clean
+                  </p>
+                  <p className="text-gray-400 text-[10px] sm:text-xs tracking-[0.15em] uppercase mt-0.5">
+                    Purrfection is our Standard
+                  </p>
+                </div>
+              </div>
+
+              {/* Subtle corner accents — decorative gold corners */}
+              <div className="absolute -top-1 -left-1 w-6 h-6 border-t-2 border-l-2 border-brand-gold/40 rounded-tl-lg pointer-events-none" />
+              <div className="absolute -top-1 -right-1 w-6 h-6 border-t-2 border-r-2 border-brand-gold/40 rounded-tr-lg pointer-events-none" />
+              <div className="absolute -bottom-1 -left-1 w-6 h-6 border-b-2 border-l-2 border-brand-gold/40 rounded-bl-lg pointer-events-none" />
+              <div className="absolute -bottom-1 -right-1 w-6 h-6 border-b-2 border-r-2 border-brand-gold/40 rounded-br-lg pointer-events-none" />
             </div>
           </div>
         </div>

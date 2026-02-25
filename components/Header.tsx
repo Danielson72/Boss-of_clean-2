@@ -79,9 +79,9 @@ export default function Header() {
             <Image
               src="/boss-of-clean-logo.png"
               alt="Boss of Clean"
-              width={38}
-              height={38}
-              className="rounded-md"
+              width={40}
+              height={40}
+              className="rounded-full"
               priority
             />
             <div className="flex flex-col">

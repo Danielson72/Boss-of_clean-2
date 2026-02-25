@@ -37,9 +37,9 @@ export default function Footer() {
               <Image
                 src="/boss-of-clean-logo.png"
                 alt="Boss of Clean"
-                width={36}
-                height={36}
-                className="rounded-md"
+                width={40}
+                height={40}
+                className="rounded-full"
               />
               <div>
                 <span className="text-lg font-bold font-display text-white">
