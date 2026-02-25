@@ -135,7 +135,7 @@ export default function GrowthSection() {
             <span className="text-brand-gold">Trusted</span> Marketplace
           </h2>
           <p className="text-gray-400 text-lg max-w-2xl mx-auto leading-relaxed">
-            We&apos;re on a mission to connect every Florida homeowner with quality cleaning professionals.
+            We&apos;re on a mission to connect every Florida homeowner with quality home service professionals.
           </p>
         </div>
 

@@ -11,7 +11,7 @@ const steps = [
     number: '02',
     icon: Users,
     title: 'Browse Professionals',
-    description: 'See cleaning professionals in your area with profiles and details.',
+    description: 'See home service professionals in your area with profiles and details.',
   },
   {
     number: '03',

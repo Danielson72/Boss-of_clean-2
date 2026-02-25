@@ -35,15 +35,15 @@ export default function SignupPage() {
               <button
                 type="button"
                 onClick={() => setSelectedRole('customer')}
-                className="flex items-center gap-4 p-5 rounded-xl border-2 border-gray-200 bg-white hover:border-blue-400 hover:bg-blue-50/50 transition-all text-left group"
+                className="flex items-center gap-4 p-5 rounded-xl border-2 border-gray-200 bg-white hover:border-brand-gold hover:bg-brand-gold/5 transition-all text-left group"
               >
-                <div className="rounded-full p-3 bg-blue-100 group-hover:bg-blue-200 transition-colors">
-                  <User className="h-6 w-6 text-blue-600" />
+                <div className="rounded-full p-3 bg-brand-gold/20 group-hover:bg-brand-gold/30 transition-colors">
+                  <User className="h-6 w-6 text-brand-gold" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900">I Need Cleaning</h3>
+                  <h3 className="font-semibold text-gray-900">I Need a Service Pro</h3>
                   <p className="text-sm text-gray-500 mt-0.5">
-                    Find and hire professional cleaners in your area
+                    Find and hire professional service pros in your area
                   </p>
                 </div>
               </button>
@@ -57,7 +57,7 @@ export default function SignupPage() {
                   <Briefcase className="h-6 w-6 text-emerald-600" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900">I&apos;m a Cleaning Pro</h3>
+                  <h3 className="font-semibold text-gray-900">I&apos;m a Service Pro</h3>
                   <p className="text-sm text-gray-500 mt-0.5">
                     Grow your business and get new customers
                   </p>
@@ -67,7 +67,7 @@ export default function SignupPage() {
 
             <p className="text-center text-sm text-gray-500">
               Already have an account?{' '}
-              <a href="/login" className="text-blue-600 hover:underline font-medium">
+              <a href="/login" className="text-brand-gold hover:underline font-medium">
                 Sign in
               </a>
             </p>

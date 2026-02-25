@@ -10,9 +10,9 @@ export default function TrustSection() {
         </h2>
         <p className="text-gray-500 text-lg leading-relaxed mb-4 max-w-3xl mx-auto">
           Boss of Clean is Florida&apos;s residential cleaning marketplace,
-          connecting homeowners with independent cleaning professionals
+          connecting homeowners with independent home service professionals
           across all 67 counties. Our mission is simple: make it easy to
-          find trustworthy cleaning services for your home.
+          find trustworthy home services for your property.
         </p>
         <p className="font-display text-xl text-brand-gold italic">
           &ldquo;Purrfection is our Standard&rdquo; &mdash; and we&apos;re just getting started.

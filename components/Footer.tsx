@@ -96,7 +96,7 @@ export default function Footer() {
             </h3>
             <ul
               className="grid grid-cols-2 gap-x-6 gap-y-2.5"
-              aria-label="Available cleaning services"
+              aria-label="Available home services"
             >
               {serviceCategories.map((service) => (
                 <li key={service}>

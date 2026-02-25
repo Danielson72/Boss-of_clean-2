@@ -130,6 +130,12 @@ export default function Header() {
                     </Link>
                     <Link
                       href="/signup"
+                      className="text-sm font-medium text-brand-dark/80 hover:text-brand-gold transition-colors"
+                    >
+                      Find a Pro
+                    </Link>
+                    <Link
+                      href="/signup"
                       className="bg-brand-gold hover:bg-brand-gold-light text-white px-5 py-2 rounded-lg text-sm font-semibold tracking-wide transition-all duration-200 shadow-sm hover:shadow-md"
                     >
                       List Your Business
@@ -209,6 +215,13 @@ export default function Header() {
                         onClick={() => setIsMenuOpen(false)}
                       >
                         Sign In
+                      </Link>
+                      <Link
+                        href="/signup"
+                        className="block px-3 py-2.5 text-sm font-medium text-brand-dark/80 hover:text-brand-gold hover:bg-brand-cream rounded-lg transition-colors"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        Find a Pro
                       </Link>
                       <Link
                         href="/signup"
