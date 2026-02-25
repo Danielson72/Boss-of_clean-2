@@ -2,6 +2,8 @@ export { default as HeroSection } from './HeroSection';
 export { default as ServiceCategories } from './ServiceCategories';
 export { default as HowItWorks } from './HowItWorks';
 export { default as ValueProposition } from './ValueProposition';
+export { default as GrowthSection } from './GrowthSection';
 export { default as TestimonialSection } from './TestimonialSection';
 export { default as ForProfessionals } from './ForProfessionals';
 export { default as TrustSection } from './TrustSection';
+export { default as FloatingTools } from './FloatingTools';

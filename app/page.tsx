@@ -4,9 +4,11 @@ import {
   ServiceCategories,
   HowItWorks,
   ValueProposition,
+  GrowthSection,
   TestimonialSection,
   ForProfessionals,
   TrustSection,
+  FloatingTools,
 } from '@/components/home';
 
 export default function HomePage() {
@@ -14,11 +16,16 @@ export default function HomePage() {
     <div className="min-h-screen">
       <HomePageStructuredData />
       <HeroSection />
-      <ServiceCategories />
+      <FloatingTools>
+        <ServiceCategories />
+      </FloatingTools>
       <HowItWorks />
       <ValueProposition />
+      <GrowthSection />
       <TestimonialSection />
-      <ForProfessionals />
+      <FloatingTools variant="alt">
+        <ForProfessionals />
+      </FloatingTools>
       <TrustSection />
     </div>
   );
