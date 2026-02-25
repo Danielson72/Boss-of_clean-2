@@ -1,68 +1,54 @@
 'use client';
 
-import { Search } from 'lucide-react';
-import { CleanerCard, CleanerCardSkeleton, CleanerCardProps } from './CleanerCard';
+import { ProviderCard, ProviderCardSkeleton, type ProviderCardProps } from './ProviderCard';
+import { EmptySearchState } from './EmptySearchState';
 
 interface SearchResultsGridProps {
-  cleaners: CleanerCardProps[];
+  providers: ProviderCardProps[];
   isLoading: boolean;
   totalCount: number;
-  onRequestQuote?: (cleanerId: string) => void;
-  onClearFilters?: () => void;
+  searchLocation?: string;
+  searchService?: string;
 }
 
 export function SearchResultsGrid({
-  cleaners,
+  providers,
   isLoading,
   totalCount,
-  onRequestQuote,
-  onClearFilters
+  searchLocation,
+  searchService,
 }: SearchResultsGridProps) {
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {[...Array(6)].map((_, i) => (
-          <CleanerCardSkeleton key={i} />
-        ))}
+      <div>
+        <div className="h-5 w-40 bg-gray-100 rounded animate-pulse mb-6" />
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          {[...Array(6)].map((_, i) => (
+            <ProviderCardSkeleton key={i} />
+          ))}
+        </div>
       </div>
     );
   }
 
-  if (cleaners.length === 0) {
+  if (providers.length === 0) {
     return (
-      <div className="text-center py-12">
-        <Search className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-        <h3 className="text-lg font-medium text-gray-900 mb-2">No cleaners found</h3>
-        <p className="text-gray-600 mb-6">
-          Try adjusting your search criteria or expanding your location area.
-        </p>
-        {onClearFilters && (
-          <button
-            onClick={onClearFilters}
-            className="text-blue-600 hover:text-blue-800 font-medium"
-          >
-            Clear all filters
-          </button>
-        )}
-      </div>
+      <EmptySearchState
+        searchLocation={searchLocation}
+        searchService={searchService}
+      />
     );
   }
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <p className="text-gray-600">
-          Showing {cleaners.length} of {totalCount} cleaner{totalCount !== 1 ? 's' : ''}
-        </p>
-      </div>
+      <p className="text-sm text-gray-500 mb-6">
+        Showing {providers.length} of {totalCount} professional{totalCount !== 1 ? 's' : ''}
+      </p>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {cleaners.map((cleaner) => (
-          <CleanerCard
-            key={cleaner.id}
-            {...cleaner}
-            onRequestQuote={onRequestQuote}
-          />
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        {providers.map((provider) => (
+          <ProviderCard key={provider.id} {...provider} />
         ))}
       </div>
     </div>
