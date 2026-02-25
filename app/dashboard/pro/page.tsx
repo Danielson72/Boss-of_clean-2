@@ -79,7 +79,7 @@ const subscriptionPlans = [
     price: '$149',
     icon: Crown,
     color: 'yellow',
-    features: ['Featured business listing', 'Unlimited photos & videos', 'Top placement in search', 'Full review management suite', 'Direct customer messaging', 'Advanced analytics & insights', 'Multiple location support', 'Dedicated account manager', '24/7 priority support']
+    features: ['Featured business listing', 'Unlimited photos & videos', 'Top placement in search', 'Full review management suite', 'Direct customer messaging', 'Advanced analytics & insights', 'Multiple location support', 'Dedicated account manager', 'Priority support']
   }
 ];
 

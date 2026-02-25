@@ -121,14 +121,14 @@ export default function GuaranteePage() {
                 <Mail className="h-5 w-5 text-blue-600" />
                 <div>
                   <p className="font-medium text-gray-900">Email</p>
-                  <p className="text-sm text-blue-600">support@bossofclean.com</p>
+                  <p className="text-sm text-blue-600">admin@bossofclean.com</p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
                 <Phone className="h-5 w-5 text-blue-600" />
                 <div>
                   <p className="font-medium text-gray-900">Phone</p>
-                  <p className="text-sm text-blue-600">(855) BOSS-CLEAN</p>
+                  <p className="text-sm text-blue-600">407-461-6039</p>
                 </div>
               </div>
             </div>

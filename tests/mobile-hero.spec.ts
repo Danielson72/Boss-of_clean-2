@@ -6,7 +6,7 @@ test.describe('Mobile Hero Section - CEO Cat Visibility', () => {
     await page.waitForLoadState('networkidle');
 
     // Wait for the hero section and Next.js Image components to load
-    // Hero images use <Image> with alt="Boss of Clean - Florida's #1 Cleaning Directory"
+    // Hero images use <Image> with alt="Boss of Clean - Florida's Residential Cleaning Marketplace"
     await page.waitForFunction(() => {
       const imgs = document.querySelectorAll('img[alt*="Boss of Clean"]');
       return imgs.length > 0 && Array.from(imgs).some(
@@ -189,7 +189,7 @@ test.describe('Mobile Hero Section - CEO Cat Visibility', () => {
     await expect(mainTitle).toBeVisible();
 
     // Check subtitle is visible
-    const subtitle = page.locator('h2:has-text("Florida\'s #1 Cleaning Directory")');
+    const subtitle = page.locator('h2:has-text("Florida\'s Residential Cleaning Marketplace")');
     await expect(subtitle).toBeVisible();
 
     // Check tagline is visible

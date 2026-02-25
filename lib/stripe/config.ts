@@ -81,7 +81,7 @@ export const PLAN_DETAILS: Record<SubscriptionTier, {
       'Advanced analytics & insights',
       'Direct customer messaging',
       'Dedicated account manager',
-      '24/7 priority support'
+      'Priority support'
     ]
   }
 }

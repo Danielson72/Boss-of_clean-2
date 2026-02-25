@@ -18,7 +18,7 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: 'Boss of Clean — Purrfection is our Standard',
+  title: "Boss of Clean \u2014 Florida's Residential Cleaning Marketplace",
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'https://bossofclean.com'),
   description: 'Florida\'s residential cleaning and home services marketplace. Connect with independent cleaning professionals across all 67 counties. House cleaning, deep cleaning, pressure washing and more.',
   keywords: 'cleaning services Florida, house cleaning Florida, residential cleaning, pressure washing, carpet cleaning, deep cleaning, professional cleaners Florida, home services marketplace',
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
   },
   manifest: '/site.webmanifest',
   openGraph: {
-    title: 'Boss of Clean — Purrfection is our Standard',
+    title: "Boss of Clean \u2014 Florida's Residential Cleaning Marketplace",
     description: 'Florida\'s residential cleaning marketplace. Connect with independent cleaning professionals across all 67 counties.',
     type: 'website',
     locale: 'en_US',

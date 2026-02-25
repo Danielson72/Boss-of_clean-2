@@ -105,7 +105,7 @@ export const defaultPlans: Plan[] = [
       { name: 'Featured business listing', included: true, highlight: true },
       { name: 'Unlimited lead credits', included: true, highlight: true },
       { name: 'Unlimited photos & videos', included: true },
-      { name: '24/7 priority support', included: true },
+      { name: 'Priority support', included: true },
       { name: 'Top search placement', included: true, highlight: true },
       { name: 'Advanced analytics', included: true },
       { name: 'Direct messaging', included: true, highlight: true },

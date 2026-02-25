@@ -42,7 +42,7 @@ const FEATURES_TO_LOSE: Record<string, string[]> = {
     'Direct customer messaging',
     'Advanced analytics',
     'Dedicated account manager',
-    '24/7 priority support',
+    'Priority support',
   ],
 };
 

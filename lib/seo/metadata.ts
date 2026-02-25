@@ -7,6 +7,7 @@ import type { Metadata } from 'next';
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://bossofclean.com';
 const SITE_NAME = 'Boss of Clean';
+const SITE_SUFFIX = "Boss of Clean \u2014 Florida's Residential Cleaning Marketplace";
 const DEFAULT_DESCRIPTION = 'Florida\'s residential cleaning and home services marketplace. Connect with independent cleaning professionals across all 67 counties. House cleaning, deep cleaning, pressure washing and more.';
 
 export interface MetadataOptions {
@@ -33,7 +34,7 @@ export function generatePageMetadata(options: MetadataOptions): Metadata {
     type = 'website',
   } = options;
 
-  const fullTitle = title === SITE_NAME ? title : `${title} | ${SITE_NAME}`;
+  const fullTitle = title === SITE_NAME ? SITE_SUFFIX : `${title} | ${SITE_SUFFIX}`;
   const canonicalUrl = `${BASE_URL}${path}`;
   const imageUrl = image.startsWith('http') ? image : `${BASE_URL}${image}`;
 

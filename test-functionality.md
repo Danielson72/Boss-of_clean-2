@@ -22,10 +22,10 @@
 - [ ] "List Your Business" button redirects to signup page
 
 ### Trust Indicators
-- [ ] "500+ Verified Cleaners" displays
+- [ ] Trust indicators display correctly
 - [ ] "Licensed & Insured" badge shows
-- [ ] "Available 24/7" indicator visible
-- [ ] Stats section (500+, 10K+, 24/7, 67) renders
+- [ ] Service area info visible
+- [ ] Stats section renders accurately
 
 ## 🔐 AUTHENTICATION TESTING
 
