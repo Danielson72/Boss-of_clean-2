@@ -55,6 +55,30 @@ async function isSmsEnabled(
 }
 
 /**
+ * Non-blocking SMS wrapper. Checks if SMS is configured, then runs the callback.
+ * Never throws — logs and swallows all errors so it can safely be used in Promise.allSettled.
+ */
+export async function sendSMSIfEnabled(
+  callback: () => Promise<unknown>
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    if (!process.env.TWILIO_ACCOUNT_SID || !process.env.TWILIO_AUTH_TOKEN) {
+      logger.info('Twilio not configured, skipping SMS', { function: 'sendSMSIfEnabled' });
+      return { success: false, error: 'Twilio not configured' };
+    }
+    await callback();
+    return { success: true };
+  } catch (err) {
+    const errorMessage = err instanceof Error ? err.message : 'Unknown SMS error';
+    logger.error('SMS notification failed (non-blocking)', {
+      function: 'sendSMSIfEnabled',
+      error: errorMessage,
+    });
+    return { success: false, error: errorMessage };
+  }
+}
+
+/**
  * Notify a pro about a new lead in their area.
  */
 export async function notifyProNewLead(

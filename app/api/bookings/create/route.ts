@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { sendBookingConfirmationEmails } from '@/lib/email/booking-confirmation';
 import { createLogger } from '@/lib/utils/logger';
+import { notifyCustomerBookingConfirmed, sendSMSIfEnabled } from '@/lib/sms/notifications';
 
 const logger = createLogger({ file: 'api/bookings/create/route' });
 
@@ -165,7 +166,7 @@ export async function POST(request: NextRequest) {
   // Get customer info for email
   const { data: customer } = await supabase
     .from('users')
-    .select('full_name, email')
+    .select('full_name, email, phone')
     .eq('id', user.id)
     .single();
 
@@ -176,25 +177,45 @@ export async function POST(request: NextRequest) {
     .eq('id', cleaner.user_id)
     .single();
 
-  // Send confirmation emails (fire and forget)
-  sendBookingConfirmationEmails({
-    bookingId: booking.id,
-    customerName: customer?.full_name || 'Customer',
-    customerEmail: customer?.email || user.email || '',
-    cleanerEmail: cleaner.business_email || cleanerUser?.email || '',
-    businessName: cleaner.business_name,
-    serviceType,
-    propertyType,
-    bedrooms,
-    bathrooms,
-    bookingDate,
-    startTime,
-    endTime,
-    address,
-    estimatedPrice,
-    estimatedHours,
-    specialInstructions: specialInstructions || undefined,
-  }).catch((err) => logger.error('Email send error', { function: 'POST' }, err));
+  // Send confirmation email + SMS in parallel (non-blocking)
+  const notifications: Promise<unknown>[] = [
+    sendBookingConfirmationEmails({
+      bookingId: booking.id,
+      customerName: customer?.full_name || 'Customer',
+      customerEmail: customer?.email || user.email || '',
+      cleanerEmail: cleaner.business_email || cleanerUser?.email || '',
+      businessName: cleaner.business_name,
+      serviceType,
+      propertyType,
+      bedrooms,
+      bathrooms,
+      bookingDate,
+      startTime,
+      endTime,
+      address,
+      estimatedPrice,
+      estimatedHours,
+      specialInstructions: specialInstructions || undefined,
+    }),
+  ];
+
+  // SMS: notify customer their booking is confirmed
+  if (customer?.phone) {
+    notifications.push(
+      sendSMSIfEnabled(() =>
+        notifyCustomerBookingConfirmed(
+          user.id,
+          customer.phone!,
+          cleaner.business_name,
+          bookingDate
+        )
+      )
+    );
+  }
+
+  Promise.allSettled(notifications).catch((err) =>
+    logger.error('Notification batch error', { function: 'POST' }, err)
+  );
 
   return NextResponse.json({
     success: true,

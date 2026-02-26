@@ -3,6 +3,7 @@ export const runtime = 'nodejs';
 import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { createLogger } from '@/lib/utils/logger';
+import { notifyProNewLead, sendSMSIfEnabled } from '@/lib/sms/notifications';
 
 const logger = createLogger({ file: 'api/quote/route' });
 
@@ -247,6 +248,31 @@ export async function POST(request: NextRequest) {
       logger.error('Failed to increment counter (non-fatal)', { function: 'POST' }, incrementError);
     } else {
       logger.info('Counter incremented successfully', { function: 'POST' });
+    }
+
+    // ============================================
+    // STEP 5: Send SMS notification to cleaner (non-blocking)
+    // ============================================
+    const customerName = body.customer_name || 'A customer';
+    const zipCode = body.zip_code || 'your area';
+
+    // Fetch cleaner's phone and user_id for SMS
+    const { data: cleanerSms } = await supabase
+      .from('cleaners')
+      .select('business_phone, user_id')
+      .eq('id', body.cleaner_id)
+      .single();
+
+    if (cleanerSms?.business_phone && cleanerSms?.user_id) {
+      sendSMSIfEnabled(() =>
+        notifyProNewLead(
+          cleanerSms.user_id,
+          cleanerSms.business_phone,
+          customerName,
+          body.service_type,
+          zipCode
+        )
+      ).catch((err) => logger.error('SMS send error (non-fatal)', { function: 'POST' }, err));
     }
 
     // ============================================

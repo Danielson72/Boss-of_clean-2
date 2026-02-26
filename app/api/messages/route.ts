@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { sendNewMessageEmail } from '@/lib/email/new-message';
 import { rateLimitRoute, RATE_LIMITS } from '@/lib/middleware/rate-limit';
 import { createLogger } from '@/lib/utils/logger';
+import { notifyProNewMessage, notifyCustomerQuoteReceived, sendSMSIfEnabled } from '@/lib/sms/notifications';
 
 const logger = createLogger({ file: 'api/messages/route' });
 
@@ -274,16 +275,66 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Failed to send message' }, { status: 500 });
   }
 
-  // Send email notification (fire and forget)
+  // Send email + SMS notifications in parallel (non-blocking)
+  const notifications: Promise<unknown>[] = [];
+
   if (recipientEmail) {
-    sendNewMessageEmail({
-      recipientEmail,
-      recipientName,
-      senderName,
-      messagePreview: content.trim().substring(0, 100),
-      conversationId: actualConversationId!,
-    }).catch((err) => logger.error('Email send error', { function: 'POST' }, err));
+    notifications.push(
+      sendNewMessageEmail({
+        recipientEmail,
+        recipientName,
+        senderName,
+        messagePreview: content.trim().substring(0, 100),
+        conversationId: actualConversationId!,
+      })
+    );
   }
+
+  // SMS notification: look up recipient's phone number
+  if (isCustomer && cleanerId) {
+    // Customer sent message to cleaner — notify the cleaner via SMS
+    const { data: cleanerSms } = await supabase
+      .from('cleaners')
+      .select('business_phone, user_id')
+      .eq('id', cleanerId)
+      .single();
+
+    if (cleanerSms?.business_phone && cleanerSms?.user_id) {
+      notifications.push(
+        sendSMSIfEnabled(() =>
+          notifyProNewMessage(cleanerSms.user_id, cleanerSms.business_phone, senderName)
+        )
+      );
+    }
+  } else if (!isCustomer && actualConversationId) {
+    // Cleaner sent message to customer — notify the customer via SMS
+    const { data: conv } = await supabase
+      .from('conversations')
+      .select('customer_id')
+      .eq('id', actualConversationId)
+      .single();
+
+    if (conv?.customer_id) {
+      const { data: customerUser } = await supabase
+        .from('users')
+        .select('phone')
+        .eq('id', conv.customer_id)
+        .single();
+
+      if (customerUser?.phone) {
+        notifications.push(
+          sendSMSIfEnabled(() =>
+            notifyCustomerQuoteReceived(conv.customer_id, customerUser.phone, senderName, 'message')
+          )
+        );
+      }
+    }
+  }
+
+  // Fire all notifications, never let failures break the response
+  Promise.allSettled(notifications).catch((err) =>
+    logger.error('Notification batch error', { function: 'POST' }, err)
+  );
 
   return NextResponse.json({
     success: true,
