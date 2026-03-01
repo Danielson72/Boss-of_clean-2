@@ -353,7 +353,7 @@ export default function CustomerBookingsPage() {
 
                 <p className="text-sm text-gray-600 mb-4">
                   Are you sure you want to cancel your booking with{' '}
-                  <strong>{cancelBooking.cleaner.business_name}</strong> on{' '}
+                  <strong>{cancelBooking.cleaner?.business_name || 'your cleaner'}</strong> on{' '}
                   {new Date(cancelBooking.booking_date + 'T00:00:00').toLocaleDateString('en-US', {
                     weekday: 'long',
                     month: 'long',

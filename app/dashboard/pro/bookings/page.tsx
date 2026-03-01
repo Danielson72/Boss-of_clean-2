@@ -314,9 +314,9 @@ export default function CleanerBookingsPage() {
                   <div
                     key={b.id}
                     className="text-xs bg-green-100 text-green-800 rounded px-1 py-0.5 mb-0.5 truncate"
-                    title={`${b.customer.full_name} - ${b.start_time}`}
+                    title={`${b.customer?.full_name || 'Customer'} - ${b.start_time}`}
                   >
-                    {b.start_time.slice(0, 5)} {b.customer.full_name.split(' ')[0]}
+                    {b.start_time.slice(0, 5)} {(b.customer?.full_name || 'Customer').split(' ')[0]}
                   </div>
                 ))}
                 {dayBookings.length > 2 && (

@@ -53,7 +53,7 @@ interface QuoteRequest {
     full_name: string;
     email: string;
     phone: string;
-  };
+  } | null;
 }
 
 const subscriptionPlans = [
@@ -491,7 +491,7 @@ export default function CleanerDashboard() {
                             <div className="flex-1">
                               <div className="flex items-center gap-4 mb-3">
                                 <h3 className="text-lg font-semibold text-gray-900">
-                                  {quote.customer.full_name}
+                                  {quote.customer?.full_name || 'Customer'}
                                 </h3>
                                 <span className={`px-3 py-1 rounded-full text-sm ${
                                   quote.status === 'pending' 
@@ -517,11 +517,11 @@ export default function CleanerDashboard() {
                                 <div className="space-y-2">
                                   <div className="flex items-center gap-2">
                                     <User className="h-4 w-4" />
-                                    <span>{quote.customer.email}</span>
+                                    <span>{quote.customer?.email || 'N/A'}</span>
                                   </div>
                                   <div className="flex items-center gap-2">
                                     <Phone className="h-4 w-4" />
-                                    <span>{quote.customer.phone}</span>
+                                    <span>{quote.customer?.phone || 'N/A'}</span>
                                   </div>
                                 </div>
                               </div>
