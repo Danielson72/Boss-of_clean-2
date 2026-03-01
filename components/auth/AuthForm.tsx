@@ -90,61 +90,59 @@ export function AuthForm({ mode, role = 'customer' }: AuthFormProps) {
             data: {
               role,
               full_name: fullName || undefined,
+              business_name: businessName || undefined,
             },
           },
         })
 
         if (signUpError) throw signUpError
 
+        // Check for repeated signup (user already exists but Supabase doesn't reveal this for security)
+        if (authData.user && (!authData.user.identities || authData.user.identities.length === 0)) {
+          setError('An account with this email already exists. Please sign in instead.')
+          setLoading(false)
+          return
+        }
+
         if (authData.user) {
-          // Create user record in public.users table
-          const { error: userError } = await supabase
+          // The handle_new_user DB trigger creates the users row automatically.
+          // Update it with additional fields the trigger doesn't have.
+          await supabase
             .from('users')
-            .upsert({
-              id: authData.user.id,
-              email: authData.user.email,
+            .update({
               full_name: fullName || null,
               phone: phone || null,
-              role,
-              created_at: new Date().toISOString(),
-            }, {
-              onConflict: 'id'
+              updated_at: new Date().toISOString(),
             })
+            .eq('id', authData.user.id)
 
-          if (userError) {
-            // Error creating user record - silently fail for client component
-          }
-
-          // If cleaner, create cleaner profile
+          // If cleaner, update the trigger-created cleaners profile with form data
           if (role === 'cleaner') {
-            const { error: cleanerError } = await supabase
+            // Wait a moment for trigger to complete, then update with full details
+            const { data: cleanerData } = await supabase
               .from('cleaners')
-              .insert({
-                user_id: authData.user.id,
-                business_name: businessName || fullName || email.split('@')[0],
-                approval_status: 'pending',
-              })
+              .select('id')
+              .eq('user_id', authData.user.id)
+              .single()
 
-            if (cleanerError && cleanerError.code !== '23505') {
-              // Ignore duplicate key errors
-            }
+            if (cleanerData) {
+              // Update with business details from the signup form
+              await supabase
+                .from('cleaners')
+                .update({
+                  business_name: businessName || fullName || email.split('@')[0],
+                })
+                .eq('id', cleanerData.id)
 
-            // Seed initial service area if zip provided
-            if (zipCode) {
-              const { data: zipData } = await supabase
-                .from('florida_zipcodes')
-                .select('city, county')
-                .eq('zip_code', zipCode)
-                .single()
-
-              if (zipData) {
-                const { data: cleanerData } = await supabase
-                  .from('cleaners')
-                  .select('id')
-                  .eq('user_id', authData.user.id)
+              // Seed initial service area if zip provided
+              if (zipCode) {
+                const { data: zipData } = await supabase
+                  .from('florida_zipcodes')
+                  .select('city, county')
+                  .eq('zip_code', zipCode)
                   .single()
 
-                if (cleanerData) {
+                if (zipData) {
                   await supabase
                     .from('service_areas')
                     .insert({
@@ -156,8 +154,54 @@ export function AuthForm({ mode, role = 'customer' }: AuthFormProps) {
                     })
                 }
               }
+            } else {
+              // Fallback: trigger may not have fired yet, create cleaner profile directly
+              const { data: newCleaner, error: cleanerError } = await supabase
+                .from('cleaners')
+                .insert({
+                  user_id: authData.user.id,
+                  business_name: businessName || fullName || email.split('@')[0],
+                  approval_status: 'pending',
+                })
+                .select('id')
+                .single()
+
+              if (!cleanerError && newCleaner && zipCode) {
+                const { data: zipData } = await supabase
+                  .from('florida_zipcodes')
+                  .select('city, county')
+                  .eq('zip_code', zipCode)
+                  .single()
+
+                if (zipData) {
+                  await supabase
+                    .from('service_areas')
+                    .insert({
+                      cleaner_id: newCleaner.id,
+                      zip_code: zipCode,
+                      city: zipData.city,
+                      county: zipData.county,
+                      is_primary: true,
+                    })
+                }
+              }
             }
           }
+          // Notify admin of new signup (fire and forget - don't block signup flow)
+          fetch('/api/admin/signup-notification', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              email,
+              fullName: fullName || undefined,
+              role,
+              businessName: businessName || undefined,
+              phone: phone || undefined,
+              zipCode: zipCode || undefined,
+            }),
+          }).catch(() => {
+            // Silently fail - don't break signup if notification fails
+          })
         }
 
         // Check if email confirmation is required
@@ -190,7 +234,17 @@ export function AuthForm({ mode, role = 'customer' }: AuthFormProps) {
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : 'An error occurred during authentication';
-      setError(message);
+      
+      // Provide user-friendly error messages
+      if (message.includes('Invalid login credentials')) {
+        setError('Incorrect email or password. Please try again or use "Forgot password?" to reset.');
+      } else if (message.includes('Email not confirmed')) {
+        setError('Your email hasn\'t been verified yet. Please check your inbox for the verification link, or sign up again to resend it.');
+      } else if (message.includes('rate') || message.includes('429')) {
+        setError('Too many login attempts. Please wait a few minutes and try again.');
+      } else {
+        setError(message);
+      }
     } finally {
       setLoading(false)
     }
@@ -288,21 +342,24 @@ export function AuthForm({ mode, role = 'customer' }: AuthFormProps) {
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
+
+          {mode === 'signup' && (
+            <div className="space-y-2">
+              <Label htmlFor="fullName">Full Name</Label>
+              <Input
+                id="fullName"
+                type="text"
+                placeholder="John Smith"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                required
+                disabled={loading}
+              />
+            </div>
+          )}
           
           {isCleaner && (
             <>
-              <div className="space-y-2">
-                <Label htmlFor="fullName">Full Name</Label>
-                <Input
-                  id="fullName"
-                  type="text"
-                  placeholder="John Smith"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  required
-                  disabled={loading}
-                />
-              </div>
               <div className="space-y-2">
                 <Label htmlFor="businessName">Business Name</Label>
                 <Input
@@ -411,6 +468,7 @@ export function AuthForm({ mode, role = 'customer' }: AuthFormProps) {
           
           <GoogleSignInButton
             mode={mode}
+            role={role}
             disabled={loading}
             onError={setError}
           />

@@ -7,11 +7,12 @@ import { Loader2 } from 'lucide-react'
 
 interface GoogleSignInButtonProps {
   mode?: 'login' | 'signup'
+  role?: 'customer' | 'cleaner'
   disabled?: boolean
   onError?: (error: string) => void
 }
 
-export function GoogleSignInButton({ mode = 'login', disabled, onError }: GoogleSignInButtonProps) {
+export function GoogleSignInButton({ mode = 'login', role, disabled, onError }: GoogleSignInButtonProps) {
   const [loading, setLoading] = useState(false)
   const supabase = createClient()
 
@@ -19,10 +20,16 @@ export function GoogleSignInButton({ mode = 'login', disabled, onError }: Google
     setLoading(true)
 
     try {
+      // Build redirect URL with role info for signup
+      const redirectUrl = new URL('/auth/callback', window.location.origin)
+      if (mode === 'signup' && role) {
+        redirectUrl.searchParams.set('intended_role', role)
+      }
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: redirectUrl.toString(),
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',

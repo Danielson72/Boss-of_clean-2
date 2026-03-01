@@ -35,6 +35,9 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(new URL(next, origin))
     }
 
+    // Read intended role from signup flow (passed via Google OAuth redirect)
+    const intendedRole = requestUrl.searchParams.get('intended_role')
+
     const { data: { user } } = await supabase.auth.getUser()
 
     if (user) {
@@ -89,6 +92,7 @@ export async function GET(request: NextRequest) {
       }
 
       // Completely new user and trigger didn't create record - insert manually
+      const newRole = (intendedRole === 'cleaner') ? 'cleaner' : 'customer'
       const { error: insertError } = await supabase
         .from('users')
         .insert({
@@ -96,6 +100,7 @@ export async function GET(request: NextRequest) {
           email: user.email,
           full_name: user.user_metadata?.full_name || user.user_metadata?.name || 'User',
           avatar_url: user.user_metadata?.avatar_url || user.user_metadata?.picture,
+          role: newRole,
           created_at: new Date().toISOString(),
         })
 
@@ -103,7 +108,24 @@ export async function GET(request: NextRequest) {
         logger.error('Error creating user record', { function: 'GET' }, insertError)
       }
 
-      // New OAuth users go to role selection
+      // If pro signup via Google, create cleaners profile
+      if (newRole === 'cleaner') {
+        await supabase
+          .from('cleaners')
+          .insert({
+            user_id: user.id,
+            business_name: user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'My Cleaning Business',
+            approval_status: 'pending',
+          })
+      }
+
+      // If role was specified via signup flow, go straight to dashboard
+      if (intendedRole) {
+        const dashPath = newRole === 'cleaner' ? '/dashboard/pro/setup' : '/dashboard/customer'
+        return NextResponse.redirect(new URL(dashPath, origin))
+      }
+
+      // No intended role - new OAuth users go to role selection
       return NextResponse.redirect(new URL('/auth/select-role', origin))
     }
   }

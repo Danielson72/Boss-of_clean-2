@@ -56,9 +56,9 @@ export default function EmailConfirmPage() {
       if (hash.includes('type=signup')) {
         setStatus('success');
         setMessage('Your email has been confirmed successfully!');
-        // Redirect to dashboard - user session should already be established
+        // Redirect to generic dashboard - middleware will route based on role
         setTimeout(() => {
-          router.push('/dashboard/customer');
+          router.push('/dashboard');
         }, 2000);
       } else if (hash.includes('type=recovery')) {
         setStatus('success');
@@ -112,7 +112,7 @@ export default function EmailConfirmPage() {
                 {message}
               </p>
               <Link
-                href="/dashboard/customer"
+                href="/dashboard"
                 className="inline-block bg-blue-600 text-white px-6 py-3 rounded-md font-semibold hover:bg-blue-700 transition duration-300"
               >
                 Go to Dashboard
