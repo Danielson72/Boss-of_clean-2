@@ -29,10 +29,7 @@ interface QuoteRequest {
   cleaner: {
     business_name: string;
     business_phone: string;
-    user: {
-      email: string;
-    };
-  };
+  } | null;
 }
 
 interface CustomerProfile {
@@ -86,8 +83,7 @@ export default function CustomerDashboard() {
           *,
           cleaner:cleaners(
             business_name,
-            business_phone,
-            user:users(email)
+            business_phone
           )
         `)
         .eq('customer_id', user?.id)
@@ -475,7 +471,7 @@ export default function CustomerDashboard() {
                             <div className="flex-1">
                               <div className="flex items-center gap-4 mb-3">
                                 <h3 className="text-lg font-semibold text-gray-900">
-                                  {quote.cleaner.business_name}
+                                  {quote.cleaner?.business_name || 'Unknown Business'}
                                 </h3>
                                 <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm ${getStatusColor(quote.status)}`}>
                                   {getStatusIcon(quote.status)}
@@ -534,7 +530,7 @@ export default function CustomerDashboard() {
                                 <div className="text-sm space-y-2">
                                   <div className="text-gray-600">
                                     <p className="font-medium">Contact:</p>
-                                    <p>{quote.cleaner.business_phone}</p>
+                                    <p>{quote.cleaner?.business_phone || 'N/A'}</p>
                                   </div>
                                   {!confirmedQuotes.has(quote.id) ? (
                                     <button
