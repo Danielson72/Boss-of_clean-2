@@ -15,7 +15,7 @@ export function ProtectedRoute({
   requireRole,
   redirectTo = '/login' 
 }: ProtectedRouteProps) {
-  const { user, loading, isCustomer, isCleaner } = useAuth();
+  const { user, loading, isCustomer, isCleaner, isAdmin } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -27,9 +27,11 @@ export function ProtectedRoute({
         router.push('/dashboard');
       } else if (requireRole === 'cleaner' && !isCleaner) {
         router.push('/dashboard');
+      } else if (requireRole === 'admin' && !isAdmin) {
+        router.push('/dashboard');
       }
     }
-  }, [user, loading, requireRole, isCustomer, isCleaner, router, redirectTo]);
+  }, [user, loading, requireRole, isCustomer, isCleaner, isAdmin, router, redirectTo]);
 
   if (loading) {
     return (

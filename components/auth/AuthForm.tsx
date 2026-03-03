@@ -215,7 +215,7 @@ export function AuthForm({ mode, role = 'customer' }: AuthFormProps) {
 
         router.push(role === 'cleaner' ? '/dashboard/pro/setup' : '/dashboard/customer')
       } else {
-        const { error: signInError } = await supabase.auth.signInWithPassword({
+        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
           email,
           password,
         })
@@ -226,11 +226,11 @@ export function AuthForm({ mode, role = 'customer' }: AuthFormProps) {
         const { data: userData } = await supabase
           .from('users')
           .select('role')
-          .eq('email', email)
+          .eq('id', signInData.user.id)
           .single()
 
-        const role = userData?.role || 'customer'
-        router.push(roleToDashboardPath(role))
+        const userRole = userData?.role || 'customer'
+        router.push(roleToDashboardPath(userRole))
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : 'An error occurred during authentication';

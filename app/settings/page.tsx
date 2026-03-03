@@ -23,8 +23,6 @@ interface UserSettings {
   city?: string;
   zip_code?: string;
   role: string;
-  email_notifications: boolean;
-  sms_notifications: boolean;
 }
 
 export default function SettingsPage() {
@@ -53,12 +51,8 @@ export default function SettingsPage() {
         .single();
 
       if (error) throw error;
-      
-      setSettings({
-        ...data,
-        email_notifications: data.email_notifications ?? true,
-        sms_notifications: data.sms_notifications ?? false
-      });
+
+      setSettings(data);
     } catch (error) {
       logger.error('Error loading settings', { function: 'loadSettings', error });
       setMessage('Error loading settings');
@@ -80,8 +74,6 @@ export default function SettingsPage() {
           address: settings.address,
           city: settings.city,
           zip_code: settings.zip_code,
-          email_notifications: settings.email_notifications,
-          sms_notifications: settings.sms_notifications,
           updated_at: new Date().toISOString()
         })
         .eq('id', user?.id);
@@ -105,7 +97,7 @@ export default function SettingsPage() {
     router.push('/');
   };
 
-  const handleInputChange = (field: keyof UserSettings, value: string | boolean) => {
+  const handleInputChange = (field: keyof UserSettings, value: string) => {
     if (!settings) return;
     setSettings({ ...settings, [field]: value });
   };
@@ -130,7 +122,7 @@ export default function SettingsPage() {
             <div className="flex justify-between items-center py-6">
               <div className="flex items-center gap-4">
                 <Link
-                  href={settings?.role === 'cleaner' ? '/dashboard/pro' : '/dashboard/customer'}
+                  href={settings?.role === 'cleaner' ? '/dashboard/pro' : settings?.role === 'admin' ? '/dashboard/admin' : '/dashboard/customer'}
                   className="text-gray-600 hover:text-gray-900"
                 >
                   <ArrowLeft className="h-6 w-6" />
@@ -275,7 +267,7 @@ export default function SettingsPage() {
                           </label>
                           <input
                             type="text"
-                            value={settings?.role === 'cleaner' ? 'Cleaning Business' : 'Customer'}
+                            value={settings?.role === 'cleaner' ? 'Cleaning Business' : settings?.role === 'admin' ? 'Administrator' : 'Customer'}
                             disabled
                             className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-500"
                           />
@@ -336,36 +328,16 @@ export default function SettingsPage() {
                     <h2 className="text-lg font-semibold text-gray-900 mb-6">Notification Preferences</h2>
                     
                     <div className="space-y-6">
-                      <div>
-                        <h3 className="text-sm font-medium text-gray-900 mb-4">Email Notifications</h3>
-                        <label className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 cursor-pointer">
-                          <div>
-                            <p className="font-medium text-gray-900">Marketing emails</p>
-                            <p className="text-sm text-gray-600">Receive updates about new features and promotions</p>
-                          </div>
-                          <input
-                            type="checkbox"
-                            checked={settings?.email_notifications || false}
-                            onChange={(e) => handleInputChange('email_notifications', e.target.checked)}
-                            className="h-4 w-4 text-blue-600"
-                          />
-                        </label>
-                      </div>
-                      
-                      <div>
-                        <h3 className="text-sm font-medium text-gray-900 mb-4">SMS Notifications</h3>
-                        <label className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 cursor-pointer">
-                          <div>
-                            <p className="font-medium text-gray-900">Text messages</p>
-                            <p className="text-sm text-gray-600">Receive important updates via SMS</p>
-                          </div>
-                          <input
-                            type="checkbox"
-                            checked={settings?.sms_notifications || false}
-                            onChange={(e) => handleInputChange('sms_notifications', e.target.checked)}
-                            className="h-4 w-4 text-blue-600"
-                          />
-                        </label>
+                      <div className="p-4 bg-blue-50 rounded-lg">
+                        <p className="text-sm text-blue-900">
+                          Manage your email and SMS notification preferences from your dashboard.
+                        </p>
+                        <Link
+                          href={settings?.role === 'cleaner' ? '/dashboard/pro' : '/dashboard/customer/notifications'}
+                          className="inline-flex items-center mt-3 text-blue-600 hover:text-blue-700 font-medium text-sm"
+                        >
+                          Go to Notification Preferences
+                        </Link>
                       </div>
                     </div>
                   </div>

@@ -7,7 +7,7 @@ import { createClient } from '@/lib/supabase/client';
 interface AuthUser extends User {
   user_metadata: {
     full_name?: string;
-    role?: 'customer' | 'cleaner';
+    role?: 'customer' | 'cleaner' | 'admin';
   };
 }
 
@@ -19,6 +19,7 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   isCustomer: boolean;
   isCleaner: boolean;
+  isAdmin: boolean;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -29,6 +30,7 @@ const AuthContext = createContext<AuthContextType>({
   signOut: async () => {},
   isCustomer: false,
   isCleaner: false,
+  isAdmin: false,
 });
 
 export const useAuth = () => {
@@ -91,8 +93,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     await supabase.auth.signOut();
   };
 
-  const isCustomer = Boolean(user?.user_metadata?.role === 'customer' || (!user?.user_metadata?.role && user));
+  const isAdmin = Boolean(user?.user_metadata?.role === 'admin');
   const isCleaner = Boolean(user?.user_metadata?.role === 'cleaner');
+  const isCustomer = Boolean(user?.user_metadata?.role === 'customer' || (!user?.user_metadata?.role && user && !isAdmin));
 
   const value = {
     user,
@@ -102,6 +105,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     signOut,
     isCustomer,
     isCleaner,
+    isAdmin,
   };
 
   return (

@@ -6,21 +6,22 @@ import { useRouter } from 'next/navigation';
 import { ProtectedRoute } from '@/lib/auth/protected-route';
 
 export default function DashboardPage() {
-  const { user, isCustomer, isCleaner } = useAuth();
+  const { user, isCustomer, isCleaner, isAdmin } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
     if (user) {
-      if (isCleaner) {
+      if (isAdmin) {
+        router.push('/dashboard/admin');
+      } else if (isCleaner) {
         router.push('/dashboard/pro');
       } else if (isCustomer) {
         router.push('/dashboard/customer');
       } else {
-        // Default to customer dashboard if role is unclear
         router.push('/dashboard/customer');
       }
     }
-  }, [user, isCustomer, isCleaner, router]);
+  }, [user, isCustomer, isCleaner, isAdmin, router]);
 
   return (
     <ProtectedRoute>
