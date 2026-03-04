@@ -222,15 +222,31 @@ export function AuthForm({ mode, role = 'customer' }: AuthFormProps) {
 
         if (signInError) throw signInError
 
-        // Get user role and redirect accordingly
-        const { data: userData } = await supabase
+        // Get user role from public.users using the authenticated user's ID
+        const userId = signInData.user?.id
+        if (!userId) {
+          console.error('[AuthForm] signInWithPassword succeeded but no user ID returned')
+          router.push('/dashboard')
+          return
+        }
+
+        const { data: userData, error: roleError } = await supabase
           .from('users')
           .select('role')
-          .eq('id', signInData.user.id)
+          .eq('id', userId)
           .single()
 
-        const userRole = userData?.role || 'customer'
-        router.push(roleToDashboardPath(userRole))
+        if (roleError) {
+          console.error(`[AuthForm] Role query failed for user ${userId}:`, roleError.message)
+        }
+
+        if (!userData?.role) {
+          console.error(`[AuthForm] No role found in public.users for user ${userId} (${email}). Redirecting to /dashboard for middleware to resolve.`)
+          router.push('/dashboard')
+          return
+        }
+
+        router.push(roleToDashboardPath(userData.role))
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : 'An error occurred during authentication';

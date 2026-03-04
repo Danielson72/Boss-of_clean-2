@@ -10,10 +10,10 @@ interface ProtectedRouteProps {
   redirectTo?: string;
 }
 
-export function ProtectedRoute({ 
-  children, 
+export function ProtectedRoute({
+  children,
   requireRole,
-  redirectTo = '/login' 
+  redirectTo = '/login'
 }: ProtectedRouteProps) {
   const { user, loading, isCustomer, isCleaner, isAdmin } = useAuth();
   const router = useRouter();
@@ -23,11 +23,11 @@ export function ProtectedRoute({
       router.push(redirectTo);
     } else if (!loading && requireRole) {
       // Check role-based access
-      if (requireRole === 'customer' && !isCustomer) {
+      if (requireRole === 'admin' && !isAdmin) {
+        router.push('/dashboard');
+      } else if (requireRole === 'customer' && !isCustomer) {
         router.push('/dashboard');
       } else if (requireRole === 'cleaner' && !isCleaner) {
-        router.push('/dashboard');
-      } else if (requireRole === 'admin' && !isAdmin) {
         router.push('/dashboard');
       }
     }

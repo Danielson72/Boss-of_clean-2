@@ -4,16 +4,12 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, AuthError } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabase/client';
 
-interface AuthUser extends User {
-  user_metadata: {
-    full_name?: string;
-    role?: 'customer' | 'cleaner' | 'admin';
-  };
-}
+type UserRole = 'customer' | 'cleaner' | 'admin';
 
 interface AuthContextType {
-  user: AuthUser | null;
+  user: User | null;
   loading: boolean;
+  dbRole: UserRole | null;
   signUp: (email: string, password: string, fullName: string, role: 'customer' | 'cleaner') => Promise<{ error: AuthError | null }>;
   signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>;
   signOut: () => Promise<void>;
@@ -25,6 +21,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
+  dbRole: null,
   signUp: async () => ({ error: null }),
   signIn: async () => ({ error: null }),
   signOut: async () => {},
@@ -42,15 +39,44 @@ export const useAuth = () => {
 };
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<AuthUser | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [dbRole, setDbRole] = useState<UserRole | null>(null);
   const [loading, setLoading] = useState(true);
   const supabase = createClient();
+
+  // Fetch role from public.users table (source of truth — NOT user_metadata)
+  const fetchDbRole = async (userId: string) => {
+    const { data, error } = await supabase
+      .from('users')
+      .select('role')
+      .eq('id', userId)
+      .single();
+
+    if (error) {
+      console.error(`[AuthContext] Failed to fetch role for user ${userId}:`, error.message);
+      return null;
+    }
+
+    if (!data?.role) {
+      console.error(`[AuthContext] No role found in public.users for user ${userId}`);
+      return null;
+    }
+
+    return data.role as UserRole;
+  };
 
   useEffect(() => {
     // Get initial session
     const getInitialSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      setUser(session?.user as AuthUser || null);
+      const currentUser = session?.user || null;
+      setUser(currentUser);
+
+      if (currentUser) {
+        const role = await fetchDbRole(currentUser.id);
+        setDbRole(role);
+      }
+
       setLoading(false);
     };
 
@@ -59,7 +85,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        setUser(session?.user as AuthUser || null);
+        const currentUser = session?.user || null;
+        setUser(currentUser);
+
+        if (currentUser) {
+          const role = await fetchDbRole(currentUser.id);
+          setDbRole(role);
+        } else {
+          setDbRole(null);
+        }
+
         setLoading(false);
       }
     );
@@ -91,15 +126,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signOut = async () => {
     await supabase.auth.signOut();
+    setDbRole(null);
   };
 
-  const isAdmin = Boolean(user?.user_metadata?.role === 'admin');
-  const isCleaner = Boolean(user?.user_metadata?.role === 'cleaner');
-  const isCustomer = Boolean(user?.user_metadata?.role === 'customer' || (!user?.user_metadata?.role && user && !isAdmin));
+  const isAdmin = dbRole === 'admin';
+  const isCleaner = dbRole === 'cleaner';
+  const isCustomer = dbRole === 'customer' || (!dbRole && !!user);
 
   const value = {
     user,
     loading,
+    dbRole,
     signUp,
     signIn,
     signOut,
