@@ -121,7 +121,7 @@ export default function Header() {
                   <LogOut className="h-4 w-4" aria-hidden="true" />
                 </button>
               </div>
-            ) : !user && (
+            ) : (
               <div className="flex items-center gap-3">
                 <Link href="/login" className={navLinkClass}>
                   Sign In
@@ -201,7 +201,7 @@ export default function Header() {
                     Sign Out
                   </button>
                 </>
-              ) : !user && (
+              ) : (
                 <>
                   <Link
                     href="/login"
