@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { Menu, X, User, LogOut } from 'lucide-react';
 import { useAuth } from '@/lib/context/AuthContext';
 
@@ -10,8 +11,15 @@ export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const { user, signOut, loading } = useAuth();
+  const router = useRouter();
   const mobileMenuRef = useRef<HTMLDivElement>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
+
+  const handleSignOut = async () => {
+    await signOut();
+    router.push('/');
+    router.refresh();
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -114,11 +122,12 @@ export default function Header() {
                   Dashboard
                 </Link>
                 <button
-                  onClick={signOut}
+                  onClick={handleSignOut}
                   className="text-sm font-medium text-brand-dark/60 hover:text-brand-dark transition-colors flex items-center gap-1.5"
                   aria-label="Log out of your account"
                 >
                   <LogOut className="h-4 w-4" aria-hidden="true" />
+                  Sign Out
                 </button>
               </div>
             ) : (
@@ -128,9 +137,9 @@ export default function Header() {
                 </Link>
                 <Link
                   href="/signup"
-                  className="text-sm font-medium text-brand-dark/80 hover:text-brand-gold transition-colors"
+                  className="border border-brand-gold text-brand-gold hover:bg-brand-gold hover:text-white px-4 py-1.5 rounded-lg text-sm font-semibold tracking-wide transition-all duration-200"
                 >
-                  Find a Pro
+                  Sign Up
                 </Link>
                 <Link
                   href="/signup"
@@ -193,7 +202,7 @@ export default function Header() {
                     Dashboard
                   </Link>
                   <button
-                    onClick={() => { signOut(); setIsMenuOpen(false); }}
+                    onClick={() => { handleSignOut(); setIsMenuOpen(false); }}
                     className="flex items-center gap-2 w-full px-3 py-2.5 text-sm font-medium text-brand-dark/60 hover:text-brand-dark hover:bg-brand-cream rounded-lg transition-colors text-left"
                     aria-label="Log out of your account"
                   >
@@ -215,7 +224,7 @@ export default function Header() {
                     className="block px-3 py-2.5 text-sm font-medium text-brand-dark/80 hover:text-brand-gold hover:bg-brand-cream rounded-lg transition-colors"
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    Find a Pro
+                    Sign Up
                   </Link>
                   <Link
                     href="/signup"
