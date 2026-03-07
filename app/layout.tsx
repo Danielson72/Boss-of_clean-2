@@ -4,6 +4,7 @@ import { DM_Sans, Playfair_Display } from 'next/font/google';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { AuthProvider } from '@/lib/context/AuthContext';
+import { Toaster } from '@/components/ui/sonner';
 
 const dmSans = DM_Sans({
   subsets: ['latin'],
@@ -63,6 +64,7 @@ export default function RootLayout({
             </main>
             <Footer />
           </div>
+          <Toaster />
         </AuthProvider>
       </body>
     </html>

@@ -16,27 +16,9 @@ export const metadata = {
 }
 
 export default async function AdminDashboard() {
-  const supabase = await createClient()
-
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/login')
-  }
-
-  // Verify admin role
-  const { data: userData } = await supabase
-    .from('users')
-    .select('role')
-    .eq('id', user.id)
-    .single()
-
-  if (userData?.role !== 'admin') {
-    redirect('/dashboard/customer')
-  }
-
-  // Wrap ALL data fetching in try/catch — server component errors in Next.js 13
+  // Wrap EVERYTHING in try/catch — server component errors in Next.js 13
   // bypass error.tsx and render a blank page, so we must never throw.
+  // redirect() throws a special NEXT_REDIRECT error that must be re-thrown.
   let pendingCleaners: unknown[] = []
   let allUsers: Record<string, unknown>[] = []
   let totalUsers = 0
@@ -47,6 +29,25 @@ export default async function AdminDashboard() {
   let dataError: string | null = null
 
   try {
+    const supabase = await createClient()
+
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+      redirect('/login')
+    }
+
+    // Verify admin role
+    const { data: userData } = await supabase
+      .from('users')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+
+    if (userData?.role !== 'admin') {
+      redirect('/dashboard/customer')
+    }
+
     // Fetch pending cleaners with completed onboarding
     const { data: cleanersData, error: cleanersError } = await supabase
       .from('cleaners')
@@ -82,7 +83,7 @@ export default async function AdminDashboard() {
     }
     allUsers = (usersData || []) as Record<string, unknown>[]
 
-    // Get stats — each in its own error-safe block
+    // Get stats
     const [statsUsers, statsCleaners, statsPending, statsRejected] = await Promise.all([
       supabase.from('users').select('*', { count: 'exact', head: true }),
       supabase.from('cleaners').select('*', { count: 'exact', head: true }).eq('approval_status', 'approved'),
@@ -94,8 +95,13 @@ export default async function AdminDashboard() {
     totalCleaners = statsCleaners.count || 0
     pendingApprovals = statsPending.count || 0
     rejectedCount = statsRejected.count || 0
-  } catch (err) {
-    console.error('[admin] Data fetch error:', err)
+  } catch (err: unknown) {
+    // Re-throw Next.js internal errors: redirect() throws NEXT_REDIRECT,
+    // cookies()/headers() throw DYNAMIC_SERVER_USAGE — both must propagate
+    if (err && typeof err === 'object' && 'digest' in err) {
+      throw err
+    }
+    console.error('[admin] Page error:', err)
     dataError = err instanceof Error ? err.message : 'Failed to load dashboard data'
   }
 

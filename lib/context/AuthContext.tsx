@@ -68,16 +68,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     // Get initial session
     const getInitialSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      const currentUser = session?.user || null;
-      setUser(currentUser);
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const currentUser = session?.user || null;
+        setUser(currentUser);
 
-      if (currentUser) {
-        const role = await fetchDbRole(currentUser.id);
-        setDbRole(role);
+        if (currentUser) {
+          const role = await fetchDbRole(currentUser.id);
+          setDbRole(role);
+        }
+      } catch (err) {
+        console.error('[AuthContext] getInitialSession error:', err);
+      } finally {
+        setLoading(false);
       }
-
-      setLoading(false);
     };
 
     getInitialSession();
