@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
-import { roleToDashboardPath } from '@/lib/utils/dashboard-path'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -215,42 +214,19 @@ export function AuthForm({ mode, role = 'customer' }: AuthFormProps) {
 
         router.push(role === 'cleaner' ? '/dashboard/pro/setup' : '/dashboard/customer')
       } else {
-        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+        const { error: signInError } = await supabase.auth.signInWithPassword({
           email,
           password,
         })
 
         if (signInError) throw signInError
 
-        // Get user role from public.users using the authenticated user's ID
-        const userId = signInData.user?.id
-        if (!userId) {
-          console.error('[AuthForm] signInWithPassword succeeded but no user ID returned')
-          router.push('/dashboard')
-          return
-        }
-
-        const { data: userData, error: roleError } = await supabase
-          .from('users')
-          .select('role')
-          .eq('id', userId)
-          .single()
-
-        if (roleError) {
-          console.error(`[AuthForm] Role query failed for user ${userId}:`, roleError.message)
-        }
-
-        if (!userData?.role) {
-          console.error(`[AuthForm] No role found in public.users for user ${userId} (${email}). Redirecting to /dashboard for middleware to resolve.`)
-          router.push('/dashboard')
-          return
-        }
-
-        router.push(roleToDashboardPath(userData.role))
+        // Let middleware determine the correct dashboard based on role
+        router.push('/dashboard')
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : 'An error occurred during authentication';
-      
+
       // Provide user-friendly error messages
       if (message.includes('Invalid login credentials')) {
         setError('Incorrect email or password. Please try again or use "Forgot password?" to reset.');
@@ -373,7 +349,7 @@ export function AuthForm({ mode, role = 'customer' }: AuthFormProps) {
               />
             </div>
           )}
-          
+
           {isCleaner && (
             <>
               <div className="space-y-2">
@@ -431,7 +407,7 @@ export function AuthForm({ mode, role = 'customer' }: AuthFormProps) {
               disabled={loading}
             />
           </div>
-          
+
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="password">Password</Label>
@@ -456,10 +432,10 @@ export function AuthForm({ mode, role = 'customer' }: AuthFormProps) {
             />
           </div>
         </CardContent>
-        
+
         <CardFooter className="flex flex-col space-y-4">
-          <Button 
-            type="submit" 
+          <Button
+            type="submit"
             className="w-full"
             disabled={loading}
           >
@@ -472,7 +448,7 @@ export function AuthForm({ mode, role = 'customer' }: AuthFormProps) {
               You&apos;ll complete your full profile after signup
             </p>
           )}
-          
+
           <div className="relative w-full">
             <div className="absolute inset-0 flex items-center">
               <span className="w-full border-t" />
@@ -481,14 +457,14 @@ export function AuthForm({ mode, role = 'customer' }: AuthFormProps) {
               <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
             </div>
           </div>
-          
+
           <GoogleSignInButton
             mode={mode}
             role={role}
             disabled={loading}
             onError={setError}
           />
-          
+
           <p className="text-center text-sm text-muted-foreground">
             {mode === 'login' ? (
               <>

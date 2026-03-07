@@ -6,24 +6,24 @@ import { useRouter } from 'next/navigation';
 import { ProtectedRoute } from '@/lib/auth/protected-route';
 
 export default function DashboardPage() {
-  const { user, isAdmin, isCleaner, isCustomer, dbRole } = useAuth();
+  const { user, loading, isAdmin, isCleaner, isCustomer, dbRole } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (user) {
-      if (isAdmin) {
-        router.push('/dashboard/admin');
-      } else if (isCleaner) {
-        router.push('/dashboard/pro');
-      } else if (isCustomer) {
-        router.push('/dashboard/customer');
-      } else {
-        // No role resolved -- log the error, let middleware handle it
-        console.error(`[dashboard/page] No role resolved for user. dbRole="${dbRole}". Falling back to /dashboard/customer.`);
-        router.push('/dashboard/customer');
-      }
+    // Wait for AuthContext to finish loading before redirecting
+    if (loading || !user) return;
+
+    if (isAdmin) {
+      router.push('/dashboard/admin');
+    } else if (isCleaner) {
+      router.push('/dashboard/pro');
+    } else if (isCustomer) {
+      router.push('/dashboard/customer');
+    } else {
+      console.error(`[dashboard/page] No role resolved for user. dbRole="${dbRole}". Falling back to /dashboard/customer.`);
+      router.push('/dashboard/customer');
     }
-  }, [user, isAdmin, isCleaner, isCustomer, dbRole, router]);
+  }, [user, loading, isAdmin, isCleaner, isCustomer, dbRole, router]);
 
   return (
     <ProtectedRoute>

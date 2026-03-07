@@ -97,19 +97,17 @@ export async function middleware(request: NextRequest) {
       .single()
 
     if (roleError) {
-      console.error(`[middleware] Role query FAILED for user ${user.id} (${user.email}):`, roleError.message, `code: ${roleError.code}`)
-      console.error(`[middleware] This means the user will default to 'customer' - if they are admin/cleaner this is a BUG. Check RLS policies on public.users table.`)
+      console.error(`[middleware] Role query FAILED for user ${user.id} (${user.email}):`, roleError.message)
     }
 
-    if (!roleError && !userData?.role) {
-      console.error(`[middleware] Query succeeded but NO ROLE found in public.users for user ${user.id} (${user.email}). Row data:`, JSON.stringify(userData))
-      console.error(`[middleware] Either the row doesn't exist or the role column is NULL.`)
+    // CRITICAL: Fall back to user_metadata.role when DB query fails (e.g. RLS timing)
+    const userRole = userData?.role || user.user_metadata?.role || 'customer'
+
+    if (!userData?.role) {
+      console.error(`[middleware] DB role missing for user ${user.id}, using fallback: "${userRole}"`)
     }
 
-    const userRole = userData?.role || 'customer'
-    console.log(`[middleware] Resolved role="${userRole}" for user ${user.id} (${user.email}) on path "${pathname}"`)
-
-    const dashboardPath = roleToDashboardPath(userRole)
+    const dashboardPath = roleToDashboardPath(userRole as string)
 
     // Redirect /dashboard to role-specific dashboard
     if (pathname === '/dashboard' || pathname === '/dashboard/') {
@@ -149,20 +147,15 @@ export async function middleware(request: NextRequest) {
 
   // Redirect authenticated users away from auth pages
   if (user && (pathname === '/login' || pathname === '/signup')) {
-    const { data: userData, error: roleError } = await supabase
+    const { data: userData } = await supabase
       .from('users')
       .select('role')
       .eq('id', user.id)
       .single()
 
-    if (roleError) {
-      console.error(`[middleware] Role query on auth page redirect FAILED for user ${user.id} (${user.email}):`, roleError.message)
-    }
-
-    const userRole = userData?.role || 'customer'
-    console.log(`[middleware] Auth page redirect: user ${user.id} (${user.email}) role="${userRole}" -> ${roleToDashboardPath(userRole)}`)
+    const userRole = userData?.role || user.user_metadata?.role || 'customer'
     const url = request.nextUrl.clone()
-    url.pathname = roleToDashboardPath(userRole)
+    url.pathname = roleToDashboardPath(userRole as string)
     return NextResponse.redirect(url)
   }
 
