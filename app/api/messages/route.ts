@@ -15,7 +15,7 @@ interface CreateMessageBody {
 
 // GET: List user's conversations with last message preview
 export async function GET() {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const {
     data: { user },
@@ -100,7 +100,7 @@ export async function GET() {
 
 // POST: Create new message (creates conversation if needed)
 export async function POST(request: NextRequest) {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const {
     data: { user },

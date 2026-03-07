@@ -10,6 +10,11 @@ import { AdminQueueWrapper } from './components/admin-queue-wrapper'
 import { PaymentMonitoring } from './components/PaymentMonitoring'
 import { getPaymentMonitoringData } from '@/lib/services/admin-payments'
 
+export const metadata = {
+  title: 'Admin Dashboard | Boss of Clean',
+  description: 'Platform administration',
+}
+
 export default async function AdminDashboard() {
   const supabase = await createClient()
 
@@ -282,9 +287,4 @@ export default async function AdminDashboard() {
       </Tabs>
     </div>
   )
-}
-
-export const metadata = {
-  title: 'Admin Dashboard | Boss of Clean',
-  description: 'Platform administration',
 }

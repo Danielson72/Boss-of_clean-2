@@ -14,7 +14,7 @@ export async function GET(
   context: RouteContext
 ) {
   const { conversationId } = await context.params;
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const {
     data: { user },
@@ -98,7 +98,7 @@ export async function POST(
   context: RouteContext
 ) {
   const { conversationId } = await context.params;
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const {
     data: { user },

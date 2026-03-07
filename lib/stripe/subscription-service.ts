@@ -7,8 +7,8 @@ import type Stripe from 'stripe';
 const logger = createLogger({ file: 'lib/stripe/subscription-service' });
 
 export class SubscriptionService {
-  private getSupabase() {
-    return createClient();
+  private async getSupabase() {
+    return await createClient();
   }
 
   async createCheckoutSession(
@@ -66,7 +66,8 @@ export class SubscriptionService {
 
   async getOrCreateStripeCustomer(cleanerId: string, email: string) {
     // Check if cleaner already has a Stripe customer ID
-    const { data: cleaner } = await this.getSupabase()
+    const supabase = await this.getSupabase();
+    const { data: cleaner } = await supabase
       .from('cleaners')
       .select('stripe_customer_id, business_name')
       .eq('id', cleanerId)
@@ -92,7 +93,7 @@ export class SubscriptionService {
     });
 
     // Update cleaner with Stripe customer ID
-    await this.getSupabase()
+    await supabase
       .from('cleaners')
       .update({ stripe_customer_id: customer.id })
       .eq('id', cleanerId);
@@ -120,8 +121,9 @@ export class SubscriptionService {
     const periodEnd = new Date(current_period_end * 1000).toISOString();
 
     try {
+      const supabase = await this.getSupabase();
       // Insert subscription record
-      await this.getSupabase().from('subscriptions').insert({
+      await supabase.from('subscriptions').insert({
         cleaner_id: cleanerId,
         stripe_subscription_id: id,
         stripe_customer_id: typeof customer === 'string' ? customer : customer?.id,
@@ -134,7 +136,7 @@ export class SubscriptionService {
       });
 
       // Update cleaner subscription info and billing dates
-      await this.getSupabase()
+      await supabase
         .from('cleaners')
         .update({
           subscription_tier: tier,
@@ -160,8 +162,9 @@ export class SubscriptionService {
     const periodEnd = new Date(current_period_end * 1000).toISOString();
 
     try {
+      const supabase = await this.getSupabase();
       // Update subscription record
-      await this.getSupabase()
+      await supabase
         .from('subscriptions')
         .update({
           status,
@@ -171,7 +174,7 @@ export class SubscriptionService {
         .eq('stripe_subscription_id', id);
 
       // Update cleaner subscription expiry and next billing date
-      await this.getSupabase()
+      await supabase
         .from('cleaners')
         .update({
           subscription_expires_at: periodEnd,
@@ -190,8 +193,9 @@ export class SubscriptionService {
     const { id } = subscription;
 
     try {
+      const supabase = await this.getSupabase();
       // Update cleaner to free tier and clear billing dates
-      await this.getSupabase()
+      await supabase
         .from('cleaners')
         .update({
           subscription_tier: 'free',
@@ -202,7 +206,7 @@ export class SubscriptionService {
         .eq('stripe_subscription_id', id);
 
       // Update subscription status
-      await this.getSupabase()
+      await supabase
         .from('subscriptions')
         .update({ status: 'canceled' })
         .eq('stripe_subscription_id', id);
@@ -230,8 +234,9 @@ export class SubscriptionService {
     const subscriptionId = typeof subscription === 'string' ? subscription : subscription.id;
 
     try {
+      const supabase = await this.getSupabase();
       // Record successful payment
-      const { data: subscriptionData } = await this.getSupabase()
+      const { data: subscriptionData } = await supabase
         .from('subscriptions')
         .select('cleaner_id')
         .eq('stripe_subscription_id', subscriptionId)
@@ -243,7 +248,7 @@ export class SubscriptionService {
           : inv.payment_intent?.id || null;
 
         // Record payment
-        await this.getSupabase().from('payments').insert({
+        await supabase.from('payments').insert({
           cleaner_id: subscriptionData.cleaner_id,
           stripe_payment_intent_id: paymentIntentId,
           amount: (amount_paid || 0) / 100, // Convert cents to dollars
@@ -260,7 +265,7 @@ export class SubscriptionService {
         nextMonth.setDate(1);
         nextMonth.setHours(0, 0, 0, 0);
 
-        await this.getSupabase()
+        await supabase
           .from('cleaners')
           .update({
             last_payment_date: new Date().toISOString(),
@@ -297,8 +302,9 @@ export class SubscriptionService {
     const subscriptionId = typeof subscription === 'string' ? subscription : subscription.id;
 
     try {
+      const supabase = await this.getSupabase();
       // Get cleaner ID from subscription
-      const { data: subscriptionData } = await this.getSupabase()
+      const { data: subscriptionData } = await supabase
         .from('subscriptions')
         .select('cleaner_id')
         .eq('stripe_subscription_id', subscriptionId)
@@ -306,7 +312,7 @@ export class SubscriptionService {
 
       if (subscriptionData) {
         // Increment failed payment count using RPC
-        await this.getSupabase().rpc('increment_payment_failed_count', {
+        await supabase.rpc('increment_payment_failed_count', {
           p_cleaner_id: subscriptionData.cleaner_id,
         });
 
@@ -315,7 +321,7 @@ export class SubscriptionService {
           : inv.payment_intent?.id || null;
 
         // Record failed payment
-        await this.getSupabase().from('payments').insert({
+        await supabase.from('payments').insert({
           cleaner_id: subscriptionData.cleaner_id,
           stripe_payment_intent_id: paymentIntentId,
           amount: (invoice.amount_due || 0) / 100,
@@ -341,7 +347,8 @@ export class SubscriptionService {
 
   async cancelSubscription(cleanerId: string) {
     try {
-      const { data: cleaner } = await this.getSupabase()
+      const supabase = await this.getSupabase();
+      const { data: cleaner } = await supabase
         .from('cleaners')
         .select('stripe_subscription_id')
         .eq('id', cleanerId)
@@ -362,7 +369,8 @@ export class SubscriptionService {
 
   async getSubscriptionDetails(cleanerId: string) {
     try {
-      const { data } = await this.getSupabase()
+      const supabase = await this.getSupabase();
+      const { data } = await supabase
         .from('subscriptions')
         .select('*')
         .eq('cleaner_id', cleanerId)

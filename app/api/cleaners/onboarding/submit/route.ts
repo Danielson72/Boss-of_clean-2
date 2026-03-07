@@ -7,7 +7,7 @@ const logger = createLogger({ file: 'api/cleaners/onboarding/submit/route' })
 // POST /api/cleaners/onboarding/submit - Submit onboarding for approval
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createClient()
+    const supabase = await createClient()
 
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     if (authError || !user) {

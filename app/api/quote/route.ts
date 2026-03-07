@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
     const ipAddress = forwardedFor?.split(',')[0]?.trim() || realIp || '127.0.0.1';
 
     // Initialize Supabase client
-    const supabase = createClient();
+    const supabase = await createClient();
 
     // Get current user (may be null for guests)
     const { data: { user }, error: authError } = await supabase.auth.getUser();

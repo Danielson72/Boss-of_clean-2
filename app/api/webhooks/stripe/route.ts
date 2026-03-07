@@ -182,9 +182,9 @@ async function handleStripeEvent(event: Stripe.Event): Promise<void> {
         });
         // Lead charge record already updated in chargeLeadFee - this is a confirmation
         await processEventWithRetry(event, async () => {
-          const supabase = (await import('@/lib/supabase/server')).createClient();
-          const sb = await supabase;
-          await sb
+          const { createClient } = await import('@/lib/supabase/server');
+          const supabase = await createClient();
+          await supabase
             .from('lead_charges')
             .update({ status: 'succeeded' })
             .eq('stripe_payment_intent_id', pi.id);
@@ -204,9 +204,9 @@ async function handleStripeEvent(event: Stripe.Event): Promise<void> {
           leadId: failedPi.metadata.lead_id,
         });
         await processEventWithRetry(event, async () => {
-          const supabase = (await import('@/lib/supabase/server')).createClient();
-          const sb = await supabase;
-          await sb
+          const { createClient } = await import('@/lib/supabase/server');
+          const supabase = await createClient();
+          await supabase
             .from('lead_charges')
             .update({ status: 'failed' })
             .eq('stripe_payment_intent_id', failedPi.id);

@@ -42,7 +42,7 @@ const FLORIDA_COUNTIES = [
 ];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   // Static pages with their priorities
   const staticPages: MetadataRoute.Sitemap = [

@@ -17,7 +17,7 @@ import type Stripe from 'stripe';
 const logger = createLogger({ file: 'lib/stripe/disputes' });
 
 export async function handleDisputeCreated(dispute: Stripe.Dispute): Promise<void> {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const chargeId = typeof dispute.charge === 'string'
     ? dispute.charge
@@ -176,7 +176,7 @@ export async function handleDisputeCreated(dispute: Stripe.Dispute): Promise<voi
 }
 
 export async function handleDisputeClosed(dispute: Stripe.Dispute): Promise<void> {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const outcome = dispute.status === 'won' ? 'won' : 'lost';
 

@@ -7,7 +7,7 @@ const logger = createLogger({ file: 'api/cleaners/onboarding/route' })
 // GET /api/cleaners/onboarding - Get current onboarding draft
 export async function GET(request: NextRequest) {
   try {
-    const supabase = createClient()
+    const supabase = await createClient()
 
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     if (authError || !user) {
@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
 // POST /api/cleaners/onboarding - Save onboarding draft
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createClient()
+    const supabase = await createClient()
 
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     if (authError || !user) {

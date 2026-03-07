@@ -23,7 +23,7 @@ interface CreateBookingBody {
 }
 
 export async function POST(request: NextRequest) {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   // Check auth
   const {

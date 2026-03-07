@@ -10,8 +10,8 @@ export interface WebhookEventRecord {
 }
 
 export class WebhookEventService {
-  private getSupabase() {
-    return createClient();
+  private async getSupabase() {
+    return await createClient();
   }
 
   /**
@@ -20,7 +20,7 @@ export class WebhookEventService {
    * Returns { is_new: false } if the event was already processed/is processing
    */
   async recordEvent(event: Stripe.Event): Promise<WebhookEventRecord> {
-    const supabase = this.getSupabase();
+    const supabase = await this.getSupabase();
 
     // Extract related IDs from event data for easier querying
     // Use unknown cast to safely access properties that may vary by event type
@@ -57,7 +57,7 @@ export class WebhookEventService {
    * Mark event as successfully processed
    */
   async markProcessed(eventId: string): Promise<void> {
-    const supabase = this.getSupabase();
+    const supabase = await this.getSupabase();
 
     const { error } = await supabase.rpc('mark_webhook_processed', {
       p_event_id: eventId,
@@ -72,7 +72,7 @@ export class WebhookEventService {
    * Mark event as failed with error message
    */
   async markFailed(eventId: string, errorMessage: string): Promise<void> {
-    const supabase = this.getSupabase();
+    const supabase = await this.getSupabase();
 
     const { error } = await supabase.rpc('mark_webhook_failed', {
       p_event_id: eventId,
@@ -88,7 +88,7 @@ export class WebhookEventService {
    * Check if an event has already been processed
    */
   async isProcessed(eventId: string): Promise<boolean> {
-    const supabase = this.getSupabase();
+    const supabase = await this.getSupabase();
 
     const { data, error } = await supabase.rpc('is_webhook_processed', {
       p_event_id: eventId,
@@ -106,7 +106,7 @@ export class WebhookEventService {
    * Get event details by ID
    */
   async getEvent(eventId: string) {
-    const supabase = this.getSupabase();
+    const supabase = await this.getSupabase();
 
     const { data, error } = await supabase
       .from('stripe_webhook_events')
@@ -126,7 +126,7 @@ export class WebhookEventService {
    * Get recent failed events for monitoring
    */
   async getFailedEvents(limit = 50) {
-    const supabase = this.getSupabase();
+    const supabase = await this.getSupabase();
 
     const { data, error } = await supabase
       .from('stripe_webhook_events')

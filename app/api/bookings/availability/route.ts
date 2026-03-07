@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const supabase = createClient();
+  const supabase = await createClient();
 
   // Fetch weekly availability slots
   const { data: availability, error: availError } = await supabase

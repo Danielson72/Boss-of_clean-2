@@ -7,7 +7,7 @@ const logger = createLogger({ file: 'api/cleaners/documents/route' })
 // GET /api/cleaners/documents - Get cleaner's documents
 export async function GET(request: NextRequest) {
   try {
-    const supabase = createClient()
+    const supabase = await createClient()
 
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     if (authError || !user) {
@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
 // POST /api/cleaners/documents - Upload a document (metadata only, actual upload via Supabase Storage)
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createClient()
+    const supabase = await createClient()
 
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     if (authError || !user) {
@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
 // DELETE /api/cleaners/documents - Delete a document
 export async function DELETE(request: NextRequest) {
   try {
-    const supabase = createClient()
+    const supabase = await createClient()
 
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     if (authError || !user) {
