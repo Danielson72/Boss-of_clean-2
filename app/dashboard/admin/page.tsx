@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Users, Shield, CheckCircle, Clock, BarChart3, DollarSign } from 'lucide-react'
+import { Users, Shield, CheckCircle, Clock, BarChart3, DollarSign, AlertTriangle } from 'lucide-react'
 import { AdminQueueWrapper } from './components/admin-queue-wrapper'
 import { PaymentMonitoring } from './components/PaymentMonitoring'
 import { getPaymentMonitoringData } from '@/lib/services/admin-payments'
@@ -30,58 +30,75 @@ export default async function AdminDashboard() {
     redirect('/dashboard/customer')
   }
 
-  // Fetch pending cleaners with completed onboarding
-  const { data: pendingCleaners } = await supabase
-    .from('cleaners')
-    .select(`
-      *,
-      user:users(
-        id,
-        email,
-        full_name,
-        phone,
-        city,
-        state,
-        zip_code
-      )
-    `)
-    .neq('approval_status', 'approved')
-    .order('onboarding_completed_at', { ascending: true, nullsFirst: false })
-
-  // Fetch all users
-  const { data: allUsers } = await supabase
-    .from('users')
-    .select('*')
-    .order('created_at', { ascending: false })
-    .limit(50)
-
-  // Get stats
-  const { count: totalUsers } = await supabase
-    .from('users')
-    .select('*', { count: 'exact', head: true })
-
-  const { count: totalCleaners } = await supabase
-    .from('cleaners')
-    .select('*', { count: 'exact', head: true })
-    .eq('approval_status', 'approved')
-
-  const { count: pendingApprovals } = await supabase
-    .from('cleaners')
-    .select('*', { count: 'exact', head: true })
-    .eq('approval_status', 'pending')
-    .not('onboarding_completed_at', 'is', null)
-
-  const { count: rejectedCount } = await supabase
-    .from('cleaners')
-    .select('*', { count: 'exact', head: true })
-    .eq('approval_status', 'rejected')
-
-  // Fetch payment monitoring data
+  // Wrap ALL data fetching in try/catch — server component errors in Next.js 13
+  // bypass error.tsx and render a blank page, so we must never throw.
+  let pendingCleaners: unknown[] = []
+  let allUsers: Record<string, unknown>[] = []
+  let totalUsers = 0
+  let totalCleaners = 0
+  let pendingApprovals = 0
+  let rejectedCount = 0
   let paymentData = null
+  let dataError: string | null = null
+
+  try {
+    // Fetch pending cleaners with completed onboarding
+    const { data: cleanersData, error: cleanersError } = await supabase
+      .from('cleaners')
+      .select(`
+        *,
+        user:users(
+          id,
+          email,
+          full_name,
+          phone,
+          city,
+          state,
+          zip_code
+        )
+      `)
+      .neq('approval_status', 'approved')
+      .order('created_at', { ascending: false })
+
+    if (cleanersError) {
+      console.error('[admin] cleaners query error:', cleanersError.message)
+    }
+    pendingCleaners = cleanersData || []
+
+    // Fetch all users
+    const { data: usersData, error: usersError } = await supabase
+      .from('users')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(50)
+
+    if (usersError) {
+      console.error('[admin] users query error:', usersError.message)
+    }
+    allUsers = (usersData || []) as Record<string, unknown>[]
+
+    // Get stats — each in its own error-safe block
+    const [statsUsers, statsCleaners, statsPending, statsRejected] = await Promise.all([
+      supabase.from('users').select('*', { count: 'exact', head: true }),
+      supabase.from('cleaners').select('*', { count: 'exact', head: true }).eq('approval_status', 'approved'),
+      supabase.from('cleaners').select('*', { count: 'exact', head: true }).eq('approval_status', 'pending'),
+      supabase.from('cleaners').select('*', { count: 'exact', head: true }).eq('approval_status', 'rejected'),
+    ])
+
+    totalUsers = statsUsers.count || 0
+    totalCleaners = statsCleaners.count || 0
+    pendingApprovals = statsPending.count || 0
+    rejectedCount = statsRejected.count || 0
+  } catch (err) {
+    console.error('[admin] Data fetch error:', err)
+    dataError = err instanceof Error ? err.message : 'Failed to load dashboard data'
+  }
+
+  // Payment monitoring is completely independent
   try {
     paymentData = await getPaymentMonitoringData()
-  } catch {
-    // Payment monitoring is non-critical; dashboard still works without it
+  } catch (err) {
+    console.error('[admin] Payment monitoring error:', err)
   }
 
   return (
@@ -101,6 +118,18 @@ export default async function AdminDashboard() {
         </Button>
       </div>
 
+      {dataError && (
+        <Card className="mb-8 border-yellow-500">
+          <CardContent className="py-4 flex items-center gap-3">
+            <AlertTriangle className="h-5 w-5 text-yellow-600 flex-shrink-0" />
+            <div>
+              <p className="font-medium text-yellow-800">Some data failed to load</p>
+              <p className="text-sm text-yellow-600">{dataError}</p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-4 mb-8">
         <Card>
@@ -109,7 +138,7 @@ export default async function AdminDashboard() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalUsers || 0}</div>
+            <div className="text-2xl font-bold">{totalUsers}</div>
           </CardContent>
         </Card>
 
@@ -119,7 +148,7 @@ export default async function AdminDashboard() {
             <CheckCircle className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalCleaners || 0}</div>
+            <div className="text-2xl font-bold">{totalCleaners}</div>
           </CardContent>
         </Card>
 
@@ -129,7 +158,7 @@ export default async function AdminDashboard() {
             <Clock className="h-4 w-4 text-yellow-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{pendingApprovals || 0}</div>
+            <div className="text-2xl font-bold">{pendingApprovals}</div>
           </CardContent>
         </Card>
 
@@ -139,7 +168,7 @@ export default async function AdminDashboard() {
             <Shield className="h-4 w-4 text-red-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{rejectedCount || 0}</div>
+            <div className="text-2xl font-bold">{rejectedCount}</div>
           </CardContent>
         </Card>
       </div>
@@ -169,7 +198,7 @@ export default async function AdminDashboard() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <AdminQueueWrapper applications={pendingCleaners || []} />
+              <AdminQueueWrapper applications={pendingCleaners as never[]} />
             </CardContent>
           </Card>
         </TabsContent>
@@ -196,7 +225,7 @@ export default async function AdminDashboard() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {!allUsers || allUsers.length === 0 ? (
+              {allUsers.length === 0 ? (
                 <div className="text-center py-8">
                   <Users className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
                   <p className="text-muted-foreground">
@@ -217,24 +246,24 @@ export default async function AdminDashboard() {
                       </tr>
                     </thead>
                     <tbody>
-                      {allUsers.map((user) => (
-                        <tr key={user.id} className="border-b">
-                          <td className="p-2 text-sm">{user.email}</td>
-                          <td className="p-2 text-sm">{user.full_name || '-'}</td>
+                      {allUsers.map((u) => (
+                        <tr key={String(u.id)} className="border-b">
+                          <td className="p-2 text-sm">{String(u.email || '')}</td>
+                          <td className="p-2 text-sm">{String(u.full_name || '-')}</td>
                           <td className="p-2">
                             <Badge variant={
-                              user.role === 'admin' ? 'default' :
-                              user.role === 'cleaner' ? 'secondary' :
+                              u.role === 'admin' ? 'default' :
+                              u.role === 'cleaner' ? 'secondary' :
                               'outline'
                             }>
-                              {user.role}
+                              {String(u.role || 'unknown')}
                             </Badge>
                           </td>
                           <td className="p-2 text-sm">
-                            {user.city ? `${user.city}, ${user.state}` : '-'}
+                            {u.city ? `${u.city}, ${u.state}` : '-'}
                           </td>
                           <td className="p-2 text-sm">
-                            {new Date(user.created_at).toLocaleDateString()}
+                            {u.created_at ? new Date(String(u.created_at)).toLocaleDateString() : '-'}
                           </td>
                           <td className="p-2">
                             <Button size="sm" variant="ghost">
