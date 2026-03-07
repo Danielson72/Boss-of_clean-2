@@ -39,7 +39,6 @@ export default async function AdminDashboard() {
         id,
         email,
         full_name,
-        display_name,
         phone,
         city,
         state,
@@ -221,7 +220,7 @@ export default async function AdminDashboard() {
                       {allUsers.map((user) => (
                         <tr key={user.id} className="border-b">
                           <td className="p-2 text-sm">{user.email}</td>
-                          <td className="p-2 text-sm">{user.display_name || user.full_name || '-'}</td>
+                          <td className="p-2 text-sm">{user.full_name || '-'}</td>
                           <td className="p-2">
                             <Badge variant={
                               user.role === 'admin' ? 'default' :

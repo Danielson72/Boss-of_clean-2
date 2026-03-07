@@ -45,7 +45,6 @@ interface CleanerApplication {
   user?: {
     email: string
     full_name?: string
-    display_name?: string
     city?: string
     state?: string
     zip_code?: string
