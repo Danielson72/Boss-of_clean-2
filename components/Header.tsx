@@ -9,15 +9,9 @@ import { useAuth } from '@/lib/context/AuthContext';
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const { user, signOut, loading } = useAuth();
+  const { user, loading } = useAuth();
   const mobileMenuRef = useRef<HTMLDivElement>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
-
-  const handleSignOut = async () => {
-    await signOut();
-    // Hard navigation bypasses ProtectedRoute's redirect race
-    window.location.href = '/';
-  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -119,14 +113,14 @@ export default function Header() {
                   <User className="h-4 w-4" aria-hidden="true" />
                   Dashboard
                 </Link>
-                <button
-                  onClick={handleSignOut}
+                <a
+                  href="/logout"
                   className="text-sm font-medium text-brand-dark/60 hover:text-brand-dark transition-colors flex items-center gap-1.5"
                   aria-label="Log out of your account"
                 >
                   <LogOut className="h-4 w-4" aria-hidden="true" />
                   Sign Out
-                </button>
+                </a>
               </div>
             ) : (
               <div className="flex items-center gap-3">
@@ -199,14 +193,14 @@ export default function Header() {
                     <User className="h-4 w-4" aria-hidden="true" />
                     Dashboard
                   </Link>
-                  <button
-                    onClick={() => { handleSignOut(); setIsMenuOpen(false); }}
+                  <a
+                    href="/logout"
                     className="flex items-center gap-2 w-full px-3 py-2.5 text-sm font-medium text-brand-dark/60 hover:text-brand-dark hover:bg-brand-cream rounded-lg transition-colors text-left"
                     aria-label="Log out of your account"
                   >
                     <LogOut className="h-4 w-4" aria-hidden="true" />
                     Sign Out
-                  </button>
+                  </a>
                 </>
               ) : (
                 <>

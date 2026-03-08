@@ -6,6 +6,8 @@ import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/context/AuthContext';
 import { LogOut, Menu, X, type LucideIcon } from 'lucide-react';
 
+// Sign out is handled by the /logout server route (full page nav, no JS needed)
+
 export interface SidebarLink {
   href: string;
   label: string;
@@ -19,7 +21,7 @@ interface DashboardSidebarProps {
 export function DashboardSidebar({ links }: DashboardSidebarProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
 
   const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User';
   const userEmail = user?.email || '';
@@ -30,12 +32,6 @@ export function DashboardSidebar({ links }: DashboardSidebarProps) {
     const isOverview = links[0]?.href === href;
     if (!isOverview && pathname.startsWith(href + '/')) return true;
     return false;
-  };
-
-  const handleSignOut = async () => {
-    await signOut();
-    // Hard navigation bypasses ProtectedRoute's redirect race
-    window.location.href = '/';
   };
 
   const navContent = (
@@ -69,15 +65,15 @@ export function DashboardSidebar({ links }: DashboardSidebarProps) {
         })}
       </nav>
 
-      {/* Sign Out */}
+      {/* Sign Out — plain <a> to server route, no client JS needed */}
       <div className="p-2 border-t border-gray-200">
-        <button
-          onClick={handleSignOut}
+        <a
+          href="/logout"
           className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-red-50 hover:text-red-700 transition-colors"
         >
           <LogOut className="h-4 w-4 flex-shrink-0" />
           Sign Out
-        </button>
+        </a>
       </div>
     </div>
   );
