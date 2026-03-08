@@ -36,6 +36,19 @@ async function verifyAdmin(): Promise<{ isAdmin: boolean; userId?: string; error
   return { isAdmin: true, userId: user.id }
 }
 
+// Fallback: fetch pro email + business name if RPC didn't return them
+async function getProContact(cleanerId: string): Promise<{ email: string; business_name: string } | null> {
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from('cleaners')
+    .select('business_name, user:users(email)')
+    .eq('id', cleanerId)
+    .single()
+  const email = (data?.user as Record<string, unknown>)?.email as string | undefined
+  if (!email || !data?.business_name) return null
+  return { email, business_name: data.business_name }
+}
+
 export async function approveCleaner(cleanerId: string, notes?: string): Promise<ActionResult> {
   const { isAdmin, error: authError } = await verifyAdmin()
   if (!isAdmin) {
@@ -59,9 +72,12 @@ export async function approveCleaner(cleanerId: string, notes?: string): Promise
   }
 
   // Send approval email notification (non-blocking)
-  if (data.email && data.business_name) {
+  const contact = (data.email && data.business_name)
+    ? { email: data.email, business_name: data.business_name }
+    : await getProContact(cleanerId)
+  if (contact) {
     try {
-      await sendStatusEmail(data.email, data.business_name, 'approved')
+      await sendStatusEmail(contact.email, contact.business_name, 'approved')
     } catch (emailErr) {
       logger.error('Failed to send approval email', { function: 'approveCleaner' }, emailErr)
     }
@@ -98,9 +114,12 @@ export async function rejectCleaner(cleanerId: string, reason: string): Promise<
   }
 
   // Send rejection email notification (non-blocking)
-  if (data.email && data.business_name) {
+  const contact = (data.email && data.business_name)
+    ? { email: data.email, business_name: data.business_name }
+    : await getProContact(cleanerId)
+  if (contact) {
     try {
-      await sendStatusEmail(data.email, data.business_name, 'rejected', reason)
+      await sendStatusEmail(contact.email, contact.business_name, 'rejected', reason)
     } catch (emailErr) {
       logger.error('Failed to send rejection email', { function: 'rejectCleaner' }, emailErr)
     }
@@ -137,9 +156,12 @@ export async function requestCleanerInfo(cleanerId: string, requestNotes: string
   }
 
   // Send info request email notification (non-blocking)
-  if (data.email && data.business_name) {
+  const contact = (data.email && data.business_name)
+    ? { email: data.email, business_name: data.business_name }
+    : await getProContact(cleanerId)
+  if (contact) {
     try {
-      await sendStatusEmail(data.email, data.business_name, 'info_requested', requestNotes)
+      await sendStatusEmail(contact.email, contact.business_name, 'info_requested', requestNotes)
     } catch (emailErr) {
       logger.error('Failed to send info request email', { function: 'requestCleanerInfo' }, emailErr)
     }
