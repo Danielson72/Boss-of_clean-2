@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/context/AuthContext';
 import { LogOut, Menu, X, type LucideIcon } from 'lucide-react';
 
@@ -19,7 +19,6 @@ interface DashboardSidebarProps {
 export function DashboardSidebar({ links }: DashboardSidebarProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
-  const router = useRouter();
   const { user, signOut } = useAuth();
 
   const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User';
@@ -35,8 +34,8 @@ export function DashboardSidebar({ links }: DashboardSidebarProps) {
 
   const handleSignOut = async () => {
     await signOut();
-    router.push('/');
-    router.refresh();
+    // Hard navigation bypasses ProtectedRoute's redirect race
+    window.location.href = '/';
   };
 
   const navContent = (

@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
 import { Menu, X, User, LogOut } from 'lucide-react';
 import { useAuth } from '@/lib/context/AuthContext';
 
@@ -11,14 +10,13 @@ export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const { user, signOut, loading } = useAuth();
-  const router = useRouter();
   const mobileMenuRef = useRef<HTMLDivElement>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
 
   const handleSignOut = async () => {
     await signOut();
-    router.push('/');
-    router.refresh();
+    // Hard navigation bypasses ProtectedRoute's redirect race
+    window.location.href = '/';
   };
 
   useEffect(() => {

@@ -71,15 +71,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         const currentUser = session?.user || null;
+        console.log('[AuthContext] getInitialSession:', currentUser?.email || 'no user');
         setUser(currentUser);
 
         if (currentUser) {
-          const role = await fetchDbRole(currentUser.id);
-          setDbRole(role);
+          try {
+            const role = await fetchDbRole(currentUser.id);
+            console.log('[AuthContext] role resolved:', role);
+            setDbRole(role);
+          } catch (err) {
+            console.error('[AuthContext] fetchDbRole error:', err);
+          }
         }
       } catch (err) {
         console.error('[AuthContext] getInitialSession error:', err);
       } finally {
+        console.log('[AuthContext] loading set to false');
         setLoading(false);
       }
     };
@@ -89,12 +96,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('[AuthContext] onAuthStateChange:', event, session?.user?.email || 'no user');
         const currentUser = session?.user || null;
         setUser(currentUser);
 
         if (currentUser) {
-          const role = await fetchDbRole(currentUser.id);
-          setDbRole(role);
+          try {
+            const role = await fetchDbRole(currentUser.id);
+            setDbRole(role);
+          } catch (err) {
+            console.error('[AuthContext] fetchDbRole error in onAuthStateChange:', err);
+          }
         } else {
           setDbRole(null);
         }
@@ -130,7 +142,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signOut = async () => {
     await supabase.auth.signOut();
+    setUser(null);
     setDbRole(null);
+    setLoading(false);
   };
 
   const isAdmin = dbRole === 'admin';
