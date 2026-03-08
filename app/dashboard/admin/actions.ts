@@ -46,8 +46,7 @@ export async function approveCleaner(cleanerId: string, notes?: string): Promise
 
   // Call the database function
   const { data, error } = await supabase.rpc('approve_cleaner', {
-    p_cleaner_id: cleanerId,
-    p_admin_notes: notes || null
+    p_cleaner_id: cleanerId
   })
 
   if (error) {
@@ -55,12 +54,18 @@ export async function approveCleaner(cleanerId: string, notes?: string): Promise
     return { success: false, error: error.message }
   }
 
-  if (!data.success) {
-    return { success: false, error: data.error }
+  if (!data?.success) {
+    return { success: false, error: data?.error || 'RPC returned unsuccessful' }
   }
 
-  // Send approval email notification
-  await sendStatusEmail(data.email, data.business_name, 'approved')
+  // Send approval email notification (non-blocking)
+  if (data.email && data.business_name) {
+    try {
+      await sendStatusEmail(data.email, data.business_name, 'approved')
+    } catch (emailErr) {
+      logger.error('Failed to send approval email', { function: 'approveCleaner' }, emailErr)
+    }
+  }
 
   revalidatePath('/dashboard/admin')
   return { success: true, data }
@@ -88,12 +93,18 @@ export async function rejectCleaner(cleanerId: string, reason: string): Promise<
     return { success: false, error: error.message }
   }
 
-  if (!data.success) {
-    return { success: false, error: data.error }
+  if (!data?.success) {
+    return { success: false, error: data?.error || 'RPC returned unsuccessful' }
   }
 
-  // Send rejection email notification
-  await sendStatusEmail(data.email, data.business_name, 'rejected', reason)
+  // Send rejection email notification (non-blocking)
+  if (data.email && data.business_name) {
+    try {
+      await sendStatusEmail(data.email, data.business_name, 'rejected', reason)
+    } catch (emailErr) {
+      logger.error('Failed to send rejection email', { function: 'rejectCleaner' }, emailErr)
+    }
+  }
 
   revalidatePath('/dashboard/admin')
   return { success: true, data }
@@ -113,7 +124,7 @@ export async function requestCleanerInfo(cleanerId: string, requestNotes: string
 
   const { data, error } = await supabase.rpc('request_cleaner_info', {
     p_cleaner_id: cleanerId,
-    p_request_notes: requestNotes
+    p_message: requestNotes
   })
 
   if (error) {
@@ -121,12 +132,18 @@ export async function requestCleanerInfo(cleanerId: string, requestNotes: string
     return { success: false, error: error.message }
   }
 
-  if (!data.success) {
-    return { success: false, error: data.error }
+  if (!data?.success) {
+    return { success: false, error: data?.error || 'RPC returned unsuccessful' }
   }
 
-  // Send info request email notification
-  await sendStatusEmail(data.email, data.business_name, 'info_requested', requestNotes)
+  // Send info request email notification (non-blocking)
+  if (data.email && data.business_name) {
+    try {
+      await sendStatusEmail(data.email, data.business_name, 'info_requested', requestNotes)
+    } catch (emailErr) {
+      logger.error('Failed to send info request email', { function: 'requestCleanerInfo' }, emailErr)
+    }
+  }
 
   revalidatePath('/dashboard/admin')
   return { success: true, data }
@@ -145,9 +162,7 @@ export async function verifyDocument(
   const supabase = await createClient()
 
   const { data, error } = await supabase.rpc('verify_document', {
-    p_document_id: documentId,
-    p_status: status,
-    p_notes: notes || null
+    p_document_id: documentId
   })
 
   if (error) {
@@ -155,8 +170,8 @@ export async function verifyDocument(
     return { success: false, error: error.message }
   }
 
-  if (!data.success) {
-    return { success: false, error: data.error }
+  if (!data?.success) {
+    return { success: false, error: data?.error || 'RPC returned unsuccessful' }
   }
 
   revalidatePath('/dashboard/admin')
@@ -251,7 +266,7 @@ async function sendStatusEmail(
     content = `
       <h2 style="color: #16a34a; font-size: 24px; margin: 0 0 8px 0;">Congratulations!</h2>
       <p style="color: #6b7280; font-size: 16px; margin-bottom: 24px;">
-        Your cleaning business <strong>"${businessName}"</strong> has been approved on Boss of Clean.
+        Your business <strong>"${businessName}"</strong> has been approved on Boss of Clean.
       </p>
 
       <div style="background: #ecfdf5; border-radius: 8px; padding: 16px; margin: 20px 0; border-left: 4px solid #16a34a;">

@@ -118,7 +118,7 @@ export default async function AdminDashboard() {
         <div>
           <h1 className="text-3xl font-bold">Admin Dashboard</h1>
           <p className="text-muted-foreground mt-2">
-            Manage platform users and cleaner approvals
+            Manage platform users and professional approvals
           </p>
         </div>
         <Button asChild>
@@ -155,7 +155,7 @@ export default async function AdminDashboard() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Cleaners</CardTitle>
+            <CardTitle className="text-sm font-medium">Active Professionals</CardTitle>
             <CheckCircle className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
@@ -203,9 +203,9 @@ export default async function AdminDashboard() {
         <TabsContent value="approvals" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Pending Cleaner Applications</CardTitle>
+              <CardTitle>Pending Professional Applications</CardTitle>
               <CardDescription>
-                Review and approve cleaner profiles. Applications with info requests are highlighted.
+                Review and approve professional profiles. Applications with info requests are highlighted.
               </CardDescription>
             </CardHeader>
             <CardContent>
