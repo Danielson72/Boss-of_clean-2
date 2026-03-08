@@ -10,6 +10,7 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   dbRole: UserRole | null;
+  roleLoaded: boolean;
   signUp: (email: string, password: string, fullName: string, role: 'customer' | 'cleaner') => Promise<{ error: AuthError | null }>;
   signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>;
   signOut: () => Promise<void>;
@@ -22,6 +23,7 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
   dbRole: null,
+  roleLoaded: false,
   signUp: async () => ({ error: null }),
   signIn: async () => ({ error: null }),
   signOut: async () => {},
@@ -41,6 +43,7 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [dbRole, setDbRole] = useState<UserRole | null>(null);
+  const [roleLoaded, setRoleLoaded] = useState(false);
   const [loading, setLoading] = useState(true);
   const supabase = createClient();
 
@@ -66,6 +69,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   useEffect(() => {
+    let initialLoadDone = false;
+
     // Get initial session
     const getInitialSession = async () => {
       try {
@@ -82,10 +87,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           } catch (err) {
             console.error('[AuthContext] fetchDbRole error:', err);
           }
+          setRoleLoaded(true);
         }
       } catch (err) {
         console.error('[AuthContext] getInitialSession error:', err);
       } finally {
+        initialLoadDone = true;
         console.log('[AuthContext] loading set to false');
         setLoading(false);
       }
@@ -93,22 +100,36 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     getInitialSession();
 
-    // Listen for auth changes
+    // Listen for auth changes (sign-in, sign-out, token refresh)
+    // Skip INITIAL_SESSION — getInitialSession already handles it.
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('[AuthContext] onAuthStateChange:', event, session?.user?.email || 'no user');
+
+        // Skip the initial event — getInitialSession already handles it.
+        // Processing it here causes a race: setLoading(false) fires before
+        // fetchDbRole finishes, so ProtectedRoute sees dbRole=null and redirects.
+        if (!initialLoadDone) {
+          console.log('[AuthContext] skipping onAuthStateChange — initial load in progress');
+          return;
+        }
+
         const currentUser = session?.user || null;
         setUser(currentUser);
 
         if (currentUser) {
+          setLoading(true);
+          setRoleLoaded(false);
           try {
             const role = await fetchDbRole(currentUser.id);
             setDbRole(role);
           } catch (err) {
             console.error('[AuthContext] fetchDbRole error in onAuthStateChange:', err);
           }
+          setRoleLoaded(true);
         } else {
           setDbRole(null);
+          setRoleLoaded(false);
         }
 
         setLoading(false);
@@ -144,6 +165,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     await supabase.auth.signOut();
     setUser(null);
     setDbRole(null);
+    setRoleLoaded(false);
     setLoading(false);
   };
 
@@ -155,6 +177,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     user,
     loading,
     dbRole,
+    roleLoaded,
     signUp,
     signIn,
     signOut,

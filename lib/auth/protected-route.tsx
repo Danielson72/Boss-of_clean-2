@@ -15,14 +15,19 @@ export function ProtectedRoute({
   requireRole,
   redirectTo = '/login'
 }: ProtectedRouteProps) {
-  const { user, loading, isCustomer, isCleaner, isAdmin } = useAuth();
+  const { user, loading, roleLoaded, isCustomer, isCleaner, isAdmin } = useAuth();
   const router = useRouter();
 
+  // Still resolving: loading is true OR user exists but role fetch hasn't completed yet
+  const isResolving = loading || (!!user && !roleLoaded);
+
   useEffect(() => {
-    if (!loading && !user) {
+    if (isResolving) return;
+
+    if (!user) {
       router.push(redirectTo);
-    } else if (!loading && requireRole) {
-      // Check role-based access
+    } else if (requireRole) {
+      // Only check role access once dbRole has resolved
       if (requireRole === 'admin' && !isAdmin) {
         router.push('/dashboard');
       } else if (requireRole === 'customer' && !isCustomer) {
@@ -31,9 +36,9 @@ export function ProtectedRoute({
         router.push('/dashboard');
       }
     }
-  }, [user, loading, requireRole, isCustomer, isCleaner, isAdmin, router, redirectTo]);
+  }, [user, isResolving, requireRole, isCustomer, isCleaner, isAdmin, router, redirectTo]);
 
-  if (loading) {
+  if (isResolving) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
