@@ -64,9 +64,9 @@ export async function POST(request: NextRequest) {
         continue;
       }
 
-      // Generate unique filename
+      // Generate unique filename — folder must be user.id to match storage RLS policy
       const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg';
-      const fileName = `${cleaner.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+      const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
 
       // Convert File to ArrayBuffer for upload
       const arrayBuffer = await file.arrayBuffer();

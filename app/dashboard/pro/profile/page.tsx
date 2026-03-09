@@ -122,21 +122,21 @@ export default function CleanerProfilePage() {
 
   const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file || !profile) return;
+    if (!file || !profile || !user) return;
 
     setUploading(true);
     try {
       const fileExt = file.name.split('.').pop();
-      const fileName = `${profile.id}/${Date.now()}.${fileExt}`;
+      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
 
       const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('cleaner-photos')
+        .from('profile-images')
         .upload(fileName, file);
 
       if (uploadError) throw uploadError;
 
       const { data: { publicUrl } } = supabase.storage
-        .from('cleaner-photos')
+        .from('profile-images')
         .getPublicUrl(fileName);
 
       const updatedPhotos = [...profile.business_images, publicUrl];
