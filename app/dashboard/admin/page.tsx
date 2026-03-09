@@ -113,7 +113,7 @@ export default async function AdminDashboard() {
   }
 
   return (
-    <div className="container mx-auto p-6">
+    <div className="container mx-auto px-3 py-4 md:p-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
           <h1 className="text-3xl font-bold">Admin Dashboard</h1>
@@ -142,7 +142,7 @@ export default async function AdminDashboard() {
       )}
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-4 mb-8">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4 mb-6 md:mb-8">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Users</CardTitle>
@@ -184,21 +184,23 @@ export default async function AdminDashboard() {
         </Card>
       </div>
 
-      <Tabs defaultValue="approvals" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3 lg:w-[600px]">
-          <TabsTrigger value="approvals" className="gap-2">
-            <Clock className="h-4 w-4" />
-            Approval Queue
-          </TabsTrigger>
-          <TabsTrigger value="payments" className="gap-2">
-            <DollarSign className="h-4 w-4" />
-            Payments
-          </TabsTrigger>
-          <TabsTrigger value="users" className="gap-2">
-            <Users className="h-4 w-4" />
-            Users
-          </TabsTrigger>
-        </TabsList>
+      <Tabs defaultValue="approvals" className="space-y-4 md:space-y-6">
+        <div className="overflow-x-auto -mx-3 px-3 md:mx-0 md:px-0">
+          <TabsList className="inline-flex w-auto min-w-full md:grid md:w-full md:grid-cols-3 lg:w-[600px]">
+            <TabsTrigger value="approvals" className="gap-2 whitespace-nowrap">
+              <Clock className="h-4 w-4" />
+              Approval Queue
+            </TabsTrigger>
+            <TabsTrigger value="payments" className="gap-2 whitespace-nowrap">
+              <DollarSign className="h-4 w-4" />
+              Payments
+            </TabsTrigger>
+            <TabsTrigger value="users" className="gap-2 whitespace-nowrap">
+              <Users className="h-4 w-4" />
+              Users
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         <TabsContent value="approvals" className="space-y-4">
           <Card>
@@ -244,16 +246,16 @@ export default async function AdminDashboard() {
                   </p>
                 </div>
               ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full">
+                <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
+                  <table className="w-full min-w-[600px]">
                     <thead>
                       <tr className="border-b">
-                        <th className="text-left p-2">Email</th>
-                        <th className="text-left p-2">Name</th>
-                        <th className="text-left p-2">Role</th>
-                        <th className="text-left p-2">Location</th>
-                        <th className="text-left p-2">Joined</th>
-                        <th className="text-left p-2">Actions</th>
+                        <th className="text-left p-2 text-sm">Email</th>
+                        <th className="text-left p-2 text-sm">Name</th>
+                        <th className="text-left p-2 text-sm">Role</th>
+                        <th className="text-left p-2 text-sm hidden sm:table-cell">Location</th>
+                        <th className="text-left p-2 text-sm hidden sm:table-cell">Joined</th>
+                        <th className="text-left p-2 text-sm">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -270,10 +272,10 @@ export default async function AdminDashboard() {
                               {String(u.role || 'unknown')}
                             </Badge>
                           </td>
-                          <td className="p-2 text-sm">
+                          <td className="p-2 text-sm hidden sm:table-cell">
                             {u.city ? `${u.city}, ${u.state}` : '-'}
                           </td>
-                          <td className="p-2 text-sm">
+                          <td className="p-2 text-sm hidden sm:table-cell">
                             {u.created_at ? new Date(String(u.created_at)).toLocaleDateString() : '-'}
                           </td>
                           <td className="p-2">

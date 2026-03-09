@@ -165,17 +165,17 @@ export function ApprovalQueue({ applications, onViewDetails }: ApprovalQueueProp
             key={cleaner.id}
             className={hasInfoRequest(cleaner) ? 'border-yellow-500 border-2' : ''}
           >
-            <CardContent className="pt-6">
-              <div className="flex justify-between items-start">
-                <div className="space-y-2 flex-1">
-                  <div className="flex items-center gap-2">
+            <CardContent className="pt-4 md:pt-6">
+              <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
+                <div className="space-y-2 flex-1 min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
                     <input
                       type="checkbox"
                       checked={selectedIds.has(cleaner.id)}
                       onChange={() => toggleSelect(cleaner.id)}
                       className="h-4 w-4 rounded border-gray-300"
                     />
-                    <h3 className="font-semibold">{cleaner.business_name}</h3>
+                    <h3 className="font-semibold truncate">{cleaner.business_name}</h3>
                     <Badge variant={
                       cleaner.approval_status === 'pending' ? 'secondary' : 'destructive'
                     }>
@@ -190,10 +190,9 @@ export function ApprovalQueue({ applications, onViewDetails }: ApprovalQueueProp
                   </div>
 
                   <div className="text-sm text-muted-foreground space-y-1">
-                    <p>Contact: {cleaner.user?.email}</p>
+                    <p className="truncate">Contact: {cleaner.user?.email}</p>
                     <p>Location: {cleaner.user?.city}, {cleaner.user?.state} {cleaner.user?.zip_code}</p>
-                    <p>Experience: {cleaner.years_experience || 0} years</p>
-                    <p>Rate: ${cleaner.hourly_rate || 0}/hour</p>
+                    <p>Experience: {cleaner.years_experience || 0} years &middot; ${cleaner.hourly_rate || 0}/hr</p>
                     <p>Applied: {new Date(cleaner.created_at).toLocaleDateString()}</p>
                     {cleaner.onboarding_completed_at && (
                       <p>Submitted: {new Date(cleaner.onboarding_completed_at).toLocaleDateString()}</p>
@@ -216,7 +215,7 @@ export function ApprovalQueue({ applications, onViewDetails }: ApprovalQueueProp
                     </div>
                   )}
 
-                  <div className="flex gap-2 mt-2">
+                  <div className="flex flex-wrap gap-2 mt-2">
                     {cleaner.insurance_verified && (
                       <Badge variant="outline" className="text-green-600">
                         <CheckCircle className="h-3 w-3 mr-1" />
@@ -232,10 +231,11 @@ export function ApprovalQueue({ applications, onViewDetails }: ApprovalQueueProp
                   </div>
                 </div>
 
-                <div className="flex flex-col gap-2 ml-4">
+                <div className="grid grid-cols-2 md:flex md:flex-col gap-2 md:ml-4 md:flex-shrink-0">
                   <Button
                     size="sm"
                     variant="outline"
+                    className="w-full md:w-auto"
                     onClick={() => onViewDetails(cleaner.id)}
                   >
                     <Eye className="h-4 w-4 mr-1" />
@@ -244,7 +244,7 @@ export function ApprovalQueue({ applications, onViewDetails }: ApprovalQueueProp
                   <Button
                     size="sm"
                     variant="default"
-                    className="bg-green-600 hover:bg-green-700"
+                    className="w-full md:w-auto bg-green-600 hover:bg-green-700"
                     onClick={() => openActionDialog(cleaner, 'approve')}
                   >
                     <CheckCircle className="h-4 w-4 mr-1" />
@@ -253,7 +253,7 @@ export function ApprovalQueue({ applications, onViewDetails }: ApprovalQueueProp
                   <Button
                     size="sm"
                     variant="outline"
-                    className="text-yellow-600 border-yellow-600 hover:bg-yellow-50"
+                    className="w-full md:w-auto text-yellow-600 border-yellow-600 hover:bg-yellow-50"
                     onClick={() => openActionDialog(cleaner, 'request_info')}
                   >
                     <MessageSquare className="h-4 w-4 mr-1" />
@@ -262,6 +262,7 @@ export function ApprovalQueue({ applications, onViewDetails }: ApprovalQueueProp
                   <Button
                     size="sm"
                     variant="destructive"
+                    className="w-full md:w-auto"
                     onClick={() => openActionDialog(cleaner, 'reject')}
                   >
                     <XCircle className="h-4 w-4 mr-1" />
