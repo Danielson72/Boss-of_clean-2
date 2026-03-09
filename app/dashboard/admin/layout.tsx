@@ -13,7 +13,7 @@ export default function AdminDashboardLayout({ children }: { children: React.Rea
   return (
     <div className="flex min-h-[calc(100vh-4rem)]">
       <DashboardSidebar links={adminLinks} />
-      <main className="flex-1 min-w-0">{children}</main>
+      <main className="flex-1 min-w-0 pt-14 md:pt-0 px-2 md:px-0 overflow-x-hidden">{children}</main>
     </div>
   );
 }

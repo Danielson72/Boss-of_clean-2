@@ -15,7 +15,7 @@ export default function CustomerDashboardLayout({ children }: { children: React.
   return (
     <div className="flex min-h-[calc(100vh-4rem)]">
       <DashboardSidebar links={customerLinks} />
-      <main className="flex-1 min-w-0">{children}</main>
+      <main className="flex-1 min-w-0 pt-14 md:pt-0 px-2 md:px-0 overflow-x-hidden">{children}</main>
     </div>
   );
 }

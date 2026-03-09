@@ -80,35 +80,48 @@ export function DashboardSidebar({ links }: DashboardSidebarProps) {
 
   return (
     <>
-      {/* Mobile toggle button */}
-      <button
-        onClick={() => setMobileOpen(!mobileOpen)}
-        className="lg:hidden fixed top-20 left-4 z-40 bg-white shadow-md rounded-lg p-2 border border-gray-200"
-        aria-label={mobileOpen ? 'Close sidebar' : 'Open sidebar'}
-      >
-        {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-      </button>
+      {/* Mobile toggle button — only visible when sidebar is closed */}
+      {!mobileOpen && (
+        <button
+          onClick={() => setMobileOpen(true)}
+          className="md:hidden fixed top-[4.5rem] left-4 z-[60] bg-white shadow-md rounded-lg p-2 border border-gray-200"
+          aria-label="Open sidebar"
+        >
+          <Menu className="h-5 w-5" />
+        </button>
+      )}
 
-      {/* Mobile overlay */}
+      {/* Mobile backdrop overlay */}
       {mobileOpen && (
         <div
-          className="lg:hidden fixed inset-0 z-30 bg-black/30"
+          className="md:hidden fixed inset-0 z-[55] bg-black/40"
           onClick={() => setMobileOpen(false)}
+          aria-hidden="true"
         />
       )}
 
       {/* Mobile sidebar */}
       <aside
-        className={`lg:hidden fixed top-0 left-0 z-30 h-full w-64 bg-white border-r border-gray-200 transform transition-transform duration-200 ${
+        className={`md:hidden fixed top-0 left-0 z-[55] h-full w-64 bg-white border-r border-gray-200 transform transition-transform duration-200 ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        <div className="h-16" /> {/* Spacer for header */}
+        {/* Close button inside sidebar */}
+        <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200">
+          <span className="text-sm font-semibold text-gray-900">Menu</span>
+          <button
+            onClick={() => setMobileOpen(false)}
+            className="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors"
+            aria-label="Close sidebar"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
         {navContent}
       </aside>
 
       {/* Desktop sidebar */}
-      <aside className="hidden lg:block w-64 flex-shrink-0 bg-white border-r border-gray-200 min-h-[calc(100vh-4rem)]">
+      <aside className="hidden md:block w-64 flex-shrink-0 bg-white border-r border-gray-200 min-h-[calc(100vh-4rem)]">
         {navContent}
       </aside>
     </>
