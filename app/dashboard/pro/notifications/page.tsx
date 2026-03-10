@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/lib/context/AuthContext'
 import { Card, CardContent } from '@/components/ui/card'
@@ -40,33 +40,44 @@ export default function NotificationsPage() {
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [loading, setLoading] = useState(true)
 
-  const fetchNotifications = useCallback(async () => {
-    if (!user) return
-    const supabase = createClient()
-    const { data, error } = await supabase
-      .from('notifications')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
-      .limit(50)
-
-    if (!error && data) {
-      setNotifications(data)
-    }
-    setLoading(false)
-  }, [user])
-
   useEffect(() => {
-    fetchNotifications()
-  }, [fetchNotifications])
+    if (!user) return
+    let cancelled = false
+
+    async function load() {
+      const supabase = createClient()
+      const { data, error } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('user_id', user!.id)
+        .order('created_at', { ascending: false })
+        .limit(50)
+
+      if (cancelled) return
+
+      if (error) {
+        console.error('[notifications] fetch error:', error.message)
+      } else {
+        setNotifications(data || [])
+      }
+      setLoading(false)
+    }
+
+    load()
+    return () => { cancelled = true }
+  }, [user])
 
   const markAsRead = async (id: string) => {
     const supabase = createClient()
-    await supabase
+    const { error } = await supabase
       .from('notifications')
       .update({ read: true })
       .eq('id', id)
 
+    if (error) {
+      console.error('[notifications] mark read error:', error.message)
+      return
+    }
     setNotifications(prev =>
       prev.map(n => n.id === id ? { ...n, read: true } : n)
     )
@@ -75,12 +86,16 @@ export default function NotificationsPage() {
   const markAllRead = async () => {
     if (!user) return
     const supabase = createClient()
-    await supabase
+    const { error } = await supabase
       .from('notifications')
       .update({ read: true })
       .eq('user_id', user.id)
       .eq('read', false)
 
+    if (error) {
+      console.error('[notifications] mark all read error:', error.message)
+      return
+    }
     setNotifications(prev => prev.map(n => ({ ...n, read: true })))
   }
 
