@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
+import { useAuth } from '@/lib/context/AuthContext'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -35,6 +36,36 @@ export function AuthForm({ mode, role = 'customer' }: AuthFormProps) {
   const router = useRouter()
   const supabase = createClient()
   const isCleaner = mode === 'signup' && role === 'cleaner'
+  const { user: authUser, loading: authLoading, roleLoaded, isAdmin, isCleaner: isCleanerRole } = useAuth()
+  const [redirecting, setRedirecting] = useState(false)
+  const safetyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // FIX 1: Redirect already-authenticated users away from login/signup
+  useEffect(() => {
+    if (authLoading || !authUser || !roleLoaded) return
+    setRedirecting(true)
+    if (isAdmin) router.push('/dashboard/admin')
+    else if (isCleanerRole) router.push('/dashboard/pro')
+    else router.push('/dashboard/customer')
+  }, [authUser, authLoading, roleLoaded, isAdmin, isCleanerRole, router])
+
+  // FIX 2: Safety timeout — force clear loading after 15s
+  useEffect(() => {
+    if (loading) {
+      safetyTimeoutRef.current = setTimeout(() => {
+        setLoading(false)
+        setError('Something went wrong. Please try again.')
+      }, 15000)
+    } else {
+      if (safetyTimeoutRef.current) {
+        clearTimeout(safetyTimeoutRef.current)
+        safetyTimeoutRef.current = null
+      }
+    }
+    return () => {
+      if (safetyTimeoutRef.current) clearTimeout(safetyTimeoutRef.current)
+    }
+  }, [loading])
 
   // Countdown timer for resend cooldown
   useEffect(() => {
@@ -241,6 +272,18 @@ export function AuthForm({ mode, role = 'customer' }: AuthFormProps) {
     } finally {
       setLoading(false)
     }
+  }
+
+  // Show redirecting state for already-authenticated users
+  if (redirecting) {
+    return (
+      <Card className="w-full max-w-md">
+        <CardContent className="py-12 text-center">
+          <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary mb-4" />
+          <p className="text-muted-foreground">Redirecting to your dashboard...</p>
+        </CardContent>
+      </Card>
+    )
   }
 
   if (verificationPending) {
