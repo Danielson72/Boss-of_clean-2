@@ -80,6 +80,16 @@ export function ApprovalQueue({ applications, onViewDetails }: ApprovalQueueProp
   const handleAction = async () => {
     if (!selectedCleaner || !actionType) return
 
+    // Validate required notes before starting
+    if (actionType === 'reject' && !notes.trim()) {
+      toast.error('Please provide a reason for rejection')
+      return
+    }
+    if (actionType === 'request_info' && !notes.trim()) {
+      toast.error('Please specify what information is needed')
+      return
+    }
+
     setLoading(true)
 
     try {
@@ -90,19 +100,9 @@ export function ApprovalQueue({ applications, onViewDetails }: ApprovalQueueProp
           result = await approveCleaner(selectedCleaner.id, notes || undefined)
           break
         case 'reject':
-          if (!notes.trim()) {
-            toast.error('Please provide a reason for rejection')
-            setLoading(false)
-            return
-          }
           result = await rejectCleaner(selectedCleaner.id, notes)
           break
         case 'request_info':
-          if (!notes.trim()) {
-            toast.error('Please specify what information is needed')
-            setLoading(false)
-            return
-          }
           result = await requestCleanerInfo(selectedCleaner.id, notes)
           break
       }
@@ -113,7 +113,6 @@ export function ApprovalQueue({ applications, onViewDetails }: ApprovalQueueProp
           actionType === 'reject' ? 'Application rejected' :
           'Information request sent'
         )
-        closeDialog()
       } else {
         toast.error(result?.error || 'Action failed')
       }
@@ -122,6 +121,7 @@ export function ApprovalQueue({ applications, onViewDetails }: ApprovalQueueProp
       toast.error('An unexpected error occurred')
     } finally {
       setLoading(false)
+      closeDialog()
     }
   }
 

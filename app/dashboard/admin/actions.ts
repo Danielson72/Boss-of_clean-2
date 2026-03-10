@@ -71,170 +71,206 @@ async function createNotification(
 }
 
 export async function approveCleaner(cleanerId: string, notes?: string): Promise<ActionResult> {
-  const { isAdmin, error: authError } = await verifyAdmin()
-  if (!isAdmin) {
-    return { success: false, error: authError }
-  }
-
-  const supabase = await createClient()
-
-  // Call the database function
-  const { data, error } = await supabase.rpc('approve_cleaner', {
-    p_cleaner_id: cleanerId
-  })
-
-  if (error) {
-    logger.error('Error approving cleaner', { function: 'approveCleaner' }, error)
-    return { success: false, error: error.message }
-  }
-
-  if (!data?.success) {
-    return { success: false, error: data?.error || 'RPC returned unsuccessful' }
-  }
-
-  // Get contact info for notification + email
-  const contact = (data.email && data.business_name && data.user_id)
-    ? { email: data.email, business_name: data.business_name, user_id: data.user_id }
-    : await getProContact(cleanerId)
-
-  if (contact) {
-    // Create in-app notification (non-blocking)
-    try {
-      await createNotification(
-        contact.user_id,
-        'approval',
-        'Application Approved!',
-        `Congratulations! Your business "${contact.business_name}" has been approved. You can now receive quote requests and start earning.`,
-        '/dashboard/pro'
-      )
-    } catch (notifErr) {
-      logger.error('Failed to create approval notification', { function: 'approveCleaner' }, notifErr)
+  console.log('[approveCleaner] start', { cleanerId })
+  try {
+    const { isAdmin, error: authError } = await verifyAdmin()
+    if (!isAdmin) {
+      return { success: false, error: authError }
     }
 
-    // Send email (fire-and-forget)
-    try {
-      await sendStatusEmail(contact.email, contact.business_name, 'approved')
-    } catch (emailErr) {
-      logger.error('Failed to send approval email', { function: 'approveCleaner' }, emailErr)
-    }
-  }
+    const supabase = await createClient()
 
-  revalidatePath('/dashboard/admin')
-  return { success: true, data }
+    // Call the database function
+    const { data, error } = await supabase.rpc('approve_cleaner', {
+      p_cleaner_id: cleanerId
+    })
+
+    if (error) {
+      logger.error('Error approving cleaner', { function: 'approveCleaner' }, error)
+      return { success: false, error: error.message }
+    }
+
+    if (!data?.success) {
+      return { success: false, error: data?.error || 'RPC returned unsuccessful' }
+    }
+
+    // Get contact info for notification + email
+    let contact: { email: string; business_name: string; user_id: string } | null = null
+    try {
+      contact = (data.email && data.business_name && data.user_id)
+        ? { email: data.email, business_name: data.business_name, user_id: data.user_id }
+        : await getProContact(cleanerId)
+    } catch (contactErr) {
+      logger.error('Failed to get pro contact', { function: 'approveCleaner' }, contactErr)
+    }
+
+    if (contact) {
+      // Create in-app notification (non-blocking)
+      try {
+        await createNotification(
+          contact.user_id,
+          'approval',
+          'Application Approved!',
+          `Congratulations! Your business "${contact.business_name}" has been approved. You can now receive quote requests and start earning.`,
+          '/dashboard/pro'
+        )
+      } catch (notifErr) {
+        logger.error('Failed to create approval notification', { function: 'approveCleaner' }, notifErr)
+      }
+
+      // Send email (fire-and-forget)
+      try {
+        await sendStatusEmail(contact.email, contact.business_name, 'approved')
+      } catch (emailErr) {
+        logger.error('Failed to send approval email', { function: 'approveCleaner' }, emailErr)
+      }
+    }
+
+    revalidatePath('/dashboard/admin')
+    console.log('[approveCleaner] success', { cleanerId })
+    return { success: true, data }
+  } catch (err) {
+    logger.error('Unexpected error in approveCleaner', { function: 'approveCleaner', cleanerId }, err)
+    return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }
+  }
 }
 
 export async function rejectCleaner(cleanerId: string, reason: string): Promise<ActionResult> {
+  console.log('[rejectCleaner] start', { cleanerId })
   if (!reason || reason.trim() === '') {
     return { success: false, error: 'Rejection reason is required' }
   }
 
-  const { isAdmin, error: authError } = await verifyAdmin()
-  if (!isAdmin) {
-    return { success: false, error: authError }
-  }
-
-  const supabase = await createClient()
-
-  const { data, error } = await supabase.rpc('reject_cleaner', {
-    p_cleaner_id: cleanerId,
-    p_reason: reason
-  })
-
-  if (error) {
-    logger.error('Error rejecting cleaner', { function: 'rejectCleaner' }, error)
-    return { success: false, error: error.message }
-  }
-
-  if (!data?.success) {
-    return { success: false, error: data?.error || 'RPC returned unsuccessful' }
-  }
-
-  // Get contact info for notification + email
-  const contact = (data.email && data.business_name && data.user_id)
-    ? { email: data.email, business_name: data.business_name, user_id: data.user_id }
-    : await getProContact(cleanerId)
-
-  if (contact) {
-    // Create in-app notification (non-blocking)
-    try {
-      await createNotification(
-        contact.user_id,
-        'rejection',
-        'Application Update',
-        `Your application for "${contact.business_name}" was not approved. Reason: ${reason}`,
-        '/dashboard/pro/profile'
-      )
-    } catch (notifErr) {
-      logger.error('Failed to create rejection notification', { function: 'rejectCleaner' }, notifErr)
+  try {
+    const { isAdmin, error: authError } = await verifyAdmin()
+    if (!isAdmin) {
+      return { success: false, error: authError }
     }
 
-    // Send email (fire-and-forget)
-    try {
-      await sendStatusEmail(contact.email, contact.business_name, 'rejected', reason)
-    } catch (emailErr) {
-      logger.error('Failed to send rejection email', { function: 'rejectCleaner' }, emailErr)
-    }
-  }
+    const supabase = await createClient()
 
-  revalidatePath('/dashboard/admin')
-  return { success: true, data }
+    const { data, error } = await supabase.rpc('reject_cleaner', {
+      p_cleaner_id: cleanerId,
+      p_reason: reason
+    })
+
+    if (error) {
+      logger.error('Error rejecting cleaner', { function: 'rejectCleaner' }, error)
+      return { success: false, error: error.message }
+    }
+
+    if (!data?.success) {
+      return { success: false, error: data?.error || 'RPC returned unsuccessful' }
+    }
+
+    // Get contact info for notification + email
+    let contact: { email: string; business_name: string; user_id: string } | null = null
+    try {
+      contact = (data.email && data.business_name && data.user_id)
+        ? { email: data.email, business_name: data.business_name, user_id: data.user_id }
+        : await getProContact(cleanerId)
+    } catch (contactErr) {
+      logger.error('Failed to get pro contact', { function: 'rejectCleaner' }, contactErr)
+    }
+
+    if (contact) {
+      // Create in-app notification (non-blocking)
+      try {
+        await createNotification(
+          contact.user_id,
+          'rejection',
+          'Application Update',
+          `Your application for "${contact.business_name}" was not approved. Reason: ${reason}`,
+          '/dashboard/pro/profile'
+        )
+      } catch (notifErr) {
+        logger.error('Failed to create rejection notification', { function: 'rejectCleaner' }, notifErr)
+      }
+
+      // Send email (fire-and-forget)
+      try {
+        await sendStatusEmail(contact.email, contact.business_name, 'rejected', reason)
+      } catch (emailErr) {
+        logger.error('Failed to send rejection email', { function: 'rejectCleaner' }, emailErr)
+      }
+    }
+
+    revalidatePath('/dashboard/admin')
+    console.log('[rejectCleaner] success', { cleanerId })
+    return { success: true, data }
+  } catch (err) {
+    logger.error('Unexpected error in rejectCleaner', { function: 'rejectCleaner', cleanerId }, err)
+    return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }
+  }
 }
 
 export async function requestCleanerInfo(cleanerId: string, requestNotes: string): Promise<ActionResult> {
+  console.log('[requestCleanerInfo] start', { cleanerId })
   if (!requestNotes || requestNotes.trim() === '') {
     return { success: false, error: 'Request notes are required' }
   }
 
-  const { isAdmin, error: authError } = await verifyAdmin()
-  if (!isAdmin) {
-    return { success: false, error: authError }
-  }
-
-  const supabase = await createClient()
-
-  const { data, error } = await supabase.rpc('request_cleaner_info', {
-    p_cleaner_id: cleanerId,
-    p_message: requestNotes
-  })
-
-  if (error) {
-    logger.error('Error requesting info', { function: 'requestCleanerInfo' }, error)
-    return { success: false, error: error.message }
-  }
-
-  if (!data?.success) {
-    return { success: false, error: data?.error || 'RPC returned unsuccessful' }
-  }
-
-  // Get contact info for notification + email
-  const contact = (data.email && data.business_name && data.user_id)
-    ? { email: data.email, business_name: data.business_name, user_id: data.user_id }
-    : await getProContact(cleanerId)
-
-  if (contact) {
-    // Create in-app notification (non-blocking)
-    try {
-      await createNotification(
-        contact.user_id,
-        'info_request',
-        'Additional Information Needed',
-        `We need more information about your application for "${contact.business_name}": ${requestNotes}`,
-        '/dashboard/pro/profile'
-      )
-    } catch (notifErr) {
-      logger.error('Failed to create info request notification', { function: 'requestCleanerInfo' }, notifErr)
+  try {
+    const { isAdmin, error: authError } = await verifyAdmin()
+    if (!isAdmin) {
+      return { success: false, error: authError }
     }
 
-    // Send email (fire-and-forget)
-    try {
-      await sendStatusEmail(contact.email, contact.business_name, 'info_requested', requestNotes)
-    } catch (emailErr) {
-      logger.error('Failed to send info request email', { function: 'requestCleanerInfo' }, emailErr)
-    }
-  }
+    const supabase = await createClient()
 
-  revalidatePath('/dashboard/admin')
-  return { success: true, data }
+    const { data, error } = await supabase.rpc('request_cleaner_info', {
+      p_cleaner_id: cleanerId,
+      p_message: requestNotes
+    })
+
+    if (error) {
+      logger.error('Error requesting info', { function: 'requestCleanerInfo' }, error)
+      return { success: false, error: error.message }
+    }
+
+    if (!data?.success) {
+      return { success: false, error: data?.error || 'RPC returned unsuccessful' }
+    }
+
+    // Get contact info for notification + email
+    let contact: { email: string; business_name: string; user_id: string } | null = null
+    try {
+      contact = (data.email && data.business_name && data.user_id)
+        ? { email: data.email, business_name: data.business_name, user_id: data.user_id }
+        : await getProContact(cleanerId)
+    } catch (contactErr) {
+      logger.error('Failed to get pro contact', { function: 'requestCleanerInfo' }, contactErr)
+    }
+
+    if (contact) {
+      // Create in-app notification (non-blocking)
+      try {
+        await createNotification(
+          contact.user_id,
+          'info_request',
+          'Additional Information Needed',
+          `We need more information about your application for "${contact.business_name}": ${requestNotes}`,
+          '/dashboard/pro/profile'
+        )
+      } catch (notifErr) {
+        logger.error('Failed to create info request notification', { function: 'requestCleanerInfo' }, notifErr)
+      }
+
+      // Send email (fire-and-forget)
+      try {
+        await sendStatusEmail(contact.email, contact.business_name, 'info_requested', requestNotes)
+      } catch (emailErr) {
+        logger.error('Failed to send info request email', { function: 'requestCleanerInfo' }, emailErr)
+      }
+    }
+
+    revalidatePath('/dashboard/admin')
+    console.log('[requestCleanerInfo] success', { cleanerId })
+    return { success: true, data }
+  } catch (err) {
+    logger.error('Unexpected error in requestCleanerInfo', { function: 'requestCleanerInfo', cleanerId }, err)
+    return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }
+  }
 }
 
 export async function verifyDocument(
