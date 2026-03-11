@@ -17,17 +17,34 @@ import {
   Bath,
   Bed,
   KeyRound,
+  Waves,
+  TreePine,
+  Car,
+  Wind,
+  Briefcase,
+  Droplets,
+  Paintbrush,
+  Hammer,
 } from 'lucide-react';
 import Link from 'next/link';
 import { submitQuoteRequest, type QuoteRequestData } from './actions';
 
 const SERVICE_TYPES = [
   { value: 'residential', label: 'Residential Cleaning', icon: Home },
-  // COMMERCIAL_DISABLED: { value: 'commercial', label: 'Commercial Cleaning', icon: Building2 },
   { value: 'deep_cleaning', label: 'Deep Cleaning', icon: Sparkles },
   { value: 'move_in_out', label: 'Move In/Out Cleaning', icon: Home },
   { value: 'str_turnover', label: 'Airbnb / STR Turnover', icon: KeyRound },
-  { value: 'recurring', label: 'Recurring Service', icon: Calendar },
+  { value: 'maid_service', label: 'Maid Service', icon: Sparkles },
+  { value: 'pressure_washing', label: 'Pressure Washing', icon: Droplets },
+  { value: 'window_cleaning', label: 'Window Cleaning', icon: Paintbrush },
+  { value: 'carpet_cleaning', label: 'Carpet Cleaning', icon: Sparkles },
+  { value: 'post_construction', label: 'Post-Construction', icon: Hammer },
+  { value: 'pool_cleaning', label: 'Pool Cleaning', icon: Waves },
+  { value: 'landscaping', label: 'Landscaping', icon: TreePine },
+  { value: 'mobile_car_detailing', label: 'Car Detailing', icon: Car },
+  { value: 'air_duct_cleaning', label: 'Air Duct Cleaning', icon: Wind },
+  { value: 'commercial', label: 'Commercial Cleaning', icon: Building2 },
+  { value: 'office_cleaning', label: 'Office Cleaning', icon: Briefcase },
 ];
 
 const PROPERTY_TYPES = [
