@@ -19,10 +19,16 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "Boss of Clean \u2014 Florida's Residential Cleaning Marketplace",
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'https://bossofclean.com'),
-  description: 'Florida\'s residential cleaning and home services marketplace. Connect with independent cleaning professionals across all 67 counties. House cleaning, deep cleaning, pressure washing and more.',
-  keywords: 'cleaning services Florida, house cleaning Florida, residential cleaning, pressure washing, carpet cleaning, deep cleaning, professional cleaners Florida, home services marketplace',
+  title: {
+    default: "Boss of Clean \u2014 Florida's Home Services Marketplace",
+    template: "%s | Boss of Clean",
+  },
+  description: 'Find trusted, verified home service professionals in Florida. Get free quotes for cleaning, pressure washing, landscaping, pool cleaning, and more. Purrfection is our Standard.',
+  keywords: 'cleaning services Florida, house cleaning Florida, residential cleaning, pressure washing, carpet cleaning, deep cleaning, professional cleaners Florida, home services marketplace, pool cleaning, landscaping',
+  authors: [{ name: 'Boss of Clean' }],
+  creator: 'Boss of Clean',
+  publisher: 'Boss of Clean',
   icons: {
     icon: [
       { url: '/favicon.ico', sizes: 'any' },
@@ -32,12 +38,32 @@ export const metadata: Metadata = {
     apple: '/apple-touch-icon.png',
   },
   manifest: '/site.webmanifest',
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
   openGraph: {
-    title: "Boss of Clean \u2014 Florida's Residential Cleaning Marketplace",
-    description: 'Florida\'s residential cleaning marketplace. Connect with independent cleaning professionals across all 67 counties.',
+    title: "Boss of Clean \u2014 Florida's Home Services Marketplace",
+    description: 'Find trusted, verified home service professionals in Florida. Get free quotes for cleaning, pressure washing, landscaping, pool cleaning, and more.',
+    url: 'https://bossofclean.com',
+    siteName: 'Boss of Clean',
     type: 'website',
     locale: 'en_US',
-    images: [{ url: '/og-logo.png', width: 1200, height: 630 }],
+    images: [{ url: '/og-logo.png', width: 1200, height: 630, alt: 'Boss of Clean \u2014 Florida Home Services Marketplace' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: "Boss of Clean \u2014 Florida's Home Services Marketplace",
+    description: 'Find trusted, verified home service professionals in Florida. Get free quotes for cleaning, pressure washing, landscaping, pool cleaning, and more.',
+    images: ['/og-logo.png'],
+    creator: '@bossofclean',
   },
 };
 

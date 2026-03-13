@@ -7,8 +7,7 @@ import type { Metadata } from 'next';
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://bossofclean.com';
 const SITE_NAME = 'Boss of Clean';
-const SITE_SUFFIX = "Boss of Clean \u2014 Florida's Residential Cleaning Marketplace";
-const DEFAULT_DESCRIPTION = 'Florida\'s residential cleaning and home services marketplace. Connect with independent cleaning professionals across all 67 counties. House cleaning, deep cleaning, pressure washing and more.';
+const DEFAULT_DESCRIPTION = 'Find trusted, verified home service professionals in Florida. Get free quotes for cleaning, pressure washing, landscaping, pool cleaning, and more. Purrfection is our Standard.';
 
 export interface MetadataOptions {
   title: string;
@@ -34,7 +33,7 @@ export function generatePageMetadata(options: MetadataOptions): Metadata {
     type = 'website',
   } = options;
 
-  const fullTitle = title === SITE_NAME ? SITE_SUFFIX : `${title} | ${SITE_SUFFIX}`;
+  // Just pass the short title — the layout template appends "| Boss of Clean"
   const canonicalUrl = `${BASE_URL}${path}`;
   const imageUrl = image.startsWith('http') ? image : `${BASE_URL}${image}`;
 
@@ -47,7 +46,7 @@ export function generatePageMetadata(options: MetadataOptions): Metadata {
   ];
 
   return {
-    title: fullTitle,
+    title,
     description,
     keywords: [...defaultKeywords, ...keywords].join(', '),
     authors: [{ name: SITE_NAME }],
@@ -61,7 +60,7 @@ export function generatePageMetadata(options: MetadataOptions): Metadata {
       ? { index: false, follow: false }
       : { index: true, follow: true },
     openGraph: {
-      title: fullTitle,
+      title: `${title} | ${SITE_NAME}`,
       description,
       url: canonicalUrl,
       siteName: SITE_NAME,
@@ -78,7 +77,7 @@ export function generatePageMetadata(options: MetadataOptions): Metadata {
     },
     twitter: {
       card: 'summary_large_image',
-      title: fullTitle,
+      title: `${title} | ${SITE_NAME}`,
       description,
       images: [imageUrl],
       creator: '@bossofclean',

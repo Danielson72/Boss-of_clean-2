@@ -1,4 +1,3 @@
-import { Metadata } from 'next';
 import Link from 'next/link';
 import {
   Home, Building2, Sparkles, Droplets, LayoutGrid,
@@ -6,17 +5,14 @@ import {
   ChevronRight, type LucideIcon
 } from 'lucide-react';
 import { SERVICE_TYPES } from '@/lib/data/service-types';
+import { generatePageMetadata } from '@/lib/seo/metadata';
 
-export const metadata: Metadata = {
-  title: 'Cleaning Services in Florida | Boss of Clean',
-  description: 'Browse all professional cleaning services available in Florida. Residential, deep cleaning, pressure washing, and more. Find cleaning professionals near you.',
-  keywords: 'cleaning services Florida, house cleaning, residential cleaning, pressure washing, carpet cleaning, window cleaning',
-  openGraph: {
-    title: 'Cleaning Services in Florida | Boss of Clean',
-    description: 'Browse all professional cleaning services available in Florida. Find cleaning professionals near you.',
-    type: 'website',
-  },
-};
+export const metadata = generatePageMetadata({
+  title: 'Home Services in Florida',
+  description: 'Browse all professional home services available in Florida. Cleaning, pressure washing, pool cleaning, landscaping, and more. Find trusted professionals near you.',
+  path: '/services',
+  keywords: ['home services Florida', 'cleaning services', 'pressure washing', 'pool cleaning', 'landscaping', 'carpet cleaning', 'window cleaning'],
+});
 
 const iconMap: Record<string, LucideIcon> = {
   Home,
