@@ -17,16 +17,20 @@ const BusinessInfoForm = dynamic(
   () => import('@/components/onboarding/BusinessInfoForm'),
   { ssr: false, loading: StepSkeleton }
 )
-const LocationServicesForm = dynamic(
-  () => import('@/components/onboarding/LocationServicesForm'),
+const ServicesForm = dynamic(
+  () => import('@/components/onboarding/ServicesForm'),
+  { ssr: false, loading: StepSkeleton }
+)
+const ServiceAreasForm = dynamic(
+  () => import('@/components/onboarding/ServiceAreasForm'),
   { ssr: false, loading: StepSkeleton }
 )
 const DocumentUploadForm = dynamic(
   () => import('@/components/onboarding/DocumentUploadForm'),
   { ssr: false, loading: StepSkeleton }
 )
-const TrainingModule = dynamic(
-  () => import('@/components/onboarding/TrainingModule'),
+const PhotoUploadForm = dynamic(
+  () => import('@/components/onboarding/PhotoUploadForm'),
   { ssr: false, loading: StepSkeleton }
 )
 const ReviewSubmitForm = dynamic(
@@ -39,7 +43,7 @@ import { createLogger } from '@/lib/utils/logger'
 
 const logger = createLogger({ file: 'app/dashboard/pro/onboarding/page.tsx' })
 
-const AUTO_SAVE_DELAY = 30000 // 30 seconds
+const AUTO_SAVE_DELAY = 30000
 
 export default function CleanerOnboardingPage() {
   const { user } = useAuth()
@@ -61,7 +65,6 @@ export default function CleanerOnboardingPage() {
   const dataRef = useRef(data)
   const currentStepRef = useRef(currentStep)
 
-  // Keep refs updated
   useEffect(() => {
     dataRef.current = data
   }, [data])
@@ -70,7 +73,6 @@ export default function CleanerOnboardingPage() {
     currentStepRef.current = currentStep
   }, [currentStep])
 
-  // Load existing draft on mount
   useEffect(() => {
     const loadDraft = async () => {
       try {
@@ -84,12 +86,10 @@ export default function CleanerOnboardingPage() {
         }
 
         if (result.onboarding_completed_at) {
-          // Already completed, redirect to dashboard
           router.push('/dashboard/pro')
           return
         }
 
-        // Merge existing profile data with onboarding data
         const mergedData: Partial<OnboardingData> = {
           ...result.onboarding_data,
           ...result.profile
@@ -98,7 +98,6 @@ export default function CleanerOnboardingPage() {
         setData(mergedData)
         setCurrentStep(result.onboarding_step || OnboardingStep.BUSINESS_INFO)
 
-        // Mark previous steps as completed
         const completed: number[] = []
         for (let i = 1; i < (result.onboarding_step || 1); i++) {
           completed.push(i)
@@ -115,7 +114,6 @@ export default function CleanerOnboardingPage() {
     loadDraft()
   }, [router])
 
-  // Auto-save functionality
   const saveDraft = useCallback(async (stepData?: Partial<OnboardingData>, step?: number) => {
     const dataToSave = stepData || dataRef.current
     const stepToSave = step || currentStepRef.current
@@ -152,16 +150,13 @@ export default function CleanerOnboardingPage() {
     }
   }, [])
 
-  // Set up auto-save timer
   useEffect(() => {
     if (loading || submitted) return
 
-    // Clear existing timer
     if (autoSaveTimerRef.current) {
       clearTimeout(autoSaveTimerRef.current)
     }
 
-    // Set new timer
     autoSaveTimerRef.current = setTimeout(() => {
       saveDraft()
     }, AUTO_SAVE_DELAY)
@@ -178,15 +173,12 @@ export default function CleanerOnboardingPage() {
   }
 
   const handleNext = async () => {
-    // Save current step data
     await saveDraft(data, currentStep + 1)
 
-    // Mark current step as completed
     if (!completedSteps.includes(currentStep)) {
       setCompletedSteps([...completedSteps, currentStep])
     }
 
-    // Move to next step
     if (currentStep < OnboardingStep.REVIEW) {
       setCurrentStep(currentStep + 1)
     }
@@ -203,10 +195,8 @@ export default function CleanerOnboardingPage() {
     setError(null)
 
     try {
-      // Save final data first
       await saveDraft(data, OnboardingStep.REVIEW)
 
-      // Submit for approval
       const response = await fetch('/api/cleaners/onboarding/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
@@ -219,7 +209,6 @@ export default function CleanerOnboardingPage() {
 
       setSubmitted(true)
 
-      // Redirect to dashboard after a delay
       setTimeout(() => {
         router.push('/dashboard/pro')
       }, 3000)
@@ -270,7 +259,6 @@ export default function CleanerOnboardingPage() {
     <ProtectedRoute requireRole="cleaner">
       <div className="min-h-screen bg-gray-50 py-8">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Header */}
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-gray-900">
               Complete Your Profile
@@ -280,7 +268,6 @@ export default function CleanerOnboardingPage() {
             </p>
           </div>
 
-          {/* Save status indicator */}
           <div className="flex justify-end mb-4">
             {saveStatus === 'saving' && (
               <span className="text-sm text-gray-500 flex items-center gap-1">
@@ -302,7 +289,6 @@ export default function CleanerOnboardingPage() {
             )}
           </div>
 
-          {/* Progress indicator */}
           <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
             <ProgressIndicator
               currentStep={currentStep}
@@ -310,7 +296,6 @@ export default function CleanerOnboardingPage() {
             />
           </div>
 
-          {/* Error message */}
           {error && (
             <Alert variant="destructive" className="mb-6">
               <AlertCircle className="h-4 w-4" />
@@ -318,7 +303,6 @@ export default function CleanerOnboardingPage() {
             </Alert>
           )}
 
-          {/* Step content */}
           <div className="bg-white rounded-lg shadow-lg p-6 md:p-8">
             {currentStep === OnboardingStep.BUSINESS_INFO && (
               <BusinessInfoForm
@@ -328,8 +312,17 @@ export default function CleanerOnboardingPage() {
                 isSubmitting={saving}
               />
             )}
-            {currentStep === OnboardingStep.LOCATION_SERVICES && (
-              <LocationServicesForm
+            {currentStep === OnboardingStep.SERVICES && (
+              <ServicesForm
+                data={data}
+                onChange={handleDataChange}
+                onNext={handleNext}
+                onBack={handleBack}
+                isSubmitting={saving}
+              />
+            )}
+            {currentStep === OnboardingStep.SERVICE_AREAS && (
+              <ServiceAreasForm
                 data={data}
                 onChange={handleDataChange}
                 onNext={handleNext}
@@ -346,8 +339,8 @@ export default function CleanerOnboardingPage() {
                 isSubmitting={saving}
               />
             )}
-            {currentStep === OnboardingStep.TRAINING && (
-              <TrainingModule
+            {currentStep === OnboardingStep.PHOTOS && (
+              <PhotoUploadForm
                 data={data}
                 onChange={handleDataChange}
                 onNext={handleNext}

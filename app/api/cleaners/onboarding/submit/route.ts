@@ -45,13 +45,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'At least one service area is required' }, { status: 400 })
     }
 
+    // Apply photo data from onboarding_data to cleaner profile
+    const onboardingData = cleaner.onboarding_data || {}
+
     // Update cleaner status to submitted
     const { error: updateError } = await supabase
       .from('cleaners')
       .update({
-        onboarding_step: 5,
+        onboarding_step: 6,
         onboarding_completed_at: new Date().toISOString(),
         approval_status: 'pending',
+        ...(onboardingData.profile_image_url && { profile_image_url: onboardingData.profile_image_url }),
+        ...(onboardingData.portfolio_images && { business_images: onboardingData.portfolio_images }),
         updated_at: new Date().toISOString()
       })
       .eq('id', cleaner.id)

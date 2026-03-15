@@ -8,9 +8,10 @@ import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import {
   ArrowLeft, Send, Building2, MapPin, FileText,
-  GraduationCap, Check, AlertCircle, Loader2,
+  Camera, Check, AlertCircle, Loader2,
   DollarSign, Clock, Users, Calendar
 } from 'lucide-react'
+import Image from 'next/image'
 
 interface ReviewSubmitFormProps extends StepProps {
   onSubmit: () => Promise<void>
@@ -29,6 +30,7 @@ export default function ReviewSubmitForm({
   const documents = data.documents || []
   const services = data.services || []
   const serviceAreas = data.service_areas || []
+  const portfolioImages = data.portfolio_images || []
 
   const getServiceLabel = (value: string) => {
     return SERVICE_TYPES.find((s) => s.value === value)?.label || value
@@ -55,12 +57,11 @@ export default function ReviewSubmitForm({
 
   const completionStatus = {
     business: !!(data.business_name && data.business_phone && data.business_email),
-    services: services.length > 0 && serviceAreas.length > 0,
+    services: services.length > 0,
+    areas: serviceAreas.length > 0,
     documents: documents.length > 0,
-    training: (data.training_videos_watched?.length || 0) >= 2
+    photos: !!(data.profile_image_url || portfolioImages.length > 0)
   }
-
-  const isComplete = Object.values(completionStatus).every(Boolean)
 
   return (
     <div className="space-y-6">
@@ -79,12 +80,13 @@ export default function ReviewSubmitForm({
       )}
 
       {/* Completion checklist */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
         {[
-          { key: 'business', label: 'Business Info', icon: Building2 },
-          { key: 'services', label: 'Services', icon: MapPin },
-          { key: 'documents', label: 'Documents', icon: FileText },
-          { key: 'training', label: 'Training', icon: GraduationCap }
+          { key: 'business', label: 'Business', icon: Building2 },
+          { key: 'services', label: 'Services', icon: DollarSign },
+          { key: 'areas', label: 'Areas', icon: MapPin },
+          { key: 'documents', label: 'Docs', icon: FileText },
+          { key: 'photos', label: 'Photos', icon: Camera }
         ].map(({ key, label, icon: Icon }) => (
           <div
             key={key}
@@ -96,13 +98,13 @@ export default function ReviewSubmitForm({
           >
             <div className="flex items-center gap-2">
               {completionStatus[key as keyof typeof completionStatus] ? (
-                <Check className="h-5 w-5 text-green-600" />
+                <Check className="h-4 w-4 text-green-600" />
               ) : (
-                <AlertCircle className="h-5 w-5 text-yellow-600" />
+                <AlertCircle className="h-4 w-4 text-yellow-600" />
               )}
               <Icon className="h-4 w-4 text-gray-500" />
             </div>
-            <p className="text-sm font-medium mt-1">{label}</p>
+            <p className="text-xs font-medium mt-1">{label}</p>
           </div>
         ))}
       </div>
@@ -142,7 +144,7 @@ export default function ReviewSubmitForm({
       {/* Services & Pricing Summary */}
       <div className="border rounded-lg p-4 space-y-3">
         <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-          <MapPin className="h-5 w-5 text-blue-600" />
+          <DollarSign className="h-5 w-5 text-blue-600" />
           Services & Pricing
         </h3>
 
@@ -194,23 +196,27 @@ export default function ReviewSubmitForm({
             )}
           </div>
         </div>
+      </div>
 
-        <div className="pt-2 border-t">
-          <span className="text-gray-500 text-sm">Service Areas:</span>
-          <div className="flex flex-wrap gap-2 mt-2">
-            {serviceAreas.length > 0 ? (
-              serviceAreas.map((zip) => (
-                <span
-                  key={zip}
-                  className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs"
-                >
-                  {zip}
-                </span>
-              ))
-            ) : (
-              <span className="text-gray-400 text-sm">No areas selected</span>
-            )}
-          </div>
+      {/* Service Areas Summary */}
+      <div className="border rounded-lg p-4 space-y-3">
+        <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+          <MapPin className="h-5 w-5 text-blue-600" />
+          Service Areas
+        </h3>
+        <div className="flex flex-wrap gap-2">
+          {serviceAreas.length > 0 ? (
+            serviceAreas.map((zip) => (
+              <span
+                key={zip}
+                className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs"
+              >
+                {zip}
+              </span>
+            ))
+          ) : (
+            <span className="text-gray-400 text-sm">No areas selected</span>
+          )}
         </div>
       </div>
 
@@ -235,6 +241,31 @@ export default function ReviewSubmitForm({
         )}
       </div>
 
+      {/* Photos Summary */}
+      <div className="border rounded-lg p-4 space-y-3">
+        <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+          <Camera className="h-5 w-5 text-blue-600" />
+          Photos
+        </h3>
+        <div className="flex items-start gap-4">
+          {data.profile_image_url ? (
+            <div className="flex items-center gap-3">
+              <div className="relative w-12 h-12 rounded-full overflow-hidden border">
+                <Image src={data.profile_image_url} alt="Profile" fill className="object-cover" />
+              </div>
+              <span className="text-sm text-green-600">Profile photo uploaded</span>
+            </div>
+          ) : (
+            <span className="text-sm text-gray-400">No profile photo</span>
+          )}
+        </div>
+        {portfolioImages.length > 0 && (
+          <p className="text-sm text-green-600">
+            {portfolioImages.length} portfolio image{portfolioImages.length !== 1 ? 's' : ''} uploaded
+          </p>
+        )}
+      </div>
+
       {/* Terms and Conditions */}
       <div className="border rounded-lg p-4 bg-gray-50">
         <div className="flex items-start gap-3">
@@ -253,7 +284,7 @@ export default function ReviewSubmitForm({
               Privacy Policy
             </a>
             . I confirm that all information provided is accurate and I have the right to
-            offer cleaning services in my listed service areas.
+            offer services in my listed service areas.
           </Label>
         </div>
       </div>
@@ -263,7 +294,7 @@ export default function ReviewSubmitForm({
         <AlertCircle className="h-4 w-4" />
         <AlertDescription>
           <strong>What happens next?</strong> After submitting, our team will review your
-          profile and documents within 1-2 business days. Once approved, you'll start
+          profile and documents within 1-2 business days. Once approved, you&apos;ll start
           appearing in search results and can receive quote requests.
         </AlertDescription>
       </Alert>

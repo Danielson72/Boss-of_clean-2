@@ -1,9 +1,10 @@
 export enum OnboardingStep {
   BUSINESS_INFO = 1,
-  LOCATION_SERVICES = 2,
-  DOCUMENTS = 3,
-  TRAINING = 4,
-  REVIEW = 5
+  SERVICES = 2,
+  SERVICE_AREAS = 3,
+  DOCUMENTS = 4,
+  PHOTOS = 5,
+  REVIEW = 6
 }
 
 export interface OnboardingData {
@@ -16,22 +17,24 @@ export interface OnboardingData {
   employees_count: number
   years_experience: number
 
-  // Step 2: Location & Services
+  // Step 2: Services
   services: string[]
-  service_areas: string[]
   hourly_rate: number
   minimum_hours: number
+
+  // Step 3: Service Areas
+  service_areas: string[]
   instant_booking: boolean
   business_hours: Record<string, { open: string; close: string; closed: boolean }>
 
-  // Step 3: Documents
+  // Step 4: Documents
   documents: DocumentUpload[]
 
-  // Step 4: Training
-  training_completed: boolean
-  training_videos_watched: string[]
+  // Step 5: Photos
+  profile_image_url: string
+  portfolio_images: string[]
 
-  // Step 5: Review - no additional fields
+  // Step 6: Review - no additional fields
 }
 
 export interface DocumentUpload {
@@ -54,7 +57,7 @@ export interface StepProps {
 
 export const SERVICE_TYPES = [
   { value: 'residential', label: 'Residential Cleaning' },
-  // COMMERCIAL_DISABLED: { value: 'commercial', label: 'Commercial Cleaning' },
+  { value: 'commercial', label: 'Commercial Cleaning' },
   { value: 'deep_cleaning', label: 'Deep Cleaning' },
   { value: 'pressure_washing', label: 'Pressure Washing' },
   { value: 'window_cleaning', label: 'Window Cleaning' },
@@ -62,20 +65,26 @@ export const SERVICE_TYPES = [
   { value: 'move_in_out', label: 'Move-In/Out Cleaning' },
   { value: 'post_construction', label: 'Post-Construction Cleanup' },
   { value: 'maid_service', label: 'Maid Service' },
-  // COMMERCIAL_DISABLED: { value: 'office_cleaning', label: 'Office Cleaning' },
+  { value: 'office_cleaning', label: 'Office Cleaning' },
+  { value: 'pool_cleaning', label: 'Pool Cleaning' },
+  { value: 'landscaping', label: 'Landscaping' },
+  { value: 'mobile_car_detailing', label: 'Mobile Car Detailing' },
+  { value: 'air_duct_cleaning', label: 'Air Duct Cleaning' },
+  { value: 'str_turnover', label: 'STR Turnover Cleaning' },
 ]
 
 export const DOCUMENT_TYPES = [
   { value: 'license', label: 'Business License', required: false },
   { value: 'insurance', label: 'Liability Insurance', required: true },
-  { value: 'background_check', label: 'Background Documentation', required: false },
+  { value: 'background_check', label: 'Background Check', required: false },
   { value: 'certification', label: 'Certification', required: false }
 ]
 
 export const STEP_LABELS = [
   'Business Info',
-  'Location & Services',
+  'Services',
+  'Service Areas',
   'Documents',
-  'Training',
+  'Photos',
   'Review & Submit'
 ]

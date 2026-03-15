@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
     // Get cleaner profile with onboarding data
     const { data: cleaner, error } = await supabase
       .from('cleaners')
-      .select('id, onboarding_step, onboarding_data, onboarding_completed_at, business_name, business_description, business_phone, business_email, website_url, services, service_areas, hourly_rate, minimum_hours, years_experience, employees_count')
+      .select('id, onboarding_step, onboarding_data, onboarding_completed_at, business_name, business_description, business_phone, business_email, website_url, services, service_areas, hourly_rate, minimum_hours, years_experience, employees_count, profile_image_url, business_images')
       .eq('user_id', user.id)
       .single()
 
@@ -53,7 +53,9 @@ export async function GET(request: NextRequest) {
         hourly_rate: cleaner.hourly_rate,
         minimum_hours: cleaner.minimum_hours,
         years_experience: cleaner.years_experience,
-        employees_count: cleaner.employees_count
+        employees_count: cleaner.employees_count,
+        profile_image_url: cleaner.profile_image_url,
+        portfolio_images: cleaner.business_images
       }
     })
   } catch (error) {
@@ -75,7 +77,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { step, data } = body
 
-    if (!step || step < 1 || step > 5) {
+    if (!step || step < 1 || step > 6) {
       return NextResponse.json({ error: 'Invalid step' }, { status: 400 })
     }
 
@@ -114,6 +116,8 @@ export async function POST(request: NextRequest) {
           ...(data.minimum_hours && { minimum_hours: data.minimum_hours }),
           ...(data.years_experience !== undefined && { years_experience: data.years_experience }),
           ...(data.employees_count && { employees_count: data.employees_count }),
+          ...(data.profile_image_url && { profile_image_url: data.profile_image_url }),
+          ...(data.portfolio_images && { business_images: data.portfolio_images }),
           updated_at: new Date().toISOString()
         })
         .eq('id', existingCleaner.id)

@@ -34,7 +34,7 @@ interface CleanerProfile {
   total_jobs: number;
   approval_status: string;
   onboarding_step?: number;
-  onboarding_completed_at?: string;
+  onboarding_completed_at?: string | null;
 }
 
 interface QuoteRequest {
@@ -116,7 +116,7 @@ export default function CleanerDashboard() {
       if (error) throw error;
 
       // Check if onboarding is incomplete
-      if (!data.onboarding_completed_at && data.onboarding_step && data.onboarding_step < 5) {
+      if (!data.onboarding_completed_at && data.onboarding_step && data.onboarding_step < 6) {
         router.push('/dashboard/pro/onboarding');
         return;
       }
@@ -209,6 +209,53 @@ export default function CleanerDashboard() {
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Onboarding / Approval Status Banners */}
+          {!profile?.onboarding_completed_at && (
+            <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-blue-100 rounded-full">
+                    <User className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-blue-900">Complete your profile to start receiving leads</h3>
+                    <p className="text-sm text-blue-700 mt-0.5">
+                      Step {profile?.onboarding_step || 1} of 6 completed
+                    </p>
+                    <div className="w-48 h-2 bg-blue-200 rounded-full mt-2">
+                      <div
+                        className="h-full bg-blue-600 rounded-full transition-all"
+                        style={{ width: `${((profile?.onboarding_step || 1) / 6) * 100}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+                <Link
+                  href="/dashboard/pro/onboarding"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                >
+                  Continue Setup
+                </Link>
+              </div>
+            </div>
+          )}
+
+          {profile?.onboarding_completed_at && profile?.approval_status === 'pending' && (
+            <div className="mb-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-yellow-100 rounded-full">
+                  <Clock className="h-5 w-5 text-yellow-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-yellow-900">Your profile is under review</h3>
+                  <p className="text-sm text-yellow-700 mt-0.5">
+                    Our team is reviewing your application. This usually takes 1-2 business days.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Current Plan Card */}
           <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
             <div className="flex items-center justify-between">
