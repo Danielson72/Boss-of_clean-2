@@ -98,6 +98,7 @@ export default function Header() {
           <nav className="hidden md:flex items-center gap-8" aria-label="Main navigation">
             <Link href="/" className={navLinkClass}>Home</Link>
             <Link href="/search" className={navLinkClass}>Search</Link>
+            <Link href="/professionals" className={navLinkClass}>Professionals</Link>
             <Link href="/pricing" className={navLinkClass}>Pricing</Link>
             <Link href="/about" className={navLinkClass}>About</Link>
             <Link href="/contact" className={navLinkClass}>Contact</Link>
@@ -170,7 +171,7 @@ export default function Header() {
             role="navigation"
           >
             <div className="py-3 space-y-1">
-              {['Home', 'Search', 'Pricing', 'About', 'Contact'].map((item) => (
+              {['Home', 'Search', 'Professionals', 'Pricing', 'About', 'Contact'].map((item) => (
                 <Link
                   key={item}
                   href={item === 'Home' ? '/' : `/${item.toLowerCase()}`}
