@@ -21,24 +21,46 @@ export default function ResetPasswordPage() {
 
   // Exchange PKCE code for session if present, or verify existing session
   useEffect(() => {
+    let cancelled = false;
+
+    const checkSession = async (): Promise<boolean> => {
+      const { data: { session } } = await supabase.auth.getSession();
+      return !!session;
+    };
+
     const initSession = async () => {
       // Check for PKCE code in URL (direct links from older reset emails)
       const code = searchParams?.get('code') ?? null;
       if (code) {
         const { error } = await supabase.auth.exchangeCodeForSession(code);
         if (error) {
-          setError('Reset link has expired or is invalid. Please request a new one.');
-          setInitializing(false);
+          if (!cancelled) {
+            setError('Reset link has expired or is invalid. Please request a new one.');
+            setInitializing(false);
+          }
           return;
         }
-        setSessionReady(true);
-        setInitializing(false);
+        if (!cancelled) {
+          setSessionReady(true);
+          setInitializing(false);
+        }
         return;
       }
 
-      // No code - check if session was already established (via callback redirect)
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
+      // No code — session was established by /auth/callback redirect.
+      // The cookies may not be visible to the JS client immediately after
+      // a server-side redirect, so retry once after a short delay.
+      let hasSession = await checkSession();
+
+      if (!hasSession && !cancelled) {
+        // Wait briefly for cookies to propagate, then retry
+        await new Promise(r => setTimeout(r, 500));
+        hasSession = await checkSession();
+      }
+
+      if (cancelled) return;
+
+      if (hasSession) {
         setSessionReady(true);
       } else {
         setError('Password reset session expired. Please request a new reset link.');
@@ -53,11 +75,18 @@ export default function ResetPasswordPage() {
         setInitializing(false);
         setError('');
       }
+      // SIGNED_IN also indicates the session is ready (PKCE flow via callback)
+      if (event === 'SIGNED_IN' && !sessionReady) {
+        setSessionReady(true);
+        setInitializing(false);
+        setError('');
+      }
     });
 
     initSession();
 
     return () => {
+      cancelled = true;
       subscription.unsubscribe();
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps

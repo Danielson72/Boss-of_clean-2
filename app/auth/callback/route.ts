@@ -1,6 +1,7 @@
-import { createClient } from '@/lib/supabase/server'
+import { createServerClient } from '@supabase/ssr'
 import { NextResponse } from 'next/server'
 import { NextRequest } from 'next/server'
+import { cookies } from 'next/headers'
 import { createLogger } from '@/lib/utils/logger'
 import { roleToDashboardPath } from '@/lib/utils/dashboard-path'
 
@@ -20,7 +21,44 @@ export async function GET(request: NextRequest) {
   const code = requestUrl.searchParams.get('code')
   const origin = getRedirectOrigin(request, requestUrl)
 
-  const supabase = await createClient()
+  const cookieStore = cookies()
+
+  // Track cookies set during auth exchange so we can copy them to the redirect
+  const pendingCookies: { name: string; value: string; options: Record<string, unknown> }[] = []
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll()
+        },
+        setAll(cookiesToSet) {
+          // Store for later — we'll apply them to the redirect response
+          pendingCookies.length = 0
+          cookiesToSet.forEach(({ name, value, options }) => {
+            pendingCookies.push({ name, value, options: options || {} })
+            // Also set on cookieStore so subsequent reads in this handler see them
+            try {
+              cookieStore.set(name, value, options)
+            } catch {
+              // May throw in some contexts — that's OK, pendingCookies is the fallback
+            }
+          })
+        },
+      },
+    }
+  )
+
+  // Helper: create a redirect that carries auth cookies
+  function redirectWithCookies(url: URL | string): NextResponse {
+    const response = NextResponse.redirect(url instanceof URL ? url : new URL(url))
+    for (const { name, value, options } of pendingCookies) {
+      response.cookies.set(name, value, options as Parameters<typeof response.cookies.set>[2])
+    }
+    return response
+  }
 
   // Try to exchange the code if present. If it fails (e.g. flow_state_not_found
   // because Supabase already exchanged it server-side), fall through and check
@@ -39,13 +77,13 @@ export async function GET(request: NextRequest) {
 
   if (!user) {
     // No session at all — redirect to login
-    return NextResponse.redirect(new URL('/login', origin))
+    return redirectWithCookies(new URL('/login', origin))
   }
 
   // Handle password reset and other redirect flows
   const next = requestUrl.searchParams.get('next')
   if (next && next.startsWith('/') && !next.startsWith('//')) {
-    return NextResponse.redirect(new URL(next, origin))
+    return redirectWithCookies(new URL(next, origin))
   }
 
   // Read intended role from signup flow (passed via Google OAuth redirect)
@@ -70,7 +108,7 @@ export async function GET(request: NextRequest) {
     await supabase.from('users').update(updates).eq('id', user.id)
 
     const role = existingUser.role || 'customer'
-    return NextResponse.redirect(new URL(roleToDashboardPath(role), origin))
+    return redirectWithCookies(new URL(roleToDashboardPath(role), origin))
   }
 
   // Edge case: trigger didn't fire or email-based account linking needed.
@@ -97,7 +135,7 @@ export async function GET(request: NextRequest) {
       await supabase.from('users').update(updates).eq('email', user.email)
 
       const role = userByEmail.role || 'customer'
-      return NextResponse.redirect(new URL(roleToDashboardPath(role), origin))
+      return redirectWithCookies(new URL(roleToDashboardPath(role), origin))
     }
   }
 
@@ -132,9 +170,9 @@ export async function GET(request: NextRequest) {
   // If role was specified via signup flow, go straight to dashboard
   if (intendedRole) {
     const dashPath = newRole === 'cleaner' ? '/dashboard/pro/setup' : '/dashboard/customer'
-    return NextResponse.redirect(new URL(dashPath, origin))
+    return redirectWithCookies(new URL(dashPath, origin))
   }
 
   // No intended role - new OAuth users go to role selection
-  return NextResponse.redirect(new URL('/auth/select-role', origin))
+  return redirectWithCookies(new URL('/auth/select-role', origin))
 }
