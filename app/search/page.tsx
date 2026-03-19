@@ -103,7 +103,7 @@ export default function SearchPage() {
           id, business_name, business_slug, business_description,
           services, service_areas, profile_image_url, instant_booking,
           business_hours, created_at,
-          users!inner(city, state, zip_code)
+          users(city, state, zip_code)
         `, { count: 'exact' })
         .in('approval_status', ['approved', 'pending']);
 

@@ -121,7 +121,7 @@ export default async function CityPage({ params }: CityPageProps) {
       subscription_tier,
       instant_booking,
       insurance_verified,
-      users!inner(city, state)
+      users(city, state)
     `,
       { count: 'exact' }
     )

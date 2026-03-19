@@ -71,7 +71,7 @@ async function getCleanerBySlug(slug: string): Promise<CleanerProfile | null> {
     .from('cleaners')
     .select(`
       *,
-      users!inner(full_name, city, state, zip_code)
+      users(full_name, city, state, zip_code)
     `)
     .eq('business_slug', slug)
     .eq('approval_status', 'approved')
@@ -83,7 +83,7 @@ async function getCleanerBySlug(slug: string): Promise<CleanerProfile | null> {
       .from('cleaners')
       .select(`
         *,
-        users!inner(full_name, city, state, zip_code)
+        users(full_name, city, state, zip_code)
       `)
       .eq('id', slug)
       .eq('approval_status', 'approved')

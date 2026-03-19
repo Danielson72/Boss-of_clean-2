@@ -90,7 +90,7 @@ export default async function ProfessionalsPage({
       services, service_areas, profile_image_url,
       average_rating, total_reviews, total_jobs, hourly_rate,
       years_experience, insurance_verified, instant_booking, subscription_tier,
-      users!inner(city, state)
+      users(city, state)
     `
     )
     .eq('approval_status', 'approved');
