@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/lib/context/AuthContext';
 import { ProtectedRoute } from '@/lib/auth/protected-route';
 import { createClient } from '@/lib/supabase/client';
@@ -90,10 +90,12 @@ export default function CleanerDashboard() {
   const [quotes, setQuotes] = useState<QuoteRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
+  const hasFetched = useRef(false);
   const supabase = createClient();
 
   useEffect(() => {
-    if (user) {
+    if (user && !hasFetched.current) {
+      hasFetched.current = true;
       loadCleanerProfile();
       loadQuotes();
     }

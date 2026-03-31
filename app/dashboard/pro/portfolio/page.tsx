@@ -29,6 +29,7 @@ export default function CleanerPortfolioPage() {
   const [cleanerId, setCleanerId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
   const supabase = createClient();
 
   const loadPortfolio = useCallback(async () => {
@@ -332,7 +333,13 @@ export default function CleanerPortfolioPage() {
           </div>
 
           {/* Upload Section */}
-          <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
+          <div
+            className={`bg-white rounded-lg shadow-sm p-6 mb-8 ${isDragging ? 'border-2 border-dashed border-orange-400 bg-orange-50 rounded-lg' : ''}`}
+            onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+            onDragEnter={(e) => { e.preventDefault(); setIsDragging(true); }}
+            onDragLeave={(e) => { e.preventDefault(); setIsDragging(false); }}
+            onDrop={(e) => { e.preventDefault(); setIsDragging(false); const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/')); if (files.length > 0) handleUpload(files); }}
+          >
             <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
               <ImageIcon className="h-5 w-5" />
               Upload Photos
