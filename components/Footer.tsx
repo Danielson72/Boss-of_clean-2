@@ -18,9 +18,11 @@ const serviceCategories = [
 const quickLinks = [
   { label: 'Home', href: '/' },
   { label: 'Search', href: '/search' },
+  { label: 'How It Works', href: '/how-it-works' },
   { label: 'Pricing', href: '/pricing' },
   { label: 'About', href: '/about' },
   { label: 'Contact', href: '/contact' },
+  { label: 'Help Center', href: '/help' },
   { label: 'Privacy Policy', href: '/privacy' },
   { label: 'Terms of Service', href: '/terms' },
 ];
