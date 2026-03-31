@@ -5,7 +5,7 @@ import { SERVICE_TYPES } from '@/lib/data/service-types';
 
 export const metadata = generatePageMetadata({
   title: 'Pricing',
-  description: 'Affordable plans for cleaning professionals to list on Boss of Clean. Basic listing free. Professional and Premium tiers for featured placement and more inquiries.',
+  description: 'Affordable plans for cleaning professionals to list on Boss of Clean. Free starter listing. Basic $79/mo and Pro $199/mo tiers for leads, featured placement, and more.',
   path: '/pricing',
   keywords: ['Boss of Clean pricing', 'cleaning business listing', 'cleaning marketplace plans'],
 });
@@ -27,36 +27,38 @@ const plans = [
     highlighted: false,
   },
   {
-    name: 'Professional',
-    price: '$49',
+    name: 'Basic',
+    price: '$79',
     period: '/mo',
     description: 'Most popular for growing businesses',
     features: [
       'Everything in Starter',
+      'Exclusive leads delivered to you',
       'Featured placement in search results',
       'Priority in customer notifications',
       'Profile badges and highlights',
       'Business analytics dashboard',
       'Phone and email support',
     ],
-    cta: 'Start Professional',
+    cta: 'Start Basic',
     ctaHref: '/signup?role=cleaner&plan=basic',
     highlighted: true,
   },
   {
-    name: 'Premium',
-    price: '$99',
+    name: 'Pro',
+    price: '$199',
     period: '/mo',
     description: 'Best for established businesses',
     features: [
-      'Everything in Professional',
+      'Everything in Basic',
       'Top placement in search results',
       'Featured on homepage',
+      'Priority lead delivery',
       'Priority support',
       'Advanced analytics and insights',
       'Multiple service area coverage',
     ],
-    cta: 'Start Premium',
+    cta: 'Start Pro',
     ctaHref: '/signup?role=cleaner&plan=pro',
     highlighted: false,
   },
@@ -165,6 +167,38 @@ export default function PricingPage() {
               </Link>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* Per-Lead + Platform Fee */}
+      <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="bg-brand-cream rounded-2xl p-8 text-center">
+            <p className="text-sm font-semibold text-brand-gold uppercase tracking-wider mb-2">
+              Per-Lead Option
+            </p>
+            <div className="flex items-baseline justify-center mb-3">
+              <span className="font-display text-4xl font-bold text-brand-dark">$15</span>
+              <span className="text-gray-400 text-lg ml-1">/lead</span>
+            </div>
+            <p className="text-gray-600 text-sm leading-relaxed">
+              Not ready for a subscription? Purchase individual leads at $15 each.
+              Every lead is exclusive &mdash; sent only to you, never shared.
+            </p>
+          </div>
+          <div className="bg-brand-cream rounded-2xl p-8 text-center">
+            <p className="text-sm font-semibold text-brand-gold uppercase tracking-wider mb-2">
+              Platform Fee
+            </p>
+            <div className="flex items-baseline justify-center mb-3">
+              <span className="font-display text-4xl font-bold text-brand-dark">5%</span>
+              <span className="text-gray-400 text-lg ml-1">per booking</span>
+            </div>
+            <p className="text-gray-600 text-sm leading-relaxed">
+              A 5% fee is applied to completed bookings processed through the platform.
+              Covers payment processing, support, and the Boss of Clean guarantee.
+            </p>
+          </div>
         </div>
       </section>
 
