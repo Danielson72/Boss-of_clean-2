@@ -33,6 +33,9 @@ interface CleanerProfile {
   is_certified?: boolean;
   website_url?: string;
   business_address?: string;
+  business_city?: string;
+  business_state?: string;
+  business_zip?: string;
   business_images: string[];
 }
 
@@ -159,6 +162,20 @@ export default function CleanerProfilePage() {
 
   const handleSave = async () => {
     if (!profile) return;
+
+    // Validate required address fields
+    if (!profile.business_address?.trim()) {
+      setMessage('Business street address is required');
+      return;
+    }
+    if (!profile.business_city?.trim()) {
+      setMessage('City is required');
+      return;
+    }
+    if (!profile.business_zip?.trim() || profile.business_zip.length !== 5) {
+      setMessage('A valid 5-digit ZIP code is required');
+      return;
+    }
     
     setSaving(true);
     try {
@@ -175,18 +192,26 @@ export default function CleanerProfilePage() {
           years_experience: profile.years_experience,
           website_url: profile.website_url,
           business_address: profile.business_address,
+          business_city: profile.business_city,
+          business_state: profile.business_state,
+          business_zip: profile.business_zip,
           business_images: profile.business_images,
           updated_at: new Date().toISOString()
         })
-        .eq('id', profile.id);
+        .eq('user_id', user?.id);
 
-      if (error) throw error;
+      if (error) {
+        logger.error('Error saving profile', { function: 'handleSave', error });
+        setMessage(`Error saving profile: ${error.message}`);
+        return;
+      }
       
       setMessage('Profile updated successfully!');
       setTimeout(() => setMessage(''), 3000);
     } catch (error) {
+      const msg = error instanceof Error ? error.message : 'Unknown error';
       logger.error('Error saving profile', { function: 'handleSave', error });
-      setMessage('Error saving profile');
+      setMessage(`Error saving profile: ${msg}`);
     } finally {
       setSaving(false);
     }
@@ -338,14 +363,60 @@ export default function CleanerProfilePage() {
               
               <div className="mt-6">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Business Address
+                  Business Address <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
+                  required
                   value={profile.business_address || ''}
                   onChange={(e) => handleInputChange('business_address', e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="123 Main St, City, FL 12345"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  placeholder="Street address"
+                />
+              </div>
+
+              <div className="mt-4 grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    City <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={profile.business_city || ''}
+                    onChange={(e) => handleInputChange('business_city', e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    placeholder="Orlando"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    State <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    required
+                    value={profile.business_state || 'FL'}
+                    onChange={(e) => handleInputChange('business_state', e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white"
+                  >
+                    <option value="FL">Florida (FL)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="mt-4 w-40">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  ZIP Code <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  maxLength={5}
+                  pattern="[0-9]{5}"
+                  value={profile.business_zip || ''}
+                  onChange={(e) => handleInputChange('business_zip', e.target.value.replace(/\D/g, '').slice(0, 5))}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  placeholder="32801"
                 />
               </div>
               
