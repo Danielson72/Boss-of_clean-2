@@ -3,13 +3,14 @@
 import { DashboardSidebar, type SidebarLink } from '@/components/dashboard/DashboardSidebar';
 import {
   LayoutDashboard, User, Inbox, FileText, Calendar,
-  DollarSign, Clock, Images, Star, MapPin, CreditCard, Bell,
+  DollarSign, Clock, Images, Star, MapPin, CreditCard, Bell, MessageSquare,
 } from 'lucide-react';
 
 const proLinks: SidebarLink[] = [
   { href: '/dashboard/pro', label: 'Overview', icon: LayoutDashboard },
   { href: '/dashboard/pro/profile', label: 'My Profile', icon: User },
   { href: '/dashboard/pro/notifications', label: 'Notifications', icon: Bell },
+  { href: '/dashboard/messages', label: 'Messages', icon: MessageSquare },
   { href: '/dashboard/pro/leads', label: 'Leads', icon: Inbox },
   { href: '/dashboard/pro/quote-requests', label: 'Quote Requests', icon: FileText },
   { href: '/dashboard/pro/bookings', label: 'Bookings', icon: Calendar },

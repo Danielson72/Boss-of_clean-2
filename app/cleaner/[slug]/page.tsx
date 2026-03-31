@@ -5,7 +5,7 @@ import Image from 'next/image';
 import {
   Star, MapPin, Phone, Mail, Globe, Clock, Shield, Award,
   BadgeCheck, CheckCircle2, DollarSign, Users, Calendar,
-  MessageSquare, ArrowLeft
+  MessageSquare, ArrowLeft, Camera
 } from 'lucide-react';
 import Link from 'next/link';
 import { StartConversationButton } from '@/components/messaging/StartConversationButton';
@@ -380,11 +380,22 @@ export default async function CleanerProfilePage({ params }: { params: Promise<{
             </section>
 
             {/* Portfolio Gallery */}
-            {portfolioPhotos.length > 0 && (
+            {portfolioPhotos.length > 0 ? (
               <PublicGallery
                 photos={portfolioPhotos}
                 businessName={cleaner.business_name}
               />
+            ) : (
+              <section className="bg-white rounded-xl shadow-sm p-6">
+                <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <Camera className="h-5 w-5 text-gray-600" />
+                  Portfolio Gallery
+                </h2>
+                <div className="flex flex-col items-center justify-center py-8 text-center">
+                  <Camera className="h-10 w-10 text-gray-300 mb-3" />
+                  <p className="text-gray-500 text-sm">No portfolio photos yet</p>
+                </div>
+              </section>
             )}
 
             {/* Reviews */}
