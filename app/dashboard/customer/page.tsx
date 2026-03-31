@@ -59,6 +59,7 @@ export default function CustomerDashboard() {
   const [credits, setCredits] = useState<CustomerCredit[]>([]);
   const [confirmedQuotes, setConfirmedQuotes] = useState<Set<string>>(new Set());
   const [confirmingHire, setConfirmingHire] = useState<string | null>(null);
+  const [acceptingQuote, setAcceptingQuote] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState('quotes');
@@ -189,6 +190,31 @@ export default function CustomerDashboard() {
       setConfirmedQuotes(new Set((data || []).map(h => h.quote_request_id)));
     } catch {
       // silently fail
+    }
+  };
+
+  const handleAcceptQuote = async (quoteId: string) => {
+    setAcceptingQuote(quoteId);
+    try {
+      const res = await fetch(`/api/quotes/${quoteId}/accept`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to accept quote');
+      }
+
+      setMessage('Quote accepted! A booking has been created. Check My Bookings for details.');
+      await loadQuotes();
+      setTimeout(() => setMessage(''), 5000);
+    } catch (err) {
+      setMessage(err instanceof Error ? `Error: ${err.message}` : 'Error accepting quote. Please try again.');
+      setTimeout(() => setMessage(''), 5000);
+    } finally {
+      setAcceptingQuote(null);
     }
   };
 
@@ -522,7 +548,16 @@ export default function CustomerDashboard() {
                             
                             <div className="ml-4">
                               {quote.status === 'responded' && (
-                                <button className="text-sm bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition duration-300">
+                                <button
+                                  onClick={() => handleAcceptQuote(quote.id)}
+                                  disabled={acceptingQuote === quote.id}
+                                  className="text-sm bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 disabled:bg-green-400 transition duration-300 flex items-center gap-1"
+                                >
+                                  {acceptingQuote === quote.id ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                  ) : (
+                                    <CheckCircle className="h-4 w-4" />
+                                  )}
                                   Accept Quote
                                 </button>
                               )}

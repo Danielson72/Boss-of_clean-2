@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import dynamic from 'next/dynamic';
 import {
   Calendar,
   Clock,
@@ -13,8 +14,19 @@ import {
   CheckCircle,
   XCircle,
   AlertCircle,
+  Camera,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+
+const JobPhotoUploader = dynamic(
+  () => import('@/components/booking/JobPhotoUploader').then((mod) => mod.JobPhotoUploader),
+  { ssr: false, loading: () => <div className="h-24 bg-gray-100 rounded-lg animate-pulse" /> }
+);
+
+const JobPhotosDisplay = dynamic(
+  () => import('@/components/booking/JobPhotosDisplay').then((mod) => mod.JobPhotosDisplay),
+  { ssr: false }
+);
 
 export interface CleanerBooking {
   id: string;
@@ -106,6 +118,7 @@ export function CleanerBookingList({
 }: CleanerBookingListProps) {
   const [declineBookingId, setDeclineBookingId] = useState<string | null>(null);
   const [declineReason, setDeclineReason] = useState('');
+  const [showPhotos, setShowPhotos] = useState<string | null>(null);
 
   const handleDeclineSubmit = (bookingId: string) => {
     onDecline(bookingId, declineReason || 'Declined by cleaner');
@@ -231,6 +244,41 @@ export function CleanerBookingList({
                     <p className="text-sm text-red-700">
                       <strong>Cancellation reason:</strong> {booking.cancellation_reason}
                     </p>
+                  </div>
+                )}
+
+                {/* Before/After photos for completed bookings */}
+                {booking.status === 'completed' && (
+                  <div className="mt-3">
+                    <button
+                      onClick={() => setShowPhotos(showPhotos === booking.id ? null : booking.id)}
+                      className="flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 font-medium"
+                    >
+                      <Camera className="h-4 w-4" />
+                      {showPhotos === booking.id ? 'Hide' : 'View'} Job Photos
+                    </button>
+                    {showPhotos === booking.id && (
+                      <JobPhotosDisplay bookingId={booking.id} />
+                    )}
+                  </div>
+                )}
+
+                {/* Photo upload for past confirmed bookings (ready to complete) */}
+                {pastConfirmed && (
+                  <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-md space-y-4">
+                    <p className="text-sm text-blue-800 font-medium">
+                      Upload job photos before marking complete:
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <JobPhotoUploader
+                        bookingId={booking.id}
+                        photoType="before"
+                      />
+                      <JobPhotoUploader
+                        bookingId={booking.id}
+                        photoType="after"
+                      />
+                    </div>
                   </div>
                 )}
               </div>

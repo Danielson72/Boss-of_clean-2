@@ -1,5 +1,6 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import {
   Calendar,
   Clock,
@@ -10,8 +11,15 @@ import {
   Star,
   XCircle,
   RefreshCw,
+  MessageSquare,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import Link from 'next/link';
+
+const JobPhotosDisplay = dynamic(
+  () => import('@/components/booking/JobPhotosDisplay').then((mod) => mod.JobPhotosDisplay),
+  { ssr: false }
+);
 
 export interface Booking {
   id: string;
@@ -203,6 +211,30 @@ export function BookingCard({ booking, onReschedule, onCancel }: BookingCardProp
             </div>
           )}
         </div>
+
+        {/* Review prompt for completed bookings */}
+        {booking.status === 'completed' && (
+          <>
+            <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-md">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Star className="h-5 w-5 text-blue-600" />
+                  <p className="text-sm font-medium text-blue-800">
+                    How was your experience with {booking.cleaner.business_name}?
+                  </p>
+                </div>
+                <Link
+                  href="/dashboard/customer/reviews/new"
+                  className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
+                >
+                  <MessageSquare className="h-4 w-4" />
+                  Leave a Review
+                </Link>
+              </div>
+            </div>
+            <JobPhotosDisplay bookingId={booking.id} />
+          </>
+        )}
 
         {/* Action buttons */}
         {booking.status === 'confirmed' && !isPast && (
