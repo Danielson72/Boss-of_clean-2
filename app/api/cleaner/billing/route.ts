@@ -4,6 +4,8 @@ import { getStripe } from '@/lib/stripe/config';
 import { getCustomerInvoices, InvoiceData } from '@/lib/stripe/invoices';
 import { createLogger } from '@/lib/utils/logger';
 
+export const dynamic = 'force-dynamic';
+
 const logger = createLogger({ file: 'api/cleaner/billing/route' });
 
 export async function GET(request: NextRequest) {

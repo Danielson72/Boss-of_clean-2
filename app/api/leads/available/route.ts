@@ -3,6 +3,8 @@ import { createClient } from '@/lib/supabase/server';
 import { deriveFeeTier, FEE_TIER_CENTS } from '@/lib/types/lead-dto';
 import type { AvailableLeadDTO } from '@/lib/types/lead-dto';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     const supabase = await createClient();

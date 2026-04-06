@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createLogger } from '@/lib/utils/logger';
 
+export const dynamic = 'force-dynamic';
+
 const logger = createLogger({ file: 'api/admin/reviews/route' });
 
 // GET - List all reviews for moderation
