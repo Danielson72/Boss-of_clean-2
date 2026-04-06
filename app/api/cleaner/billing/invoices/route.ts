@@ -3,6 +3,8 @@ import { createClient } from '@/lib/supabase/server';
 import { getCustomerInvoices, getUpcomingInvoice } from '@/lib/stripe/invoices';
 import { createLogger } from '@/lib/utils/logger';
 
+export const dynamic = 'force-dynamic';
+
 const logger = createLogger({ file: 'api/cleaner/billing/invoices/route' });
 
 export async function GET(request: NextRequest) {
