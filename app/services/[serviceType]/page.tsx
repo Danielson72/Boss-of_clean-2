@@ -15,14 +15,9 @@ interface ServicePageProps {
   params: Promise<{ serviceType: string }>;
 }
 
-/**
- * Generate static params for all service types
- */
-export function generateStaticParams() {
-  return getAllServiceTypeSlugs().map((slug) => ({
-    serviceType: slug,
-  }));
-}
+// Dynamic rendering — pages render on-demand (SSR), not at build time.
+// Avoids Next.js 13.5 experimental server actions runtime crash during SSG.
+export const dynamic = 'force-dynamic';
 
 /**
  * Generate metadata for the page

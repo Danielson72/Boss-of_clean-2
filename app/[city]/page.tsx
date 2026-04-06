@@ -48,10 +48,9 @@ interface CityPageCleaner {
   users: { city: string | null; state: string | null } | { city: string | null; state: string | null }[];
 }
 
-// Generate static params for all cities
-export async function generateStaticParams() {
-  return getAllCitySlugs().map((slug) => ({ city: slug }));
-}
+// Dynamic rendering — pages render on-demand (SSR), not at build time.
+// This avoids the Next.js 13.5 experimental server actions runtime crash during SSG.
+export const dynamic = 'force-dynamic';
 
 // Generate metadata for the page
 export async function generateMetadata({ params }: CityPageProps): Promise<Metadata> {

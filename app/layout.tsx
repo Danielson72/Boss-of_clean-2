@@ -1,5 +1,9 @@
 import './globals.css';
 import type { Metadata } from 'next';
+
+// Force dynamic rendering for all pages — avoids experimental server actions
+// runtime null-React crash during SSG with Next.js 13.5 + experimental.serverActions.
+export const dynamic = 'force-dynamic';
 import { DM_Sans, Playfair_Display } from 'next/font/google';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
