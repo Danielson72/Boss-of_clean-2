@@ -33,7 +33,7 @@ const plans = [
     description: 'Most popular for growing businesses',
     features: [
       'Everything in Starter',
-      'Exclusive leads delivered to you',
+      '5 exclusive leads per month',
       'Featured placement in search results',
       'Priority in customer notifications',
       'Profile badges and highlights',
@@ -51,9 +51,9 @@ const plans = [
     description: 'Best for established businesses',
     features: [
       'Everything in Basic',
+      '15 exclusive leads per month',
       'Top placement in search results',
       'Featured on homepage',
-      'Priority lead delivery',
       'Priority support',
       'Advanced analytics and insights',
       'Multiple service area coverage',

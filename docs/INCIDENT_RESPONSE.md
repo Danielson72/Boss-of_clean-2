@@ -75,7 +75,7 @@
 > We immediately revoked all access credentials and active sessions.
 > The following data may have been exposed: [SPECIFY].
 > We recommend you [change your password / monitor for suspicious activity].
-> Contact us at dalvarez@sotsvc.com with any questions.
+> Contact us at admin@bossofclean.com with any questions.
 
 ### Post-Mortem Checklist
 
@@ -152,7 +152,7 @@
 > We identified and resolved an issue with an automated system on [DATE].
 > The system was immediately deactivated.
 > [If data affected]: Your [SPECIFY] data may have been incorrectly processed.
-> We have corrected all affected records. Contact dalvarez@sotsvc.com with questions.
+> We have corrected all affected records. Contact admin@bossofclean.com with questions.
 
 ### Post-Mortem Checklist
 
@@ -221,7 +221,7 @@ Every incident, regardless of scenario:
 
 | Role | Contact | Method |
 |------|---------|--------|
-| Owner/Admin | Daniel Alvarez | dalvarez@sotsvc.com |
+| Owner/Admin | Daniel Alvarez | admin@bossofclean.com |
 | Supabase Support | — | support@supabase.io |
 | Stripe Support | — | Stripe Dashboard > Support |
 | Netlify Support | — | Netlify Dashboard > Support |
