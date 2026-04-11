@@ -5,7 +5,7 @@ export default function AboutPage() {
     {
       name: 'David Alvarez',
       role: 'Founder & CEO',
-      email: 'dalvarez@sotsvc.com',
+      email: 'contact@bossofclean.com',
       description: 'With over 10 years in the cleaning industry, David founded Boss of Clean to help connect quality cleaning services with customers across Florida.'
     }
   ];
@@ -174,7 +174,7 @@ export default function AboutPage() {
             <div>
               <Mail className="h-8 w-8 mx-auto mb-4 text-blue-200" />
               <h3 className="text-lg font-semibold mb-2">Email Us</h3>
-              <p className="text-blue-100">dalvarez@sotsvc.com</p>
+              <p className="text-blue-100">contact@bossofclean.com</p>
             </div>
             
             <div>
