@@ -477,7 +477,7 @@ export default function CleanerSetupPage() {
                   <Info className="h-5 w-5 text-blue-400 mr-2 flex-shrink-0 mt-0.5" />
                   <div className="text-sm text-blue-700">
                     <p className="font-semibold mb-1">What happens next?</p>
-                    <p>After submitting, your profile will be reviewed by our team. Once approved, you'll start appearing in search results and can receive quote requests from customers.</p>
+                    <p>After submitting, your profile will be reviewed by our team. Once approved, you&apos;ll start appearing in search results and can receive quote requests from customers.</p>
                   </div>
                 </div>
               </div>

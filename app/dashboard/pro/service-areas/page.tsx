@@ -331,7 +331,7 @@ export default function ServiceAreasPage() {
             <ul className="space-y-2 text-blue-800">
               <li className="flex items-start gap-2">
                 <CheckCircle className="h-5 w-5 mt-0.5 text-blue-600" />
-                <span>Add all ZIP codes where you're willing to travel for cleaning jobs</span>
+                <span>Add all ZIP codes where you&apos;re willing to travel for cleaning jobs</span>
               </li>
               <li className="flex items-start gap-2">
                 <CheckCircle className="h-5 w-5 mt-0.5 text-blue-600" />
