@@ -53,6 +53,9 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
+  verification: {
+    google: '9OamLmj5CpbZMWeIGL_sbC_Vh2_c_FanbjQyQqZ8DX0',
+  },
   openGraph: {
     title: "Boss of Clean \u2014 Florida's Home Services Marketplace",
     description: 'Find trusted, verified home service professionals in Florida. Get free quotes for cleaning, pressure washing, landscaping, pool cleaning, and more.',
