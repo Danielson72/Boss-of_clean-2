@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import {
   Home,
   Sparkles,
@@ -91,6 +92,13 @@ export default function ServiceCategories() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section header */}
         <div className="text-center max-w-2xl mx-auto mb-16">
+          <Image
+            src="/images/boss-of-clean-logo-lg.png"
+            alt="Boss of Clean"
+            width={140}
+            height={140}
+            className="mx-auto mb-4 h-[100px] w-[100px] sm:h-[140px] sm:w-[140px]"
+          />
           <p className="text-brand-gold text-sm font-semibold tracking-[0.15em] uppercase mb-3">
             Services
           </p>
