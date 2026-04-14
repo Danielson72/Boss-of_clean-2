@@ -26,8 +26,7 @@ export default function ContactPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
-      // Show success even if endpoint doesn't exist yet
-      if (res.ok || res.status === 404) {
+      if (res.ok) {
         setSubmitted(true);
       }
     } catch {

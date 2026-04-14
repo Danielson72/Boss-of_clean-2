@@ -5,9 +5,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Users, Shield, CheckCircle, Clock, BarChart3, DollarSign, AlertTriangle } from 'lucide-react'
+import { Users, Shield, CheckCircle, Clock, BarChart3, DollarSign, AlertTriangle, MessageSquare } from 'lucide-react'
 import { AdminQueueWrapper } from './components/admin-queue-wrapper'
 import { PaymentMonitoring } from './components/PaymentMonitoring'
+import { ContactMessages } from './components/ContactMessages'
 import { getPaymentMonitoringData } from '@/lib/services/admin-payments'
 
 export const metadata = {
@@ -26,6 +27,7 @@ export default async function AdminDashboard() {
   let pendingApprovals = 0
   let rejectedCount = 0
   let paymentData = null
+  let unreadMessages = 0
   let dataError: string | null = null
 
   try {
@@ -84,17 +86,19 @@ export default async function AdminDashboard() {
     allUsers = (usersData || []) as Record<string, unknown>[]
 
     // Get stats
-    const [statsUsers, statsCleaners, statsPending, statsRejected] = await Promise.all([
+    const [statsUsers, statsCleaners, statsPending, statsRejected, statsUnreadMessages] = await Promise.all([
       supabase.from('users').select('*', { count: 'exact', head: true }),
       supabase.from('cleaners').select('*', { count: 'exact', head: true }).eq('approval_status', 'approved'),
       supabase.from('cleaners').select('*', { count: 'exact', head: true }).eq('approval_status', 'pending'),
       supabase.from('cleaners').select('*', { count: 'exact', head: true }).eq('approval_status', 'rejected'),
+      supabase.from('contact_submissions').select('*', { count: 'exact', head: true }).eq('is_read', false),
     ])
 
     totalUsers = statsUsers.count || 0
     totalCleaners = statsCleaners.count || 0
     pendingApprovals = statsPending.count || 0
     rejectedCount = statsRejected.count || 0
+    unreadMessages = statsUnreadMessages.count || 0
   } catch (err: unknown) {
     // Re-throw Next.js internal errors: redirect() throws NEXT_REDIRECT,
     // cookies()/headers() throw DYNAMIC_SERVER_USAGE — both must propagate
@@ -142,7 +146,7 @@ export default async function AdminDashboard() {
       )}
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4 mb-6 md:mb-8">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-5 md:gap-4 mb-6 md:mb-8">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Users</CardTitle>
@@ -182,14 +186,33 @@ export default async function AdminDashboard() {
             <div className="text-2xl font-bold">{rejectedCount}</div>
           </CardContent>
         </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Unread Messages</CardTitle>
+            <MessageSquare className="h-4 w-4 text-blue-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{unreadMessages}</div>
+          </CardContent>
+        </Card>
       </div>
 
       <Tabs defaultValue="approvals" className="space-y-4 md:space-y-6">
         <div className="overflow-x-auto -mx-3 px-3 md:mx-0 md:px-0">
-          <TabsList className="inline-flex w-auto min-w-full md:grid md:w-full md:grid-cols-3 lg:w-[600px]">
+          <TabsList className="inline-flex w-auto min-w-full md:grid md:w-full md:grid-cols-4 lg:w-[720px]">
             <TabsTrigger value="approvals" className="gap-2 whitespace-nowrap">
               <Clock className="h-4 w-4" />
               Approval Queue
+            </TabsTrigger>
+            <TabsTrigger value="messages" className="gap-2 whitespace-nowrap">
+              <MessageSquare className="h-4 w-4" />
+              Messages
+              {unreadMessages > 0 && (
+                <Badge variant="default" className="ml-1 text-[10px] px-1.5 py-0">
+                  {unreadMessages}
+                </Badge>
+              )}
             </TabsTrigger>
             <TabsTrigger value="payments" className="gap-2 whitespace-nowrap">
               <DollarSign className="h-4 w-4" />
@@ -212,6 +235,20 @@ export default async function AdminDashboard() {
             </CardHeader>
             <CardContent>
               <AdminQueueWrapper applications={pendingCleaners as never[]} />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="messages" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Contact Form Submissions</CardTitle>
+              <CardDescription>
+                Messages from the website contact form. Click a message to view details.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ContactMessages />
             </CardContent>
           </Card>
         </TabsContent>
