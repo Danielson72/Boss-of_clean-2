@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Mail, Phone, MapPin, ArrowRight, CheckCircle2, Loader2 } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -60,6 +61,15 @@ export default function ContactPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
           {/* Left: Contact Form */}
           <div>
+            <div className="flex justify-center mb-8">
+              <Image
+                src="/images/boss-of-clean-logo-lg.png"
+                alt="Boss of Clean"
+                width={120}
+                height={120}
+                className="rounded-lg"
+              />
+            </div>
             <h2 className="font-display text-2xl font-bold text-brand-dark mb-6">
               Send Us a Message
             </h2>

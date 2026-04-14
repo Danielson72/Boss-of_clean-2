@@ -35,13 +35,13 @@ export default function Footer() {
         <div className="py-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-8">
           {/* Brand */}
           <div className="lg:col-span-1">
-            <div className="flex items-center gap-2.5 mb-4">
+            <div className="flex items-center gap-3 mb-4">
               <Image
                 src="/boss-of-clean-logo.png"
                 alt="Boss of Clean"
-                width={40}
-                height={40}
-                className="rounded-full"
+                width={80}
+                height={80}
+                className="rounded-lg"
               />
               <div>
                 <span className="text-lg font-bold font-display text-white">
