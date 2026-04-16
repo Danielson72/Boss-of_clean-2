@@ -5,6 +5,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { AuthProvider } from '@/lib/context/AuthContext';
 import { Toaster } from '@/components/ui/sonner';
+import CEOChatWidget from '@/components/chat/CEOChatWidget';
 
 const dmSans = DM_Sans({
   subsets: ['latin'],
@@ -91,6 +92,7 @@ export default function RootLayout({
             <Footer />
           </div>
           <Toaster />
+          <CEOChatWidget />
         </AuthProvider>
       </body>
     </html>
