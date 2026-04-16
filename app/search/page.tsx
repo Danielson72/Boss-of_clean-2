@@ -138,8 +138,8 @@ export default function SearchPage() {
       // Client-side location filtering
       const searchValue = (filters.selectedZip || filters.location).toLowerCase().trim();
       if (searchValue) {
-        filteredData = filteredData.filter((cleaner) => {
-          const c = cleaner as CleanerData;
+        filteredData = filteredData.filter((cleaner: CleanerData) => {
+          const c = cleaner;
           if (c.service_areas && c.service_areas.length > 0) {
             const matchInAreas = c.service_areas.some(area => {
               const areaLower = area.toLowerCase();
@@ -161,8 +161,8 @@ export default function SearchPage() {
         const todayIndex = now.getDay();
         const todayName = days[todayIndex];
 
-        filteredData = filteredData.filter((cleaner) => {
-          const c = cleaner as CleanerData;
+        filteredData = filteredData.filter((cleaner: CleanerData) => {
+          const c = cleaner;
           if (filters.availability === 'today' && c.instant_booking) {
             return true;
           }
@@ -201,8 +201,8 @@ export default function SearchPage() {
           const searchLng = Number(searchZipData.longitude);
 
           const allZips = new Set<string>();
-          filteredData.forEach((c) => {
-            ((c as CleanerData).service_areas || []).forEach(z => allZips.add(z));
+          filteredData.forEach((c: CleanerData) => {
+            (c.service_areas || []).forEach(z => allZips.add(z));
           });
 
           const { data: zipCoords } = await supabase
@@ -218,8 +218,8 @@ export default function SearchPage() {
           });
 
           distanceMap = new Map<string, number>();
-          filteredData.forEach((cleaner) => {
-            const c = cleaner as CleanerData;
+          filteredData.forEach((cleaner: CleanerData) => {
+            const c = cleaner;
             let minDist = Infinity;
             (c.service_areas || []).forEach(zip => {
               const coords = coordsMap.get(zip);
@@ -238,21 +238,21 @@ export default function SearchPage() {
           // Apply distance filter
           if (filters.distance) {
             const maxDist = parseInt(filters.distance, 10);
-            filteredData = filteredData.filter((cleaner) => {
-              const dist = distanceMap!.get((cleaner as CleanerData).id) || 999;
+            filteredData = filteredData.filter((cleaner: CleanerData) => {
+              const dist = distanceMap!.get(cleaner.id) || 999;
               return dist <= maxDist;
             });
           }
 
           // Sort by distance when zip is provided
-          filteredData.sort((a, b) => {
-            return (distanceMap!.get((a as CleanerData).id) || 999) - (distanceMap!.get((b as CleanerData).id) || 999);
+          filteredData.sort((a: CleanerData, b: CleanerData) => {
+            return (distanceMap!.get(a.id) || 999) - (distanceMap!.get(b.id) || 999);
           });
         }
       }
 
-      const mappedProviders = filteredData.map((cleaner) => {
-        const c = cleaner as CleanerData;
+      const mappedProviders = filteredData.map((cleaner: CleanerData) => {
+        const c = cleaner;
         const props = mapCleanerToProvider(c);
         if (distanceMap) {
           props.distance = distanceMap.get(c.id);

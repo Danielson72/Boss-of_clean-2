@@ -44,7 +44,7 @@ async function getProContact(cleanerId: string): Promise<{ email: string; busine
     .select('business_name, user_id, user:users(email)')
     .eq('id', cleanerId)
     .single()
-  const email = (data?.user as Record<string, unknown>)?.email as string | undefined
+  const email = (data?.user as unknown as Record<string, unknown>)?.email as string | undefined
   if (!email || !data?.business_name || !data?.user_id) return null
   return { email, business_name: data.business_name, user_id: data.user_id }
 }

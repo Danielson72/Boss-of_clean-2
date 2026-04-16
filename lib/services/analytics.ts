@@ -35,6 +35,22 @@ export interface BookingEarning {
   customer_name: string;
 }
 
+type BookingRow = {
+  id: string
+  booking_date: string
+  total_price: number | null
+  service_type: string
+  status: string
+  created_at: string
+  address?: string | null
+  city?: string | null
+  zip_code?: string | null
+  start_time?: string | null
+  end_time?: string | null
+  customer: { full_name: string; email?: string } | { full_name: string; email?: string }[] | null
+}
+type LeadRow = { id: string; status: string }
+
 export class AnalyticsService {
   private supabase = createClient();
 
@@ -69,9 +85,11 @@ export class AnalyticsService {
       logger.error('Error fetching leads:', {}, leadsError);
     }
 
-    const completedBookings = bookings?.filter(b => b.status === 'completed') || [];
-    const allBookings = bookings || [];
-    const leads = leadMatches || [];
+    const typedBookings = (bookings || []) as BookingRow[];
+    const typedLeads = (leadMatches || []) as LeadRow[];
+    const completedBookings = typedBookings.filter(b => b.status === 'completed');
+    const allBookings = typedBookings;
+    const leads = typedLeads;
 
     // Calculate stats
     const totalEarnings = completedBookings.reduce((sum, b) => sum + (b.total_price || 0), 0);
@@ -190,7 +208,7 @@ export class AnalyticsService {
       'Status',
     ];
 
-    const rows = (bookings || []).map(b => {
+    const rows = ((bookings || []) as BookingRow[]).map(b => {
       // Handle customer which could be an array or single object from the join
       const customerData = Array.isArray(b.customer) ? b.customer[0] : b.customer;
       const customer = customerData as { full_name: string; email: string } | null;

@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { roleToDashboardPath } from '@/lib/utils/dashboard-path'
-import { User } from '@supabase/supabase-js'
+import { User, type AuthChangeEvent, type Session } from '@supabase/supabase-js'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -51,7 +51,7 @@ export default function UserNav() {
     getUser()
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      async (event: AuthChangeEvent, session: Session | null) => {
         setUser(session?.user ?? null)
         
         if (session?.user) {

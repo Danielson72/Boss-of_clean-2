@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/client';
-import type { User, AuthError } from '@supabase/supabase-js';
+import type { User, AuthError, AuthChangeEvent, Session } from '@supabase/supabase-js';
 import type { UserUpdate } from '@/lib/types/database';
 
 export class AuthService {
@@ -154,7 +154,7 @@ export class AuthService {
   }
 
   onAuthStateChange(callback: (user: User | null) => void) {
-    return this.supabase.auth.onAuthStateChange((_event, session) => {
+    return this.supabase.auth.onAuthStateChange((_event: AuthChangeEvent, session: Session | null) => {
       callback(session?.user ?? null);
     });
   }

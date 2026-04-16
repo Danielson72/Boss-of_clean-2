@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User, AuthError } from '@supabase/supabase-js';
+import { User, AuthError, type AuthChangeEvent, type Session } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabase/client';
 
 type UserRole = 'customer' | 'cleaner' | 'admin';
@@ -103,7 +103,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     // Listen for auth changes (sign-in, sign-out, token refresh)
     // Skip INITIAL_SESSION — getInitialSession already handles it.
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      async (event: AuthChangeEvent, session: Session | null) => {
         console.log('[AuthContext] onAuthStateChange:', event, session?.user?.email || 'no user');
 
         // Skip the initial event — getInitialSession already handles it.

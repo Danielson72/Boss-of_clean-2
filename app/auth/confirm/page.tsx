@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import type { AuthError, User } from '@supabase/supabase-js';
 import { CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { roleToDashboardPath } from '@/lib/utils/dashboard-path';
@@ -24,14 +25,14 @@ export default function EmailConfirmPage() {
     if (tokenHash && type === 'signup') {
       const supabase = createClient();
       supabase.auth.verifyOtp({ token_hash: tokenHash, type: 'signup' })
-        .then(async ({ data, error }) => {
+        .then(async ({ data, error }: { data: { user: User | null } | null; error: AuthError | null }) => {
           if (error) {
             setStatus('error');
             setMessage(error.message || 'Verification failed. The link may have expired.');
             return;
           }
 
-          if (data.user) {
+          if (data && data.user) {
             setStatus('success');
             setMessage('Your email has been verified! Redirecting to your dashboard...');
 

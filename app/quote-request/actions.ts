@@ -136,11 +136,11 @@ export async function submitQuoteRequest(
       if (areaMatches && areaMatches.length > 0) {
         matchedPros = areaMatches
           .filter((m) => {
-            const cleaner = m.cleaner as Record<string, unknown>;
+            const cleaner = m.cleaner as unknown as Record<string, unknown>;
             return cleaner?.approval_status === 'approved';
           })
           .map((m) => {
-            const cleaner = m.cleaner as Record<string, unknown>;
+            const cleaner = m.cleaner as unknown as Record<string, unknown>;
             const user = cleaner.user as Record<string, unknown>;
             return {
               cleaner_id: cleaner.id as string,
@@ -161,7 +161,7 @@ export async function submitQuoteRequest(
 
         if (allApproved && allApproved.length > 0) {
           matchedPros = allApproved.map((c) => {
-            const user = c.user as Record<string, unknown>;
+            const user = c.user as unknown as Record<string, unknown>;
             return {
               cleaner_id: c.id,
               user_id: c.user_id,

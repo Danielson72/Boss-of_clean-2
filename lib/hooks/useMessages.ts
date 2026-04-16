@@ -66,8 +66,8 @@ export function useMessages({ conversationId, enabled = true }: UseMessagesOptio
           table: 'messages',
           filter: `conversation_id=eq.${conversationId}`,
         },
-        (payload) => {
-          const newMessage = payload.new as Message;
+        (payload: { new: Record<string, unknown> }) => {
+          const newMessage = payload.new as unknown as Message;
           setMessages((prev) => {
             // Avoid duplicates
             if (prev.some((m) => m.id === newMessage.id)) {
@@ -85,8 +85,8 @@ export function useMessages({ conversationId, enabled = true }: UseMessagesOptio
           table: 'messages',
           filter: `conversation_id=eq.${conversationId}`,
         },
-        (payload) => {
-          const updatedMessage = payload.new as Message;
+        (payload: { new: Record<string, unknown> }) => {
+          const updatedMessage = payload.new as unknown as Message;
           setMessages((prev) =>
             prev.map((m) => (m.id === updatedMessage.id ? updatedMessage : m))
           );

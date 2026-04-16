@@ -57,12 +57,12 @@ export default function NewReviewPage() {
         .eq('customer_id', user.id);
 
       const reviewedBookingIds = new Set(
-        (existingReviews || []).map((r) => r.quote_request_id)
+        (existingReviews || []).map((r: { quote_request_id: string }) => r.quote_request_id)
       );
 
       // Filter out already-reviewed bookings
       const unreviewedBookings = (completedBookings || []).filter(
-        (b) => !reviewedBookingIds.has(b.id)
+        (b: { id: string }) => !reviewedBookingIds.has(b.id)
       );
 
       setBookings(unreviewedBookings as CompletedBooking[]);

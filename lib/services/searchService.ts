@@ -221,7 +221,7 @@ export class SearchService {
       throw new Error('Failed to search cleaners');
     }
 
-    let cleaners = data || [];
+    let cleaners = (data || []) as Cleaner[];
 
     // Client-side availability filtering based on business_hours JSONB
     if (filters.availability) {

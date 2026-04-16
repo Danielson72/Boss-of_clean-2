@@ -28,6 +28,7 @@ export function DashboardSidebar({ links }: DashboardSidebarProps) {
 
   const isActive = (href: string) => {
     if (href === pathname) return true;
+    if (!pathname) return false;
     // For non-overview links, check if current path starts with the link href
     const isOverview = links[0]?.href === href;
     if (!isOverview && pathname.startsWith(href + '/')) return true;

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import type { AuthChangeEvent } from '@supabase/supabase-js';
 import { Lock, AlertCircle, CheckCircle, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { validatePasswordStrength } from '@/lib/email/password-reset';
 
@@ -69,7 +70,7 @@ export default function ResetPasswordPage() {
     };
 
     // Also listen for PASSWORD_RECOVERY event (handles hash fragment tokens)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event: AuthChangeEvent) => {
       if (event === 'PASSWORD_RECOVERY') {
         setSessionReady(true);
         setInitializing(false);

@@ -91,13 +91,13 @@ export async function getMarketplaceQuotes(): Promise<{
     }
 
     // Merge (deduplicate by id, my quotes first)
-    const myIds = new Set((myQuotes || []).map(q => q.id));
+    const myIds = new Set((myQuotes || []).map(q => (q as unknown as MarketplaceQuote).id));
     const merged = [
       ...(myQuotes || []),
-      ...(marketplaceQuotes || []).filter(q => !myIds.has(q.id)),
+      ...(marketplaceQuotes || []).filter(q => !myIds.has((q as unknown as MarketplaceQuote).id)),
     ];
 
-    return { success: true, quotes: merged, cleanerId: cleaner.id };
+    return { success: true, quotes: merged as MarketplaceQuote[], cleanerId: cleaner.id };
   } catch (error) {
     logger.error('Error in getMarketplaceQuotes', { function: 'getMarketplaceQuotes' }, error);
     return { success: false, error: 'An unexpected error occurred' };

@@ -34,6 +34,10 @@ export interface OnboardingData {
   profile_image_url: string
   portfolio_images: string[]
 
+  // Training
+  training_videos_watched?: string[]
+  training_completed?: boolean
+
   // Step 6: Review - no additional fields
 }
 

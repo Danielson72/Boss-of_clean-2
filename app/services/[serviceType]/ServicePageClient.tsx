@@ -130,9 +130,9 @@ export function ServicePageClient({ serviceType }: ServicePageClientProps) {
       if (filteredData.length > 0) {
         const prices = filteredData
           .map((c: CleanerData) => c.hourly_rate)
-          .filter((p): p is number => p !== null && p !== undefined && p > 0);
+          .filter((p: number | null | undefined): p is number => p !== null && p !== undefined && p > 0);
         if (prices.length > 0) {
-          const avg = prices.reduce((sum, p) => sum + p, 0) / prices.length;
+          const avg = prices.reduce((sum: number, p: number) => sum + p, 0) / prices.length;
           setAveragePrice(Math.round(avg));
         }
       }

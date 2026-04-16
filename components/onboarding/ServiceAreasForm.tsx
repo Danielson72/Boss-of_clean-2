@@ -105,7 +105,7 @@ export default function ServiceAreasForm({ data, onChange, onNext, onBack, isSub
       .filter((r) => r.city === city)
       .map((r) => r.zip_code)
     const currentAreas = data.service_areas || []
-    const newAreas = [...new Set([...currentAreas, ...cityZips])]
+    const newAreas = Array.from(new Set([...currentAreas, ...cityZips]))
     onChange({ ...data, service_areas: newAreas })
     if (errors.service_areas) {
       setErrors({ ...errors, service_areas: '' })
@@ -128,7 +128,7 @@ export default function ServiceAreasForm({ data, onChange, onNext, onBack, isSub
   }
 
   // Group search results by city for "add all" buttons
-  const citiesInResults = [...new Set(searchResults.map((r) => r.city))]
+  const citiesInResults = Array.from(new Set(searchResults.map((r) => r.city)))
 
   return (
     <div className="space-y-6">

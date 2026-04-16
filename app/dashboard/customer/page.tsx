@@ -187,7 +187,7 @@ export default function CustomerDashboard() {
         .eq('customer_id', user?.id);
 
       if (error) throw error;
-      setConfirmedQuotes(new Set((data || []).map(h => h.quote_request_id)));
+      setConfirmedQuotes(new Set((data || []).map((h: { quote_request_id: string }) => h.quote_request_id)));
     } catch {
       // silently fail
     }

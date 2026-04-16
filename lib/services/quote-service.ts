@@ -134,7 +134,7 @@ export class QuoteService {
       return [];
     }
 
-    const zipCodes = serviceAreas.map(area => area.zip_code);
+    const zipCodes = serviceAreas.map((area: { zip_code: string }) => area.zip_code);
 
     const { data, error } = await this.supabase
       .from('quote_requests')
@@ -285,7 +285,7 @@ export class QuoteService {
             .from('cleaner_service_areas')
             .select('cleaner_id')
             .eq('zip_code', zipCode)
-          ).data?.map(area => area.cleaner_id) || []
+          ).data?.map((area: { cleaner_id: string }) => area.cleaner_id) || []
         );
 
       // Send email notifications (this would integrate with your email service)
@@ -356,11 +356,11 @@ export class QuoteService {
 
     return {
       total: data.length,
-      pending: data.filter(q => q.status === 'pending').length,
-      responded: data.filter(q => q.status === 'responded').length,
-      accepted: data.filter(q => q.status === 'accepted').length,
-      completed: data.filter(q => q.status === 'completed').length,
-      cancelled: data.filter(q => q.status === 'cancelled').length,
+      pending: data.filter((q: { status: string }) => q.status === 'pending').length,
+      responded: data.filter((q: { status: string }) => q.status === 'responded').length,
+      accepted: data.filter((q: { status: string }) => q.status === 'accepted').length,
+      completed: data.filter((q: { status: string }) => q.status === 'completed').length,
+      cancelled: data.filter((q: { status: string }) => q.status === 'cancelled').length,
     };
   }
 }
