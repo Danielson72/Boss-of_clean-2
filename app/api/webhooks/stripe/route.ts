@@ -282,42 +282,34 @@ export async function POST(req: NextRequest) {
     const eventRecord = await webhookEventService.recordEvent(event);
 
     if (!eventRecord.is_new) {
-      // Event already processed or is being processed
       if (eventRecord.event_status === 'processed') {
         logger.info(`Event ${event.id} already processed, skipping`);
         return NextResponse.json({ received: true, duplicate: true });
       }
-
       if (eventRecord.event_status === 'processing') {
         logger.info(`Event ${event.id} is being processed, skipping`);
         return NextResponse.json({ received: true, processing: true });
       }
     }
 
-    // Process the event
-    try {
-      await handleStripeEvent(event);
+    // Return 200 immediately after signature verification and idempotency check.
+    // Stripe requires a fast acknowledgement — processing runs within the same
+    // serverless invocation (Node.js keeps the event loop alive until promises settle).
+    const ack = NextResponse.json({ received: true });
 
-      // Mark as successfully processed
-      await webhookEventService.markProcessed(event.id);
+    // Process the event — errors are logged and marked failed so Stripe can retry
+    handleStripeEvent(event)
+      .then(() => webhookEventService.markProcessed(event.id))
+      .then(() => {
+        logger.info(`Successfully processed webhook: ${event.type} (${event.id})`);
+      })
+      .catch(async (error) => {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        await webhookEventService.markFailed(event.id, errorMessage);
+        logger.error(`Failed to process webhook ${event.id}`, { function: 'POST' }, error);
+      });
 
-      logger.info(`Successfully processed webhook: ${event.type} (${event.id})`);
-      return NextResponse.json({ received: true });
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : 'Unknown error';
-
-      // Mark as failed with error
-      await webhookEventService.markFailed(event.id, errorMessage);
-
-      logger.error(`Failed to process webhook ${event.id}`, { function: 'POST' }, error);
-
-      // Return 500 so Stripe will retry
-      return NextResponse.json(
-        { error: 'Webhook processing failed', details: errorMessage },
-        { status: 500 }
-      );
-    }
+    return ack;
   } catch (error) {
     logger.error('Error processing webhook', { function: 'POST' }, error);
     return NextResponse.json(
