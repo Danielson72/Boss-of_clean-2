@@ -4,6 +4,7 @@ import { sendNewMessageEmail } from '@/lib/email/new-message';
 import { rateLimitRoute, RATE_LIMITS } from '@/lib/middleware/rate-limit';
 import { createLogger } from '@/lib/utils/logger';
 import { notifyProNewMessage, notifyCustomerQuoteReceived, sendSMSIfEnabled } from '@/lib/sms/notifications';
+import { filterPII } from '@/lib/pii-filter';
 
 const logger = createLogger({ file: 'api/messages/route' });
 
@@ -256,6 +257,46 @@ export async function POST(request: NextRequest) {
       recipientEmail = customerData.email;
       recipientName = customerData.full_name;
     }
+  }
+
+  // PII filter: check if this conversation has a paid lead unlock.
+  // If not, block any contact-sharing content to prevent fee bypass.
+  const conversationData = await supabase
+    .from('conversations')
+    .select('customer_id, cleaner_id')
+    .eq('id', actualConversationId!)
+    .single()
+
+  let isLeadUnlocked = false
+  if (conversationData.data) {
+    const { data: unlock } = await supabase
+      .from('lead_unlocks')
+      .select('id')
+      .eq('cleaner_id', conversationData.data.cleaner_id)
+      .eq('status', 'paid')
+      .limit(1)
+      .maybeSingle()
+
+    isLeadUnlocked = !!unlock
+  }
+
+  const piiResult = filterPII(content.trim(), isLeadUnlocked)
+  if (piiResult.blocked) {
+    // Log the bypass attempt for admin review
+    await supabase.from('pii_filter_log').insert({
+      conversation_id: actualConversationId,
+      sender_id: user.id,
+      blocked_content: content.trim().substring(0, 500),
+      matched_pattern: piiResult.matchedPattern ?? 'unknown',
+    })
+
+    return NextResponse.json(
+      {
+        error: 'To share contact info, unlock this lead first.',
+        blocked: true,
+      },
+      { status: 422 }
+    )
   }
 
   // Create the message
