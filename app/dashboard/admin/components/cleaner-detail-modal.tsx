@@ -157,11 +157,26 @@ export function CleanerDetailModal({ cleanerId, isOpen, onClose }: CleanerDetail
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
   }
 
+  const handleViewDocument = async (doc: Document) => {
+    try {
+      const res = await fetch(`/api/admin/documents/signed-url?documentId=${doc.id}`)
+      const json = await res.json()
+      if (json.url) {
+        window.open(json.url, '_blank')
+      } else {
+        toast.error('Could not open document')
+      }
+    } catch {
+      toast.error('Failed to load document')
+    }
+  }
+
   const getDocTypeLabel = (type: string) => {
     const labels: Record<string, string> = {
       license: 'Business License',
       insurance: 'Insurance Certificate',
-      background_check: 'Background Documentation',
+      background_check: 'Background Check',
+      id_photo: 'Government-Issued ID',
       certification: 'Professional Certification',
       other: 'Other Document'
     }
@@ -174,6 +189,8 @@ export function CleanerDetailModal({ cleanerId, isOpen, onClose }: CleanerDetail
         return <Badge className="bg-green-600"><CheckCircle className="h-3 w-3 mr-1" />Verified</Badge>
       case 'rejected':
         return <Badge variant="destructive"><XCircle className="h-3 w-3 mr-1" />Rejected</Badge>
+      case 'expired':
+        return <Badge className="bg-orange-500"><Clock className="h-3 w-3 mr-1" />Expired</Badge>
       default:
         return <Badge variant="secondary"><Clock className="h-3 w-3 mr-1" />Pending</Badge>
     }
@@ -384,7 +401,7 @@ export function CleanerDetailModal({ cleanerId, isOpen, onClose }: CleanerDetail
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => window.open(doc.file_url, '_blank')}
+                            onClick={() => handleViewDocument(doc)}
                           >
                             <Eye className="h-4 w-4 mr-1" />
                             View

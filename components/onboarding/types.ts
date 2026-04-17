@@ -29,6 +29,7 @@ export interface OnboardingData {
 
   // Step 4: Documents
   documents: DocumentUpload[]
+  tax_id: string
 
   // Step 5: Photos
   profile_image_url: string
@@ -39,7 +40,7 @@ export interface OnboardingData {
 
 export interface DocumentUpload {
   id?: string
-  document_type: 'license' | 'insurance' | 'background_check' | 'certification' | 'other'
+  document_type: 'license' | 'insurance' | 'background_check' | 'id_photo' | 'certification' | 'other'
   file_name: string
   file_url: string
   file_size?: number
@@ -74,10 +75,11 @@ export const SERVICE_TYPES = [
 ]
 
 export const DOCUMENT_TYPES = [
+  { value: 'insurance', label: 'Liability Insurance Certificate', required: true },
+  { value: 'id_photo', label: 'Government-Issued ID', required: true },
   { value: 'license', label: 'Business License', required: false },
-  { value: 'insurance', label: 'Liability Insurance', required: true },
   { value: 'background_check', label: 'Background Check', required: false },
-  { value: 'certification', label: 'Certification', required: false }
+  { value: 'certification', label: 'Certification', required: false },
 ]
 
 export const STEP_LABELS = [

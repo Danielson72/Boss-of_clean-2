@@ -118,6 +118,7 @@ export async function POST(request: NextRequest) {
           ...(data.employees_count && { employees_count: data.employees_count }),
           ...(data.profile_image_url && { profile_image_url: data.profile_image_url }),
           ...(data.portfolio_images && { business_images: data.portfolio_images }),
+          ...(data.tax_id !== undefined && { tax_id: data.tax_id }),
           updated_at: new Date().toISOString()
         })
         .eq('id', existingCleaner.id)

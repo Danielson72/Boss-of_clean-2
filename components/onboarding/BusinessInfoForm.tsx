@@ -175,6 +175,20 @@ export default function BusinessInfoForm({ data, onChange, onNext, isSubmitting 
         </p>
       </div>
 
+      <div className="space-y-2">
+        <Label htmlFor="tax_id">Tax ID or EIN</Label>
+        <div className="relative">
+          <Input
+            id="tax_id"
+            type="text"
+            placeholder="XX-XXXXXXX"
+            value={data.tax_id || ''}
+            onChange={(e) => handleChange('tax_id', e.target.value)}
+          />
+        </div>
+        <p className="text-xs text-gray-500">Required when earnings exceed $600 (1099-K compliance)</p>
+      </div>
+
       <div className="flex justify-end pt-4">
         <Button onClick={handleNext} disabled={isSubmitting}>
           Continue

@@ -275,7 +275,7 @@ export async function requestCleanerInfo(cleanerId: string, requestNotes: string
 
 export async function verifyDocument(
   documentId: string,
-  status: 'verified' | 'rejected',
+  status: 'verified' | 'rejected' | 'expired',
   notes?: string
 ): Promise<ActionResult> {
   const { isAdmin, error: authError } = await verifyAdmin()
@@ -286,7 +286,9 @@ export async function verifyDocument(
   const supabase = await createClient()
 
   const { data, error } = await supabase.rpc('verify_document', {
-    p_document_id: documentId
+    p_document_id: documentId,
+    p_status: status,
+    p_notes: notes ?? null,
   })
 
   if (error) {
@@ -298,7 +300,43 @@ export async function verifyDocument(
     return { success: false, error: data?.error || 'RPC returned unsuccessful' }
   }
 
+  // Send email to pro
+  const cleanerId = data.cleaner_id as string | undefined
+  if (cleanerId) {
+    try {
+      const contact = await getProContact(cleanerId)
+      if (contact) {
+        const docLabel = (data.document_type as string | undefined) ?? 'document'
+        const isApproved = status === 'verified'
+        const subject = isApproved
+          ? `Your ${docLabel} has been verified — Boss of Clean`
+          : `Action required: ${docLabel} ${status} — Boss of Clean`
+        const bodyHtml = wrapEmailTemplate(`
+          <h2 style="margin:0 0 16px">${isApproved ? '✅ Document Verified' : status === 'rejected' ? '❌ Document Rejected' : '⚠️ Document Expired'}</h2>
+          <p>Hi ${contact.business_name},</p>
+          <p>Your <strong>${docLabel.replace(/_/g, ' ')}</strong> has been <strong>${status}</strong>.</p>
+          ${notes ? `<p><strong>Notes:</strong> ${notes}</p>` : ''}
+          ${!isApproved ? `<p>Please upload a new document to continue the verification process.</p>` : ''}
+          ${generateButton('Go to My Dashboard', `${BASE_URL}/dashboard/pro`, isApproved ? 'success' : 'warning')}
+        `)
+        await sendResendEmail({ to: contact.email, subject, html: bodyHtml })
+        await createNotification(
+          contact.user_id,
+          'document_verification',
+          isApproved ? 'Document Verified' : `Document ${status}`,
+          isApproved
+            ? `Your ${docLabel.replace(/_/g, ' ')} has been verified.`
+            : `Your ${docLabel.replace(/_/g, ' ')} was ${status}. ${notes ?? ''}`,
+          '/dashboard/pro'
+        )
+      }
+    } catch (notifErr) {
+      logger.error('Failed to notify pro of document verification', { function: 'verifyDocument' }, notifErr)
+    }
+  }
+
   revalidatePath('/dashboard/admin')
+  revalidatePath('/dashboard/pro')
   return { success: true, data }
 }
 
