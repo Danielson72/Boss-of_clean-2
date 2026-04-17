@@ -9,6 +9,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { AuthProvider } from '@/lib/context/AuthContext';
 import { Toaster } from '@/components/ui/sonner';
+import { BocAssistantLoader } from '@/components/boc-assistant/BocAssistantLoader';
 
 const dmSans = DM_Sans({
   subsets: ['latin'],
@@ -98,6 +99,7 @@ export default function RootLayout({
             <Footer />
           </div>
           <Toaster />
+          <BocAssistantLoader />
         </AuthProvider>
       </body>
     </html>
