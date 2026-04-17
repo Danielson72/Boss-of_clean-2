@@ -63,6 +63,7 @@ export default function QuoteRequestPage() {
   const [submitted, setSubmitted] = useState(false);
   const [quoteId, setQuoteId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [tcpaConsented, setTcpaConsented] = useState(false);
 
   const [formData, setFormData] = useState<QuoteRequestData>({
     service_type: searchParams?.get('service') || '',
@@ -109,6 +110,10 @@ export default function QuoteRequestPage() {
         }
         if (!formData.contact_email || !/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(formData.contact_email)) {
           setError('Please enter a valid email address');
+          return false;
+        }
+        if (!tcpaConsented) {
+          setError('Please confirm your consent to be contacted before submitting.');
           return false;
         }
         return true;
@@ -577,10 +582,28 @@ export default function QuoteRequestPage() {
                     </dl>
                   </div>
 
-                  <p className="text-xs text-gray-500 mt-4">
-                    By submitting, you agree to receive quotes from verified cleaning professionals.
-                    Your information is protected and never shared publicly.
-                  </p>
+                  <div className="mt-4">
+                    <label className="flex items-start gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={tcpaConsented}
+                        onChange={(e) => {
+                          setTcpaConsented(e.target.checked);
+                          setError(null);
+                        }}
+                        className="mt-0.5 h-4 w-4 flex-shrink-0 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        required
+                      />
+                      <span className="text-xs text-gray-600 leading-relaxed">
+                        By submitting, I agree to be contacted by matching home service professionals
+                        through the Boss of Clean platform via SMS and email. Reply{' '}
+                        <strong>STOP</strong> to opt out. See our{' '}
+                        <Link href="/privacy" className="text-blue-600 hover:underline">Privacy Policy</Link>
+                        {' '}and{' '}
+                        <Link href="/terms" className="text-blue-600 hover:underline">Terms of Service</Link>.
+                      </span>
+                    </label>
+                  </div>
                 </div>
               </div>
             )}

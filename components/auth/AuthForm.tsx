@@ -29,6 +29,8 @@ export function AuthForm({ mode, role = 'customer' }: AuthFormProps) {
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [marketingOptIn, setMarketingOptIn] = useState(false)
+  const [notificationConsent, setNotificationConsent] = useState(false)
   const [verificationPending, setVerificationPending] = useState(false)
   const [resendLoading, setResendLoading] = useState(false)
   const [resendSuccess, setResendSuccess] = useState(false)
@@ -136,6 +138,7 @@ export function AuthForm({ mode, role = 'customer' }: AuthFormProps) {
         }
 
         if (authData.user) {
+          const now = new Date().toISOString()
           // The handle_new_user DB trigger creates the users row automatically.
           // Update it with additional fields the trigger doesn't have.
           await supabase
@@ -143,7 +146,10 @@ export function AuthForm({ mode, role = 'customer' }: AuthFormProps) {
             .update({
               full_name: fullName || null,
               phone: phone || null,
-              updated_at: new Date().toISOString(),
+              updated_at: now,
+              tcpa_consented_at: role === 'cleaner' && notificationConsent ? now : null,
+              marketing_opted_out: !marketingOptIn,
+              marketing_opted_out_at: !marketingOptIn ? now : null,
             })
             .eq('id', authData.user.id)
 
@@ -490,10 +496,42 @@ export function AuthForm({ mode, role = 'customer' }: AuthFormProps) {
         </CardContent>
 
         <CardFooter className="flex flex-col space-y-4">
+          {mode === 'signup' && !isCleaner && (
+            <label className="flex items-start gap-3 cursor-pointer w-full">
+              <input
+                type="checkbox"
+                checked={marketingOptIn}
+                onChange={(e) => setMarketingOptIn(e.target.checked)}
+                className="mt-0.5 h-4 w-4 flex-shrink-0 rounded border-gray-300"
+                disabled={loading}
+              />
+              <span className="text-xs text-muted-foreground leading-relaxed">
+                Send me tips and updates from Boss of Clean (optional)
+              </span>
+            </label>
+          )}
+
+          {isCleaner && (
+            <label className="flex items-start gap-3 cursor-pointer w-full">
+              <input
+                type="checkbox"
+                checked={notificationConsent}
+                onChange={(e) => setNotificationConsent(e.target.checked)}
+                className="mt-0.5 h-4 w-4 flex-shrink-0 rounded border-gray-300"
+                disabled={loading}
+                required
+              />
+              <span className="text-xs text-muted-foreground leading-relaxed">
+                I agree to receive lead alerts and booking notifications from Boss of Clean via
+                email and SMS. Reply <strong>STOP</strong> to opt out. *
+              </span>
+            </label>
+          )}
+
           <Button
             type="submit"
             className="w-full"
-            disabled={loading}
+            disabled={loading || (isCleaner && !notificationConsent)}
           >
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {mode === 'login' ? 'Sign In' : isCleaner ? 'Create Pro Account' : 'Sign Up'}
