@@ -64,6 +64,7 @@ export default function QuoteRequestPage() {
   const [quoteId, setQuoteId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  const [tcpaConsented, setTcpaConsented] = useState(false)
   const [formData, setFormData] = useState<QuoteRequestData>({
     service_type: searchParams?.get('service') || '',
     property_type: 'home',
@@ -111,6 +112,14 @@ export default function QuoteRequestPage() {
           setError('Please enter a valid email address');
           return false;
         }
+        if (!formData.contact_phone) {
+          setError('Phone number is required');
+          return false;
+        }
+        if (!tcpaConsented) {
+          setError('You must agree to the contact consent to submit');
+          return false;
+        }
         return true;
       default:
         return true;
@@ -137,7 +146,7 @@ export default function QuoteRequestPage() {
     setError(null);
 
     try {
-      const result = await submitQuoteRequest(formData);
+      const result = await submitQuoteRequest({ ...formData, tcpa_user_agent: navigator.userAgent });
 
       if (result.success) {
         setSubmitted(true);
@@ -530,7 +539,7 @@ export default function QuoteRequestPage() {
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Phone Number (Optional)
+                        Phone Number *
                       </label>
                       <div className="relative">
                         <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -539,9 +548,28 @@ export default function QuoteRequestPage() {
                           value={formData.contact_phone}
                           onChange={(e) => handleInputChange('contact_phone', e.target.value)}
                           placeholder="(555) 123-4567"
+                          required
                           className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         />
                       </div>
+                    </div>
+
+                    {/* TCPA 2025 one-to-one consent */}
+                    <div className="flex items-start gap-3 pt-2">
+                      <input
+                        id="quote-tcpa-consent"
+                        type="checkbox"
+                        checked={tcpaConsented}
+                        onChange={(e) => setTcpaConsented(e.target.checked)}
+                        className="mt-1 h-4 w-4 shrink-0 rounded border-gray-300 accent-blue-600"
+                        required
+                      />
+                      <label htmlFor="quote-tcpa-consent" className="text-xs text-gray-600 leading-snug">
+                        I agree to be contacted by the independent service professional(s) who respond to this quote, via phone call, text, and email at the information provided. I understand Boss of Clean will share my contact info with those professionals only. Consent is not a condition of purchase. Msg &amp; data rates may apply. Reply STOP to opt out. See{' '}
+                        <a href="/privacy" className="underline hover:text-gray-900">Privacy Policy</a>
+                        {' '}and{' '}
+                        <a href="/terms" className="underline hover:text-gray-900">Terms</a>.
+                      </label>
                     </div>
                   </div>
 
@@ -578,8 +606,7 @@ export default function QuoteRequestPage() {
                   </div>
 
                   <p className="text-xs text-gray-500 mt-4">
-                    By submitting, you agree to receive quotes from verified cleaning professionals.
-                    Your information is protected and never shared publicly.
+                    Your contact info is only shared with professionals who respond to your quote request.
                   </p>
                 </div>
               </div>
@@ -607,8 +634,8 @@ export default function QuoteRequestPage() {
               ) : (
                 <button
                   type="submit"
-                  disabled={submitting}
-                  className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 disabled:bg-blue-400 transition"
+                  disabled={submitting || !tcpaConsented}
+                  className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed transition"
                 >
                   {submitting ? 'Submitting...' : 'Get Free Quotes'}
                 </button>
