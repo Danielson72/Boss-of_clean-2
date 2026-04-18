@@ -286,7 +286,9 @@ export async function verifyDocument(
   const supabase = await createClient()
 
   const { data, error } = await supabase.rpc('verify_document', {
-    p_document_id: documentId
+    p_document_id: documentId,
+    p_status: status,
+    p_notes: notes ?? null,
   })
 
   if (error) {
