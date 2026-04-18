@@ -13,6 +13,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Loader2, Mail, CheckCircle, Eye, EyeOff } from 'lucide-react'
 import { resendVerificationEmail, canResendEmail, markEmailResent, getResendCooldownRemaining } from '@/lib/email/verification'
 import { GoogleSignInButton } from '@/components/auth/GoogleSignInButton'
+import { recordUserTcpaConsent } from '@/lib/actions/tcpa'
 
 interface AuthFormProps {
   mode: 'login' | 'signup'
@@ -33,9 +34,11 @@ export function AuthForm({ mode, role = 'customer' }: AuthFormProps) {
   const [resendLoading, setResendLoading] = useState(false)
   const [resendSuccess, setResendSuccess] = useState(false)
   const [resendCooldown, setResendCooldown] = useState(0)
+  const [tcpaConsented, setTcpaConsented] = useState(false)
   const router = useRouter()
   const supabase = createClient()
   const isCleaner = mode === 'signup' && role === 'cleaner'
+  const isSignup = mode === 'signup'
   const { user: authUser, loading: authLoading, roleLoaded, isAdmin, isCleaner: isCleanerRole } = useAuth()
   const [redirecting, setRedirecting] = useState(false)
   const safetyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -113,6 +116,17 @@ export function AuthForm({ mode, role = 'customer' }: AuthFormProps) {
 
     try {
       if (mode === 'signup') {
+        if (!phone.trim()) {
+          setError('Phone number is required.')
+          setLoading(false)
+          return
+        }
+        if (!tcpaConsented) {
+          setError('You must agree to the contact consent to continue.')
+          setLoading(false)
+          return
+        }
+
         const { data: authData, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
@@ -146,6 +160,9 @@ export function AuthForm({ mode, role = 'customer' }: AuthFormProps) {
               updated_at: new Date().toISOString(),
             })
             .eq('id', authData.user.id)
+
+          // Record TCPA consent (IP captured server-side)
+          recordUserTcpaConsent(authData.user.id, navigator.userAgent).catch(() => {})
 
           // If cleaner, update the trigger-created cleaners profile with form data
           if (role === 'cleaner') {
@@ -414,35 +431,36 @@ export function AuthForm({ mode, role = 'customer' }: AuthFormProps) {
                   disabled={loading}
                 />
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Phone</Label>
-                  <Input
-                    id="phone"
-                    type="tel"
-                    placeholder="(407) 555-0123"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    required
-                    disabled={loading}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="zipCode">Zip Code</Label>
-                  <Input
-                    id="zipCode"
-                    type="text"
-                    placeholder="32801"
-                    value={zipCode}
-                    onChange={(e) => setZipCode(e.target.value)}
-                    required
-                    disabled={loading}
-                    maxLength={5}
-                    pattern="[0-9]{5}"
-                  />
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="zipCode">Zip Code</Label>
+                <Input
+                  id="zipCode"
+                  type="text"
+                  placeholder="32801"
+                  value={zipCode}
+                  onChange={(e) => setZipCode(e.target.value)}
+                  required
+                  disabled={loading}
+                  maxLength={5}
+                  pattern="[0-9]{5}"
+                />
               </div>
             </>
+          )}
+
+          {isSignup && (
+            <div className="space-y-2">
+              <Label htmlFor="phone">Phone Number *</Label>
+              <Input
+                id="phone"
+                type="tel"
+                placeholder="(407) 555-0123"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                required
+                disabled={loading}
+              />
+            </div>
           )}
 
           <div className="space-y-2">
@@ -493,13 +511,33 @@ export function AuthForm({ mode, role = 'customer' }: AuthFormProps) {
               </button>
             </div>
           </div>
+
+          {isSignup && (
+            <div className="flex items-start gap-3 pt-1">
+              <input
+                id="tcpa-consent"
+                type="checkbox"
+                checked={tcpaConsented}
+                onChange={(e) => setTcpaConsented(e.target.checked)}
+                disabled={loading}
+                className="mt-1 h-4 w-4 shrink-0 rounded border-gray-300 text-primary focus:ring-primary"
+                required
+              />
+              <label htmlFor="tcpa-consent" className="text-xs text-muted-foreground leading-snug">
+                I agree to receive calls, texts, and emails from Boss of Clean and the independent service professional(s) who respond to my request, at the phone number and email I provided. Consent is not a condition of purchase. Message and data rates may apply. Reply STOP to unsubscribe. See our{' '}
+                <a href="/privacy" className="underline hover:text-foreground">Privacy Policy</a>
+                {' '}and{' '}
+                <a href="/terms" className="underline hover:text-foreground">Terms</a>.
+              </label>
+            </div>
+          )}
         </CardContent>
 
         <CardFooter className="flex flex-col space-y-4">
           <Button
             type="submit"
             className="w-full"
-            disabled={loading}
+            disabled={loading || (isSignup && !tcpaConsented)}
           >
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {mode === 'login' ? 'Sign In' : isCleaner ? 'Create Pro Account' : 'Sign Up'}
