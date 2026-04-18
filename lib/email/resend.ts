@@ -122,7 +122,7 @@ export function wrapEmailTemplate(content: string, options?: { includeUnsubscrib
 
         <!-- Footer -->
         <div style="text-align: center; padding: 24px; color: #9ca3af; font-size: 12px;">
-          <p style="margin: 0 0 8px 0;">Boss of Clean - Florida's Premier Cleaning Marketplace</p>
+          <p style="margin: 0 0 8px 0;">Boss of Clean - Florida's Premier Home Services Marketplace</p>
           <p style="margin: 0;">
             <a href="${BASE_URL}" style="color: #6b7280; text-decoration: none;">bossofclean.com</a>
           </p>

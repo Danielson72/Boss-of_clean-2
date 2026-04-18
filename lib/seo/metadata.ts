@@ -38,9 +38,12 @@ export function generatePageMetadata(options: MetadataOptions): Metadata {
   const imageUrl = image.startsWith('http') ? image : `${BASE_URL}${image}`;
 
   const defaultKeywords = [
-    'cleaning services Florida',
+    'home services Florida',
     'house cleaning',
-    'residential cleaning',
+    'landscaping',
+    'handyman',
+    'pool service',
+    'pressure washing',
     'professional cleaners',
     'Boss of Clean',
   ];
@@ -146,7 +149,7 @@ export function generateServiceMetadata(
   const title = `${serviceName} Services in Florida`;
   const description =
     customDescription ||
-    `Find professional ${serviceName.toLowerCase()} services across Florida. Compare prices, read reviews, and book cleaning professionals. Purrfection is our Standard.`;
+    `Find professional ${serviceName.toLowerCase()} services across Florida. Compare prices, read reviews, and book home service professionals. Purrfection is our Standard.`;
 
   return generatePageMetadata({
     title,
@@ -156,7 +159,7 @@ export function generateServiceMetadata(
       `${serviceName} Florida`,
       `${serviceName} near me`,
       'professional cleaning',
-      'cleaning professionals',
+      'home service professionals',
     ],
     path: `/services/${serviceSlug}`,
   });
@@ -173,9 +176,9 @@ export function generateLocationMetadata(
   const locationStr = county ? `${city}, ${county} County` : city;
   const title = `Cleaning Services in ${locationStr}, Florida`;
 
-  let description = `Find trusted cleaning professionals in ${locationStr}, FL.`;
+  let description = `Find trusted home service professionals in ${locationStr}, FL.`;
   if (cleanerCount && cleanerCount > 0) {
-    description += ` Browse ${cleanerCount}+ cleaning professionals.`;
+    description += ` Browse ${cleanerCount}+ home service professionals.`;
   }
   description += ' Compare prices, read reviews, and book today. Purrfection is our Standard.';
 
@@ -211,7 +214,7 @@ export function generateCountyMetadata(
 
   let description = `Find professional cleaning services in ${countyName} County, FL.`;
   if (cleanerCount && cleanerCount > 0) {
-    description += ` ${cleanerCount}+ cleaning professionals available.`;
+    description += ` ${cleanerCount}+ home service professionals available.`;
   }
   description += ' Residential and specialty cleaning. Purrfection is our Standard.';
 
@@ -254,7 +257,7 @@ export function generateSearchMetadata(
     description += ` ${resultCount} results found.`;
   }
 
-  description += ' Compare prices, read reviews, and book cleaning professionals.';
+  description += ' Compare prices, read reviews, and book home service professionals.';
 
   return generatePageMetadata({
     title,

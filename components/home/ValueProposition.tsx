@@ -14,7 +14,7 @@ const values = [
   {
     icon: TrendingUp,
     title: 'Growing Network',
-    description: 'New professionals joining across Florida as we build the most trusted cleaning marketplace.',
+    description: 'New professionals joining across Florida as we build the most trusted home services marketplace.',
   },
   {
     icon: Handshake,

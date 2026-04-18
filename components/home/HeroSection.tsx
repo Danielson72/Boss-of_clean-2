@@ -122,7 +122,7 @@ export default function HeroSection() {
 
             {/* Subtle descriptor */}
             <p className="mt-6 text-gray-400 text-sm">
-              Florida&apos;s residential cleaning and home services marketplace
+              Florida&apos;s home services marketplace
             </p>
           </div>
 

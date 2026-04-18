@@ -50,7 +50,7 @@ export default function Footer() {
               </div>
             </div>
             <p className="text-gray-400 text-sm leading-relaxed mb-6">
-              Florida&apos;s residential cleaning and home services marketplace.
+              Florida&apos;s home services marketplace — cleaning, landscaping, handyman, and more.
             </p>
             <address className="space-y-3 not-italic text-sm">
               <a
@@ -116,7 +116,7 @@ export default function Footer() {
         <div className="border-t border-white/10 py-8">
           {/* Disclaimer */}
           <p className="text-xs text-gray-500 leading-relaxed max-w-4xl mx-auto text-center mb-4">
-            Boss of Clean is a residential cleaning and home services marketplace
+            Boss of Clean is a home services marketplace
             connecting homeowners with independent service providers. We are not a
             cleaning company and do not directly employ, supervise, or control
             service providers listed on our platform. All service providers are

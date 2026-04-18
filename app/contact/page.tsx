@@ -229,7 +229,7 @@ export default function ContactPage() {
                 <div>
                   <p className="font-semibold text-brand-dark">How do I find a cleaner?</p>
                   <p className="text-gray-600 mt-1">
-                    Use our <Link href="/search" className="text-brand-gold hover:underline">search page</Link> to browse cleaning professionals by service type and location.
+                    Use our <Link href="/search" className="text-brand-gold hover:underline">search page</Link> to browse home service professionals by service type and location.
                   </p>
                 </div>
                 <div>

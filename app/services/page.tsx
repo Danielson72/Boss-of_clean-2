@@ -119,7 +119,7 @@ export default function ServicesPage() {
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Quality Professionals</h3>
               <p className="text-gray-600">
-                Independent cleaning professionals committed to quality service.
+                Independent home service professionals committed to quality service.
               </p>
             </div>
             <div className="text-center">
@@ -155,7 +155,7 @@ export default function ServicesPage() {
             Ready to Find Your Perfect Cleaner?
           </h2>
           <p className="text-blue-100 text-lg mb-8 max-w-2xl mx-auto">
-            Search thousands of verified cleaning professionals in Florida.
+            Search thousands of verified home service professionals in Florida.
             Compare quotes and book in minutes.
           </p>
           <Link

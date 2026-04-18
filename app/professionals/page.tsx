@@ -13,13 +13,13 @@ import {
 } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'Find Verified Cleaning Professionals in Florida',
+  title: 'Find Verified Home Service Professionals in Florida',
   description:
-    'Browse our directory of verified, insured cleaning professionals across Florida. View portfolios, read reviews, and request free quotes. Purrfection is our Standard.',
+    'Browse our directory of verified, insured home service professionals across Florida. View portfolios, read reviews, and request free quotes. Purrfection is our Standard.',
   openGraph: {
-    title: 'Find Verified Cleaning Professionals | Boss of Clean',
+    title: 'Find Verified Home Service Professionals | Boss of Clean',
     description:
-      'Browse our directory of verified, insured cleaning professionals across Florida. View portfolios, read reviews, and request free quotes.',
+      'Browse our directory of verified, insured home service professionals across Florida. View portfolios, read reviews, and request free quotes.',
     url: 'https://bossofclean.com/professionals',
   },
 };
@@ -143,9 +143,9 @@ export default async function ProfessionalsPage({
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
-    name: 'Verified Cleaning Professionals in Florida',
+    name: 'Verified Home Service Professionals in Florida',
     description:
-      'Directory of verified, insured cleaning professionals on Boss of Clean.',
+      'Directory of verified, insured home service professionals on Boss of Clean.',
     url: 'https://bossofclean.com/professionals',
     numberOfItems: pros.length,
     itemListElement: pros.slice(0, 20).map((pro, i) => ({

@@ -52,7 +52,7 @@ export default function PrivacyPage() {
               2. How We Use Your Information
             </h2>
             <ul className="list-disc pl-6 space-y-2 text-gray-600">
-              <li><strong>Service matching:</strong> Connecting homeowners with qualified cleaning professionals in their area.</li>
+              <li><strong>Service matching:</strong> Connecting homeowners with qualified home service professionals in their area.</li>
               <li><strong>Payment processing:</strong> Facilitating secure transactions between customers and professionals.</li>
               <li><strong>Communications:</strong> Sending booking confirmations, quote notifications, and platform updates.</li>
               <li><strong>Platform safety:</strong> Verifying professional credentials, detecting fraud, and maintaining marketplace quality.</li>

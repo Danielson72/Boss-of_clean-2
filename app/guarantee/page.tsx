@@ -3,7 +3,7 @@ import Link from 'next/link';
 
 export const metadata = {
   title: 'The Purrfection Promise | Boss of Clean',
-  description: 'The Boss of Clean Purrfection Promise — our commitment to connecting you with quality-focused cleaning professionals in Florida.',
+  description: 'The Boss of Clean Purrfection Promise — our commitment to connecting you with quality-focused home service professionals in Florida.',
 };
 
 export default function GuaranteePage() {
@@ -33,7 +33,7 @@ export default function GuaranteePage() {
             {[
               {
                 title: 'Quality-Focused Providers',
-                description: 'We connect you with cleaning professionals who are committed to delivering excellent results for every job.',
+                description: 'We connect you with home service professionals who are committed to delivering excellent results for every job.',
               },
               {
                 title: 'Easy Communication',
@@ -97,7 +97,7 @@ export default function GuaranteePage() {
           <div className="bg-blue-50 rounded-lg p-8 border border-blue-200">
             <p className="text-gray-700 leading-relaxed">
               Boss of Clean is a marketplace platform that connects customers with independent
-              cleaning professionals. Service providers are independent contractors, not employees
+              home service professionals. Service providers are independent contractors, not employees
               of Boss of Clean. We do not perform cleaning services directly. The service provider
               is solely responsible for the quality of work performed.
             </p>

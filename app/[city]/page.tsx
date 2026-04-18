@@ -240,9 +240,9 @@ export default async function CityPage({ params }: CityPageProps) {
                   <li className="flex items-start gap-3">
                     <Shield className="h-6 w-6 text-green-400 flex-shrink-0" />
                     <div>
-                      <p className="font-medium">Cleaning Professionals</p>
+                      <p className="font-medium">Home Service Professionals</p>
                       <p className="text-sm text-blue-200">
-                        Independent cleaning professionals in your area
+                        Independent home service professionals in your area
                       </p>
                     </div>
                   </li>
@@ -286,7 +286,7 @@ export default async function CityPage({ params }: CityPageProps) {
               Cleaning Services Available in {city.name}
             </h2>
             <p className="text-gray-600 text-center mb-12 max-w-2xl mx-auto">
-              Our verified cleaning professionals offer a wide range of services to meet
+              Our verified home service professionals offer a wide range of services to meet
               your needs in {city.name} and surrounding {city.county} County areas.
             </p>
 
@@ -352,7 +352,7 @@ export default async function CityPage({ params }: CityPageProps) {
                 Top-Rated Cleaners in {city.name}
               </h2>
               <p className="text-gray-600 text-center mb-12">
-                Browse our highest-rated cleaning professionals serving {city.name} and
+                Browse our highest-rated home service professionals serving {city.name} and
                 nearby areas.
               </p>
 
@@ -436,7 +436,7 @@ export default async function CityPage({ params }: CityPageProps) {
                 Cleaning Services in Nearby Cities
               </h2>
               <p className="text-gray-600 text-center mb-8">
-                Explore cleaning professionals in areas near {city.name}.
+                Explore home service professionals in areas near {city.name}.
               </p>
 
               <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">

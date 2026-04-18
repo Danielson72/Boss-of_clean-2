@@ -309,7 +309,7 @@ export default function ToolParticleSection() {
           Every Professional.<br />Every Service.
         </h2>
         <p className="text-gray-300 text-lg max-w-2xl mx-auto mb-10 leading-relaxed">
-          From residential cleaning to post-construction, Boss of Clean connects
+          From house cleaning to landscaping to handyman work, Boss of Clean connects
           Florida&apos;s most serious service pros with customers who value quality.
         </p>
         <div className="flex flex-wrap justify-center gap-3">

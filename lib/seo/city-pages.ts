@@ -17,7 +17,7 @@ export function generateCityMetadata(data: CityPageData): Metadata {
   const { city, cleanerCount, averageRating } = data;
 
   const title = `House Cleaning Services in ${city.name}, FL | Boss of Clean`;
-  const description = `Find cleaning professionals in ${city.name}, Florida. Residential cleaning, deep cleaning, move-in/out cleaning, pressure washing and more. Browse and connect with local pros.`;
+  const description = `Find home service professionals in ${city.name}, Florida. Residential cleaning, deep cleaning, move-in/out cleaning, pressure washing and more. Browse and connect with local pros.`;
 
   return {
     title,
@@ -70,7 +70,7 @@ export function generateCityJsonLd(data: CityPageData): object {
     '@type': 'LocalBusiness',
     '@id': `${SITE_URL}/${city.slug}`,
     name: `Boss of Clean - ${city.name}`,
-    description: `Professional cleaning services in ${city.name}, ${city.county} County, Florida. ${cleanerCount}+ cleaning professionals available.`,
+    description: `Professional home services in ${city.name}, ${city.county} County, Florida. ${cleanerCount}+ home service professionals available.`,
     url: `${SITE_URL}/${city.slug}`,
     areaServed: {
       '@type': 'City',
