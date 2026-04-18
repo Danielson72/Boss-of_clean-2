@@ -19,13 +19,6 @@ function roleToDashboardPath(role: string): string {
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
 
-  // --- Rate limiting for auth pages (login/signup) ---
-  if (pathname === '/login' || pathname === '/signup') {
-    const ip = getClientIp(request)
-    const blocked = await rateLimitMiddleware(request, 'auth', ip, RATE_LIMITS.auth)
-    if (blocked) return blocked
-  }
-
   // --- Rate limiting for abuse-prone API routes ---
   if (pathname === '/api/reviews/create' && request.method === 'POST') {
     const ip = getClientIp(request)
