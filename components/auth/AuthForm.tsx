@@ -264,7 +264,13 @@ export function AuthForm({ mode, role = 'customer' }: AuthFormProps) {
         setError('Incorrect email or password. Please try again or use "Forgot password?" to reset.');
       } else if (message.includes('Email not confirmed')) {
         setError('Your email hasn\'t been verified yet. Please check your inbox for the verification link, or sign up again to resend it.');
-      } else if (message.includes('rate') || message.includes('429')) {
+      } else if (
+        message.includes('rate') ||
+        message.includes('429') ||
+        message.includes('security purposes') ||
+        message.includes('only request this') ||
+        (error instanceof Error && 'status' in error && (error as { status?: number }).status === 429)
+      ) {
         setError('Too many login attempts. Please wait a few minutes and try again.');
       } else {
         setError(message);
