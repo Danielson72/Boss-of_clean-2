@@ -41,7 +41,7 @@ export function generateOrganizationSchema() {
     '@id': `${BASE_URL}/#organization`,
     name: 'Boss of Clean',
     alternateName: 'Boss of Clean Florida',
-    description: 'Florida\'s residential cleaning and home services marketplace. Connect with independent cleaning professionals across all 67 counties. Purrfection is our Standard.',
+    description: 'Florida\'s home services marketplace. Connect with independent home service professionals across all 67 counties. Purrfection is our Standard.',
     url: BASE_URL,
     logo: {
       '@type': 'ImageObject',
@@ -92,7 +92,7 @@ export function generateWebsiteSchema() {
     '@id': `${BASE_URL}/#website`,
     name: 'Boss of Clean',
     url: BASE_URL,
-    description: 'Florida\'s residential cleaning and home services marketplace. Connect with independent cleaning professionals across all 67 counties.',
+    description: 'Florida\'s home services marketplace. Connect with independent home service professionals across all 67 counties.',
     publisher: {
       '@id': `${BASE_URL}/#organization`,
     },

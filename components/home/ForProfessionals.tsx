@@ -26,7 +26,7 @@ export default function ForProfessionals() {
               Grow Your Cleaning Business
             </h2>
             <p className="text-gray-400 text-lg mb-10 leading-relaxed">
-              Join Florida&apos;s newest cleaning marketplace and connect with homeowners
+              Join Florida&apos;s newest home services marketplace and connect with homeowners
               looking for your services.
             </p>
 

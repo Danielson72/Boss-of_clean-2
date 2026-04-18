@@ -67,7 +67,7 @@ const plans = [
 const faqs = [
   {
     question: 'Is Boss of Clean free for customers?',
-    answer: 'Yes, always. Customers can search for and connect with cleaning professionals at no cost. We only charge professionals for premium listing features.',
+    answer: 'Yes, always. Customers can search for and connect with home service professionals at no cost. We only charge professionals for premium listing features.',
   },
   {
     question: 'Do I need a contract?',

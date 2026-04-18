@@ -4,9 +4,20 @@ import { generatePageMetadata } from '@/lib/seo/metadata';
 
 export const metadata = generatePageMetadata({
   title: 'About Us',
-  description: 'Boss of Clean is building Florida\'s most trusted residential cleaning marketplace. Learn about our mission to connect homeowners with independent cleaning professionals.',
+  description: 'Boss of Clean is building Florida\'s most trusted home services marketplace. Learn about our mission to connect homeowners with independent professionals across cleaning, landscaping, handyman services, and more.',
   path: '/about',
-  keywords: ['about Boss of Clean', 'Florida cleaning marketplace', 'residential cleaning platform'],
+  keywords: [
+    'home services Florida',
+    'house cleaning',
+    'landscaping',
+    'handyman',
+    'pool service',
+    'pressure washing',
+    'Boss of Clean',
+    'Florida home services marketplace',
+    'home professionals platform',
+    'cleaning services',
+  ],
 });
 
 export default function AboutPage() {
@@ -28,7 +39,10 @@ export default function AboutPage() {
             About <span className="text-brand-gold">Boss of Clean</span>
           </h1>
           <p className="text-gray-300 text-lg sm:text-xl max-w-2xl mx-auto">
-            Building Florida&apos;s most trusted residential cleaning marketplace
+            Building Florida&apos;s most trusted home services marketplace
+          </p>
+          <p className="text-gray-400 text-base sm:text-lg max-w-2xl mx-auto mt-3">
+            Cleaning. Landscaping. Handyman. And every home pro in between.
           </p>
         </div>
       </section>
@@ -41,14 +55,22 @@ export default function AboutPage() {
         <div className="space-y-5 text-gray-600 text-lg leading-relaxed">
           <p>
             Boss of Clean was born from a simple frustration: finding reliable, professional
-            cleaning services in Florida was harder than it should be. For homeowners, the
-            options were overwhelming and opaque. For quality cleaning professionals, reaching
-            new customers meant competing on platforms that didn&apos;t value their craft.
+            home services in Florida was harder than it should be. For homeowners, the
+            options were overwhelming and opaque. For quality home service professionals —
+            from cleaners and landscapers to handymen, pressure washers, pool techs, and
+            beyond — reaching new customers meant competing on platforms that didn&apos;t
+            value their craft.
+          </p>
+          <p>
+            Our name starts with cleaning because that&apos;s where we got our start, but
+            Boss of Clean is about a clean way of doing business — transparent pricing, fair
+            lead fees, and respect for the independent professionals who keep Florida homes
+            running.
           </p>
           <p>
             We&apos;re building a marketplace where quality matters — where &ldquo;Purrfection is
             our Standard&rdquo; isn&apos;t just a tagline but a commitment to connecting
-            homeowners with independent cleaning professionals they can trust.
+            homeowners with independent home service professionals they can trust.
           </p>
           <p>
             We&apos;re just getting started, and we&apos;re proud of that. Being new means
@@ -71,8 +93,10 @@ export default function AboutPage() {
           </h2>
           <p className="text-gray-700 text-xl leading-relaxed max-w-3xl mx-auto">
             We believe every Florida home deserves access to trustworthy, professional
-            cleaning services. Boss of Clean exists to make that connection simple,
-            transparent, and reliable.
+            home services — whether that&apos;s a weekly house cleaning, a landscaping crew,
+            a handyman for the to-do list, or any of the skilled trades that keep a home
+            running. Boss of Clean exists to make that connection simple, transparent, and
+            reliable.
           </p>
         </div>
       </section>
@@ -89,9 +113,10 @@ export default function AboutPage() {
               For Professionals
             </h2>
             <p className="text-gray-600 text-lg leading-relaxed">
-              We&apos;re building a platform that respects the professionals who make
-              clean homes possible. No predatory lead fees. No hidden costs. Just a fair
-              marketplace where your work speaks for itself.
+              We&apos;re building a platform that respects the home service professionals
+              who keep Florida homes running — cleaners, landscapers, handymen, pool techs,
+              pressure washers, and every skilled trade in between. No predatory lead fees.
+              No hidden costs. Just a fair marketplace where your work speaks for itself.
             </p>
             <Link
               href="/signup?role=cleaner"
@@ -111,7 +136,7 @@ export default function AboutPage() {
               The Marketplace Difference
             </h2>
             <p className="text-gray-600 text-lg leading-relaxed">
-              Boss of Clean is a marketplace — we connect you with independent cleaning
+              Boss of Clean is a marketplace — we connect you with independent home service
               professionals, but we don&apos;t employ them. Every professional on our
               platform runs their own business, sets their own rates, and maintains their
               own standards. We provide the platform. They provide the purrfection.
@@ -166,8 +191,8 @@ export default function AboutPage() {
           Join the Boss of Clean Community
         </h2>
         <p className="text-gray-600 text-lg mb-8 max-w-2xl mx-auto">
-          Whether you&apos;re looking for cleaning services or want to grow your cleaning
-          business, we&apos;re here to help.
+          Whether you&apos;re looking for a trusted home service professional or want to
+          grow your service business, we&apos;re here to help.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Link

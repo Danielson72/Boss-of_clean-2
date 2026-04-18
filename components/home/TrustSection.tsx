@@ -9,7 +9,7 @@ export default function TrustSection() {
           Connecting Florida Homeowners with Trusted Professionals
         </h2>
         <p className="text-gray-500 text-lg leading-relaxed mb-4 max-w-3xl mx-auto">
-          Boss of Clean is Florida&apos;s residential cleaning marketplace,
+          Boss of Clean is Florida&apos;s home services marketplace — cleaning, landscaping, handyman, and every skilled trade in between,
           connecting homeowners with independent home service professionals
           across all 67 counties. Our mission is simple: make it easy to
           find trustworthy home services for your property.
