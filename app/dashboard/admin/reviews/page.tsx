@@ -49,6 +49,7 @@ export default function AdminReviewsPage() {
   const [filter, setFilter] = useState<FilterType>('pending');
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -76,22 +77,36 @@ export default function AdminReviewsPage() {
 
   const loadReviews = async () => {
     setLoading(true);
+    setError(null);
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
     try {
       const response = await fetch(
-        `/api/admin/reviews?filter=${filter}&page=${pagination.page}&limit=${pagination.limit}`
+        `/api/admin/reviews?filter=${filter}&page=${pagination.page}&limit=${pagination.limit}`,
+        { signal: controller.signal }
       );
 
+      if (response.status === 401) {
+        router.push('/login');
+        return;
+      }
+
       if (!response.ok) {
-        throw new Error('Failed to fetch reviews');
+        throw new Error(`Failed to fetch reviews (${response.status})`);
       }
 
       const data = await response.json();
       setReviews(data.reviews);
       setStats(data.stats);
       setPagination(data.pagination);
-    } catch (error) {
-      logger.error('Error loading reviews', { function: 'loadReviews', error });
+    } catch (err: unknown) {
+      const message = err instanceof Error && err.name === 'AbortError'
+        ? 'Request timed out. Please try again.'
+        : err instanceof Error ? err.message : 'Failed to load reviews.';
+      setError(message);
+      logger.error('Error loading reviews', { function: 'loadReviews', error: err });
     } finally {
+      clearTimeout(timeout);
       setLoading(false);
     }
   };
@@ -282,6 +297,12 @@ export default function AdminReviewsPage() {
           {loading ? (
             <div className="flex items-center justify-center py-12">
               <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+            </div>
+          ) : error ? (
+            <div className="text-center py-12">
+              <AlertTriangle className="mx-auto h-12 w-12 text-red-400 mb-4" />
+              <p className="text-red-600 mb-4">{error}</p>
+              <Button variant="outline" onClick={loadReviews}>Retry</Button>
             </div>
           ) : reviews.length === 0 ? (
             <div className="text-center py-12">
