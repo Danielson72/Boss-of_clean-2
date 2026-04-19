@@ -9,6 +9,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { AuthProvider } from '@/lib/context/AuthContext';
 import { Toaster } from '@/components/ui/sonner';
+import BocAssistantLoader from '@/components/boc-assistant/BocAssistantLoader';
 
 const dmSans = DM_Sans({
   subsets: ['latin'],
@@ -29,7 +30,7 @@ export const metadata: Metadata = {
     template: "%s | Boss of Clean",
   },
   description: 'Find trusted, verified home service professionals in Florida. Get free quotes for cleaning, pressure washing, landscaping, pool cleaning, and more. Purrfection is our Standard.',
-  keywords: 'cleaning services Florida, house cleaning Florida, residential cleaning, pressure washing, carpet cleaning, deep cleaning, professional cleaners Florida, home services marketplace, pool cleaning, landscaping',
+  keywords: 'home services Florida, house cleaning, landscaping, handyman, pool service, pressure washing, carpet cleaning, Boss of Clean, Florida home services marketplace, home professionals platform, cleaning services',
   authors: [{ name: 'Boss of Clean' }],
   creator: 'Boss of Clean',
   publisher: 'Boss of Clean',
@@ -98,6 +99,7 @@ export default function RootLayout({
             <Footer />
           </div>
           <Toaster />
+          <BocAssistantLoader />
         </AuthProvider>
       </body>
     </html>
