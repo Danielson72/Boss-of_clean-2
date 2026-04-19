@@ -22,6 +22,7 @@ export interface QuoteRequestData {
   contact_email: string;
   contact_phone?: string;
   notes?: string;
+  tcpa_user_agent?: string;
 }
 
 export interface QuoteRequestResult {
@@ -58,7 +59,7 @@ export async function submitQuoteRequest(
 
   try {
     // Validate required fields
-    if (!data.service_type || !data.zip_code || !data.contact_name || !data.contact_email) {
+    if (!data.service_type || !data.zip_code || !data.contact_name || !data.contact_email || !data.contact_phone) {
       return { success: false, error: 'Missing required fields' };
     }
 
@@ -93,6 +94,7 @@ export async function submitQuoteRequest(
     // ============================================
     // STEP 1: Insert marketplace lead (cleaner_id = NULL)
     // ============================================
+    const now = new Date().toISOString();
     const { data: quote, error: insertError } = await supabase
       .from('quote_requests')
       .insert({
@@ -108,6 +110,9 @@ export async function submitQuoteRequest(
         contact_email: data.contact_email,
         contact_phone: data.contact_phone || null,
         status: 'pending',
+        tcpa_consent_at: now,
+        tcpa_consent_ip: ip,
+        tcpa_consent_ua: data.tcpa_user_agent ? data.tcpa_user_agent.slice(0, 512) : null,
       })
       .select('id')
       .single();
