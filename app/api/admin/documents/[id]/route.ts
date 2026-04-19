@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 
+export const dynamic = 'force-dynamic';
+
 const REQUIRED_DOC_TYPES = ['business_license', 'insurance_certificate', 'w9'];
 
 async function sendApprovalEmail(cleanerEmail: string, cleanerName: string) {
