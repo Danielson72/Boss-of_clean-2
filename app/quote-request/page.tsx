@@ -8,7 +8,6 @@ import {
   CheckCircle,
   ArrowLeft,
   Home,
-  Building2,
   Sparkles,
   Phone,
   Mail,
@@ -21,7 +20,6 @@ import {
   TreePine,
   Car,
   Wind,
-  Briefcase,
   Droplets,
   Paintbrush,
   Hammer,
@@ -29,6 +27,9 @@ import {
 import Link from 'next/link';
 import { submitQuoteRequest, type QuoteRequestData } from './actions';
 
+// Coverall carve-out (DLD-256): 'commercial' and 'office_cleaning' removed
+// from user-facing dropdown pending franchisor approval. DB enum values
+// remain intact for rollback safety.
 const SERVICE_TYPES = [
   { value: 'residential', label: 'Residential Cleaning', icon: Home },
   { value: 'deep_cleaning', label: 'Deep Cleaning', icon: Sparkles },
@@ -43,8 +44,6 @@ const SERVICE_TYPES = [
   { value: 'landscaping', label: 'Landscaping', icon: TreePine },
   { value: 'mobile_car_detailing', label: 'Car Detailing', icon: Car },
   { value: 'air_duct_cleaning', label: 'Air Duct Cleaning', icon: Wind },
-  { value: 'commercial', label: 'Commercial Cleaning', icon: Building2 },
-  { value: 'office_cleaning', label: 'Office Cleaning', icon: Briefcase },
 ];
 
 const PROPERTY_TYPES = [
