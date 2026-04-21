@@ -39,7 +39,7 @@ interface Pagination {
 }
 
 export default function AdminReviewsPage() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const supabase = createClient();
 
@@ -59,8 +59,11 @@ export default function AdminReviewsPage() {
   useEffect(() => {
     if (user) {
       loadReviews();
+    } else if (!authLoading) {
+      // Auth is done but no user — stop spinner (redirect handled by checkAdminAccess)
+      setLoading(false);
     }
-  }, [user, filter, pagination.page]);
+  }, [user, authLoading, filter, pagination.page]);
 
   const checkAdminAccess = async () => {
     const { data } = await supabase
