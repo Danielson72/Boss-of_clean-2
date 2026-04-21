@@ -51,9 +51,10 @@ function getUser(cleaner: DirectoryCleaner) {
 }
 
 // Service types for filter
+// Coverall carve-out (DLD-256): 'Commercial Cleaning' removed pending
+// franchisor approval.
 const SERVICE_OPTIONS = [
   'Residential Cleaning',
-  'Commercial Cleaning',
   'Deep Cleaning',
   'Move In/Out Cleaning',
   'Pressure Washing',

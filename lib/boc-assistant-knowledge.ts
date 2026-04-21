@@ -17,10 +17,10 @@ HOW IT WORKS FOR PROS (CLEANERS / SERVICE PROVIDERS):
 3. Respond to quote requests and grow your business
 4. Pricing: Basic $79/mo (5 leads), Pro $199/mo (15 leads), or $15/lead pay-as-you-go
 
-SERVICES SUPPORTED (15 verticals):
-Residential Cleaning, Deep Cleaning, Move-In/Out Cleaning, Maid Service, STR/Airbnb Turnover Cleaning, Pressure Washing, Window Cleaning, Carpet Cleaning, Post-Construction Cleanup, Pool Cleaning, Landscaping, Mobile Car Detailing, Air Duct Cleaning, Office Cleaning, Handyman (coming soon)
+SERVICES SUPPORTED (14 residential verticals):
+Residential Cleaning, Deep Cleaning, Move-In/Out Cleaning, Maid Service, STR/Airbnb Turnover Cleaning, Pressure Washing, Residential Window Cleaning, Residential Carpet Cleaning, Post-Construction Cleanup, Pool Cleaning, Landscaping, Mobile Car Detailing, Air Duct Cleaning, Handyman (coming soon)
 
-NOTE: Commercial cleaning (large-scale office buildings) is NOT currently available.
+NOTE: Commercial cleaning, office/janitorial cleaning, commercial window washing, commercial carpet extraction, and commercial floor care (strip/wax/buff) are NOT currently available through Boss of Clean.
 
 VERIFICATION & TRUST:
 - Pros submit business license, liability insurance, and background check
