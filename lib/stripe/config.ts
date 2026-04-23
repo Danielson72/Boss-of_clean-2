@@ -31,6 +31,7 @@ export const stripe = new Proxy({} as Stripe, {
 export const STRIPE_PRICES = {
   basic: process.env.STRIPE_BASIC_PRICE_ID || '',
   pro: process.env.STRIPE_PRO_PRICE_ID || '',
+  boc_per_lead: process.env.STRIPE_PRICE_BOC_PER_LEAD || '',
 } as const
 
 export type SubscriptionTier = 'free' | 'basic' | 'pro'

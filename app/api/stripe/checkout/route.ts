@@ -31,9 +31,9 @@ export async function POST(request: NextRequest) {
 
     // Get plan from URL params
     const { searchParams } = new URL(request.url)
-    const plan = searchParams.get('plan') as 'basic' | 'pro' | null
+    const plan = searchParams.get('plan') as 'basic' | 'pro' | 'boc_per_lead' | null
 
-    if (!plan || !['basic', 'pro'].includes(plan)) {
+    if (!plan || !['basic', 'pro', 'boc_per_lead'].includes(plan)) {
       return NextResponse.json(
         { error: 'Invalid plan specified' },
         { status: 400 }
@@ -55,11 +55,13 @@ export async function POST(request: NextRequest) {
     }
 
     const siteUrl = getSiteUrl()
+    const isPerLead = plan === 'boc_per_lead'
     const priceId = STRIPE_PRICES[plan]
 
     // Create Stripe checkout session (with MCP integration)
     const session = await createCheckoutSession({
       priceId,
+      mode: isPerLead ? 'payment' : 'subscription',
       successUrl: `${siteUrl}/dashboard/pro?session_id={CHECKOUT_SESSION_ID}`,
       cancelUrl: `${siteUrl}/pricing`,
       customerEmail: user.email,
@@ -68,7 +70,7 @@ export async function POST(request: NextRequest) {
         cleaner_id: cleaner.id,
         plan: plan,
       },
-      subscriptionMetadata: {
+      subscriptionMetadata: isPerLead ? undefined : {
         user_id: user.id,
         cleaner_id: cleaner.id,
         tier: plan,

@@ -37,6 +37,7 @@ export async function createCheckoutSession(params: {
   customerEmail?: string
   metadata?: Record<string, string>
   subscriptionMetadata?: Record<string, string>
+  mode?: 'subscription' | 'payment'
 }) {
   if (shouldUseMCP()) {
     try {
@@ -48,6 +49,8 @@ export async function createCheckoutSession(params: {
     }
   }
 
+  const mode = params.mode || 'subscription'
+
   // SDK fallback (current implementation)
   const stripe = getStripe()
   return await stripe.checkout.sessions.create({
@@ -58,12 +61,12 @@ export async function createCheckoutSession(params: {
         quantity: 1,
       },
     ],
-    mode: 'subscription',
+    mode,
     success_url: params.successUrl,
     cancel_url: params.cancelUrl,
     customer_email: params.customerEmail,
     metadata: params.metadata,
-    subscription_data: params.subscriptionMetadata ? {
+    subscription_data: mode === 'subscription' && params.subscriptionMetadata ? {
       metadata: params.subscriptionMetadata,
     } : undefined,
   })
