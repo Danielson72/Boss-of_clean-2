@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { roleToDashboardPath } from '@/lib/utils/dashboard-path'
 import { User } from '@supabase/supabase-js'
@@ -25,7 +24,6 @@ interface UserData {
 }
 
 export default function UserNav() {
-  const router = useRouter()
   const [user, setUser] = useState<User | null>(null)
   const [userData, setUserData] = useState<UserData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -71,11 +69,6 @@ export default function UserNav() {
 
     return () => subscription.unsubscribe()
   }, [supabase])
-
-  const handleSignOut = async () => {
-    await supabase.auth.signOut()
-    router.push('/')
-  }
 
   const getUserInitials = () => {
     const name = userData?.display_name || userData?.full_name || user?.email
@@ -168,12 +161,14 @@ export default function UserNav() {
             </Link>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem
-            className="cursor-pointer text-red-600 focus:text-red-600"
-            onClick={handleSignOut}
-          >
-            <LogOut className="mr-2 h-4 w-4" />
-            Sign out
+          <DropdownMenuItem asChild>
+            <a
+              href="/logout"
+              className="cursor-pointer text-red-600 focus:text-red-600 w-full flex items-center"
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              Sign out
+            </a>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
