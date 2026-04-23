@@ -8,13 +8,8 @@ import { Menu, X, User, LogOut, Settings, Home, Search } from 'lucide-react';
 import UserNav from '@/components/auth/UserNav';
 
 export default function Navigation() {
-  const { user, isCustomer, isCleaner, signOut } = useAuth();
+  const { user, isCustomer, isCleaner } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  const handleSignOut = async () => {
-    await signOut();
-    window.location.href = '/';
-  };
 
   return (
     <nav className="bg-white shadow-sm border-b">

@@ -361,13 +361,13 @@ export default function SettingsPage() {
                       <div>
                         <h3 className="text-sm font-medium text-gray-900 mb-4">Account</h3>
                         <div className="space-y-4">
-                          <button
-                            onClick={() => signOut()}
+                          <a
+                            href="/logout"
                             className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
                           >
                             <LogOut className="h-4 w-4" />
                             Sign Out
-                          </button>
+                          </a>
                           
                           <div className="pt-4 border-t">
                             <h4 className="text-sm font-medium text-red-900 mb-2">Danger Zone</h4>
