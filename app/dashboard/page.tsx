@@ -13,6 +13,12 @@ export default function DashboardPage() {
     // Wait for AuthContext to finish loading AND role to resolve before redirecting
     if (loading || !user || !roleLoaded) return;
 
+    if (roleLoaded && !dbRole) {
+      console.warn('[dashboard router] role null after loaded, redirecting to /logout');
+      router.push('/logout');
+      return;
+    }
+
     if (isAdmin) {
       router.push('/dashboard/admin');
     } else if (isCleaner) {
