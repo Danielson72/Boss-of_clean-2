@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
     }
 
     const data = await res.json()
-    const reply = data.content?.[0]?.text ?? "I'm not sure how to answer that. Please contact support@bossofclean.com."
+    const reply = data.content?.[0]?.text ?? "I'm not sure how to answer that. Please contact admin@bossofclean.com."
 
     return NextResponse.json({ reply })
   } catch (err) {
