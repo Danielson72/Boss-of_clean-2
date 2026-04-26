@@ -130,8 +130,8 @@ export default function TermsPage() {
               attempt to resolve it through the platform&apos;s messaging system. If a resolution
               cannot be reached, either party may file a dispute through their dashboard or by
               contacting{' '}
-              <a href="mailto:contact@bossofclean.com" className="text-brand-gold hover:underline">
-                contact@bossofclean.com
+              <a href="mailto:admin@bossofclean.com" className="text-brand-gold hover:underline">
+                admin@bossofclean.com
               </a>.
             </p>
             <p className="text-gray-600 leading-relaxed">
@@ -165,8 +165,8 @@ export default function TermsPage() {
               and service updates. Message and data rates may apply. You may opt out at any time by
               replying <strong>STOP</strong> to any text message. For help, reply <strong>HELP</strong> or
               contact{' '}
-              <a href="mailto:contact@bossofclean.com" className="text-brand-gold hover:underline">
-                contact@bossofclean.com
+              <a href="mailto:admin@bossofclean.com" className="text-brand-gold hover:underline">
+                admin@bossofclean.com
               </a>.
             </p>
           </section>
@@ -214,8 +214,8 @@ export default function TermsPage() {
             </h2>
             <p className="text-gray-600 leading-relaxed">
               Questions about these terms? Contact us at{' '}
-              <a href="mailto:contact@bossofclean.com" className="text-brand-gold hover:underline">
-                contact@bossofclean.com
+              <a href="mailto:admin@bossofclean.com" className="text-brand-gold hover:underline">
+                admin@bossofclean.com
               </a>
             </p>
           </section>
