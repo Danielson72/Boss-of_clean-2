@@ -241,6 +241,17 @@ export default function DocumentUploadForm({ data, onChange, onNext, onBack, isS
         </AlertDescription>
       </Alert>
 
+      <div className="text-center">
+        <button
+          type="button"
+          onClick={onNext}
+          disabled={isSubmitting}
+          className="text-sm text-gray-600 hover:text-gray-900 underline disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Skip for now — I&apos;ll upload my documents later
+        </button>
+      </div>
+
       <div className="flex justify-between pt-4">
         <Button variant="outline" onClick={onBack} disabled={isSubmitting}>
           <ArrowLeft className="mr-2 h-4 w-4" />
