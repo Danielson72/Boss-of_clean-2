@@ -132,8 +132,8 @@ export default function PrivacyPage() {
             </ul>
             <p className="text-gray-600 leading-relaxed mt-4">
               To exercise any of these rights, contact us at{' '}
-              <a href="mailto:contact@bossofclean.com" className="text-brand-gold hover:underline">
-                contact@bossofclean.com
+              <a href="mailto:admin@bossofclean.com" className="text-brand-gold hover:underline">
+                admin@bossofclean.com
               </a>.
             </p>
           </section>
@@ -150,8 +150,8 @@ export default function PrivacyPage() {
             </p>
             <p className="text-gray-600 leading-relaxed">
               To request deletion of your account and personal data, email{' '}
-              <a href="mailto:contact@bossofclean.com" className="text-brand-gold hover:underline">
-                contact@bossofclean.com
+              <a href="mailto:admin@bossofclean.com" className="text-brand-gold hover:underline">
+                admin@bossofclean.com
               </a>{' '}
               with the subject line &ldquo;Data Deletion Request.&rdquo; We will process your
               request within 30 days.
@@ -187,8 +187,8 @@ export default function PrivacyPage() {
             </h2>
             <p className="text-gray-600 leading-relaxed">
               If you have questions about this privacy policy or your personal data, contact us at:{' '}
-              <a href="mailto:contact@bossofclean.com" className="text-brand-gold hover:underline">
-                contact@bossofclean.com
+              <a href="mailto:admin@bossofclean.com" className="text-brand-gold hover:underline">
+                admin@bossofclean.com
               </a>
             </p>
           </section>

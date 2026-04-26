@@ -161,11 +161,11 @@ export default function HelpPage() {
             to you within 24 hours.
           </p>
           <a
-            href="mailto:contact@bossofclean.com"
+            href="mailto:admin@bossofclean.com"
             className="inline-flex items-center gap-2 bg-brand-gold text-white px-8 py-4 rounded-xl font-semibold hover:bg-brand-gold-light transition-all duration-200 shadow-lg"
           >
             <Mail className="h-5 w-5" />
-            contact@bossofclean.com
+            admin@bossofclean.com
           </a>
         </div>
       </section>
