@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 
 export const dynamic = 'force-dynamic';
 
-const ALLOWED_MIME_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'image/heic'];
+const ALLOWED_MIME_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 
 export async function GET() {
@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
   }
 
   if (!ALLOWED_MIME_TYPES.includes(file.type)) {
-    return NextResponse.json({ error: 'File type not allowed. Use PDF, JPG, PNG, or HEIC.' }, { status: 400 });
+    return NextResponse.json({ error: 'File type not allowed. Use PDF, JPG, PNG, or WebP.' }, { status: 400 });
   }
 
   const ext = file.name.split('.').pop() ?? 'pdf';

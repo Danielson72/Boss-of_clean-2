@@ -82,7 +82,7 @@ export default function ProDocumentsPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        showToast('error', data.error ?? 'Upload failed');
+        showToast('error', data.details ?? data.error ?? 'Upload failed');
       } else {
         showToast('success', 'Document uploaded. Admin will review within 1–2 business days.');
         await loadDocuments();
@@ -156,7 +156,7 @@ export default function ProDocumentsPage() {
                         <>
                           <input
                             type="file"
-                            accept=".pdf,.jpg,.jpeg,.png,.heic"
+                            accept=".pdf,.jpg,.jpeg,.png,.webp"
                             className="hidden"
                             ref={el => { fileInputRefs.current[docDef.type] = el; }}
                             onChange={e => {
@@ -204,7 +204,7 @@ export default function ProDocumentsPage() {
                       {doc && <StatusBadge status={doc.verification_status} />}
                       <input
                         type="file"
-                        accept=".pdf,.jpg,.jpeg,.png,.heic"
+                        accept=".pdf,.jpg,.jpeg,.png,.webp"
                         className="hidden"
                         ref={el => { fileInputRefs.current[docDef.type] = el; }}
                         onChange={e => {
@@ -228,7 +228,7 @@ export default function ProDocumentsPage() {
             })}
           </div>
 
-          <p className="mt-6 text-xs text-gray-400">Accepted formats: PDF, JPG, PNG, HEIC · Max size: 10 MB per file</p>
+          <p className="mt-6 text-xs text-gray-400">Accepted formats: PDF, JPG, PNG, WebP · Max size: 10 MB per file</p>
         </div>
       </div>
     </ProtectedRoute>
