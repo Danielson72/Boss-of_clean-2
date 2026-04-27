@@ -15,13 +15,13 @@ interface ProDocument {
 }
 
 const REQUIRED_DOCS = [
-  { type: 'business_license', label: 'Business License' },
-  { type: 'insurance_certificate', label: 'Liability Insurance Certificate' },
-  { type: 'w9', label: 'W-9 Form' },
+  { type: 'license', label: 'Business License' },
+  { type: 'insurance', label: 'Liability Insurance' },
 ];
 
 const OPTIONAL_DOCS = [
-  { type: 'ein_letter', label: 'EIN Letter' },
+  { type: 'id_photo', label: 'Photo ID' },
+  { type: 'background_check', label: 'Background Check' },
   { type: 'other', label: 'Other Document' },
 ];
 
