@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createServiceRoleClient } from '@/lib/supabase/service-role';
 
 export const dynamic = 'force-dynamic';
 
@@ -47,7 +48,7 @@ export async function POST(request: NextRequest) {
 
   const { data: cleaner, error: cleanerError } = await supabase
     .from('cleaners')
-    .select('id')
+    .select('id, business_name')
     .eq('user_id', user.id)
     .single();
 
@@ -115,6 +116,53 @@ export async function POST(request: NextRequest) {
   if (insertError) {
     await supabase.storage.from('cleaner-documents').remove([storagePath]);
     return NextResponse.json({ error: 'Failed to save document record' }, { status: 500 });
+  }
+
+  // Best-effort notifications (non-blocking — failures must not break the upload).
+  const prettyType = ({
+    license: 'Business License',
+    insurance: 'Liability Insurance',
+    id_photo: 'Photo ID',
+    background_check: 'Background Check',
+    certification: 'Certification',
+    other: 'Other Document',
+  } as Record<string, string>)[documentType] ?? documentType;
+
+  try {
+    const adminSupabase = createServiceRoleClient();
+    const { data: admins } = await adminSupabase
+      .from('users')
+      .select('id')
+      .eq('role', 'admin');
+
+    if (admins && admins.length > 0) {
+      const notificationRows = admins.map(admin => ({
+        user_id: admin.id,
+        type: 'document_upload',
+        title: 'New Pro Document Uploaded',
+        message: `${cleaner.business_name ?? 'A pro'} uploaded ${prettyType} for review.`,
+        action_url: '/dashboard/admin/pros/documents',
+      }));
+      await adminSupabase.from('notifications').insert(notificationRows);
+    }
+  } catch (notifyErr) {
+    console.error('[doc-upload] in-app notification failed:', notifyErr);
+  }
+
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://bossofclean.com';
+    fetch(`${baseUrl}/api/admin/document-upload-notification`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        businessName: cleaner.business_name ?? 'Unknown',
+        documentType,
+        cleanerEmail: user.email,
+        documentId: doc.id,
+      }),
+    }).catch(err => console.error('[doc-upload] admin email failed:', err));
+  } catch (emailErr) {
+    console.error('[doc-upload] admin email setup failed:', emailErr);
   }
 
   return NextResponse.json(doc, { status: 201 });

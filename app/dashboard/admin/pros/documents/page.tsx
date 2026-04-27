@@ -24,11 +24,12 @@ interface AdminDocument {
 type Tab = 'pending' | 'approved' | 'rejected';
 
 const DOC_TYPE_LABELS: Record<string, string> = {
-  business_license: 'Business License',
-  insurance_certificate: 'Liability Insurance',
-  w9: 'W-9',
-  ein_letter: 'EIN Letter',
-  other: 'Other',
+  license: 'Business License',
+  insurance: 'Liability Insurance',
+  id_photo: 'Photo ID',
+  background_check: 'Background Check',
+  certification: 'Certification',
+  other: 'Other Document',
 };
 
 function formatBytes(bytes: number) {
