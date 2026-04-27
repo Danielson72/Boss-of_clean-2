@@ -1,10 +1,11 @@
 'use client';
 
 import { DashboardSidebar, type SidebarLink } from '@/components/dashboard/DashboardSidebar';
-import { LayoutDashboard, BarChart3, Star, MessageSquare } from 'lucide-react';
+import { LayoutDashboard, BarChart3, Star, MessageSquare, ShieldCheck } from 'lucide-react';
 
 const adminLinks: SidebarLink[] = [
   { href: '/dashboard/admin', label: 'Overview', icon: LayoutDashboard },
+  { href: '/dashboard/admin/pros/documents', label: 'Pro Documents', icon: ShieldCheck },
   { href: '/dashboard/admin/analytics', label: 'Analytics', icon: BarChart3 },
   { href: '/dashboard/admin/reviews', label: 'Reviews', icon: Star },
   { href: '/dashboard/admin#messages', label: 'Messages', icon: MessageSquare },
