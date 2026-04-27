@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
   const file = formData.get('file') as File | null;
   const documentType = formData.get('document_type') as string | null;
 
-  const validTypes = ['business_license', 'insurance_certificate', 'w9', 'ein_letter', 'other'];
+  const validTypes = ['license', 'insurance', 'background_check', 'id_photo', 'certification', 'other'];
   if (!documentType || !validTypes.includes(documentType)) {
     return NextResponse.json({ error: 'Invalid document_type' }, { status: 400 });
   }
