@@ -9,7 +9,7 @@ interface ProDocument {
   id: string;
   document_type: string;
   file_name: string;
-  verification_status: 'pending' | 'approved' | 'rejected';
+  verification_status: 'pending' | 'verified' | 'rejected';
   rejection_reason: string | null;
   created_at: string;
 }
@@ -29,7 +29,7 @@ const ALL_DOCS = [...REQUIRED_DOCS, ...OPTIONAL_DOCS];
 
 const statusConfig = {
   pending: { label: 'Pending Review', icon: Clock, className: 'bg-yellow-100 text-yellow-800' },
-  approved: { label: 'Approved', icon: CheckCircle, className: 'bg-green-100 text-green-800' },
+  verified: { label: 'Verified', icon: CheckCircle, className: 'bg-green-100 text-green-800' },
   rejected: { label: 'Rejected', icon: XCircle, className: 'bg-red-100 text-red-800' },
 };
 

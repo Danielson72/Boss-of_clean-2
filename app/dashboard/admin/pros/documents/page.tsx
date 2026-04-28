@@ -10,7 +10,7 @@ interface AdminDocument {
   file_name: string;
   file_url: string;
   file_size: number;
-  verification_status: 'pending' | 'approved' | 'rejected';
+  verification_status: 'pending' | 'verified' | 'rejected';
   rejection_reason: string | null;
   created_at: string;
   verified_at: string | null;
@@ -21,7 +21,7 @@ interface AdminDocument {
   } | null;
 }
 
-type Tab = 'pending' | 'approved' | 'rejected';
+type Tab = 'pending' | 'verified' | 'rejected';
 
 const DOC_TYPE_LABELS: Record<string, string> = {
   license: 'Business License',
@@ -187,7 +187,7 @@ export default function AdminDocumentsPage() {
 
   const tabs: { key: Tab; label: string; count: number }[] = [
     { key: 'pending', label: 'Pending', count: documents.filter(d => d.verification_status === 'pending').length },
-    { key: 'approved', label: 'Approved', count: documents.filter(d => d.verification_status === 'approved').length },
+    { key: 'verified', label: 'Verified', count: documents.filter(d => d.verification_status === 'verified').length },
     { key: 'rejected', label: 'Rejected', count: documents.filter(d => d.verification_status === 'rejected').length },
   ];
 
@@ -274,7 +274,7 @@ export default function AdminDocumentsPage() {
                             <Clock className="w-3 h-3" /> Pending
                           </span>
                         )}
-                        {doc.verification_status === 'approved' && (
+                        {doc.verification_status === 'verified' && (
                           <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
                             <CheckCircle className="w-3 h-3" /> Approved
                           </span>

@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 
 export const dynamic = 'force-dynamic';
 
-const REQUIRED_DOC_TYPES = ['business_license', 'insurance_certificate', 'w9'];
+const REQUIRED_DOC_TYPES = ['license', 'insurance'];
 
 async function sendApprovalEmail(cleanerEmail: string, cleanerName: string) {
   const apiKey = process.env.RESEND_API_KEY;
@@ -63,7 +63,7 @@ export async function PATCH(
     return NextResponse.json({ error: 'Document not found' }, { status: 404 });
   }
 
-  const newStatus = action === 'approve' ? 'approved' : 'rejected';
+  const newStatus = action === 'approve' ? 'verified' : 'rejected';
 
   const { data: updated, error: updateError } = await supabase
     .from('cleaner_documents')
@@ -98,7 +98,7 @@ export async function PATCH(
 
     const approvedTypes = new Set(
       (allDocs ?? [])
-        .filter(d => d.verification_status === 'approved')
+        .filter(d => d.verification_status === 'verified')
         .map(d => d.document_type)
     );
 
