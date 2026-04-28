@@ -47,6 +47,35 @@ interface ReviewModalProps {
 function ReviewModal({ doc, onClose, onAction }: ReviewModalProps) {
   const [notes, setNotes] = useState('');
   const [submitting, setSubmitting] = useState<'approve' | 'reject' | null>(null);
+  const [signedUrl, setSignedUrl] = useState<string | null>(null);
+  const [previewMime, setPreviewMime] = useState<string | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(true);
+  const [previewError, setPreviewError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    setPreviewLoading(true);
+    setPreviewError(null);
+    fetch(`/api/admin/documents/${doc.id}/signed-url`)
+      .then(async res => {
+        if (!res.ok) {
+          if (!cancelled) setPreviewError('Preview unavailable.');
+          return;
+        }
+        const data = await res.json();
+        if (!cancelled) {
+          setSignedUrl(data.signedUrl);
+          setPreviewMime(data.mimeType);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setPreviewError('Network error loading preview.');
+      })
+      .finally(() => {
+        if (!cancelled) setPreviewLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, [doc.id]);
 
   async function handleAction(action: 'approve' | 'reject') {
     if (action === 'reject' && !notes.trim()) return;
@@ -56,11 +85,54 @@ function ReviewModal({ doc, onClose, onAction }: ReviewModalProps) {
     onClose();
   }
 
-  const isImage = ['image/jpeg', 'image/png', 'image/heic'].some(t =>
-    doc.file_name.toLowerCase().match(/\.(jpg|jpeg|png|heic)$/)
-  );
-  const isPDF = doc.file_name.toLowerCase().endsWith('.pdf');
-  const previewUrl = `/api/admin/documents/${doc.id}/file`;
+  function renderPreview() {
+    if (previewLoading) {
+      return (
+        <div className="text-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2" />
+          <p className="text-sm text-gray-500">Loading preview…</p>
+        </div>
+      );
+    }
+    if (previewError || !signedUrl) {
+      return (
+        <div className="text-center py-8">
+          <FileText className="w-12 h-12 text-gray-400 mx-auto mb-2" />
+          <p className="text-sm text-gray-600">{doc.file_name}</p>
+          <p className="text-xs text-red-600 mt-2">{previewError ?? 'Preview unavailable.'}</p>
+        </div>
+      );
+    }
+    if (previewMime === 'application/pdf') {
+      return (
+        <iframe
+          src={signedUrl}
+          title={doc.file_name}
+          className="w-full h-[600px] rounded-lg border border-gray-200 bg-white"
+        />
+      );
+    }
+    if (previewMime && ['image/jpeg', 'image/png', 'image/webp'].includes(previewMime)) {
+      // eslint-disable-next-line @next/next/no-img-element
+      return (
+        <img
+          src={signedUrl}
+          alt={doc.file_name}
+          className="max-w-full max-h-[600px] object-contain mx-auto"
+        />
+      );
+    }
+    return (
+      <div className="text-center py-8">
+        <FileText className="w-12 h-12 text-gray-400 mx-auto mb-2" />
+        <p className="text-sm text-gray-600">{doc.file_name}</p>
+        <p className="text-xs text-gray-500 mt-2">
+          Preview unavailable.{' '}
+          <a href={signedUrl} download className="text-blue-600 underline">Download to view</a>
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
@@ -78,25 +150,12 @@ function ReviewModal({ doc, onClose, onAction }: ReviewModalProps) {
         </div>
 
         <div className="flex-1 overflow-auto p-6">
-          <div className="bg-gray-50 rounded-lg flex items-center justify-center min-h-48 mb-4">
-            {isPDF ? (
-              <div className="text-center">
-                <FileText className="w-12 h-12 text-gray-400 mx-auto mb-2" />
-                <p className="text-sm text-gray-600">{doc.file_name}</p>
-                <p className="text-xs text-gray-400">{formatBytes(doc.file_size)}</p>
-              </div>
-            ) : isImage ? (
-              <div className="text-center">
-                <FileText className="w-12 h-12 text-gray-400 mx-auto mb-2" />
-                <p className="text-sm text-gray-600">{doc.file_name}</p>
-              </div>
-            ) : (
-              <div className="text-center">
-                <FileText className="w-12 h-12 text-gray-400 mx-auto mb-2" />
-                <p className="text-sm text-gray-600">{doc.file_name}</p>
-              </div>
-            )}
+          <div className="bg-gray-50 rounded-lg flex items-center justify-center min-h-48 mb-4 p-2">
+            {renderPreview()}
           </div>
+          <p className="text-xs text-gray-400 text-center mb-4">
+            {doc.file_name} · {formatBytes(doc.file_size)}
+          </p>
 
           {doc.verification_status === 'pending' && (
             <>
