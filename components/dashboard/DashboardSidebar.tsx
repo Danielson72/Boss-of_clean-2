@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/context/AuthContext';
 import { LogOut, Menu, X, type LucideIcon } from 'lucide-react';
+import { NavBadge } from '@/components/ui/NavBadge';
 
 // Sign out is handled by the /logout server route (full page nav, no JS needed)
 
@@ -12,6 +13,7 @@ export interface SidebarLink {
   href: string;
   label: string;
   icon: LucideIcon;
+  badge?: number;
 }
 
 interface DashboardSidebarProps {
@@ -52,7 +54,7 @@ export function DashboardSidebar({ links }: DashboardSidebarProps) {
               key={link.href}
               href={link.href}
               onClick={() => setMobileOpen(false)}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors mb-0.5 ${
+              className={`relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors mb-0.5 ${
                 active
                   ? 'bg-brand-gold/10 text-brand-gold'
                   : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
@@ -60,6 +62,11 @@ export function DashboardSidebar({ links }: DashboardSidebarProps) {
             >
               <Icon className="h-4 w-4 flex-shrink-0" />
               {link.label}
+              <NavBadge
+                count={link.badge}
+                ariaLabel={link.badge ? `${link.badge} ${link.label} need attention` : undefined}
+                className="absolute top-1 right-2"
+              />
             </Link>
           );
         })}
