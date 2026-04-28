@@ -137,11 +137,6 @@ export default function ProDocumentsPage() {
                         ) : (
                           <p className="text-sm text-gray-400 mt-0.5">Not uploaded</p>
                         )}
-                        {doc?.verification_status === 'rejected' && doc.rejection_reason && (
-                          <p className="text-sm text-red-600 mt-1">
-                            <span className="font-medium">Review note:</span> {doc.rejection_reason}
-                          </p>
-                        )}
                       </div>
                     </div>
                     <div className="flex flex-col items-end gap-2">
@@ -177,6 +172,21 @@ export default function ProDocumentsPage() {
                       )}
                     </div>
                   </div>
+                  {doc?.verification_status === 'rejected' && doc.rejection_reason && doc.rejection_reason.trim().length > 0 && (
+                    <div className="mt-4 bg-red-50 border border-red-200 rounded-lg p-3">
+                      <p className="text-sm font-semibold text-red-900 mb-1">Rejection reason from admin:</p>
+                      <p className="text-sm text-red-800 mb-3 whitespace-pre-wrap">{doc.rejection_reason}</p>
+                      <button
+                        type="button"
+                        disabled={isUploading}
+                        onClick={() => fileInputRefs.current[docDef.type]?.click()}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:opacity-60 disabled:cursor-not-allowed"
+                      >
+                        <Upload className="w-4 h-4" />
+                        Upload a new {docDef.label}
+                      </button>
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -223,6 +233,21 @@ export default function ProDocumentsPage() {
                       </button>
                     </div>
                   </div>
+                  {doc?.verification_status === 'rejected' && doc.rejection_reason && doc.rejection_reason.trim().length > 0 && (
+                    <div className="mt-4 bg-red-50 border border-red-200 rounded-lg p-3">
+                      <p className="text-sm font-semibold text-red-900 mb-1">Rejection reason from admin:</p>
+                      <p className="text-sm text-red-800 mb-3 whitespace-pre-wrap">{doc.rejection_reason}</p>
+                      <button
+                        type="button"
+                        disabled={isUploading}
+                        onClick={() => fileInputRefs.current[docDef.type]?.click()}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:opacity-60 disabled:cursor-not-allowed"
+                      >
+                        <Upload className="w-4 h-4" />
+                        Upload a new {docDef.label}
+                      </button>
+                    </div>
+                  )}
                 </div>
               );
             })}
