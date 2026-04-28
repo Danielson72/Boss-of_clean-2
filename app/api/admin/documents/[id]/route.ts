@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { sendDocumentRejectionEmail } from '@/lib/email/document-rejection';
 
 export const dynamic = 'force-dynamic';
 
@@ -89,6 +90,30 @@ export async function PATCH(
     notes: review_notes ?? null,
     metadata: { document_type: doc.document_type, cleaner_id: doc.cleaner_id },
   });
+
+  if (action === 'reject') {
+    try {
+      const { data: cleanerData } = await supabase
+        .from('cleaners')
+        .select('business_name, users(email, full_name)')
+        .eq('id', doc.cleaner_id)
+        .single();
+
+      if (cleanerData) {
+        const userData = Array.isArray(cleanerData.users) ? cleanerData.users[0] : cleanerData.users;
+        if (userData?.email) {
+          await sendDocumentRejectionEmail({
+            toEmail: userData.email,
+            businessName: cleanerData.business_name ?? userData.full_name ?? 'there',
+            documentType: doc.document_type,
+            rejectionReason: review_notes ?? '',
+          });
+        }
+      }
+    } catch (emailErr) {
+      console.error('[admin-docs] rejection email failed:', emailErr);
+    }
+  }
 
   if (action === 'approve') {
     const { data: allDocs } = await supabase
