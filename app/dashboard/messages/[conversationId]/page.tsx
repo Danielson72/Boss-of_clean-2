@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useParams } from 'next/navigation';
 import { useAuth } from '@/lib/context/AuthContext';
 import { ProtectedRoute } from '@/lib/auth/protected-route';
 import { MessageThread } from '@/components/messaging/MessageThread';
@@ -11,12 +11,9 @@ import { ArrowLeft, Loader2, User } from 'lucide-react';
 import Link from 'next/link';
 import type { ConversationDetail } from '@/lib/types/api';
 
-interface PageProps {
-  params: Promise<{ conversationId: string }>;
-}
-
-export default function ConversationPage({ params }: PageProps) {
-  const { conversationId } = use(params);
+export default function ConversationPage() {
+  const params = useParams<{ conversationId: string }>();
+  const conversationId = params.conversationId;
   const { user, isCustomer } = useAuth();
   const router = useRouter();
   const [conversation, setConversation] = useState<ConversationDetail | null>(null);
