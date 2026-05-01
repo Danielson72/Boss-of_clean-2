@@ -9,9 +9,6 @@ import {
   ArrowLeft,
   Home,
   Sparkles,
-  Phone,
-  Mail,
-  User,
   Square,
   Bath,
   Bed,
@@ -74,9 +71,6 @@ export default function QuoteRequestPage() {
     city: '',
     preferred_date: '',
     flexibility: 'flexible',
-    contact_name: '',
-    contact_email: '',
-    contact_phone: '',
     notes: '',
   });
 
@@ -103,18 +97,6 @@ export default function QuoteRequestPage() {
       case 2:
         return true; // Property details are optional
       case 3:
-        if (!formData.contact_name) {
-          setError('Please enter your name');
-          return false;
-        }
-        if (!formData.contact_email || !/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(formData.contact_email)) {
-          setError('Please enter a valid email address');
-          return false;
-        }
-        if (!formData.contact_phone) {
-          setError('Phone number is required');
-          return false;
-        }
         if (!tcpaConsented) {
           setError('You must agree to the contact consent to submit');
           return false;
@@ -261,7 +243,7 @@ export default function QuoteRequestPage() {
           <div className="flex justify-between text-xs text-gray-600">
             <span>Service</span>
             <span>Property</span>
-            <span>Contact</span>
+            <span>Review</span>
           </div>
         </div>
 
@@ -495,84 +477,15 @@ export default function QuoteRequestPage() {
               </div>
             )}
 
-            {/* Step 3: Contact Information */}
+            {/* Step 3: Review & Consent */}
             {step === 3 && (
               <div className="space-y-6">
                 <div>
                   <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                    How can cleaners reach you?
+                    Review &amp; submit
                   </h2>
 
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Your Name *
-                      </label>
-                      <div className="relative">
-                        <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                        <input
-                          type="text"
-                          value={formData.contact_name}
-                          onChange={(e) => handleInputChange('contact_name', e.target.value)}
-                          placeholder="John Smith"
-                          className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Email Address *
-                      </label>
-                      <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                        <input
-                          type="email"
-                          value={formData.contact_email}
-                          onChange={(e) => handleInputChange('contact_email', e.target.value)}
-                          placeholder="john@example.com"
-                          className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Phone Number *
-                      </label>
-                      <div className="relative">
-                        <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                        <input
-                          type="tel"
-                          value={formData.contact_phone}
-                          onChange={(e) => handleInputChange('contact_phone', e.target.value)}
-                          placeholder="(555) 123-4567"
-                          required
-                          className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        />
-                      </div>
-                    </div>
-
-                    {/* TCPA 2025 one-to-one consent */}
-                    <div className="flex items-start gap-3 pt-2">
-                      <input
-                        id="quote-tcpa-consent"
-                        type="checkbox"
-                        checked={tcpaConsented}
-                        onChange={(e) => setTcpaConsented(e.target.checked)}
-                        className="mt-1 h-4 w-4 shrink-0 rounded border-gray-300 accent-blue-600"
-                        required
-                      />
-                      <label htmlFor="quote-tcpa-consent" className="text-xs text-gray-600 leading-snug">
-                        I agree to be contacted by the independent service professional(s) who respond to this quote, via phone call, text, and email at the information provided. I understand Boss of Clean will share my contact info with those professionals only. Consent is not a condition of purchase. Msg &amp; data rates may apply. Reply STOP to opt out. See{' '}
-                        <a href="/privacy" className="underline hover:text-gray-900">Privacy Policy</a>
-                        {' '}and{' '}
-                        <a href="/terms" className="underline hover:text-gray-900">Terms</a>.
-                      </label>
-                    </div>
-                  </div>
-
-                  <div className="mt-6 bg-gray-50 border border-gray-200 rounded-lg p-4">
+                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
                     <h4 className="font-medium text-gray-900 mb-2">Your Quote Request Summary</h4>
                     <dl className="text-sm space-y-1">
                       <div className="flex justify-between">
@@ -604,9 +517,27 @@ export default function QuoteRequestPage() {
                     </dl>
                   </div>
 
-                  <p className="text-xs text-gray-500 mt-4">
-                    Your contact info is only shared with home service professionals who respond to your quote request.
-                  </p>
+                  <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-900">
+                    Your name, email, phone, and street address stay private. They are only shared with a pro after you accept that pro&apos;s quote.
+                  </div>
+
+                  {/* TCPA 2025 one-to-one consent */}
+                  <div className="flex items-start gap-3 pt-4">
+                    <input
+                      id="quote-tcpa-consent"
+                      type="checkbox"
+                      checked={tcpaConsented}
+                      onChange={(e) => setTcpaConsented(e.target.checked)}
+                      className="mt-1 h-4 w-4 shrink-0 rounded border-gray-300 accent-blue-600"
+                      required
+                    />
+                    <label htmlFor="quote-tcpa-consent" className="text-xs text-gray-600 leading-snug">
+                      I agree that, after I accept a pro&apos;s quote, that pro may contact me via phone call, text, and email using the contact info on my Boss of Clean account. Consent is not a condition of purchase. Msg &amp; data rates may apply. Reply STOP to opt out. See{' '}
+                      <a href="/privacy" className="underline hover:text-gray-900">Privacy Policy</a>
+                      {' '}and{' '}
+                      <a href="/terms" className="underline hover:text-gray-900">Terms</a>.
+                    </label>
+                  </div>
                 </div>
               </div>
             )}

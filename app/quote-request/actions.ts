@@ -1,6 +1,7 @@
 'use server';
 
 import { headers } from 'next/headers';
+import { createClient } from '@/lib/supabase/server';
 import { createServiceRoleClient } from '@/lib/supabase/service-role';
 import { sendQuoteConfirmationEmail, sendNewLeadEmail } from '@/lib/email/notifications';
 import { checkRateLimit, RATE_LIMITS } from '@/lib/middleware/rate-limit';
@@ -18,9 +19,6 @@ export interface QuoteRequestData {
   city?: string;
   preferred_date?: string;
   flexibility?: 'exact' | 'flexible' | 'asap';
-  contact_name: string;
-  contact_email: string;
-  contact_phone?: string;
   notes?: string;
   tcpa_user_agent?: string;
 }
@@ -33,11 +31,12 @@ export interface QuoteRequestResult {
 }
 
 /**
- * Submit a public quote request (no auth required).
- * 1. Inserts into quote_requests (marketplace lead, cleaner_id = NULL)
- * 2. Finds approved pros who serve that zip code
+ * Submit an authenticated marketplace quote request.
+ * Customer identity is resolved from the session — contact info is NEVER trusted from the body.
+ * 1. Inserts into quote_requests with customer_id (cleaner_id = NULL, no contact_* PII denormalized)
+ * 2. Finds approved pros who serve that zip code (service-role for cross-customer match)
  * 3. Sends email + in-app notification to each matched pro
- * 4. Sends confirmation email to the customer
+ * 4. Sends confirmation email to the customer (email pulled from users row at send time)
  */
 export async function submitQuoteRequest(
   data: QuoteRequestData
@@ -54,19 +53,36 @@ export async function submitQuoteRequest(
     };
   }
 
-  // Use service-role client to bypass RLS (this is a public form, no auth)
-  const supabase = createServiceRoleClient();
+  // Auth-scoped client (cookie-based) — required so RLS binds to the customer
+  const supabase = await createClient();
+
+  // Service-role client for cross-customer reads (matching pros to a zip code).
+  // Never used to write customer-identifying data.
+  const adminSupabase = createServiceRoleClient();
 
   try {
-    // Validate required fields
-    if (!data.service_type || !data.zip_code || !data.contact_name || !data.contact_email || !data.contact_phone) {
-      return { success: false, error: 'Missing required fields' };
+    // Resolve the customer from the session — never trust the request body for PII
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return { success: false, error: 'You must be signed in to request a quote.' };
     }
 
-    // Validate email format
-    const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
-    if (!emailRegex.test(data.contact_email)) {
-      return { success: false, error: 'Invalid email format' };
+    // Pull canonical contact info from the users table (read-time JOIN target,
+    // never denormalized into the quote row)
+    const { data: customer, error: customerError } = await supabase
+      .from('users')
+      .select('id, full_name, email')
+      .eq('id', user.id)
+      .single();
+
+    if (customerError || !customer?.email) {
+      logger.error('Failed to resolve customer for quote request', { function: 'submitQuoteRequest', userId: user.id }, customerError);
+      return { success: false, error: 'Could not resolve your account info. Please refresh and try again.' };
+    }
+
+    // Validate required fields (no contact_* required — those come from the session)
+    if (!data.service_type || !data.zip_code) {
+      return { success: false, error: 'Missing required fields' };
     }
 
     // Validate zip code format
@@ -92,12 +108,14 @@ export async function submitQuoteRequest(
     const description = descriptionParts.length > 0 ? descriptionParts.join(' | ') : null;
 
     // ============================================
-    // STEP 1: Insert marketplace lead (cleaner_id = NULL)
+    // STEP 1: Insert marketplace lead (cleaner_id = NULL, no contact_* PII)
     // ============================================
+    // RLS policy quote_requests_customers_insert_own enforces customer_id = auth.uid().
     const now = new Date().toISOString();
     const { data: quote, error: insertError } = await supabase
       .from('quote_requests')
       .insert({
+        customer_id: user.id,
         service_type: data.service_type,
         property_type: data.property_type || 'home',
         property_size: propertySize,
@@ -106,9 +124,6 @@ export async function submitQuoteRequest(
         description,
         service_date: data.preferred_date || null,
         address: '',
-        contact_name: data.contact_name,
-        contact_email: data.contact_email,
-        contact_phone: data.contact_phone || null,
         status: 'pending',
         tcpa_consent_at: now,
         tcpa_consent_ip: ip,
@@ -132,8 +147,8 @@ export async function submitQuoteRequest(
     let matchedPros: { cleaner_id: string; user_id: string; email: string; business_name: string }[] = [];
 
     try {
-      // Primary match: service_areas table
-      const { data: areaMatches } = await supabase
+      // Primary match: service_areas table (service-role: cross-customer read)
+      const { data: areaMatches } = await adminSupabase
         .from('service_areas')
         .select('cleaner_id, cleaner:cleaners!inner(id, business_name, user_id, approval_status, user:users!inner(email))')
         .eq('zip_code', data.zip_code);
@@ -159,7 +174,7 @@ export async function submitQuoteRequest(
       // Fallback: if no service_areas match, find all approved cleaners
       // (early stage — not many pros have set up service areas yet)
       if (matchedPros.length === 0) {
-        const { data: allApproved } = await supabase
+        const { data: allApproved } = await adminSupabase
           .from('cleaners')
           .select('id, business_name, user_id, user:users!inner(email)')
           .eq('approval_status', 'approved');
@@ -193,9 +208,9 @@ export async function submitQuoteRequest(
     const location = data.city ? `${data.city}, ${data.zip_code}` : data.zip_code;
 
     for (const pro of matchedPros) {
-      // In-app notification
+      // In-app notification (service-role: writing to a different user's notifications row)
       try {
-        await supabase.from('notifications').insert({
+        await adminSupabase.from('notifications').insert({
           user_id: pro.user_id,
           type: 'new_lead',
           title: 'New Quote Request!',
@@ -220,11 +235,11 @@ export async function submitQuoteRequest(
     }
 
     // ============================================
-    // STEP 4: Send confirmation email to customer
+    // STEP 4: Send confirmation email to customer (info pulled from session, not body)
     // ============================================
     sendQuoteConfirmationEmail({
-      to: data.contact_email,
-      customerName: data.contact_name,
+      to: customer.email,
+      customerName: customer.full_name || 'Customer',
       quoteId: quote.id,
       matchCount: matchedPros.length,
     }).catch((err) =>
