@@ -129,7 +129,7 @@ export default function QuoteRequestsPage() {
       (q.city || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
       (q.zip_code || '').includes(searchTerm) ||
       (q.service_type || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (q.contact_name || '').toLowerCase().includes(searchTerm.toLowerCase());
+      (q.customer_first_name || '').toLowerCase().includes(searchTerm.toLowerCase());
     return matchesFilter && matchesSearch;
   });
 
@@ -299,9 +299,9 @@ export default function QuoteRequestsPage() {
                             )}
                           </div>
 
-                          {/* Customer name */}
+                          {/* Customer first name only — last name, email, phone, and street stay private until acceptance */}
                           <p className="text-lg font-semibold text-gray-900 mb-2">
-                            {quote.contact_name || 'Customer Request'}
+                            {quote.customer_first_name || 'Customer Request'}
                           </p>
 
                           {/* Details grid */}
@@ -339,20 +339,7 @@ export default function QuoteRequestsPage() {
                             </div>
                           )}
 
-                          {/* Contact info (only visible for claimed quotes) */}
-                          {isMine && quote.contact_email && (
-                            <div className="mt-3 p-3 bg-blue-50 rounded-md space-y-1">
-                              <p className="text-sm font-medium text-blue-900">Contact Info</p>
-                              <p className="text-sm text-blue-700">
-                                Email: <a href={`mailto:${quote.contact_email}`} className="underline">{quote.contact_email}</a>
-                              </p>
-                              {quote.contact_phone && (
-                                <p className="text-sm text-blue-700">
-                                  Phone: <a href={`tel:${quote.contact_phone}`} className="underline">{quote.contact_phone}</a>
-                                </p>
-                              )}
-                            </div>
-                          )}
+                          {/* Contact info is hidden pre-acceptance — pro sees email/phone only after the customer accepts the quote (Phase B) */}
 
                           {/* Your response (if already responded) */}
                           {isMine && quote.quoted_price && (
