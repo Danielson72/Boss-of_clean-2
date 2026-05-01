@@ -5,7 +5,7 @@ import { sendNewMessageEmail } from '@/lib/email/new-message';
 import { rateLimitRoute, RATE_LIMITS } from '@/lib/middleware/rate-limit';
 import { createLogger } from '@/lib/utils/logger';
 import { notifyProNewMessage, notifyCustomerQuoteReceived, sendSMSIfEnabled } from '@/lib/sms/notifications';
-import { filterPII, hashContent } from '@/lib/pii-filter';
+import { filterPII } from '@/lib/pii-filter';
 
 const logger = createLogger({ file: 'api/messages/route' });
 
@@ -261,12 +261,18 @@ export async function POST(request: NextRequest) {
   }
 
   // PII filter — check before inserting
+  //
+  // Gating rule:
+  //   - Customers are NEVER unlocked. Their messages always go through the filter.
+  //   - Pros are unlocked ONLY when the conversation has a quote_request_id AND
+  //     this pro has a paid lead_unlock for that quote.
+  //   - Default is "filtered" — organic direct conversations (quote_request_id IS NULL)
+  //     stay filtered for both sides, which closes the lead-bypass channel.
   {
-    // Determine if this conversation's lead has been unlocked (paid)
-    let isUnlocked = true // default ON (customers are never gated)
+    let isUnlocked = false
 
     if (!isCustomer && actualConversationId) {
-      // Fetch conversation's quote_request_id + cleaner_id
+      // Pro path: only an organic-paid lead unlocks the filter for this pro.
       const { data: conv } = await supabase
         .from('conversations')
         .select('quote_request_id, cleaner_id')
@@ -274,7 +280,6 @@ export async function POST(request: NextRequest) {
         .single()
 
       if (conv?.quote_request_id) {
-        // Conversation originated from a lead — check unlock status
         const { data: unlock } = await supabase
           .from('lead_unlocks')
           .select('id')
@@ -286,24 +291,29 @@ export async function POST(request: NextRequest) {
 
         isUnlocked = !!unlock
       }
-      // If quote_request_id is NULL: organic direct conversation → filter off
+      // If quote_request_id is NULL: organic conversation → stays filtered.
     }
+    // Customers fall through with isUnlocked = false (no exceptions).
 
     const piiResult = filterPII(content.trim(), isUnlocked)
 
     if (piiResult.blocked) {
-      // Log the attempt (non-blocking, service-role to bypass RLS)
-      const srClient = createServiceRoleClient()
-      hashContent(content.trim()).then(hash => {
-        srClient.from('pii_filter_log').insert({
+      // Audit log (service-role to bypass RLS).
+      // Failure must NOT block the 422 response, but it MUST be visible in logs.
+      try {
+        const srClient = createServiceRoleClient()
+        const { error: logError } = await srClient.from('pii_filter_log').insert({
           conversation_id: actualConversationId,
           sender_id: user.id,
-          sender_role: isCustomer ? 'customer' : 'cleaner',
-          content_hash: hash,
-          pattern_hit: piiResult.patternHit!,
-          is_unlocked: isUnlocked,
-        }).catch(() => {}) // fire-and-forget
-      })
+          blocked_content: content.trim(),
+          matched_pattern: piiResult.patternHit!,
+        })
+        if (logError) {
+          console.error('[pii-filter] Failed to write audit log entry:', logError.message)
+        }
+      } catch (err) {
+        console.error('[pii-filter] Audit log insert threw:', err)
+      }
 
       return NextResponse.json(
         { error: piiResult.message ?? 'To share contact info, unlock this lead first.' },
