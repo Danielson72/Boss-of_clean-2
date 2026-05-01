@@ -81,6 +81,33 @@ export function filterPII(content: string, isUnlocked: boolean): PiiFilterResult
 }
 
 /**
+ * Scrub-only helper: replaces every PII match in `content` with a redaction
+ * marker and returns the rewritten string plus the patterns that hit.
+ *
+ * Used for back-filling pre-existing messages that were saved before the
+ * server-side filter was active. Does NOT make a block/allow decision —
+ * unlike filterPII, this is purely a transformation.
+ */
+export function scrubText(content: string): { scrubbed: string; matches: string[] } {
+  const matches: string[] = []
+  let scrubbed = content
+
+  for (const { name, re } of PII_PATTERNS) {
+    // PII_PATTERNS are non-global; build a global twin for replaceAll-style behavior.
+    const globalRe = new RegExp(re.source, re.flags.includes('g') ? re.flags : re.flags + 'g')
+    if (globalRe.test(scrubbed)) {
+      matches.push(name)
+      scrubbed = scrubbed.replace(
+        new RegExp(re.source, re.flags.includes('g') ? re.flags : re.flags + 'g'),
+        '[redacted]'
+      )
+    }
+  }
+
+  return { scrubbed, matches }
+}
+
+/**
  * Simple hex SHA-256 of content (for log — no plain text stored).
  * Uses Web Crypto available in Node 18+ / Edge runtime.
  */
