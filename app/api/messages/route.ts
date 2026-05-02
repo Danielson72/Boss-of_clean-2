@@ -187,12 +187,23 @@ export async function POST(request: NextRequest) {
       if (existingConv) {
         actualConversationId = existingConv.id;
       } else {
+        // Check for associated marketplace quote
+        const { data: quote } = await supabase
+          .from('quote_requests')
+          .select('id')
+          .eq('customer_id', user.id)
+          .eq('cleaner_id', cleanerId)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single();
+
         // Create new conversation
         const { data: newConv, error: convError } = await supabase
           .from('conversations')
           .insert({
             customer_id: user.id,
             cleaner_id: cleanerId,
+            quote_request_id: quote?.id || null,
           })
           .select('id')
           .single();
