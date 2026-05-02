@@ -333,6 +333,13 @@ export async function POST(request: NextRequest) {
     }
   }
 
+  // Get conversation details for quote_request_id
+  const { data: convDetails } = await supabase
+    .from('conversations')
+    .select('quote_request_id')
+    .eq('id', actualConversationId)
+    .single();
+
   // Create the message
   const { data: message, error: msgError } = await supabase
     .from('messages')
@@ -341,6 +348,8 @@ export async function POST(request: NextRequest) {
       sender_id: user.id,
       sender_role: isCustomer ? 'customer' : 'cleaner',
       content: content.trim(),
+      topic: 'marketplace',
+      extension: convDetails?.quote_request_id || actualConversationId,
     })
     .select('id, created_at')
     .single();
