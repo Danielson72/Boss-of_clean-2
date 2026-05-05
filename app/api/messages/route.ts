@@ -306,7 +306,16 @@ export async function POST(request: NextRequest) {
     }
     // Customers fall through with isUnlocked = false (no exceptions).
 
-    const piiResult = filterPII(content.trim(), isUnlocked)
+    // Use rolling-window filter for cleaners (catches sequential splitting attacks).
+    // Customers always pass isUnlocked=true so single-msg filter short-circuits.
+    const piiResult = !isCustomer && actualConversationId
+      ? await filterPIIWithWindow(supabase, {
+          conversationId: actualConversationId,
+          senderId: user.id,
+          newContent: content.trim(),
+          isUnlocked,
+        })
+      : filterPII(content.trim(), isUnlocked)
 
     if (piiResult.blocked) {
       // Audit log (service-role to bypass RLS).

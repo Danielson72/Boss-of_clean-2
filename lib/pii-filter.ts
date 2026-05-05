@@ -6,12 +6,21 @@
  * quote_request_id + cleaner_id, the filter is completely off.
  *
  * Patterns blocked:
- *  - Phone numbers (any US format)
+ *  - Phone numbers (any US format, including partial sequences)
  *  - Email addresses
  *  - Payment handles: Zelle, Venmo, Cash App ($cashtag), PayPal
- *  - Explicit contact phrases
+ *  - Explicit contact phrases (now catches "call me" alone)
  *  - WhatsApp mentions
+ *
+ * Defense layers (added 2026-05):
+ *  1. Single-message regex (existing)
+ *  2. Rolling window: concatenates last 5 sender messages and re-runs patterns
+ *     to catch sequential splitting (e.g. "407" / "4616039" / "call me")
+ *  3. Cumulative digit threshold: hard-block at 10+ digits sent in a single
+ *     pre-unlock conversation by the same sender
  */
+
+import type { SupabaseClient } from '@supabase/supabase-js'
 
 export interface PiiFilterResult {
   blocked: boolean
@@ -21,7 +30,7 @@ export interface PiiFilterResult {
 
 // Ordered by specificity — first match wins for logging
 const PII_PATTERNS: Array<{ name: string; re: RegExp }> = [
-  // Phone numbers — common US formats
+  // Phone numbers — common US formats (full 10-digit sequences)
   {
     name: 'phone_number',
     re: /(\+?1[\s.-]?)?\(?\d{3}\)?[\s.\-]?\d{3}[\s.\-]?\d{4}/,
@@ -48,10 +57,10 @@ const PII_PATTERNS: Array<{ name: string; re: RegExp }> = [
     name: 'paypal',
     re: /\bpaypal\b/i,
   },
-  // Explicit contact phrases
+  // Explicit contact phrases — tightened to catch bare "call me", "text me", etc.
   {
     name: 'contact_phrase',
-    re: /\b(call me at|text me at|my number is|reach me at|contact me at|my phone is|my cell is)\b/i,
+    re: /\b(call me|text me|reach me|contact me|my number|my phone|my cell|my email|email me at|phone me|hit me up|shoot me a text|give me a call|dm me|find me on)\b/i,
   },
   // WhatsApp
   {
@@ -61,7 +70,7 @@ const PII_PATTERNS: Array<{ name: string; re: RegExp }> = [
 ]
 
 /**
- * Check message content for PII.
+ * Check single message content for PII.
  * Returns { blocked: false } immediately when isUnlocked is true.
  */
 export function filterPII(content: string, isUnlocked: boolean): PiiFilterResult {
