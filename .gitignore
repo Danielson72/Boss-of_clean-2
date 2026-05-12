@@ -58,3 +58,6 @@ netlify.toml.local
 
 # Local Netlify folder
 .netlify
+
+# Working-session backups (Phase A4 refactor safety net)
+.a4-backup/

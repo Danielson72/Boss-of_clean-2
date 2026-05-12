@@ -281,11 +281,11 @@ export async function POST(request: NextRequest) {
 
       if (conv?.quote_request_id) {
         const { data: unlock } = await supabase
-          .from('lead_unlocks')
+          .from('lead_acceptances')
           .select('id')
           .eq('quote_request_id', conv.quote_request_id)
           .eq('cleaner_id', conv.cleaner_id)
-          .eq('status', 'paid')
+          .eq('status', 'captured')
           .limit(1)
           .maybeSingle()
 

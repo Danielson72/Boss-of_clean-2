@@ -92,21 +92,21 @@ export async function POST(request: NextRequest) {
     if (capError) {
       // Fallback: standard client-side check
       const { data: existing } = await supabase
-        .from('lead_unlocks')
+        .from('lead_acceptances')
         .select('id, status')
         .eq('quote_request_id', quote_request_id)
         .eq('cleaner_id', cleaner.id)
         .maybeSingle();
 
-      if (existing && ['paid', 'credited', 'pending'].includes(existing.status)) {
+      if (existing && ['captured', 'pending'].includes(existing.status)) {
         alreadyUnlocked = true;
       }
 
       const { count } = await supabase
-        .from('lead_unlocks')
+        .from('lead_acceptances')
         .select('id', { count: 'exact', head: true })
         .eq('quote_request_id', quote_request_id)
-        .in('status', ['paid', 'credited']);
+        .in('status', ['captured']);
 
       unlockCount = count || 0;
     } else {
@@ -140,13 +140,14 @@ export async function POST(request: NextRequest) {
     if (proCredits && (proCredits.credits_total === -1 || proCredits.credits_used < proCredits.credits_total)) {
       // Use included credit — no payment needed
       const { data: unlock, error: unlockError } = await supabase
-        .from('lead_unlocks')
+        .from('lead_acceptances')
         .insert({
           quote_request_id,
           cleaner_id: cleaner.id,
           fee_tier: feeTier,
           amount_cents: 0,
-          status: 'credited',
+          status: 'captured',
+          counts_against_cap: true,
           unlocked_at: new Date().toISOString(),
         })
         .select('id')
@@ -219,7 +220,7 @@ export async function POST(request: NextRequest) {
 
     // Insert pending unlock — DB trigger enforces cap at INSERT time
     const { error: insertError } = await supabase
-      .from('lead_unlocks')
+      .from('lead_acceptances')
       .insert({
         quote_request_id,
         cleaner_id: cleaner.id,

@@ -42,11 +42,11 @@ export async function POST(request: NextRequest) {
 
     // Verify the unlock belongs to this cleaner
     const { data: unlock, error: unlockError } = await supabase
-      .from('lead_unlocks')
+      .from('lead_acceptances')
       .select('id, amount_cents')
       .eq('id', lead_unlock_id)
       .eq('cleaner_id', cleaner.id)
-      .in('status', ['paid', 'credited'])
+      .in('status', ['captured'])
       .single();
 
     if (unlockError || !unlock) {

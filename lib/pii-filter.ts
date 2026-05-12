@@ -2,7 +2,7 @@
  * Server-side PII filter for the chat messaging system.
  *
  * Blocks contact info sharing in conversations where the lead has not been
- * unlocked (paid). Once lead_unlocks.status = 'paid' for the conversation's
+ * unlocked (paid). Once lead_acceptances.status = 'captured' for the conversation's
  * quote_request_id + cleaner_id, the filter is completely off.
  *
  * Patterns blocked:
