@@ -57,16 +57,16 @@ export async function GET() {
     const quoteIds = quotes.map(q => q.id);
 
     const { data: unlocks } = await supabase
-      .from('lead_unlocks')
+      .from('lead_acceptances')
       .select('quote_request_id, cleaner_id, status')
       .in('quote_request_id', quoteIds)
-      .in('status', ['paid', 'credited', 'pending']);
+      .in('status', ['captured', 'pending']);
 
     const unlockCounts: Record<string, number> = {};
     const myUnlocks = new Set<string>();
 
     for (const u of (unlocks || [])) {
-      if (u.status === 'paid' || u.status === 'credited') {
+      if (u.status === 'captured') {
         unlockCounts[u.quote_request_id] = (unlockCounts[u.quote_request_id] || 0) + 1;
       }
       if (u.cleaner_id === cleaner.id) {

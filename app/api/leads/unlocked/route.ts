@@ -26,7 +26,7 @@ export async function GET() {
 
     // Get unlocked leads with full customer details
     const { data: unlocks, error: unlocksError } = await supabase
-      .from('lead_unlocks')
+      .from('lead_acceptances')
       .select(`
         id,
         fee_tier,
@@ -56,7 +56,7 @@ export async function GET() {
         )
       `)
       .eq('cleaner_id', cleaner.id)
-      .in('status', ['paid', 'credited'])
+      .in('status', ['captured'])
       .order('unlocked_at', { ascending: false });
 
     if (unlocksError) throw unlocksError;

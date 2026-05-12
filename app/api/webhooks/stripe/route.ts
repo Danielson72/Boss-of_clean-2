@@ -76,18 +76,18 @@ async function handleStripeEvent(event: Stripe.Event): Promise<void> {
             amountCents,
           });
 
-          // Update lead_unlocks: pending → paid
+          // Update lead_acceptances: pending → captured
           const { error: unlockError } = await supabase
-            .from('lead_unlocks')
+            .from('lead_acceptances')
             .update({
-              status: 'paid',
+              status: 'captured',
               unlocked_at: new Date().toISOString(),
               stripe_payment_intent_id: session.payment_intent as string,
             })
             .eq('stripe_checkout_session_id', session.id);
 
           if (unlockError) {
-            logger.error('Failed to update lead_unlocks', { function: 'handleStripeEvent' }, unlockError);
+            logger.error('Failed to update lead_acceptances', { function: 'handleStripeEvent' }, unlockError);
             throw unlockError;
           }
 
