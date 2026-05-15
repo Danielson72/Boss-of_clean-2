@@ -72,11 +72,12 @@ export default function QuoteRequestPage() {
     preferred_date: '',
     flexibility: 'flexible',
     notes: '',
+    is_commercial: false,
   });
 
   const handleInputChange = (
     field: keyof QuoteRequestData,
-    value: string | number | undefined
+    value: string | number | boolean | undefined
   ) => {
     setFormData({ ...formData, [field]: value });
     setError(null);
@@ -259,6 +260,36 @@ export default function QuoteRequestPage() {
             {/* Step 1: Service Details */}
             {step === 1 && (
               <div className="space-y-6">
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-900 mb-2">
+                    Is this for a business or facility?
+                  </h2>
+                  <p className="text-sm text-gray-600 mb-3">
+                    Commercial requests (offices, retail, multifamily, facilities) may be
+                    routed to a specialized commercial partner.
+                  </p>
+                  <div className="flex gap-3">
+                    {[
+                      { value: false, label: 'Residential (home)' },
+                      { value: true, label: 'Commercial (business / facility)' },
+                    ].map((option) => (
+                      <button
+                        key={option.label}
+                        type="button"
+                        onClick={() => handleInputChange('is_commercial', option.value)}
+                        aria-pressed={formData.is_commercial === option.value}
+                        className={`flex-1 py-2 px-3 border rounded-lg text-sm font-medium transition ${
+                          formData.is_commercial === option.value
+                            ? 'border-blue-500 bg-blue-50 text-blue-700'
+                            : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                        }`}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
                 <div>
                   <h2 className="text-lg font-semibold text-gray-900 mb-4">
                     What type of cleaning do you need?
@@ -488,6 +519,10 @@ export default function QuoteRequestPage() {
                   <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
                     <h4 className="font-medium text-gray-900 mb-2">Your Quote Request Summary</h4>
                     <dl className="text-sm space-y-1">
+                      <div className="flex justify-between">
+                        <dt className="text-gray-600">Type:</dt>
+                        <dd className="font-medium">{formData.is_commercial ? 'Commercial (business / facility)' : 'Residential (home)'}</dd>
+                      </div>
                       <div className="flex justify-between">
                         <dt className="text-gray-600">Service:</dt>
                         <dd className="font-medium">{SERVICE_TYPES.find(s => s.value === formData.service_type)?.label || '-'}</dd>

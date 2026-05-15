@@ -20,6 +20,7 @@ export interface QuoteRequestData {
   preferred_date?: string;
   flexibility?: 'exact' | 'flexible' | 'asap';
   notes?: string;
+  is_commercial?: boolean;
   tcpa_user_agent?: string;
 }
 
@@ -125,6 +126,7 @@ export async function submitQuoteRequest(
         service_date: data.preferred_date || null,
         address: '',
         status: 'pending',
+        is_commercial: data.is_commercial === true,
         tcpa_consent_at: now,
         tcpa_consent_ip: ip,
         tcpa_consent_ua: data.tcpa_user_agent ? data.tcpa_user_agent.slice(0, 512) : null,
