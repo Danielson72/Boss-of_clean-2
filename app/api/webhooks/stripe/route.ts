@@ -91,38 +91,6 @@ async function handleStripeEvent(event: Stripe.Event): Promise<void> {
             throw unlockError;
           }
 
-          // Update spending cap
-          if (cleaner_id && amountCents > 0) {
-            const { data: cap } = await supabase
-              .from('pro_spending_caps')
-              .select('id, current_week_spent_cents, week_started_at')
-              .eq('cleaner_id', cleaner_id)
-              .single();
-
-            if (cap) {
-              const weekStart = new Date(cap.week_started_at);
-              const daysSinceStart = (Date.now() - weekStart.getTime()) / (1000 * 60 * 60 * 24);
-
-              if (daysSinceStart >= 7) {
-                // New week — reset and start fresh
-                await supabase
-                  .from('pro_spending_caps')
-                  .update({
-                    current_week_spent_cents: amountCents,
-                    week_started_at: new Date().toISOString(),
-                  })
-                  .eq('id', cap.id);
-              } else {
-                await supabase
-                  .from('pro_spending_caps')
-                  .update({
-                    current_week_spent_cents: cap.current_week_spent_cents + amountCents,
-                  })
-                  .eq('id', cap.id);
-              }
-            }
-          }
-
           logger.info('Lead unlock fully processed', {
             sessionId: session.id,
             quoteRequestId: quote_request_id,
@@ -174,46 +142,13 @@ async function handleStripeEvent(event: Stripe.Event): Promise<void> {
 
     case 'payment_intent.succeeded': {
       const pi = event.data.object as Stripe.PaymentIntent;
-      if (pi.metadata?.type === 'lead_fee') {
-        logger.info('Lead fee payment succeeded', {
-          paymentIntentId: pi.id,
-          cleanerId: pi.metadata.cleaner_id,
-          leadId: pi.metadata.lead_id,
-        });
-        // Lead charge record already updated in chargeLeadFee - this is a confirmation
-        await processEventWithRetry(event, async () => {
-          const { createClient } = await import('@/lib/supabase/server');
-          const supabase = await createClient();
-          await supabase
-            .from('lead_charges')
-            .update({ status: 'succeeded' })
-            .eq('stripe_payment_intent_id', pi.id);
-        });
-      } else {
-        logger.info('Payment intent succeeded', { paymentIntentId: pi.id });
-      }
+      logger.info('Payment intent succeeded', { paymentIntentId: pi.id });
       break;
     }
 
     case 'payment_intent.payment_failed': {
       const failedPi = event.data.object as Stripe.PaymentIntent;
-      if (failedPi.metadata?.type === 'lead_fee') {
-        logger.warn('Lead fee payment failed', {
-          paymentIntentId: failedPi.id,
-          cleanerId: failedPi.metadata.cleaner_id,
-          leadId: failedPi.metadata.lead_id,
-        });
-        await processEventWithRetry(event, async () => {
-          const { createClient } = await import('@/lib/supabase/server');
-          const supabase = await createClient();
-          await supabase
-            .from('lead_charges')
-            .update({ status: 'failed' })
-            .eq('stripe_payment_intent_id', failedPi.id);
-        });
-      } else {
-        logger.info('Payment intent failed', { paymentIntentId: failedPi.id });
-      }
+      logger.info('Payment intent failed', { paymentIntentId: failedPi.id });
       break;
     }
 

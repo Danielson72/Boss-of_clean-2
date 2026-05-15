@@ -25,7 +25,7 @@ export async function GET() {
     }
 
     // Get unlocked leads with full customer details
-    const { data: unlocks, error: unlocksError } = await supabase
+    const { data: acceptances, error: acceptancesError } = await supabase
       .from('lead_acceptances')
       .select(`
         id,
@@ -59,28 +59,28 @@ export async function GET() {
       .in('status', ['captured'])
       .order('unlocked_at', { ascending: false });
 
-    if (unlocksError) throw unlocksError;
+    if (acceptancesError) throw acceptancesError;
 
-    // Check for existing refund requests in one batch query
-    const unlockIds = (unlocks || []).map(u => u.id);
+    // Check for existing refund decisions in one batch query
+    const acceptanceIds = (acceptances || []).map(a => a.id);
     const refundStatuses: Record<string, string> = {};
 
-    if (unlockIds.length > 0) {
+    if (acceptanceIds.length > 0) {
       const { data: refunds } = await supabase
-        .from('lead_refund_requests')
-        .select('lead_unlock_id, status')
-        .in('lead_unlock_id', unlockIds);
+        .from('refund_decisions')
+        .select('lead_acceptance_id, state')
+        .in('lead_acceptance_id', acceptanceIds);
 
       for (const r of (refunds || [])) {
-        refundStatuses[r.lead_unlock_id] = r.status;
+        refundStatuses[r.lead_acceptance_id] = r.state;
       }
     }
 
     // For marketplace leads, customer contact may come from quote_requests contact_* fields
     // (guests don't have a user record). Normalize the response.
-    const leads: UnlockedLeadDTO[] = (unlocks || []).map(u => {
+    const leads: UnlockedLeadDTO[] = (acceptances || []).map(a => {
       // Supabase FK joins can return array or object
-      const qr = Array.isArray(u.quote_request) ? u.quote_request[0] : u.quote_request;
+      const qr = Array.isArray(a.quote_request) ? a.quote_request[0] : a.quote_request;
 
       // Customer from user FK join
       const customerFromUser = qr?.customer
@@ -88,13 +88,13 @@ export async function GET() {
         : null;
 
       return {
-        id: u.id,
-        fee_tier: u.fee_tier,
-        amount_cents: u.amount_cents,
-        status: u.status,
-        unlocked_at: u.unlocked_at,
-        created_at: u.created_at,
-        refund_status: refundStatuses[u.id] || null,
+        id: a.id,
+        fee_tier: a.fee_tier,
+        amount_cents: a.amount_cents,
+        status: a.status,
+        unlocked_at: a.unlocked_at,
+        created_at: a.created_at,
+        refund_status: refundStatuses[a.id] || null,
         quote_request: {
           id: qr?.id || '',
           service_type: qr?.service_type || '',
