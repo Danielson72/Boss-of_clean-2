@@ -111,9 +111,6 @@ export interface DbCleaner {
   marketing_message: string | null;
   created_at: string;
   updated_at: string;
-  // Extended fields for lead tracking
-  lead_credits_used?: number;
-  lead_credits_reset_at?: string;
   // Extended fields for profile page
   business_address?: string;
   is_certified?: boolean;

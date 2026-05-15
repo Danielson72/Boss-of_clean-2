@@ -13,8 +13,6 @@ import {
   FileText,
   Filter,
   Search,
-  Zap,
-  Crown,
   Lock,
   Unlock,
   Eye,
@@ -23,7 +21,6 @@ import {
   AlertTriangle,
   CheckCircle,
   XCircle,
-  Shield,
   Loader2,
 } from 'lucide-react';
 import Link from 'next/link';
@@ -74,22 +71,6 @@ interface UnlockedLead {
   };
 }
 
-interface ProCredits {
-  tier: string;
-  credits: {
-    total: number;
-    used: number;
-    remaining: number;
-    is_unlimited: boolean;
-    billing_period_end: string;
-  } | null;
-  spending_cap: {
-    weekly_cap_cents: number;
-    current_week_spent_cents: number;
-    remaining_cents: number;
-  } | null;
-}
-
 // --- Helpers ---
 
 function getFeeTier(serviceType: string): 'standard' | 'deep_clean' | 'specialty' {
@@ -131,9 +112,6 @@ export default function LeadsPage() {
   const [unlockedLeads, setUnlockedLeads] = useState<UnlockedLead[]>([]);
   const [loadingUnlocked, setLoadingUnlocked] = useState(true);
 
-  // Credits & spending
-  const [proCredits, setProCredits] = useState<ProCredits | null>(null);
-
   // Filters
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
@@ -147,7 +125,6 @@ export default function LeadsPage() {
   // Refund modal
   const [refundLeadId, setRefundLeadId] = useState<string | null>(null);
   const [refundReason, setRefundReason] = useState('');
-  const [refundEvidence, setRefundEvidence] = useState('');
   const [submittingRefund, setSubmittingRefund] = useState(false);
 
   // Check for URL params (returning from Stripe checkout)
@@ -192,25 +169,12 @@ export default function LeadsPage() {
     }
   }, []);
 
-  const loadProCredits = useCallback(async () => {
-    try {
-      const res = await fetch('/api/credits/pro');
-      if (res.ok) {
-        const data = await res.json();
-        setProCredits(data);
-      }
-    } catch {
-      // Silently fail
-    }
-  }, []);
-
   useEffect(() => {
     if (user) {
       loadAvailableLeads();
       loadUnlockedLeads();
-      loadProCredits();
     }
-  }, [user, loadAvailableLeads, loadUnlockedLeads, loadProCredits]);
+  }, [user, loadAvailableLeads, loadUnlockedLeads]);
 
   // --- Actions ---
 
@@ -233,14 +197,7 @@ export default function LeadsPage() {
         return;
       }
 
-      if (data.unlocked) {
-        // Used a credit — no payment needed
-        setMessage({ type: 'success', text: 'Lead unlocked with included credit! Check Unlocked Leads.' });
-        setActiveTab('unlocked');
-        loadAvailableLeads();
-        loadUnlockedLeads();
-        loadProCredits();
-      } else if (data.checkout_url) {
+      if (data.checkout_url) {
         // Redirect to Stripe Checkout
         window.location.href = data.checkout_url;
       }
@@ -260,9 +217,8 @@ export default function LeadsPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          lead_unlock_id: refundLeadId,
+          lead_acceptance_id: refundLeadId,
           reason: refundReason,
-          evidence: refundEvidence || undefined,
         }),
       });
 
@@ -272,7 +228,6 @@ export default function LeadsPage() {
         setMessage({ type: 'success', text: 'Refund request submitted. We\'ll review it within 24-48 hours.' });
         setRefundLeadId(null);
         setRefundReason('');
-        setRefundEvidence('');
         loadUnlockedLeads();
       } else {
         setMessage({ type: 'error', text: data.error || 'Failed to submit refund request' });
@@ -365,40 +320,6 @@ export default function LeadsPage() {
                     Find and unlock customer leads in your area
                   </p>
                 </div>
-              </div>
-
-              {/* Credits + Spending Cap */}
-              <div className="flex items-center gap-3">
-                {proCredits?.credits && (
-                  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg px-4 py-2 border border-blue-200">
-                    <div className="flex items-center gap-2">
-                      {proCredits.credits.is_unlimited ? (
-                        <>
-                          <Crown className="h-5 w-5 text-yellow-500" />
-                          <span className="text-sm font-medium text-gray-900">Unlimited Credits</span>
-                        </>
-                      ) : (
-                        <>
-                          <Zap className="h-5 w-5 text-blue-600" />
-                          <span className="text-sm font-medium text-gray-900">
-                            {proCredits.credits.remaining} credits left
-                          </span>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {proCredits?.spending_cap && (
-                  <div className="bg-gradient-to-r from-emerald-50 to-green-50 rounded-lg px-4 py-2 border border-emerald-200">
-                    <div className="flex items-center gap-2">
-                      <Shield className="h-5 w-5 text-emerald-600" />
-                      <span className="text-sm font-medium text-gray-900">
-                        {formatCents(proCredits.spending_cap.remaining_cents)} cap left
-                      </span>
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
           </div>
@@ -798,9 +719,7 @@ export default function LeadsPage() {
                 <div className="flex justify-between text-sm border-t pt-2">
                   <span className="text-gray-600">Unlock fee</span>
                   <span className="font-bold text-gray-900">
-                    {proCredits?.credits && (proCredits.credits.is_unlimited || proCredits.credits.remaining > 0)
-                      ? 'Included credit'
-                      : getUnlockPrice(confirmUnlock.service_type)}
+                    {getUnlockPrice(confirmUnlock.service_type)}
                   </span>
                 </div>
               </div>
@@ -869,19 +788,6 @@ export default function LeadsPage() {
                     <option value="other">Other</option>
                   </select>
                 </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Evidence (optional)
-                  </label>
-                  <textarea
-                    value={refundEvidence}
-                    onChange={(e) => setRefundEvidence(e.target.value)}
-                    placeholder="Describe the issue..."
-                    rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
               </div>
 
               <div className="flex gap-3 mt-4">
@@ -889,7 +795,6 @@ export default function LeadsPage() {
                   onClick={() => {
                     setRefundLeadId(null);
                     setRefundReason('');
-                    setRefundEvidence('');
                   }}
                   className="flex-1 px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition"
                 >

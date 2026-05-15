@@ -10,10 +10,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { lead_unlock_id, reason, evidence } = await request.json();
+    const { lead_acceptance_id, reason } = await request.json();
 
-    if (!lead_unlock_id || !reason) {
-      return NextResponse.json({ error: 'lead_unlock_id and reason are required' }, { status: 400 });
+    if (!lead_acceptance_id || !reason) {
+      return NextResponse.json({ error: 'lead_acceptance_id and reason are required' }, { status: 400 });
     }
 
     const validReasons = [
@@ -44,34 +44,32 @@ export async function POST(request: NextRequest) {
     const { data: unlock, error: unlockError } = await supabase
       .from('lead_acceptances')
       .select('id, amount_cents')
-      .eq('id', lead_unlock_id)
+      .eq('id', lead_acceptance_id)
       .eq('cleaner_id', cleaner.id)
       .in('status', ['captured'])
       .single();
 
     if (unlockError || !unlock) {
-      return NextResponse.json({ error: 'Lead unlock not found or not eligible for refund' }, { status: 404 });
+      return NextResponse.json({ error: 'Lead acceptance not found or not eligible for refund' }, { status: 404 });
     }
 
-    // Check for existing refund request
+    // Check for existing refund decision (duplicate request prevention)
     const { data: existingRefund } = await supabase
-      .from('lead_refund_requests')
+      .from('refund_decisions')
       .select('id')
-      .eq('lead_unlock_id', lead_unlock_id)
-      .single();
+      .eq('lead_acceptance_id', lead_acceptance_id)
+      .maybeSingle();
 
     if (existingRefund) {
       return NextResponse.json({ error: 'Refund already requested for this lead' }, { status: 409 });
     }
 
-    // Create refund request
+    // Create refund decision (state defaults to 'pending' per schema)
     const { data: refund, error: refundError } = await supabase
-      .from('lead_refund_requests')
+      .from('refund_decisions')
       .insert({
-        lead_unlock_id,
-        cleaner_id: cleaner.id,
-        reason,
-        evidence: evidence || null,
+        lead_acceptance_id,
+        trigger_reason: reason,
         refund_amount_cents: unlock.amount_cents,
       })
       .select('id')

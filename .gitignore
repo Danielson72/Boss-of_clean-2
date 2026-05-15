@@ -61,3 +61,6 @@ netlify.toml.local
 
 # Working-session backups (Phase A4 refactor safety net)
 .a4-backup/
+
+# A5b cleanup phase backups (safety net during refactor — remove after merge)
+.a5b-backup/
