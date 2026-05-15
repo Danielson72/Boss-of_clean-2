@@ -18,6 +18,12 @@ export interface OnboardingData {
   years_experience: number
 
   // Step 2: Services
+  // DLD-449: primary_category + secondary_categories are the canonical fields
+  // (FK -> service_categories.slug). `services` is kept populated as
+  // [primary, ...secondary] for backwards-compat with the ~30 codepaths
+  // that still read pros.services[].
+  primary_category: string | null
+  secondary_categories: string[]
   services: string[]
   hourly_rate: number
   minimum_hours: number

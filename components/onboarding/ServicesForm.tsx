@@ -1,21 +1,21 @@
 'use client'
 
 import { useState } from 'react'
-import { StepProps, SERVICE_TYPES } from './types'
+import { StepProps } from './types'
+import CategorySelector from './CategorySelector'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Checkbox } from '@/components/ui/checkbox'
 import { DollarSign, Clock, ArrowRight, ArrowLeft } from 'lucide-react'
 
 export default function ServicesForm({ data, onChange, onNext, onBack, isSubmitting }: StepProps) {
-  const [errors, setErrors] = useState<Record<string, string>>({})
+  const [errors, setErrors] = useState<{ primary?: string; hourly_rate?: string }>({})
 
   const validateForm = () => {
-    const newErrors: Record<string, string> = {}
+    const newErrors: { primary?: string; hourly_rate?: string } = {}
 
-    if (!data.services || data.services.length === 0) {
-      newErrors.services = 'Please select at least one service'
+    if (!data.primary_category) {
+      newErrors.primary = 'Choose your primary service category'
     }
     if (!data.hourly_rate || data.hourly_rate < 15) {
       newErrors.hourly_rate = 'Please enter a valid hourly rate (minimum $15)'
@@ -31,52 +31,45 @@ export default function ServicesForm({ data, onChange, onNext, onBack, isSubmitt
     }
   }
 
-  const handleServiceToggle = (service: string) => {
-    const currentServices = data.services || []
-    const newServices = currentServices.includes(service)
-      ? currentServices.filter((s) => s !== service)
-      : [...currentServices, service]
-    onChange({ ...data, services: newServices })
-    if (errors.services) {
-      setErrors({ ...errors, services: '' })
+  const handleCategoriesChange = ({
+    primary,
+    secondary,
+  }: {
+    primary: string | null
+    secondary: string[]
+  }) => {
+    // Keep legacy services[] in sync with [primary, ...secondary] so the
+    // ~30 codepaths still reading pros.services keep working until DLD-444's
+    // follow-up sweep drops that column.
+    const legacyServices = primary ? [primary, ...secondary] : secondary
+    onChange({
+      ...data,
+      primary_category: primary ?? undefined,
+      secondary_categories: secondary,
+      services: legacyServices,
+    })
+    if (errors.primary && primary) {
+      setErrors({ ...errors, primary: undefined })
     }
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div>
         <h2 className="text-2xl font-bold text-gray-900">Services You Offer</h2>
-        <p className="text-gray-600 mt-1">Select the services you provide and set your rate</p>
+        <p className="text-gray-600 mt-1">
+          Pick the categories you serve so leads route to the right Pros, and set your base rate.
+        </p>
       </div>
 
-      {/* Services Selection */}
-      <div className="space-y-4">
-        <Label className="text-lg">Services Offered *</Label>
-        {errors.services && (
-          <p className="text-sm text-red-500">{errors.services}</p>
-        )}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {SERVICE_TYPES.map((service) => (
-            <div
-              key={service.value}
-              className={`flex items-center space-x-3 p-3 border rounded-lg cursor-pointer transition-colors ${
-                data.services?.includes(service.value)
-                  ? 'border-blue-400 bg-blue-50'
-                  : 'hover:bg-gray-50'
-              }`}
-              onClick={() => handleServiceToggle(service.value)}
-            >
-              <Checkbox
-                checked={data.services?.includes(service.value) || false}
-                onCheckedChange={() => handleServiceToggle(service.value)}
-              />
-              <Label className="cursor-pointer font-normal">{service.label}</Label>
-            </div>
-          ))}
-        </div>
-      </div>
+      <CategorySelector
+        primary={data.primary_category ?? null}
+        secondary={data.secondary_categories ?? []}
+        onChange={handleCategoriesChange}
+        errors={{ primary: errors.primary }}
+        disabled={isSubmitting}
+      />
 
-      {/* Pricing */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-2">
           <Label htmlFor="hourly_rate">Hourly Rate ($) *</Label>
@@ -91,7 +84,7 @@ export default function ServicesForm({ data, onChange, onNext, onBack, isSubmitt
               value={data.hourly_rate || ''}
               onChange={(e) => {
                 onChange({ ...data, hourly_rate: parseFloat(e.target.value) || 0 })
-                if (errors.hourly_rate) setErrors({ ...errors, hourly_rate: '' })
+                if (errors.hourly_rate) setErrors({ ...errors, hourly_rate: undefined })
               }}
               placeholder="50"
               className={`pl-10 ${errors.hourly_rate ? 'border-red-500' : ''}`}

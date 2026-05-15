@@ -5,7 +5,7 @@ import { createLogger } from '@/lib/utils/logger'
 const logger = createLogger({ file: 'api/cleaners/onboarding/submit/route' })
 
 // POST /api/cleaners/onboarding/submit - Submit onboarding for approval
-export async function POST(request: NextRequest) {
+export async function POST(_request: NextRequest) {
   try {
     const supabase = await createClient()
 
@@ -14,62 +14,64 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Get cleaner profile
-    const { data: cleaner, error: fetchError } = await supabase
-      .from('cleaners')
+    // DLD-449: write through the pros table directly.
+    const { data: pro, error: fetchError } = await supabase
+      .from('pros')
       .select('*')
       .eq('user_id', user.id)
       .single()
 
-    if (fetchError || !cleaner) {
-      return NextResponse.json({ error: 'Cleaner profile not found' }, { status: 404 })
+    if (fetchError || !pro) {
+      return NextResponse.json({ error: 'Pro profile not found' }, { status: 404 })
     }
 
-    // Validate required fields
     const requiredFields = ['business_name', 'business_phone', 'business_email']
-    const missingFields = requiredFields.filter(field => !cleaner[field])
+    const missingFields = requiredFields.filter((field) => !pro[field])
 
     if (missingFields.length > 0) {
-      return NextResponse.json({
-        error: 'Missing required fields',
-        missing: missingFields
-      }, { status: 400 })
+      return NextResponse.json(
+        {
+          error: 'Missing required fields',
+          missing: missingFields,
+        },
+        { status: 400 }
+      )
     }
 
-    // Validate services and service areas
-    if (!cleaner.services || cleaner.services.length === 0) {
-      return NextResponse.json({ error: 'At least one service is required' }, { status: 400 })
+    if (!pro.primary_category) {
+      return NextResponse.json(
+        { error: 'Choose your primary service category before submitting' },
+        { status: 400 }
+      )
     }
 
-    if (!cleaner.service_areas || cleaner.service_areas.length === 0) {
+    if (!pro.service_areas || pro.service_areas.length === 0) {
       return NextResponse.json({ error: 'At least one service area is required' }, { status: 400 })
     }
 
-    // Apply photo data from onboarding_data to cleaner profile
-    const onboardingData = cleaner.onboarding_data || {}
+    const onboardingData = pro.onboarding_data || {}
 
-    // Update cleaner status to submitted
     const { error: updateError } = await supabase
-      .from('cleaners')
+      .from('pros')
       .update({
         onboarding_step: 6,
         onboarding_completed_at: new Date().toISOString(),
         approval_status: 'pending',
         ...(onboardingData.profile_image_url && { profile_image_url: onboardingData.profile_image_url }),
         ...(onboardingData.portfolio_images && { business_images: onboardingData.portfolio_images }),
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       })
-      .eq('id', cleaner.id)
+      .eq('id', pro.id)
 
     if (updateError) {
-      logger.error('Error updating cleaner', { function: 'POST' }, updateError)
+      logger.error('Error updating pro', { function: 'POST' }, updateError)
       return NextResponse.json({ error: 'Failed to submit onboarding' }, { status: 500 })
     }
 
     return NextResponse.json({
       success: true,
       message: 'Onboarding submitted for approval',
-      cleaner_id: cleaner.id
+      cleaner_id: pro.id,
     })
   } catch (error) {
     logger.error('Error in POST /api/cleaners/onboarding/submit', { function: 'POST' }, error)

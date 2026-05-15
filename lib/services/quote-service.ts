@@ -267,33 +267,69 @@ export class QuoteService {
 
   private async notifyCleanersInArea(zipCode: string, serviceType: string, quoteId: string) {
     try {
-      // Get cleaners who serve this area and offer this service
-      const { data: cleaners } = await this.supabase
-        .from('cleaners')
-        .select(`
-          id,
-          user_id,
-          business_name,
-          services,
-          users!user_id(email, full_name)
-        `)
-        .eq('approval_status', 'approved')
-        .contains('services', [serviceType])
-        .in('id', 
-          // Subquery to get cleaners serving this ZIP code
-          (await this.supabase
-            .from('cleaner_service_areas')
-            .select('cleaner_id')
-            .eq('zip_code', zipCode)
-          ).data?.map(area => area.cleaner_id) || []
-        );
+      // DLD-449: match pros whose primary OR secondary category equals the
+      // lead's service_type. Resolve the service_type slug through the
+      // canonical resolver first so aliases (pool_cleaning -> pool_service)
+      // route correctly. Primary matches sort above secondary so the
+      // strongest fit is contacted first.
+      let canonicalServiceType = serviceType;
+      const { data: canonical } = await this.supabase
+        .rpc('canonical_service_slug', { p_slug: serviceType })
+        .single();
+      if (typeof canonical === 'string' && canonical.length > 0) {
+        canonicalServiceType = canonical;
+      }
 
-      // Send email notifications (this would integrate with your email service)
-      for (const cleaner of cleaners || []) {
-        await this.sendQuoteNotificationEmail(cleaner, quoteId);
+      const { data: serviceAreas } = await this.supabase
+        .from('cleaner_service_areas')
+        .select('cleaner_id')
+        .eq('zip_code', zipCode);
+
+      const proIdsInArea = (serviceAreas ?? []).map((a: { cleaner_id: string }) => a.cleaner_id);
+      if (proIdsInArea.length === 0) {
+        return;
+      }
+
+      const { data: matchedRows, error: matchedError } = await this.supabase
+        .from('pro_categories')
+        .select('pro_id, is_primary')
+        .eq('category', canonicalServiceType)
+        .in('pro_id', proIdsInArea);
+
+      if (matchedError) {
+        logger.error('Error matching pro_categories:', {}, matchedError);
+        return;
+      }
+
+      // Rank: primary matches first, then secondary.
+      type MatchRow = { pro_id: string; is_primary: boolean };
+      const rankedProIds = ((matchedRows ?? []) as MatchRow[])
+        .sort((a: MatchRow, b: MatchRow) => Number(b.is_primary) - Number(a.is_primary))
+        .map((row: MatchRow) => row.pro_id);
+      if (rankedProIds.length === 0) {
+        return;
+      }
+
+      const { data: pros } = await this.supabase
+        .from('pros')
+        .select(
+          `id, user_id, business_name, services, primary_category, users!user_id(email, full_name)`
+        )
+        .eq('approval_status', 'approved')
+        .in('id', rankedProIds);
+
+      type ProRow = CleanerEmailData & { id: string };
+      const proRows = (pros ?? []) as ProRow[];
+      const proById = new Map<string, ProRow>(proRows.map((p: ProRow) => [p.id, p]));
+      const orderedPros: ProRow[] = rankedProIds
+        .map((id: string) => proById.get(id))
+        .filter((p): p is ProRow => !!p);
+
+      for (const pro of orderedPros) {
+        await this.sendQuoteNotificationEmail(pro, quoteId);
       }
     } catch (error) {
-      logger.error('Error notifying cleaners:', {}, error);
+      logger.error('Error notifying pros:', {}, error);
     }
   }
 
