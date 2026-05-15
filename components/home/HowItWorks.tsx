@@ -5,19 +5,19 @@ const steps = [
     number: '01',
     icon: ClipboardList,
     title: 'Tell Us What You Need',
-    description: 'Enter your location and the type of service you\'re looking for.',
+    description: 'Enter your ZIP code and the service you need — residential or commercial.',
   },
   {
     number: '02',
     icon: Users,
-    title: 'Browse Professionals',
-    description: 'See home service professionals in your area with profiles and details.',
+    title: 'Browse Vetted Pros',
+    description: 'See verified Florida pros in your area with profiles, services, and contact details.',
   },
   {
     number: '03',
     icon: MessageCircle,
     title: 'Connect Directly',
-    description: 'Reach out to your chosen professional to discuss your needs.',
+    description: 'Reach out to the pro you choose. No middleman markup. No inflated lead fees.',
   },
 ];
 
@@ -34,7 +34,7 @@ export default function HowItWorks() {
             Simple, Straightforward Process
           </h2>
           <p className="text-gray-500 text-lg">
-            Find the right professional for your home in three easy steps
+            Find the right pro for any job — home or business — in three easy steps
           </p>
         </div>
 

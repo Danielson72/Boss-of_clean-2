@@ -2,10 +2,10 @@ import Link from 'next/link';
 import { UserPlus, DollarSign, Calendar, FileCheck } from 'lucide-react';
 
 const benefits = [
-  { icon: UserPlus, text: 'Reach new customers in your area' },
-  { icon: FileCheck, text: 'Create your professional profile' },
+  { icon: UserPlus, text: 'Reach residential and commercial customers in your area' },
+  { icon: FileCheck, text: 'Create your verified pro profile' },
   { icon: DollarSign, text: 'Set your own rates and availability' },
-  { icon: Calendar, text: 'No long-term contracts' },
+  { icon: Calendar, text: 'No long-term contracts. No inflated lead fees.' },
 ];
 
 export default function ForProfessionals() {
@@ -23,11 +23,12 @@ export default function ForProfessionals() {
               For Professionals
             </p>
             <h2 className="font-display text-3xl sm:text-4xl font-bold text-white mb-4 leading-tight">
-              Grow Your Cleaning Business
+              Grow Your Pro Service Business
             </h2>
             <p className="text-gray-400 text-lg mb-10 leading-relaxed">
-              Join Florida&apos;s newest home services marketplace and connect with homeowners
-              looking for your services.
+              Cleaning, handyman, HVAC, plumbing, electrical, landscaping, pool, pest control —
+              join Florida&apos;s full-service pro marketplace and connect with homeowners and businesses
+              looking for what you do.
             </p>
 
             <ul className="space-y-5 mb-10">

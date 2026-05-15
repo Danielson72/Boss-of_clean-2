@@ -1,25 +1,25 @@
-import { MapPin, DollarSign, TrendingUp, Handshake } from 'lucide-react';
+import { MapPin, DollarSign, Layers, Handshake } from 'lucide-react';
 
 const values = [
   {
     icon: MapPin,
-    title: 'Local Florida Professionals',
-    description: 'Find service providers right in your neighborhood, across all 67 Florida counties.',
+    title: 'Local Florida Pros',
+    description: 'Verified pros in all 67 counties, serving both residential and commercial customers.',
   },
   {
     icon: DollarSign,
     title: 'Free to Search',
-    description: 'Browse and connect with professionals at no cost to homeowners.',
+    description: 'Browse pros and request quotes at no cost — homeowners and businesses welcome.',
   },
   {
-    icon: TrendingUp,
-    title: 'Growing Network',
-    description: 'New professionals joining across Florida as we build the most trusted home services marketplace.',
+    icon: Layers,
+    title: 'Every Pro Service',
+    description: 'From cleaning to plumbing, handyman to HVAC — find every pro service in one place.',
   },
   {
     icon: Handshake,
-    title: 'Your Choice, Your Terms',
-    description: 'Connect directly with professionals. No middleman markup on your services.',
+    title: 'Direct, No Markup',
+    description: 'Connect directly with pros. No middleman markup. No inflated lead fees.',
   },
 ];
 
@@ -33,10 +33,10 @@ export default function ValueProposition() {
             Why Boss of Clean
           </p>
           <h2 className="font-display text-3xl sm:text-4xl font-bold text-brand-dark mb-4">
-            The Smarter Way to Find Home Services
+            The Fair, Transparent Alternative to Thumbtack, Angi &amp; HomeAdvisor
           </h2>
           <p className="text-gray-500 text-lg">
-            Skip the endless searching. We make it easy to find the right professional for your home.
+            No inflated lead fees. No middleman markup. Just direct connections between Floridians and the pros who serve them — residential and commercial.
           </p>
         </div>
 

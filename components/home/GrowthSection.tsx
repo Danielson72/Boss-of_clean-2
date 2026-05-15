@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { MapPin, TrendingUp, Home } from 'lucide-react';
+import { MapPin, TrendingUp, Building2 } from 'lucide-react';
 
 function useInView(threshold = 0.3) {
   const ref = useRef<HTMLDivElement>(null);
@@ -99,8 +99,8 @@ export default function GrowthSection() {
 
   const stats = [
     { value: 67, suffix: '', label: 'Florida Counties Served', icon: MapPin },
-    { value: 20, suffix: '+', label: 'Service Categories', icon: TrendingUp },
-    { value: 100, suffix: '%', label: 'Residential Focus', icon: Home },
+    { value: 14, suffix: '+', label: 'Pro Service Categories', icon: TrendingUp },
+    { value: 0, suffix: '%', label: 'Lead Fee Markup', icon: Building2 },
   ];
 
   // Dot positions along the curve (approximate x,y for key points)
@@ -115,7 +115,7 @@ export default function GrowthSection() {
   const labels = [
     { text: '67 Counties', icon: MapPin, x: '10%', y: '20%', delay: '2.0s' },
     { text: 'Growing Daily', icon: TrendingUp, x: '45%', y: '10%', delay: '2.3s' },
-    { text: 'Residential Focus', icon: Home, x: '75%', y: '25%', delay: '2.6s' },
+    { text: 'Home & Business', icon: Building2, x: '75%', y: '25%', delay: '2.6s' },
   ];
 
   return (
@@ -132,10 +132,10 @@ export default function GrowthSection() {
           </p>
           <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4">
             Building Florida&apos;s Most{' '}
-            <span className="text-brand-gold">Trusted</span> Marketplace
+            <span className="text-brand-gold">Trusted</span> Pro Marketplace
           </h2>
           <p className="text-gray-400 text-lg max-w-2xl mx-auto leading-relaxed">
-            We&apos;re on a mission to connect every Florida homeowner with quality home service professionals.
+            We&apos;re on a mission to connect every Florida homeowner and business with vetted pros for any clean, fix, or service — without the middleman markup.
           </p>
         </div>
 

@@ -63,14 +63,15 @@ export default function HeroSection() {
 
             {/* Headline */}
             <h1 className="font-display text-4xl sm:text-5xl md:text-6xl lg:text-6xl xl:text-7xl font-bold text-white leading-[1.1] mb-6">
-              Your Home Deserves{' '}
-              <span className="text-brand-gold">Purrfection</span>
+              Any Service. Any Pro.{' '}
+              <span className="text-brand-gold">One Boss.</span>
             </h1>
 
             {/* Subheadline */}
             <p className="text-lg sm:text-xl text-gray-300 max-w-2xl mx-auto lg:mx-0 mb-10 leading-relaxed">
-              Connect with independent home service professionals across Florida.
-              Compare options. Choose with confidence.
+              Florida&apos;s fair, transparent alternative to Thumbtack, Angi, and HomeAdvisor.
+              Vetted pros for cleaning, handyman, HVAC, plumbing, electrical, pool service,
+              and every job your home or business needs.
             </p>
 
             {/* Search Form */}
@@ -122,7 +123,7 @@ export default function HeroSection() {
 
             {/* Subtle descriptor */}
             <p className="mt-6 text-gray-400 text-sm">
-              Florida&apos;s home services marketplace
+              Your one boss for any clean, fix, or service in Florida — residential &amp; commercial
             </p>
           </div>
 
