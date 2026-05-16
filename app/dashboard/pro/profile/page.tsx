@@ -13,6 +13,7 @@ import {
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createLogger } from '@/lib/utils/logger';
+import CategorySelector from '@/components/onboarding/CategorySelector';
 
 const logger = createLogger({ file: 'app/dashboard/pro/profile/page.tsx' });
 
@@ -37,14 +38,10 @@ interface CleanerProfile {
   business_state?: string;
   business_zip?: string;
   business_images: string[];
+  // DLD-449
+  primary_category?: string | null;
+  secondary_categories?: string[];
 }
-
-const AVAILABLE_SERVICES = [
-  'House Cleaning', 'Deep Cleaning', 'Move-in/Move-out Cleaning',
-  'Post-Construction Cleaning', 'Carpet Cleaning',
-  'Window Cleaning', 'Pressure Washing', 'Organizing Services',
-  'Laundry Services', 'Pet-Friendly Cleaning', 'Green/Eco Cleaning'
-];
 
 export default function CleanerProfilePage() {
   const { user } = useAuth();
@@ -64,16 +61,28 @@ export default function CleanerProfilePage() {
 
   const loadProfile = async () => {
     try {
+      // DLD-449: source from `pros` directly; the `cleaners` view is legacy.
       const { data, error } = await supabase
-        .from('cleaners')
+        .from('pros')
         .select('*')
         .eq('user_id', user?.id)
         .single();
 
       if (error && error.code !== 'PGRST116') throw error;
-      
+
       if (data) {
-        setProfile(data);
+        const { data: catRows } = await supabase
+          .from('pro_categories')
+          .select('category, is_primary')
+          .eq('pro_id', data.id);
+        type CategoryRow = { category: string; is_primary: boolean };
+        const secondary = ((catRows ?? []) as CategoryRow[])
+          .filter((r: CategoryRow) => !r.is_primary)
+          .map((r: CategoryRow) => r.category);
+        setProfile({
+          ...data,
+          secondary_categories: secondary,
+        });
       } else {
         // Create default profile if none exists
         const newProfile = {
@@ -94,7 +103,7 @@ export default function CleanerProfilePage() {
         };
         
         const { data: created, error: createError } = await supabase
-          .from('cleaners')
+          .from('pros')
           .insert(newProfile)
           .select()
           .single();
@@ -115,12 +124,21 @@ export default function CleanerProfilePage() {
     setProfile({ ...profile, [field]: value });
   };
 
-  const handleServiceToggle = (service: string) => {
+  const handleCategoriesChange = ({
+    primary,
+    secondary,
+  }: {
+    primary: string | null;
+    secondary: string[];
+  }) => {
     if (!profile) return;
-    const services = profile.services.includes(service)
-      ? profile.services.filter(s => s !== service)
-      : [...profile.services, service];
-    setProfile({ ...profile, services });
+    const legacyServices = primary ? [primary, ...secondary] : secondary;
+    setProfile({
+      ...profile,
+      primary_category: primary,
+      secondary_categories: secondary,
+      services: legacyServices,
+    });
   };
 
   const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -179,14 +197,29 @@ export default function CleanerProfilePage() {
     
     setSaving(true);
     try {
+      // DLD-449: route category changes through the dedicated endpoint so
+      // pro_categories stays in sync with pros.primary_category.
+      const categoriesResponse = await fetch('/api/pros/categories', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          primary_category: profile.primary_category ?? null,
+          secondary_categories: profile.secondary_categories ?? [],
+        }),
+      });
+      if (!categoriesResponse.ok) {
+        const result = await categoriesResponse.json().catch(() => ({}));
+        setMessage(`Error saving categories: ${result.error || 'Unknown error'}`);
+        return;
+      }
+
       const { error } = await supabase
-        .from('cleaners')
+        .from('pros')
         .update({
           business_name: profile.business_name,
           business_description: profile.business_description,
           business_phone: profile.business_phone,
           business_email: profile.business_email,
-          services: profile.services,
           hourly_rate: profile.hourly_rate,
           minimum_hours: profile.minimum_hours,
           years_experience: profile.years_experience,
@@ -205,7 +238,7 @@ export default function CleanerProfilePage() {
         setMessage(`Error saving profile: ${error.message}`);
         return;
       }
-      
+
       setMessage('Profile updated successfully!');
       setTimeout(() => setMessage(''), 3000);
     } catch (error) {
@@ -486,26 +519,19 @@ export default function CleanerProfilePage() {
               </div>
             </div>
 
-            {/* Services Offered */}
+            {/* Services Offered (DLD-449) */}
             <div className="bg-white rounded-lg shadow-sm p-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-6 flex items-center gap-2">
                 <Award className="h-5 w-5" />
                 Services Offered
               </h2>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                {AVAILABLE_SERVICES.map((service) => (
-                  <label key={service} className="flex items-center p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={profile.services.includes(service)}
-                      onChange={() => handleServiceToggle(service)}
-                      className="mr-3"
-                    />
-                    <span className="text-sm">{service}</span>
-                  </label>
-                ))}
-              </div>
+
+              <CategorySelector
+                primary={profile.primary_category ?? null}
+                secondary={profile.secondary_categories ?? []}
+                onChange={handleCategoriesChange}
+                disabled={saving}
+              />
             </div>
 
             {/* Photo Gallery */}

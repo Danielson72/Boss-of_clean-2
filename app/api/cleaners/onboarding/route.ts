@@ -1,11 +1,15 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { createLogger } from '@/lib/utils/logger'
+import {
+  normalizeCategorySlugs,
+  reconcileProCategories,
+} from '@/lib/services/pro-categories'
 
 const logger = createLogger({ file: 'api/cleaners/onboarding/route' })
 
 // GET /api/cleaners/onboarding - Get current onboarding draft
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const supabase = await createClient()
 
@@ -14,49 +18,65 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Get cleaner profile with onboarding data
-    const { data: cleaner, error } = await supabase
-      .from('cleaners')
-      .select('id, onboarding_step, onboarding_data, onboarding_completed_at, business_name, business_description, business_phone, business_email, website_url, services, service_areas, hourly_rate, minimum_hours, years_experience, employees_count, profile_image_url, business_images')
+    // DLD-449: pros table is the source of truth; the `cleaners` view is
+    // legacy backwards-compat from DLD-444.
+    const { data: pro, error } = await supabase
+      .from('pros')
+      .select(
+        'id, onboarding_step, onboarding_data, onboarding_completed_at, business_name, business_description, business_phone, business_email, website_url, services, service_areas, hourly_rate, minimum_hours, years_experience, employees_count, profile_image_url, business_images, primary_category'
+      )
       .eq('user_id', user.id)
       .single()
 
-    if (error && error.code !== 'PGRST116') { // PGRST116 = no rows found
-      logger.error('Error fetching cleaner', { function: 'GET' }, error)
+    if (error && error.code !== 'PGRST116') {
+      logger.error('Error fetching pro', { function: 'GET' }, error)
       return NextResponse.json({ error: 'Failed to fetch onboarding data' }, { status: 500 })
     }
 
-    // If no cleaner profile exists, return empty state
-    if (!cleaner) {
+    if (!pro) {
       return NextResponse.json({
         cleaner_id: null,
         onboarding_step: 1,
         onboarding_data: {},
-        onboarding_completed_at: null
+        onboarding_completed_at: null,
       })
     }
 
+    const { data: categoryRows, error: categoriesError } = await supabase
+      .from('pro_categories')
+      .select('category, is_primary')
+      .eq('pro_id', pro.id)
+
+    if (categoriesError) {
+      logger.error('Error fetching pro_categories', { function: 'GET' }, categoriesError)
+    }
+
+    const secondaryCategories = (categoryRows ?? [])
+      .filter((row) => !row.is_primary)
+      .map((row) => row.category)
+
     return NextResponse.json({
-      cleaner_id: cleaner.id,
-      onboarding_step: cleaner.onboarding_step || 1,
-      onboarding_data: cleaner.onboarding_data || {},
-      onboarding_completed_at: cleaner.onboarding_completed_at,
-      // Include existing profile data for pre-filling
+      cleaner_id: pro.id,
+      onboarding_step: pro.onboarding_step || 1,
+      onboarding_data: pro.onboarding_data || {},
+      onboarding_completed_at: pro.onboarding_completed_at,
       profile: {
-        business_name: cleaner.business_name,
-        business_description: cleaner.business_description,
-        business_phone: cleaner.business_phone,
-        business_email: cleaner.business_email,
-        website_url: cleaner.website_url,
-        services: cleaner.services,
-        service_areas: cleaner.service_areas,
-        hourly_rate: cleaner.hourly_rate,
-        minimum_hours: cleaner.minimum_hours,
-        years_experience: cleaner.years_experience,
-        employees_count: cleaner.employees_count,
-        profile_image_url: cleaner.profile_image_url,
-        portfolio_images: cleaner.business_images
-      }
+        business_name: pro.business_name,
+        business_description: pro.business_description,
+        business_phone: pro.business_phone,
+        business_email: pro.business_email,
+        website_url: pro.website_url,
+        services: pro.services,
+        service_areas: pro.service_areas,
+        hourly_rate: pro.hourly_rate,
+        minimum_hours: pro.minimum_hours,
+        years_experience: pro.years_experience,
+        employees_count: pro.employees_count,
+        profile_image_url: pro.profile_image_url,
+        portfolio_images: pro.business_images,
+        primary_category: pro.primary_category,
+        secondary_categories: secondaryCategories,
+      },
     })
   } catch (error) {
     logger.error('Error in GET /api/cleaners/onboarding', { function: 'GET' }, error)
@@ -81,81 +101,129 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid step' }, { status: 400 })
     }
 
-    // Check if cleaner profile exists
-    const { data: existingCleaner, error: fetchError } = await supabase
-      .from('cleaners')
-      .select('id, onboarding_data')
+    // DLD-449: Resolve category slugs against the canonical taxonomy.
+    // Unknown slugs are silently dropped so a single bad client value can't
+    // break the whole save. Validation happens again at submit time.
+    let primaryCategory: string | null | undefined = undefined
+    if (data?.primary_category !== undefined) {
+      const [canonicalPrimary] = await normalizeCategorySlugs(
+        supabase,
+        data.primary_category ? [data.primary_category] : []
+      )
+      primaryCategory = canonicalPrimary ?? null
+    }
+
+    let secondaryCategories: string[] | undefined = undefined
+    if (Array.isArray(data?.secondary_categories)) {
+      secondaryCategories = await normalizeCategorySlugs(
+        supabase,
+        data.secondary_categories.filter((s: unknown): s is string => typeof s === 'string')
+      )
+      if (primaryCategory) {
+        secondaryCategories = secondaryCategories.filter((s) => s !== primaryCategory)
+      }
+    }
+
+    const { data: existingPro, error: fetchError } = await supabase
+      .from('pros')
+      .select('id, onboarding_data, primary_category')
       .eq('user_id', user.id)
       .single()
 
     if (fetchError && fetchError.code !== 'PGRST116') {
-      logger.error('Error fetching cleaner', { function: 'POST' }, fetchError)
-      return NextResponse.json({ error: 'Failed to fetch cleaner profile' }, { status: 500 })
+      logger.error('Error fetching pro', { function: 'POST' }, fetchError)
+      return NextResponse.json({ error: 'Failed to fetch pro profile' }, { status: 500 })
     }
 
-    let cleanerId: string
+    let proId: string
 
-    if (existingCleaner) {
-      // Update existing cleaner
-      const mergedData = { ...(existingCleaner.onboarding_data || {}), ...data }
+    if (existingPro) {
+      const mergedData = { ...(existingPro.onboarding_data || {}), ...data }
+      const legacyServices: string[] | undefined = primaryCategory && secondaryCategories
+        ? [primaryCategory, ...secondaryCategories]
+        : Array.isArray(data.services)
+          ? data.services
+          : undefined
+
+      const updatePayload: Record<string, unknown> = {
+        onboarding_step: step,
+        onboarding_data: mergedData,
+        updated_at: new Date().toISOString(),
+      }
+      if (data.business_name) updatePayload.business_name = data.business_name
+      if (data.business_description) updatePayload.business_description = data.business_description
+      if (data.business_phone) updatePayload.business_phone = data.business_phone
+      if (data.business_email) updatePayload.business_email = data.business_email
+      if (data.website_url !== undefined) updatePayload.website_url = data.website_url
+      if (legacyServices) updatePayload.services = legacyServices
+      if (data.service_areas) updatePayload.service_areas = data.service_areas
+      if (data.hourly_rate) updatePayload.hourly_rate = data.hourly_rate
+      if (data.minimum_hours) updatePayload.minimum_hours = data.minimum_hours
+      if (data.years_experience !== undefined) updatePayload.years_experience = data.years_experience
+      if (data.employees_count) updatePayload.employees_count = data.employees_count
+      if (data.profile_image_url) updatePayload.profile_image_url = data.profile_image_url
+      if (data.portfolio_images) updatePayload.business_images = data.portfolio_images
+      if (primaryCategory !== undefined) updatePayload.primary_category = primaryCategory
 
       const { error: updateError } = await supabase
-        .from('cleaners')
-        .update({
-          onboarding_step: step,
-          onboarding_data: mergedData,
-          // Update main profile fields if provided
-          ...(data.business_name && { business_name: data.business_name }),
-          ...(data.business_description && { business_description: data.business_description }),
-          ...(data.business_phone && { business_phone: data.business_phone }),
-          ...(data.business_email && { business_email: data.business_email }),
-          ...(data.website_url !== undefined && { website_url: data.website_url }),
-          ...(data.services && { services: data.services }),
-          ...(data.service_areas && { service_areas: data.service_areas }),
-          ...(data.hourly_rate && { hourly_rate: data.hourly_rate }),
-          ...(data.minimum_hours && { minimum_hours: data.minimum_hours }),
-          ...(data.years_experience !== undefined && { years_experience: data.years_experience }),
-          ...(data.employees_count && { employees_count: data.employees_count }),
-          ...(data.profile_image_url && { profile_image_url: data.profile_image_url }),
-          ...(data.portfolio_images && { business_images: data.portfolio_images }),
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', existingCleaner.id)
+        .from('pros')
+        .update(updatePayload)
+        .eq('id', existingPro.id)
 
       if (updateError) {
-        logger.error('Error updating cleaner', { function: 'POST' }, updateError)
+        logger.error('Error updating pro', { function: 'POST' }, updateError)
         return NextResponse.json({ error: 'Failed to save draft' }, { status: 500 })
       }
 
-      cleanerId = existingCleaner.id
+      proId = existingPro.id
     } else {
-      // Create new cleaner profile
-      const { data: newCleaner, error: insertError } = await supabase
-        .from('cleaners')
-        .insert({
-          user_id: user.id,
-          business_name: data.business_name || 'New Business',
-          business_email: data.business_email || user.email,
-          onboarding_step: step,
-          onboarding_data: data,
-          approval_status: 'pending'
-        })
+      const insertPayload: Record<string, unknown> = {
+        user_id: user.id,
+        business_name: data.business_name || 'New Business',
+        business_email: data.business_email || user.email,
+        onboarding_step: step,
+        onboarding_data: data,
+        approval_status: 'pending',
+      }
+      if (primaryCategory !== undefined) insertPayload.primary_category = primaryCategory
+      if (primaryCategory && secondaryCategories) {
+        insertPayload.services = [primaryCategory, ...secondaryCategories]
+      } else if (Array.isArray(data.services)) {
+        insertPayload.services = data.services
+      }
+
+      const { data: newPro, error: insertError } = await supabase
+        .from('pros')
+        .insert(insertPayload)
         .select('id')
         .single()
 
-      if (insertError) {
-        logger.error('Error creating cleaner', { function: 'POST' }, insertError)
-        return NextResponse.json({ error: 'Failed to create cleaner profile' }, { status: 500 })
+      if (insertError || !newPro) {
+        logger.error('Error creating pro', { function: 'POST' }, insertError)
+        return NextResponse.json({ error: 'Failed to create pro profile' }, { status: 500 })
       }
 
-      cleanerId = newCleaner.id
+      proId = newPro.id
+    }
+
+    if (primaryCategory !== undefined || secondaryCategories !== undefined) {
+      const reconcileResult = await reconcileProCategories(supabase, {
+        proId,
+        selection: {
+          primary: primaryCategory ?? null,
+          secondary: secondaryCategories ?? [],
+        },
+      })
+      if (!reconcileResult.ok) {
+        return NextResponse.json({ error: reconcileResult.error }, { status: 500 })
+      }
     }
 
     return NextResponse.json({
       success: true,
-      cleaner_id: cleanerId,
-      step: step,
-      message: 'Draft saved successfully'
+      cleaner_id: proId,
+      step,
+      message: 'Draft saved successfully',
     })
   } catch (error) {
     logger.error('Error in POST /api/cleaners/onboarding', { function: 'POST' }, error)

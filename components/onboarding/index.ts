@@ -1,6 +1,7 @@
 export { default as ProgressIndicator } from './ProgressIndicator'
 export { default as BusinessInfoForm } from './BusinessInfoForm'
 export { default as ServicesForm } from './ServicesForm'
+export { default as CategorySelector } from './CategorySelector'
 export { default as ServiceAreasForm } from './ServiceAreasForm'
 export { default as DocumentUploadForm } from './DocumentUploadForm'
 export { default as PhotoUploadForm } from './PhotoUploadForm'
