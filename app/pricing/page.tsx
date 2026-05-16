@@ -1,85 +1,114 @@
-import { Check, ArrowRight } from 'lucide-react';
+import { Check, ArrowRight, Crown, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import { generatePageMetadata } from '@/lib/seo/metadata';
-import { SERVICE_TYPES } from '@/lib/data/service-types';
 
 export const metadata = generatePageMetadata({
   title: 'Pricing',
-  description: 'Affordable plans for cleaning professionals to list on Boss of Clean. Free starter listing. Basic $79/mo and Pro $199/mo tiers for leads, featured placement, and more.',
+  description: 'Affordable plans for home service pros to list on Boss of Clean — cleaning, handyman, HVAC, plumbing, electrical, pest control, landscaping, pool, mobile detailing, and pressure washing. Free pay-per-lead, Basic $79/mo, and Pro $199/mo.',
   path: '/pricing',
-  keywords: ['Boss of Clean pricing', 'cleaning business listing', 'cleaning marketplace plans'],
+  keywords: [
+    'Boss of Clean pricing',
+    'home services marketplace pricing',
+    'pro listing plans',
+    'Thumbtack alternative',
+    'Angi alternative',
+    'HomeAdvisor alternative',
+  ],
 });
+
+const PRO_CATEGORIES = [
+  'House cleaning',
+  'Handyman',
+  'HVAC',
+  'Plumbing',
+  'Electrical',
+  'Pest control',
+  'Landscaping',
+  'Pool service',
+  'Mobile detailing',
+  'Pressure washing',
+];
 
 const plans = [
   {
-    name: 'Starter',
-    price: 'Free',
-    period: '',
-    description: 'Perfect for trying Boss of Clean',
+    name: 'Free',
+    price: '$0',
+    period: '/mo',
+    description: 'Pay only when you want a lead',
     features: [
-      'Basic business listing',
-      'Profile page with your info',
-      'Contact form for customer inquiries',
-      'Show up in search results',
+      'Basic business listing on the marketplace',
+      'Profile page with services and service areas',
+      'Pay-per-lead pricing — no monthly commitment',
+      'Standard leads $25 · Deep cleans $35 · Specialty $45',
+      'Every lead is exclusive — never shared',
     ],
     cta: 'Get Started Free',
-    ctaHref: '/signup?role=cleaner',
+    ctaHref: '/signup?role=pro',
     highlighted: false,
   },
   {
     name: 'Basic',
     price: '$79',
     period: '/mo',
-    description: 'Most popular for growing businesses',
+    description: 'Steady lead flow without the heavy commit',
     features: [
-      'Everything in Starter',
-      '5 exclusive leads per month',
-      'Featured placement in search results',
+      'Everything in Free',
+      'Up to 10 leads covered per month',
+      'Overflow leads $20/lead (only when you exceed 10)',
+      'Featured placement in category and city search',
       'Priority in customer notifications',
-      'Profile badges and highlights',
+      'Verified pro badge and profile highlights',
       'Business analytics dashboard',
-      'Phone and email support',
     ],
     cta: 'Start Basic',
-    ctaHref: '/signup?role=cleaner&plan=basic',
-    highlighted: true,
+    ctaHref: '/signup?role=pro&plan=basic',
+    highlighted: false,
   },
   {
     name: 'Pro',
     price: '$199',
     period: '/mo',
-    description: 'Best for established businesses',
+    description: 'Best for established pros that want volume',
     features: [
       'Everything in Basic',
-      '15 exclusive leads per month',
+      'Up to 20 leads covered per month',
+      'Overflow leads $15/lead (only when you exceed 20)',
       'Top placement in search results',
-      'Featured on homepage',
+      'Featured on homepage and category hubs',
       'Priority support',
       'Advanced analytics and insights',
       'Multiple service area coverage',
     ],
     cta: 'Start Pro',
-    ctaHref: '/signup?role=cleaner&plan=pro',
-    highlighted: false,
+    ctaHref: '/signup?role=pro&plan=pro',
+    highlighted: true,
   },
 ];
 
 const faqs = [
   {
+    question: 'What does "up to X leads covered" mean?',
+    answer: 'Your monthly subscription covers up to that number of qualified, exclusive leads sent to you — at no extra cost. Once you exceed the covered amount, overflow leads are billed at the per-lead overflow rate listed in your plan. We say "covered" instead of "included" so there is never any confusion about how lead routing actually works.',
+  },
+  {
+    question: 'Is Boss of Clean only for cleaning companies?',
+    answer: 'No. Boss of Clean is a marketplace for all home service pros — cleaning, handyman, HVAC, plumbing, electrical, pest control, landscaping, pool service, mobile detailing, and pressure washing. If a homeowner needs it done at their home, the pro who does it belongs here.',
+  },
+  {
     question: 'Is Boss of Clean free for customers?',
-    answer: 'Yes, always. Customers can search for and connect with home service professionals at no cost. We only charge professionals for premium listing features.',
+    answer: 'Yes, always. Homeowners can search and request quotes from pros at no cost. We only charge pros for marketplace access and lead delivery.',
   },
   {
     question: 'Do I need a contract?',
-    answer: 'No long-term contracts. All paid plans are month-to-month and you can cancel anytime. Your listing stays active through the end of your billing period.',
+    answer: 'No long-term contracts. All paid plans are month-to-month and you can cancel anytime. Your listing stays active through the end of the current billing period.',
   },
   {
-    question: 'What services can I list?',
-    answer: `You can list any residential cleaning or home service including: ${SERVICE_TYPES.map(s => s.shortName).join(', ')}, and more.`,
+    question: 'How is this different from Thumbtack, Angi, or HomeAdvisor?',
+    answer: 'Every lead on Boss of Clean is exclusive to a single pro — never shared, never resold. Lead caps are transparent, overflow pricing is published up front, and we use plain "up to X leads covered" language so you always know what you are paying for.',
   },
   {
     question: 'How do I get started?',
-    answer: 'Sign up, create your business profile with your services and service areas, and start receiving customer inquiries. The whole process takes about 10 minutes.',
+    answer: 'Sign up, build your pro profile with services and service areas, choose a plan, and start receiving customer requests. The whole process takes about 10 minutes.',
   },
 ];
 
@@ -95,16 +124,17 @@ export default function PricingPage() {
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-20 text-center">
           <p className="inline-block text-brand-gold text-sm font-semibold tracking-[0.2em] uppercase mb-6 border border-brand-gold/30 rounded-full px-5 py-1.5">
-            Launch Pricing
+            The Marketplace for Home Service Pros
           </p>
           <h1 className="font-display text-4xl sm:text-5xl font-bold text-white mb-4">
-            Simple, Transparent <span className="text-brand-gold">Pricing</span>
+            Exclusive Leads. <span className="text-brand-gold">Transparent Pricing.</span>
           </h1>
           <p className="text-gray-300 text-lg max-w-2xl mx-auto mb-2">
-            Choose the plan that fits your business. No hidden fees, no long-term contracts.
+            A Thumbtack, Angi, and HomeAdvisor alternative built on exclusive leads, published lead caps,
+            and plain-English overflow pricing. Pick the plan that fits how you run.
           </p>
           <p className="text-brand-gold/70 text-sm">
-            Launch pricing — subject to change as we grow
+            Launch pricing — locked for early pros
           </p>
         </div>
       </section>
@@ -170,35 +200,181 @@ export default function PricingPage() {
         </div>
       </section>
 
-      {/* Per-Lead + Platform Fee */}
+      {/* Founders Offer */}
       <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-brand-cream rounded-2xl p-8 text-center">
-            <p className="text-sm font-semibold text-brand-gold uppercase tracking-wider mb-2">
-              Per-Lead Option
-            </p>
-            <div className="flex items-baseline justify-center mb-3">
-              <span className="font-display text-4xl font-bold text-brand-dark">$15</span>
-              <span className="text-gray-400 text-lg ml-1">/lead</span>
+        <div className="relative overflow-hidden rounded-3xl border-2 border-brand-gold bg-gradient-to-br from-brand-dark via-brand-navy to-brand-dark p-8 sm:p-12 text-white shadow-2xl">
+          <div className="absolute -top-24 -right-24 w-72 h-72 bg-brand-gold/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="relative">
+            <div className="flex items-center gap-3 mb-4">
+              <span className="inline-flex items-center gap-2 bg-brand-gold text-white text-xs font-bold uppercase tracking-wider px-4 py-1.5 rounded-full">
+                <Crown className="h-3.5 w-3.5" />
+                Founders Offer
+              </span>
+              <span className="text-brand-gold/80 text-xs uppercase tracking-[0.2em]">
+                First 100 Pros only
+              </span>
             </div>
-            <p className="text-gray-600 text-sm leading-relaxed">
-              Not ready for a subscription? Purchase individual leads at $15 each.
-              Every lead is exclusive &mdash; sent only to you, never shared.
+
+            <h2 className="font-display text-3xl sm:text-4xl font-bold mb-3">
+              Become a <span className="text-brand-gold">Founding Pro</span>
+            </h2>
+            <p className="text-gray-300 text-base sm:text-lg max-w-2xl mb-8">
+              Join Boss of Clean as one of the first 100 Pros and lock in lifetime perks that will never
+              be offered again. No tricks, no auto-rate-hikes — your benefits stay yours as long as you
+              keep your subscription active.
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+              <div className="rounded-2xl bg-white/5 border border-white/10 p-5">
+                <div className="flex items-start gap-3">
+                  <Sparkles className="h-5 w-5 text-brand-gold flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-semibold text-white">6 months at $79/mo, then $199/mo</p>
+                    <p className="text-gray-400 text-sm mt-1">
+                      Pro tier at the Basic price for half a year — then the standard locked Pro rate.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-2xl bg-white/5 border border-white/10 p-5">
+                <div className="flex items-start gap-3">
+                  <Sparkles className="h-5 w-5 text-brand-gold flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-semibold text-white">Up to 30 leads covered — for life</p>
+                    <p className="text-gray-400 text-sm mt-1">
+                      As long as you stay continuously subscribed, your Pro tier covers up to 30 leads
+                      every month. Locked at signup, never renegotiated.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-2xl bg-white/5 border border-white/10 p-5">
+                <div className="flex items-start gap-3">
+                  <Crown className="h-5 w-5 text-brand-gold flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-semibold text-white">Permanent &ldquo;Founding Pro&rdquo; badge</p>
+                    <p className="text-gray-400 text-sm mt-1">
+                      Displayed on your profile and search cards forever — even if you later downgrade
+                      or pause. The badge is yours.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-2xl bg-white/5 border border-white/10 p-5">
+                <div className="flex items-start gap-3">
+                  <Sparkles className="h-5 w-5 text-brand-gold flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-semibold text-white">Lifetime lock — one cancellation rule</p>
+                    <p className="text-gray-400 text-sm mt-1">
+                      If you cancel your subscription, the lifetime 30-lead cap and Pro discount are
+                      retired. The Founding Pro badge stays — the pricing perk does not.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <Link
+              href="/signup?role=pro&plan=pro&founders=1"
+              className="inline-flex items-center gap-2 bg-brand-gold text-white px-7 py-3.5 rounded-xl font-semibold hover:bg-brand-gold-light transition-all duration-200 shadow-lg hover:shadow-xl min-h-[44px]"
+            >
+              Claim a Founders Spot
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+            <p className="text-gray-400 text-xs mt-4">
+              Limited to the first 100 Pro signups. Spots are filled in signup order — once they are
+              gone, this offer closes for good.
             </p>
           </div>
-          <div className="bg-brand-cream rounded-2xl p-8 text-center">
-            <p className="text-sm font-semibold text-brand-gold uppercase tracking-wider mb-2">
-              Platform Fee
-            </p>
-            <div className="flex items-baseline justify-center mb-3">
-              <span className="font-display text-4xl font-bold text-brand-dark">5%</span>
-              <span className="text-gray-400 text-lg ml-1">per booking</span>
+        </div>
+      </section>
+
+      {/* Category coverage */}
+      <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
+        <div className="text-center mb-8">
+          <p className="text-sm font-semibold text-brand-gold uppercase tracking-wider mb-2">
+            Built for every home service trade
+          </p>
+          <h2 className="font-display text-3xl font-bold text-brand-dark">
+            One marketplace. Every category.
+          </h2>
+          <p className="text-gray-600 mt-3 max-w-2xl mx-auto">
+            The same locked pricing applies whether you clean houses, fix HVAC systems, or run a pool
+            route. Boss of Clean is the home for the trades.
+          </p>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+          {PRO_CATEGORIES.map((category) => (
+            <div
+              key={category}
+              className="bg-brand-cream border border-brand-gold/20 rounded-xl px-4 py-3 text-center"
+            >
+              <p className="text-brand-dark font-semibold text-sm">{category}</p>
             </div>
-            <p className="text-gray-600 text-sm leading-relaxed">
-              A 5% fee is applied to completed bookings processed through the platform.
-              Covers payment processing, support, and the Boss of Clean guarantee.
+          ))}
+        </div>
+      </section>
+
+      {/* Pay-per-lead breakdown */}
+      <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
+        <div className="bg-brand-cream rounded-2xl p-8 sm:p-10">
+          <div className="text-center mb-8">
+            <p className="text-sm font-semibold text-brand-gold uppercase tracking-wider mb-2">
+              Pay-per-Lead Pricing
+            </p>
+            <h2 className="font-display text-2xl sm:text-3xl font-bold text-brand-dark">
+              Buy leads one at a time on the Free plan
+            </h2>
+            <p className="text-gray-600 mt-3 max-w-2xl mx-auto">
+              Not ready for a subscription? Stay on the Free plan and only pay when you unlock a lead.
+              Every lead is exclusive — sent to a single pro, never shared.
             </p>
           </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-white rounded-2xl p-6 text-center border border-gray-200">
+              <p className="text-xs font-semibold text-brand-gold uppercase tracking-wider mb-2">
+                Standard Lead
+              </p>
+              <div className="flex items-baseline justify-center mb-3">
+                <span className="font-display text-4xl font-bold text-brand-dark">$25</span>
+                <span className="text-gray-400 text-base ml-1">/lead</span>
+              </div>
+              <p className="text-gray-600 text-sm leading-relaxed">
+                Standard cleaning, handyman, landscaping, and most recurring service categories.
+              </p>
+            </div>
+            <div className="bg-white rounded-2xl p-6 text-center border border-gray-200">
+              <p className="text-xs font-semibold text-brand-gold uppercase tracking-wider mb-2">
+                Deep Clean Lead
+              </p>
+              <div className="flex items-baseline justify-center mb-3">
+                <span className="font-display text-4xl font-bold text-brand-dark">$35</span>
+                <span className="text-gray-400 text-base ml-1">/lead</span>
+              </div>
+              <p className="text-gray-600 text-sm leading-relaxed">
+                Deep cleans, move-in/move-out, post-construction, and higher-ticket one-time jobs.
+              </p>
+            </div>
+            <div className="bg-white rounded-2xl p-6 text-center border border-gray-200">
+              <p className="text-xs font-semibold text-brand-gold uppercase tracking-wider mb-2">
+                Specialty Lead
+              </p>
+              <div className="flex items-baseline justify-center mb-3">
+                <span className="font-display text-4xl font-bold text-brand-dark">$45</span>
+                <span className="text-gray-400 text-base ml-1">/lead</span>
+              </div>
+              <p className="text-gray-600 text-sm leading-relaxed">
+                HVAC, plumbing, electrical, pest control, and other licensed-trade specialty leads.
+              </p>
+            </div>
+          </div>
+          <p className="text-gray-500 text-xs text-center mt-6">
+            Subscription plans cover the first leads each month at no extra cost. Overflow leads on
+            Basic are $20 each. Overflow leads on Pro are $15 each.
+          </p>
         </div>
       </section>
 
@@ -231,10 +407,10 @@ export default function PricingPage() {
             Ready to Grow Your Business?
           </h2>
           <p className="text-gray-300 text-lg mb-8 max-w-2xl mx-auto">
-            Join Boss of Clean and start connecting with Florida homeowners looking for your services.
+            Join Boss of Clean and start connecting with homeowners looking for the trades you run.
           </p>
           <Link
-            href="/signup?role=cleaner"
+            href="/signup?role=pro"
             className="inline-flex items-center gap-2 bg-brand-gold text-white px-8 py-4 rounded-xl font-semibold hover:bg-brand-gold-light transition-all duration-200 shadow-lg hover:shadow-xl min-h-[44px]"
           >
             List Your Business
