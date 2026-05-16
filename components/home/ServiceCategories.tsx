@@ -5,14 +5,18 @@ import Image from 'next/image';
 import {
   Home,
   Sparkles,
-  Truck,
+  Wrench,
   Droplets,
   Waves,
-  Wind,
-  Brush,
   Fan,
+  Thermometer,
+  ShowerHead,
+  Zap,
+  Bug,
   Trees,
   Car,
+  Brush,
+  Trash2,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -27,20 +31,20 @@ const services: ServiceCategory[] = [
   {
     icon: Home,
     name: 'House Cleaning',
-    description: 'Regular cleaning for apartments, condos, and houses',
+    description: 'Recurring or one-time, residential and commercial',
     searchParam: 'House Cleaning',
   },
   {
     icon: Sparkles,
     name: 'Deep Cleaning',
-    description: 'Thorough top-to-bottom cleaning for a fresh start',
+    description: 'Top-to-bottom for move-ins, post-construction, or seasonal resets',
     searchParam: 'Deep Cleaning',
   },
   {
-    icon: Truck,
-    name: 'Move-In / Move-Out',
-    description: 'Get your deposit back or start fresh in your new home',
-    searchParam: 'Move-In / Move-Out Cleaning',
+    icon: Wrench,
+    name: 'Handyman Services',
+    description: 'Repairs, installs, and small fixes around the house',
+    searchParam: 'Handyman Services',
   },
   {
     icon: Droplets,
@@ -50,21 +54,9 @@ const services: ServiceCategory[] = [
   },
   {
     icon: Waves,
-    name: 'Pool Cleaning',
-    description: 'Keep your pool sparkling and swim-ready year-round',
+    name: 'Pool Service',
+    description: 'Cleaning, maintenance, and chemical balancing',
     searchParam: 'Pool Cleaning',
-  },
-  {
-    icon: Wind,
-    name: 'Window Cleaning',
-    description: 'Crystal-clear windows inside and out',
-    searchParam: 'Window Cleaning',
-  },
-  {
-    icon: Brush,
-    name: 'Carpet Cleaning',
-    description: 'Professional carpet and upholstery care',
-    searchParam: 'Carpet Cleaning',
   },
   {
     icon: Fan,
@@ -73,16 +65,52 @@ const services: ServiceCategory[] = [
     searchParam: 'Air Duct Cleaning',
   },
   {
+    icon: Thermometer,
+    name: 'HVAC Services',
+    description: 'Heating, cooling, repair, and tune-ups',
+    searchParam: 'HVAC Services',
+  },
+  {
+    icon: ShowerHead,
+    name: 'Plumbing',
+    description: 'Leaks, installs, drain cleaning, and emergencies',
+    searchParam: 'Plumbing',
+  },
+  {
+    icon: Zap,
+    name: 'Electrical',
+    description: 'Outlets, fixtures, panels, and safety inspections',
+    searchParam: 'Electrical',
+  },
+  {
+    icon: Bug,
+    name: 'Pest Control',
+    description: 'Routine treatments and one-time extermination',
+    searchParam: 'Pest Control',
+  },
+  {
     icon: Trees,
-    name: 'Landscaping',
-    description: 'Lawn care, garden maintenance, and outdoor beautification',
+    name: 'Landscaping & Yard',
+    description: 'Lawn care, yard cleanup, and tree work',
     searchParam: 'Landscaping',
   },
   {
     icon: Car,
-    name: 'Mobile Car Wash',
-    description: 'Auto detailing that comes to your doorstep',
+    name: 'Mobile Car Detailing',
+    description: 'Auto detailing that comes to your driveway',
     searchParam: 'Mobile Car Wash / Auto Detailing',
+  },
+  {
+    icon: Brush,
+    name: 'Gutter Cleaning',
+    description: 'Clear gutters, downspouts, and roof debris',
+    searchParam: 'Gutter Cleaning',
+  },
+  {
+    icon: Trash2,
+    name: 'Junk Removal',
+    description: 'Haul-away for furniture, appliances, and clutter',
+    searchParam: 'Junk Removal',
   },
 ];
 
@@ -103,10 +131,11 @@ export default function ServiceCategories() {
             Services
           </p>
           <h2 className="font-display text-3xl sm:text-4xl font-bold text-brand-dark mb-4">
-            Home Services at Your Fingertips
+            Every Pro Service, One Marketplace
           </h2>
           <p className="text-gray-500 text-lg">
-            Browse professionals across all the home service categories you need
+            Residential and commercial — from house cleaning to handyman work, pool service to plumbing.
+            Find vetted Florida pros for every job.
           </p>
         </div>
 

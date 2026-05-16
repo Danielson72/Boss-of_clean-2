@@ -14,9 +14,11 @@ import {
 } from '@/components/home';
 
 export const metadata: Metadata = {
-  title: "Boss of Clean \u2014 Florida's Home Services Marketplace",
-  description: 'Find trusted, verified home service professionals in Florida. Get free quotes for cleaning, pressure washing, landscaping, pool cleaning, and more. Purrfection is our Standard.',
-  keywords: 'Florida cleaning services, home services marketplace, house cleaning Florida, pressure washing, pool cleaning, landscaping, deep cleaning, maid service, carpet cleaning, professional cleaners',
+  title: "Boss of Clean \u2014 Florida's Pro Service Marketplace",
+  description:
+    "Florida's fair, transparent alternative to Thumbtack, Angi, and HomeAdvisor. Find vetted pros for cleaning, handyman work, HVAC, plumbing, electrical, pool service, landscaping, pressure washing, and every job your home or business needs. Free quotes. Direct connections. Purrfection is our Standard.",
+  keywords:
+    'Florida home services, pro service marketplace, Thumbtack alternative, Angi alternative, HomeAdvisor alternative, house cleaning Florida, handyman Florida, pressure washing, pool cleaning, HVAC, plumbing, electrical, pest control, landscaping, gutter cleaning, junk removal, mobile car detailing, commercial cleaning, residential and commercial pros',
   alternates: {
     canonical: 'https://bossofclean.com',
   },
