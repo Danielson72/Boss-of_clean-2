@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Search, MapPin, ChevronDown } from 'lucide-react';
-import { SERVICE_TYPES } from '@/lib/data/service-types';
+import { useServiceCategories } from '@/lib/hooks/useServiceCategories';
 
 interface SearchBarProps {
   initialService?: string;
@@ -13,6 +13,7 @@ interface SearchBarProps {
 export function SearchBar({ initialService, initialZip, onSearch }: SearchBarProps) {
   const [service, setService] = useState(initialService || '');
   const [zip, setZip] = useState(initialZip || '');
+  const { categories, loading: categoriesLoading } = useServiceCategories();
 
   useEffect(() => {
     if (initialService !== undefined) setService(initialService);
@@ -57,11 +58,12 @@ export function SearchBar({ initialService, initialZip, onSearch }: SearchBarPro
                   onChange={(e) => setService(e.target.value)}
                   className="w-full pl-12 pr-10 py-4 bg-brand-cream rounded-xl text-brand-dark font-medium text-sm appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-brand-gold/50 transition-shadow"
                   aria-label="Select service type"
+                  disabled={categoriesLoading}
                 >
-                  <option value="">All Services</option>
-                  {SERVICE_TYPES.map((st) => (
-                    <option key={st.slug} value={st.shortName}>
-                      {st.shortName}
+                  <option value="">{categoriesLoading ? 'Loading services…' : 'All Services'}</option>
+                  {categories.map((c) => (
+                    <option key={c.slug} value={c.slug}>
+                      {c.display_name}
                     </option>
                   ))}
                 </select>

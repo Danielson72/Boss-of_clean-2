@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { StepProps, SERVICE_TYPES, DOCUMENT_TYPES } from './types'
+import { useServiceCategories } from '@/lib/hooks/useServiceCategories'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
@@ -26,6 +27,7 @@ export default function ReviewSubmitForm({
 }: ReviewSubmitFormProps) {
   const [agreedToTerms, setAgreedToTerms] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const { categories: serviceCategories } = useServiceCategories()
 
   const documents = data.documents || []
   const services = data.services || []
@@ -33,6 +35,11 @@ export default function ReviewSubmitForm({
   const portfolioImages = data.portfolio_images || []
 
   const getServiceLabel = (value: string) => {
+    // DLD-458: prefer DB display_name so the 9 new categories from DLD-442
+    // (handyman, hvac, plumbing, etc.) render correctly. Fall back to the
+    // legacy onboarding constant for backwards compatibility, then raw slug.
+    const dbMatch = serviceCategories.find((c) => c.slug === value)
+    if (dbMatch) return dbMatch.display_name
     return SERVICE_TYPES.find((s) => s.value === value)?.label || value
   }
 
