@@ -13,7 +13,7 @@ export default function CleanerDashboardError({
     <ErrorDisplay
       error={error}
       reset={reset}
-      title="Cleaner dashboard error"
+      title="Pro dashboard error"
       backHref="/dashboard/pro"
       backLabel="Back to dashboard"
     />
