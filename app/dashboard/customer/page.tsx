@@ -71,7 +71,8 @@ export default function CustomerDashboard() {
     if (user) {
       loadQuotes();
       loadProfile();
-      loadCredits();
+      // DLD-460: loadCredits() disabled until loyalty/referral program ships.
+      // loadCredits();
       loadHireConfirmations();
     }
   }, [user]);
@@ -236,28 +237,31 @@ export default function CustomerDashboard() {
 
       if (confirmError) throw confirmError;
 
-      // 2. Issue $10 credit
-      const { error: creditError } = await supabase
-        .from('customer_credits')
-        .insert({
-          customer_id: user.id,
-          amount_cents: 1000,
-          reason: 'hire_confirmation',
-          source_hire_confirmation_id: confirmation.id,
-        });
-
-      if (creditError) throw creditError;
-
-      // 3. Mark credit as issued
-      await supabase
-        .from('hire_confirmations')
-        .update({ credit_issued: true })
-        .eq('id', confirmation.id);
+      // DLD-460: Credit issuance disabled until loyalty/referral program ships.
+      // Re-enable the block below (and uncomment loadCredits in useEffect) when
+      // the Credits tab is restored.
+      // // 2. Issue $10 credit
+      // const { error: creditError } = await supabase
+      //   .from('customer_credits')
+      //   .insert({
+      //     customer_id: user.id,
+      //     amount_cents: 1000,
+      //     reason: 'hire_confirmation',
+      //     source_hire_confirmation_id: confirmation.id,
+      //   });
+      //
+      // if (creditError) throw creditError;
+      //
+      // // 3. Mark credit as issued
+      // await supabase
+      //   .from('hire_confirmations')
+      //   .update({ credit_issued: true })
+      //   .eq('id', confirmation.id);
 
       // 4. Refresh state
       setConfirmedQuotes(prev => { const next = new Set(Array.from(prev)); next.add(quoteId); return next; });
-      await loadCredits();
-      setMessage('Hire confirmed! $10 credit added to your account.');
+      // await loadCredits();
+      setMessage('Hire confirmed! Thanks for letting us know.');
       setTimeout(() => setMessage(''), 5000);
     } catch {
       setMessage('Error confirming hire. Please try again.');
@@ -351,7 +355,7 @@ export default function CustomerDashboard() {
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Stats Overview */}
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
             <div className="bg-white rounded-lg shadow-sm p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -398,17 +402,20 @@ export default function CustomerDashboard() {
               </div>
             </div>
 
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Credits</p>
-                  <p className="text-2xl font-bold text-emerald-600">
-                    ${(availableCredits / 100).toFixed(0)}
-                  </p>
+            {/* DLD-460: Credits stats card hidden until loyalty/referral program ships. */}
+            {false && (
+              <div className="bg-white rounded-lg shadow-sm p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600">Credits</p>
+                    <p className="text-2xl font-bold text-emerald-600">
+                      ${(availableCredits / 100).toFixed(0)}
+                    </p>
+                  </div>
+                  <Gift className="h-8 w-8 text-emerald-600" />
                 </div>
-                <Gift className="h-8 w-8 text-emerald-600" />
               </div>
-            </div>
+            )}
           </div>
 
           {/* Global message */}
@@ -443,16 +450,19 @@ export default function CustomerDashboard() {
                 >
                   Quote Requests
                 </button>
-                <button
-                  onClick={() => setActiveTab('credits')}
-                  className={`px-6 py-3 font-medium border-b-2 transition duration-300 ${
-                    activeTab === 'credits'
-                      ? 'border-blue-600 text-blue-600'
-                      : 'border-transparent text-gray-600 hover:text-gray-900'
-                  }`}
-                >
-                  My Credits
-                </button>
+                {/* DLD-460: My Credits tab hidden until loyalty/referral program ships. */}
+                {false && (
+                  <button
+                    onClick={() => setActiveTab('credits')}
+                    className={`px-6 py-3 font-medium border-b-2 transition duration-300 ${
+                      activeTab === 'credits'
+                        ? 'border-blue-600 text-blue-600'
+                        : 'border-transparent text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    My Credits
+                  </button>
+                )}
                 <button
                   onClick={() => setActiveTab('profile')}
                   className={`px-6 py-3 font-medium border-b-2 transition duration-300 ${
@@ -597,7 +607,8 @@ export default function CustomerDashboard() {
                 </div>
               )}
 
-              {activeTab === 'credits' && (
+              {/* DLD-460: Credits tab content hidden until loyalty/referral program ships. */}
+              {false && activeTab === 'credits' && (
                 <div>
                   {/* Credits Balance */}
                   <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-6 mb-6">
