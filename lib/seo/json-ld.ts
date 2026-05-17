@@ -128,11 +128,8 @@ export function generateCleanerSchema(cleaner: CleanerProfile, serviceArea?: Ser
     schema.image = cleaner.profile_image_url;
   }
 
-  // Add contact info (only if provided)
-  if (cleaner.business_phone) {
-    schema.telephone = cleaner.business_phone;
-  }
-
+  // Contact info: telephone intentionally excluded from public schema —
+  // PII gated behind lead acceptance (DLD-457).
   if (cleaner.business_email) {
     schema.email = cleaner.business_email;
   }
