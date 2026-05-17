@@ -7,7 +7,13 @@ import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger({ file: 'components/portfolio/PhotoUploader.tsx' });
 
-const MAX_FILE_SIZE = 1024 * 1024; // 1MB
+// DLD-505: validation cap matches the `portfolio-photos` bucket file_size_limit
+// (5MB) and the server route. Photos over the COMPRESSION_TARGET get re-encoded
+// client-side to keep public-profile bandwidth reasonable, but anything between
+// 1MB and 5MB now uploads successfully even if compression doesn't drive it
+// below 1MB (which q=0.7 isn't guaranteed to do for high-detail sources).
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB — hard reject above this
+const COMPRESSION_TARGET = 1024 * 1024; // 1MB — compress to roughly this size
 const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
 interface PhotoUploaderProps {
@@ -70,8 +76,8 @@ export function PhotoUploader({
               return;
             }
 
-            // If still over 1MB, reduce quality further
-            if (blob.size > MAX_FILE_SIZE) {
+            // If still over compression target, reduce quality further
+            if (blob.size > COMPRESSION_TARGET) {
               canvas.toBlob(
                 (smallerBlob) => {
                   if (!smallerBlob) {
@@ -109,6 +115,10 @@ export function PhotoUploader({
     if (!ACCEPTED_TYPES.includes(file.type)) {
       return `Invalid file type: ${file.type}. Accepted types: JPEG, PNG, WebP`;
     }
+    if (file.size > MAX_FILE_SIZE) {
+      const sizeMb = (file.size / 1024 / 1024).toFixed(1);
+      return `File too large (${sizeMb}MB). Maximum size is 5MB.`;
+    }
     return null;
   };
 
@@ -133,9 +143,9 @@ export function PhotoUploader({
       }
 
       try {
-        // Compress image if needed
+        // Compress image if it would be wasteful to send at original size
         let processedFile = file;
-        if (file.size > MAX_FILE_SIZE) {
+        if (file.size > COMPRESSION_TARGET) {
           processedFile = await compressImage(file);
         }
 
@@ -215,7 +225,13 @@ export function PhotoUploader({
       setPreviewFiles([]);
     } catch (err) {
       logger.error('Error uploading files', { function: 'handleUpload' }, err);
-      setError('Failed to upload photos. Please try again.');
+      // DLD-505: surface the server-side error message when present
+      // (e.g. "File too large") instead of always showing a generic toast.
+      const message =
+        err instanceof Error && err.message && err.message !== 'Upload failed'
+          ? err.message
+          : 'Failed to upload photos. Please try again.';
+      setError(message);
     } finally {
       setIsUploading(false);
     }

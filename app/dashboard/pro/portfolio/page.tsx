@@ -94,7 +94,13 @@ export default function CleanerPortfolioPage() {
 
     if (!uploadResponse.ok) {
       const errorData = await uploadResponse.json();
-      throw new Error(errorData.error || 'Upload failed');
+      // DLD-505: prefer per-file details from the server (e.g. "image.jpg:
+      // File too large. Maximum size is 5MB") over the generic envelope
+      // message, so the user can fix the file rather than retry blindly.
+      const detail = Array.isArray(errorData.details) && errorData.details.length > 0
+        ? errorData.details.join('; ')
+        : errorData.error || 'Upload failed';
+      throw new Error(detail);
     }
 
     const uploadResult = await uploadResponse.json();

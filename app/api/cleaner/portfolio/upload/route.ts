@@ -4,7 +4,11 @@ import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger({ file: 'api/cleaner/portfolio/upload/route' });
 
-const MAX_FILE_SIZE = 1024 * 1024; // 1MB
+// DLD-505: previously 1MB, which silently rejected most modern phone photos
+// even after the client-side compression pass (which targets 1MB but isn't
+// guaranteed for high-detail sources). Aligned with the `portfolio-photos`
+// bucket file_size_limit (5MB).
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB — matches bucket limit
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
 export async function POST(request: NextRequest) {
@@ -60,7 +64,7 @@ export async function POST(request: NextRequest) {
 
       // Validate file size
       if (file.size > MAX_FILE_SIZE) {
-        errors.push(`${file.name}: File too large. Maximum size is 1MB`);
+        errors.push(`${file.name}: File too large. Maximum size is 5MB`);
         continue;
       }
 
