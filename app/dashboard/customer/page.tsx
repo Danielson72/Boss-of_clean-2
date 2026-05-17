@@ -16,8 +16,8 @@ interface QuoteRequest {
   id: string;
   cleaner_id: string;
   service_type: string;
-  service_date: string;
-  service_time: string;
+  service_date: string | null;
+  service_time: string | null;
   address: string;
   city: string;
   zip_code: string;
@@ -219,17 +219,22 @@ export default function CustomerDashboard() {
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+  const formatDate = (dateString: string | null | undefined) => {
+    if (!dateString) return 'Flexible';
+    const d = new Date(dateString);
+    if (isNaN(d.getTime())) return 'Flexible';
+    return d.toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
       year: 'numeric'
     });
   };
 
-  const formatTime = (timeString: string) => {
+  const formatTime = (timeString: string | null | undefined) => {
+    if (!timeString) return 'Flexible';
     const [hours, minutes] = timeString.split(':');
     const hour = parseInt(hours);
+    if (isNaN(hour)) return 'Flexible';
     const ampm = hour >= 12 ? 'PM' : 'AM';
     const displayHour = hour % 12 || 12;
     return `${displayHour}:${minutes} ${ampm}`;
