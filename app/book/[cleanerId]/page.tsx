@@ -109,7 +109,7 @@ export default function BookCleanerPage() {
     async function fetchCleaner() {
       const supabase = createClient();
       const { data, error: fetchError } = await supabase
-        .from('cleaners')
+        .from('pros')
         .select(
           'id, business_name, business_description, profile_image_url, hourly_rate, minimum_hours, average_rating, total_reviews, insurance_verified, services, instant_booking'
         )

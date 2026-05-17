@@ -88,7 +88,7 @@ export async function getAdminAnalytics(range: DateRange): Promise<AdminAnalytic
 
     // Total approved cleaners
     supabase
-      .from('cleaners')
+      .from('pros')
       .select('*', { count: 'exact', head: true })
       .eq('approval_status', 'approved'),
 
@@ -107,7 +107,7 @@ export async function getAdminAnalytics(range: DateRange): Promise<AdminAnalytic
 
     // Cleaner tiers for conversion rate
     supabase
-      .from('cleaners')
+      .from('pros')
       .select('subscription_tier')
       .eq('approval_status', 'approved'),
 
@@ -126,18 +126,18 @@ export async function getAdminAnalytics(range: DateRange): Promise<AdminAnalytic
     // Cleaners for signup trend
     rangeStart
       ? supabase
-          .from('cleaners')
+          .from('pros')
           .select('created_at')
           .gte('created_at', rangeStart.toISOString())
           .order('created_at', { ascending: true })
       : supabase
-          .from('cleaners')
+          .from('pros')
           .select('created_at')
           .order('created_at', { ascending: true }),
 
     // Top cleaners by reviews
     supabase
-      .from('cleaners')
+      .from('pros')
       .select('id, business_name, total_reviews, average_rating, total_jobs, subscription_tier')
       .eq('approval_status', 'approved')
       .order('total_reviews', { ascending: false })
@@ -145,7 +145,7 @@ export async function getAdminAnalytics(range: DateRange): Promise<AdminAnalytic
 
     // Top cleaners by bookings
     supabase
-      .from('cleaners')
+      .from('pros')
       .select('id, business_name, total_reviews, average_rating, total_jobs, subscription_tier')
       .eq('approval_status', 'approved')
       .order('total_jobs', { ascending: false })

@@ -40,7 +40,7 @@ export async function GET() {
   let cleanerId: string | null = null;
   if (!isCustomer) {
     const { data: cleanerData } = await supabase
-      .from('cleaners')
+      .from('pros')
       .select('id')
       .eq('user_id', user.id)
       .single();
@@ -59,7 +59,7 @@ export async function GET() {
       cleaner_unread_count,
       created_at,
       customer:users!conversations_customer_id_fkey(id, full_name, email),
-      cleaner:cleaners!conversations_cleaner_id_fkey(id, business_name, user_id)
+      cleaner:pros!conversations_cleaner_id_fkey(id, business_name, user_id)
     `)
     .order('last_message_at', { ascending: false, nullsFirst: false });
 
@@ -157,7 +157,7 @@ export async function POST(request: NextRequest) {
     if (isCustomer) {
       // Verify cleaner exists
       const { data: cleaner, error: cleanerError } = await supabase
-        .from('cleaners')
+        .from('pros')
         .select('id, business_name, business_email, user_id')
         .eq('id', cleanerId)
         .single();
@@ -216,7 +216,7 @@ export async function POST(request: NextRequest) {
         customer_id,
         cleaner_id,
         customer:users!conversations_customer_id_fkey(email, full_name),
-        cleaner:cleaners!conversations_cleaner_id_fkey(business_name, business_email, user_id)
+        cleaner:pros!conversations_cleaner_id_fkey(business_name, business_email, user_id)
       `)
       .eq('id', conversationId)
       .single();
@@ -232,7 +232,7 @@ export async function POST(request: NextRequest) {
 
     if (!isCustomer) {
       const { data: cleanerData } = await supabase
-        .from('cleaners')
+        .from('pros')
         .select('id')
         .eq('user_id', user.id)
         .single();
@@ -358,7 +358,7 @@ export async function POST(request: NextRequest) {
   if (isCustomer && cleanerId) {
     // Customer sent message to cleaner — notify the cleaner via SMS
     const { data: cleanerSms } = await supabase
-      .from('cleaners')
+      .from('pros')
       .select('business_phone, user_id')
       .eq('id', cleanerId)
       .single();

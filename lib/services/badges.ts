@@ -178,7 +178,7 @@ export async function updateCleanerResponseTime(
 
   if (avgResponseTime !== null) {
     await supabase
-      .from('cleaners')
+      .from('pros')
       .update({ response_time_hours: Math.round(avgResponseTime) })
       .eq('id', cleanerId);
   }

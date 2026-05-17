@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
       .select(`
         id,
         created_at,
-        cleaner:cleaners(
+        cleaner:pros(
           id,
           business_name,
           business_slug,
@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
 
     // Check if cleaner exists
     const { data: cleaner } = await supabase
-      .from('cleaners')
+      .from('pros')
       .select('id')
       .eq('id', cleanerId)
       .single();

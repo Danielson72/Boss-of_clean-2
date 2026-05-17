@@ -152,7 +152,7 @@ export async function submitQuoteRequest(
       // Primary match: service_areas table (service-role: cross-customer read)
       const { data: areaMatches } = await adminSupabase
         .from('service_areas')
-        .select('cleaner_id, cleaner:cleaners!inner(id, business_name, user_id, approval_status, user:users!inner(email))')
+        .select('cleaner_id, cleaner:pros!inner(id, business_name, user_id, approval_status, user:users!inner(email))')
         .eq('zip_code', data.zip_code);
 
       if (areaMatches && areaMatches.length > 0) {
@@ -177,7 +177,7 @@ export async function submitQuoteRequest(
       // (early stage — not many pros have set up service areas yet)
       if (matchedPros.length === 0) {
         const { data: allApproved } = await adminSupabase
-          .from('cleaners')
+          .from('pros')
           .select('id, business_name, user_id, user:users!inner(email)')
           .eq('approval_status', 'approved');
 

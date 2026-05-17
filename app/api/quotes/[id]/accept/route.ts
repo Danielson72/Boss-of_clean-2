@@ -24,7 +24,7 @@ export async function POST(
   // Fetch the quote request — must belong to this customer and be in 'responded' status
   const { data: quote, error: fetchError } = await supabase
     .from('quote_requests')
-    .select('*, cleaner:cleaners(id, user_id, business_name, approval_status)')
+    .select('*, cleaner:pros(id, user_id, business_name, approval_status)')
     .eq('id', quoteId)
     .single();
 

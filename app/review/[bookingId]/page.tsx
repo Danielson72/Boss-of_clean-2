@@ -56,7 +56,7 @@ function ReviewPageContent() {
           customer_id,
           service_type,
           booking_date,
-          cleaner:cleaners!bookings_cleaner_id_fkey(
+          cleaner:pros!bookings_cleaner_id_fkey(
             id,
             business_name,
             profile_image_url

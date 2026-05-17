@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
 
     // Get cleaner profile with subscription info
     const { data: cleaner, error: cleanerError } = await supabase
-      .from('cleaners')
+      .from('pros')
       .select(`
         id,
         subscription_tier,

@@ -188,7 +188,7 @@ export function buildSearchQuery(
   options: { offset: number; limit: number }
 ) {
   let query = supabase
-    .from('cleaners')
+    .from('pros')
     .select(
       `
       *,

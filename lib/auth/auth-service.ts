@@ -140,7 +140,7 @@ export class AuthService {
   async getCleanerProfile(userId: string) {
     try {
       const { data, error } = await this.supabase
-        .from('cleaners')
+        .from('pros')
         .select('*')
         .eq('user_id', userId)
         .single();

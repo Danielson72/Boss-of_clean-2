@@ -43,7 +43,7 @@ export async function GET() {
         created_at,
         updated_at,
         customer:users!reviews_customer_id_fkey(id, full_name, email),
-        cleaner:cleaners(id, business_name, user_id)`,
+        cleaner:pros(id, business_name, user_id)`,
         { count: 'exact' }
       )
       .eq('is_published', false)

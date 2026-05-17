@@ -159,7 +159,7 @@ export async function GET(request: NextRequest) {
   // If pro signup via Google, create cleaners profile
   if (newRole === 'cleaner') {
     await supabase
-      .from('cleaners')
+      .from('pros')
       .insert({
         user_id: user.id,
         business_name: user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'My Business',

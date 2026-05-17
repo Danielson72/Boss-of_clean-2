@@ -16,7 +16,7 @@ export async function GET() {
 
   // Get the cleaner profile
   const { data: cleaner, error: cleanerError } = await supabase
-    .from('cleaners')
+    .from('pros')
     .select('id')
     .eq('user_id', user.id)
     .single();

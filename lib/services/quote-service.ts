@@ -110,7 +110,7 @@ export class QuoteService {
       .from('quote_requests')
       .select(`
         *,
-        cleaner:cleaners(business_name, business_phone, business_email, average_rating, hourly_rate)
+        cleaner:pros(business_name, business_phone, business_email, average_rating, hourly_rate)
       `)
       .eq('customer_id', customerId)
       .order('created_at', { ascending: false });
@@ -184,7 +184,7 @@ export class QuoteService {
       .select(`
         *,
         customer:users!customer_id(full_name, email, phone),
-        cleaner:cleaners(business_name, business_phone, business_email, average_rating)
+        cleaner:pros(business_name, business_phone, business_email, average_rating)
       `)
       .single();
 
@@ -210,7 +210,7 @@ export class QuoteService {
       .eq('customer_id', customerId)
       .select(`
         *,
-        cleaner:cleaners(business_name, business_phone, business_email)
+        cleaner:pros(business_name, business_phone, business_email)
       `)
       .single();
 
@@ -361,7 +361,7 @@ export class QuoteService {
       .select(`
         *,
         customer:users!customer_id(full_name, email, phone),
-        cleaner:cleaners(business_name, business_phone, business_email, average_rating, hourly_rate)
+        cleaner:pros(business_name, business_phone, business_email, average_rating, hourly_rate)
       `)
       .eq('id', quoteId)
       .single();

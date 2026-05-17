@@ -111,7 +111,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   try {
     const { data: cleaners } = await supabase
-      .from('cleaners')
+      .from('pros')
       .select('business_slug, updated_at')
       .eq('approval_status', 'approved')
       .not('business_slug', 'is', null);

@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
 
     // Get cleaner profile
     const { data: cleaner, error: cleanerError } = await supabase
-      .from('cleaners')
+      .from('pros')
       .select('id')
       .eq('user_id', user.id)
       .single();

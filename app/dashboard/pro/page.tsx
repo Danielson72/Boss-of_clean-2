@@ -104,7 +104,7 @@ export default function CleanerDashboard() {
   const loadCleanerProfile = async () => {
     try {
       const { data, error } = await supabase
-        .from('cleaners')
+        .from('pros')
         .select('*')
         .eq('user_id', user?.id)
         .single();
@@ -132,7 +132,7 @@ export default function CleanerDashboard() {
   const loadQuotes = async () => {
     try {
       const { data: cleanerData } = await supabase
-        .from('cleaners')
+        .from('pros')
         .select('id')
         .eq('user_id', user?.id)
         .single();

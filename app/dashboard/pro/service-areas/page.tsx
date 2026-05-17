@@ -49,7 +49,7 @@ export default function ServiceAreasPage() {
     try {
       // First get the cleaner ID
       const { data: cleanerData, error: cleanerError } = await supabase
-        .from('cleaners')
+        .from('pros')
         .select('id, service_areas')
         .eq('user_id', user?.id)
         .single();
@@ -123,7 +123,7 @@ export default function ServiceAreasPage() {
       const zipCodes = serviceAreas.map(area => area.zip_code);
       
       const { error } = await supabase
-        .from('cleaners')
+        .from('pros')
         .update({
           service_areas: zipCodes,
           updated_at: new Date().toISOString()

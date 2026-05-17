@@ -21,7 +21,7 @@ export async function GET(
     .from('bookings')
     .select(`
       *,
-      cleaner:cleaners(
+      cleaner:pros(
         id,
         business_name,
         business_phone,

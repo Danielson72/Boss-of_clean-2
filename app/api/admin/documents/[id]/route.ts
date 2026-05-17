@@ -94,7 +94,7 @@ export async function PATCH(
   if (action === 'reject') {
     try {
       const { data: cleanerData } = await supabase
-        .from('cleaners')
+        .from('pros')
         .select('business_name, users(email, full_name)')
         .eq('id', doc.cleaner_id)
         .single();
@@ -131,12 +131,12 @@ export async function PATCH(
 
     if (allRequiredApproved) {
       await supabase
-        .from('cleaners')
+        .from('pros')
         .update({ approval_status: 'approved', approved_at: new Date().toISOString() })
         .eq('id', doc.cleaner_id);
 
       const { data: cleanerData } = await supabase
-        .from('cleaners')
+        .from('pros')
         .select('user_id, business_name, users(email, full_name)')
         .eq('id', doc.cleaner_id)
         .single();

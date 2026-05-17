@@ -67,7 +67,7 @@ export async function getPaymentMonitoringData(): Promise<PaymentMonitoringData>
         description,
         metadata,
         created_at,
-        cleaner:cleaners(
+        cleaner:pros(
           business_name,
           subscription_tier
         )
@@ -84,7 +84,7 @@ export async function getPaymentMonitoringData(): Promise<PaymentMonitoringData>
         status,
         monthly_price,
         updated_at,
-        cleaner:cleaners(
+        cleaner:pros(
           business_name
         )
       `)

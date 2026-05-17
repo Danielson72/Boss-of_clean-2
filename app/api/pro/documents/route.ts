@@ -16,7 +16,7 @@ export async function GET() {
   }
 
   const { data: cleaner, error: cleanerError } = await supabase
-    .from('cleaners')
+    .from('pros')
     .select('id')
     .eq('user_id', user.id)
     .single();
@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
   }
 
   const { data: cleaner, error: cleanerError } = await supabase
-    .from('cleaners')
+    .from('pros')
     .select('id, business_name')
     .eq('user_id', user.id)
     .single();

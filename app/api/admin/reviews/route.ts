@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
           full_name,
           email
         ),
-        cleaner:cleaners(
+        cleaner:pros(
           id,
           business_name,
           user_id
