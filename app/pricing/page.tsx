@@ -69,8 +69,7 @@ const plans: Plan[] = [
     description: 'Steady lead flow without the heavy commit',
     features: [
       'Everything in Free',
-      'Up to 10 leads covered per month',
-      'Overflow leads $20/lead (only when you exceed 10)',
+      'Priority lead routing — you see qualified leads first',
       'Featured placement in category and city search',
       'Priority in customer notifications',
       'Verified pro badge and profile highlights',
@@ -88,8 +87,6 @@ const plans: Plan[] = [
     description: 'Best for established pros that want volume',
     features: [
       'Everything in Basic',
-      'Up to 20 leads covered per month',
-      'Overflow leads $15/lead (only when you exceed 20)',
       'Top placement in search results',
       'Featured on homepage and category hubs',
       'Priority support',
@@ -104,8 +101,8 @@ const plans: Plan[] = [
 
 const faqs = [
   {
-    question: 'What does "up to X leads covered" mean?',
-    answer: 'Your monthly subscription covers up to that number of qualified, exclusive leads sent to you — at no extra cost. Once you exceed the covered amount, overflow leads are billed at the per-lead overflow rate listed in your plan. We say "covered" instead of "included" so there is never any confusion about how lead routing actually works.',
+    question: 'How does lead routing work on Boss of Clean?',
+    answer: 'When a homeowner submits a request, qualified pros in the matching service area receive a notification and can accept the lead. Paid plans place you higher in the routing order, so you see qualified leads first. Lead volume depends on marketplace demand and your service area — we do not guarantee a specific number of leads per month.',
   },
   {
     question: 'Is Boss of Clean only for cleaning companies?',
@@ -121,7 +118,7 @@ const faqs = [
   },
   {
     question: 'How is this different from Thumbtack, Angi, or HomeAdvisor?',
-    answer: 'Every lead on Boss of Clean is exclusive to a single pro — never shared, never resold. Lead caps are transparent, overflow pricing is published up front, and we use plain "up to X leads covered" language so you always know what you are paying for.',
+    answer: 'Every lead on Boss of Clean is exclusive to a single pro — never shared, never resold. Your pricing is transparent and locked in at signup, with no hidden upcharges or bidding wars.',
   },
   {
     question: 'How do I get started?',
@@ -277,10 +274,10 @@ export default async function PricingPage() {
                 <div className="flex items-start gap-3">
                   <Sparkles className="h-5 w-5 text-brand-gold flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="font-semibold text-white">Up to 30 leads covered — for life</p>
+                    <p className="font-semibold text-white">Founders pricing — locked for life</p>
                     <p className="text-gray-400 text-sm mt-1">
-                      As long as you stay continuously subscribed, your Pro tier covers up to 30 leads
-                      every month. Locked at signup, never renegotiated.
+                      As long as you stay continuously subscribed, your Pro tier rate is locked at
+                      signup. No price increases. No renegotiations.
                     </p>
                   </div>
                 </div>
@@ -408,8 +405,8 @@ export default async function PricingPage() {
             </div>
           </div>
           <p className="text-gray-500 text-xs text-center mt-6">
-            Subscription plans cover the first leads each month at no extra cost. Overflow leads on
-            Basic are $20 each. Overflow leads on Pro are $15 each.
+            Paid plans provide priority routing and placement. Lead volume varies by service area
+            and marketplace demand.
           </p>
         </div>
       </section>
