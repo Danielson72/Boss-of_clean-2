@@ -1,6 +1,8 @@
 import { Check, ArrowRight, Crown, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import { generatePageMetadata } from '@/lib/seo/metadata';
+import { createClient } from '@/lib/supabase/server';
+import { PricingCTA, type PricingAuthState, type PricingPlanId } from '@/components/pricing/PricingCTA';
 
 export const metadata = generatePageMetadata({
   title: 'Pricing',
@@ -29,8 +31,21 @@ const PRO_CATEGORIES = [
   'Pressure washing',
 ];
 
-const plans = [
+interface Plan {
+  planId: PricingPlanId;
+  name: string;
+  price: string;
+  period: string;
+  description: string;
+  features: string[];
+  cta: string;
+  ctaHref: string;
+  highlighted: boolean;
+}
+
+const plans: Plan[] = [
   {
+    planId: 'free',
     name: 'Free',
     price: '$0',
     period: '/mo',
@@ -47,6 +62,7 @@ const plans = [
     highlighted: false,
   },
   {
+    planId: 'basic',
     name: 'Basic',
     price: '$79',
     period: '/mo',
@@ -65,6 +81,7 @@ const plans = [
     highlighted: false,
   },
   {
+    planId: 'pro',
     name: 'Pro',
     price: '$199',
     period: '/mo',
@@ -112,7 +129,29 @@ const faqs = [
   },
 ];
 
-export default function PricingPage() {
+async function resolveAuthState(): Promise<PricingAuthState> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return 'anonymous';
+
+  const { data: userData } = await supabase
+    .from('users')
+    .select('role')
+    .eq('id', user.id)
+    .single();
+
+  const role = userData?.role || user.user_metadata?.role || 'customer';
+  // The DB role for service pros is 'cleaner' (legacy name); 'admin' is treated as pro for billing UX.
+  if (role === 'cleaner' || role === 'admin') return 'pro';
+  return 'customer';
+}
+
+export default async function PricingPage() {
+  const authState = await resolveAuthState();
+
   return (
     <div className="min-h-screen bg-white">
       {/* Hero */}
@@ -185,16 +224,13 @@ export default function PricingPage() {
                 ))}
               </ul>
 
-              <Link
-                href={plan.ctaHref}
-                className={`block w-full text-center py-3.5 rounded-xl font-semibold text-sm transition-all duration-200 min-h-[44px] ${
-                  plan.highlighted
-                    ? 'bg-brand-gold text-white hover:bg-brand-gold-light shadow-lg hover:shadow-xl'
-                    : 'bg-brand-dark text-white hover:bg-brand-navy'
-                }`}
-              >
-                {plan.cta}
-              </Link>
+              <PricingCTA
+                planId={plan.planId}
+                ctaHref={plan.ctaHref}
+                ctaLabel={plan.cta}
+                highlighted={plan.highlighted}
+                authState={authState}
+              />
             </div>
           ))}
         </div>
