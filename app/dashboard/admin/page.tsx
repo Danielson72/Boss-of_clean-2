@@ -316,8 +316,10 @@ export default async function AdminDashboard() {
                             {u.created_at ? new Date(String(u.created_at)).toLocaleDateString() : '-'}
                           </td>
                           <td className="p-2">
-                            <Button size="sm" variant="ghost">
-                              View
+                            <Button asChild size="sm" variant="ghost">
+                              <Link href={`/dashboard/admin/users/${String(u.id)}`}>
+                                View
+                              </Link>
                             </Button>
                           </td>
                         </tr>
