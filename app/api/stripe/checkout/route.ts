@@ -40,16 +40,16 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Get user's cleaner profile
-    const { data: cleaner } = await supabase
-      .from('cleaners')
+    // Get user's pro profile (DLD-444 — `cleaners` is a backwards-compat view of `pros`)
+    const { data: pro } = await supabase
+      .from('pros')
       .select('id')
       .eq('user_id', user.id)
       .single()
 
-    if (!cleaner) {
+    if (!pro) {
       return NextResponse.json(
-        { error: 'Cleaner profile required' },
+        { error: 'Pro profile required' },
         { status: 400 }
       )
     }
@@ -59,6 +59,7 @@ export async function POST(request: NextRequest) {
     const priceId = STRIPE_PRICES[plan]
 
     // Create Stripe checkout session (with MCP integration)
+    // NOTE: metadata key `cleaner_id` is preserved for webhook + existing subscription compatibility.
     const session = await createCheckoutSession({
       priceId,
       mode: isPerLead ? 'payment' : 'subscription',
@@ -67,12 +68,12 @@ export async function POST(request: NextRequest) {
       customerEmail: user.email,
       metadata: {
         user_id: user.id,
-        cleaner_id: cleaner.id,
+        cleaner_id: pro.id,
         plan: plan,
       },
       subscriptionMetadata: isPerLead ? undefined : {
         user_id: user.id,
-        cleaner_id: cleaner.id,
+        cleaner_id: pro.id,
         tier: plan,
       },
     })
