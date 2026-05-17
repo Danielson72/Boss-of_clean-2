@@ -190,7 +190,7 @@ export default function CleanerDashboard() {
             <div className="flex justify-between items-center py-6">
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">
-                  {profile?.business_name || 'Cleaner Dashboard'}
+                  {profile?.business_name || 'Pro Dashboard'}
                 </h1>
                 {profile?.approval_status === 'pending' && (
                   <p className="text-sm text-yellow-600 mt-1">
