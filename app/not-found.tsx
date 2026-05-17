@@ -21,7 +21,7 @@ export default function NotFound() {
             className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium"
           >
             <Search className="h-4 w-4" />
-            Find Cleaners
+            Find Pros
           </Link>
           <Link
             href="/"

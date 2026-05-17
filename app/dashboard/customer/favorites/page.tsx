@@ -103,14 +103,14 @@ export default function CustomerFavoritesPage() {
               <Heart className="mx-auto h-16 w-16 text-gray-300 mb-4" />
               <h2 className="text-xl font-semibold text-gray-900 mb-2">No favorites yet</h2>
               <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                Save your favorite cleaners to quickly find and book them later.
-                Click the heart icon on any cleaner profile to add them here.
+                Save your favorite pros to quickly find and book them later.
+                Click the heart icon on any pro profile to add them here.
               </p>
               <Link
                 href="/search"
                 className="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
               >
-                Find Cleaners
+                Find Pros
               </Link>
             </div>
           ) : (

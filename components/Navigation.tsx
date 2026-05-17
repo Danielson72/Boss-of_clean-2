@@ -30,7 +30,7 @@ export default function Navigation() {
               Home
             </Link>
             <Link href="/search" className="text-gray-700 hover:text-blue-600 transition duration-300">
-              Find Cleaners
+              Find Pros
             </Link>
             <Link href="/pricing" className="text-gray-700 hover:text-blue-600 transition duration-300">
               Pricing
@@ -105,7 +105,7 @@ export default function Navigation() {
               href="/search"
               className="block px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md transition duration-300"
             >
-              Find Cleaners
+              Find Pros
             </Link>
             <Link
               href="/pricing"
