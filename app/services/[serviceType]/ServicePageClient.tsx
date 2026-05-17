@@ -7,12 +7,12 @@ import { ServiceType, getServiceDbValue } from '@/lib/data/service-types';
 import { ServiceTypeContent } from '@/components/seo/ServiceTypeContent';
 import { CleanerCardProps } from '@/components/search';
 
+// NOTE: business_phone intentionally omitted — PII gated behind lead acceptance (DLD-457).
 interface CleanerData {
   id: string;
   business_name: string;
   business_slug?: string;
   business_description?: string;
-  business_phone?: string;
   services?: string[];
   service_areas?: string[];
   hourly_rate?: number;
@@ -69,7 +69,6 @@ export function ServicePageClient({ serviceType }: ServicePageClientProps) {
     backgroundCheckVerified: cleaner.background_check || false,
     isCertified: cleaner.is_certified || false,
     instantBooking: cleaner.instant_booking || false,
-    businessPhone: cleaner.business_phone,
   });
 
   const loadCleaners = useCallback(async () => {
