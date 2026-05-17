@@ -69,7 +69,7 @@ export default function CleanerBookingsPage() {
     try {
       // Get the cleaner profile first
       const { data: cleaner } = await supabase
-        .from('cleaners')
+        .from('pros')
         .select('id')
         .eq('user_id', user.id)
         .single();

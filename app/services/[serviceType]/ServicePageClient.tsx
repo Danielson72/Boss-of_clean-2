@@ -79,7 +79,7 @@ export function ServicePageClient({ serviceType }: ServicePageClientProps) {
       // Build query to find cleaners offering this service type
       // Match against the shortName which is used in the services array
       const query = supabase
-        .from('cleaners')
+        .from('pros')
         .select(
           `
           *,

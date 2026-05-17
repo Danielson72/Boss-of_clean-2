@@ -68,7 +68,7 @@ export class SubscriptionService {
     // Check if cleaner already has a Stripe customer ID
     const supabase = await this.getSupabase();
     const { data: cleaner } = await supabase
-      .from('cleaners')
+      .from('pros')
       .select('stripe_customer_id, business_name')
       .eq('id', cleanerId)
       .single();
@@ -94,7 +94,7 @@ export class SubscriptionService {
 
     // Update cleaner with Stripe customer ID
     await supabase
-      .from('cleaners')
+      .from('pros')
       .update({ stripe_customer_id: customer.id })
       .eq('id', cleanerId);
 
@@ -137,7 +137,7 @@ export class SubscriptionService {
 
       // Update cleaner subscription info and billing dates
       await supabase
-        .from('cleaners')
+        .from('pros')
         .update({
           subscription_tier: tier,
           subscription_expires_at: periodEnd,
@@ -175,7 +175,7 @@ export class SubscriptionService {
 
       // Update cleaner subscription expiry and next billing date
       await supabase
-        .from('cleaners')
+        .from('pros')
         .update({
           subscription_expires_at: periodEnd,
           next_billing_date: periodEnd,
@@ -196,7 +196,7 @@ export class SubscriptionService {
       const supabase = await this.getSupabase();
       // Update cleaner to free tier and clear billing dates
       await supabase
-        .from('cleaners')
+        .from('pros')
         .update({
           subscription_tier: 'free',
           subscription_expires_at: null,
@@ -261,7 +261,7 @@ export class SubscriptionService {
 
         // Update last payment date, reset failed count, and reset monthly lead acceptance counter
         await supabase
-          .from('cleaners')
+          .from('pros')
           .update({
             last_payment_date: new Date().toISOString(),
             payment_failed_count: 0,
@@ -343,7 +343,7 @@ export class SubscriptionService {
     try {
       const supabase = await this.getSupabase();
       const { data: cleaner } = await supabase
-        .from('cleaners')
+        .from('pros')
         .select('stripe_subscription_id')
         .eq('id', cleanerId)
         .single();

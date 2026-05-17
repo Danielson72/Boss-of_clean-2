@@ -26,7 +26,7 @@ export async function PATCH(
 
   // Verify the user is the cleaner for this booking
   const { data: cleaner } = await supabase
-    .from('cleaners')
+    .from('pros')
     .select('id')
     .eq('user_id', user.id)
     .single();

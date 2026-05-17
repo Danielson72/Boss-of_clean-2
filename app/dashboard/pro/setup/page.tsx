@@ -127,7 +127,7 @@ export default function CleanerSetupPage() {
     
     try {
       const { error } = await supabase
-        .from('cleaners')
+        .from('pros')
         .insert({
           user_id: user?.id,
           business_name: formData.business_name,

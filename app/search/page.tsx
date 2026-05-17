@@ -98,7 +98,7 @@ export default function SearchPage() {
 
       // Build query
       let query = supabase
-        .from('cleaners')
+        .from('pros')
         .select(`
           id, business_name, business_slug, business_description,
           services, service_areas, profile_image_url, instant_booking,

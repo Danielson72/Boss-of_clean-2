@@ -51,7 +51,7 @@ export async function getMarketplaceQuotes(): Promise<{
 
     // Get cleaner profile
     const { data: cleaner } = await supabase
-      .from('cleaners')
+      .from('pros')
       .select('id, approval_status')
       .eq('user_id', user.id)
       .single();
@@ -161,7 +161,7 @@ export async function respondToQuote(
 
     // Get cleaner profile
     const { data: cleaner } = await supabase
-      .from('cleaners')
+      .from('pros')
       .select('id, business_name, approval_status')
       .eq('user_id', user.id)
       .single();

@@ -39,7 +39,7 @@ export async function processDunningEvent(
 
   // Get current cleaner state
   const { data: cleaner } = await supabase
-    .from('cleaners')
+    .from('pros')
     .select('payment_failed_count, business_name, grace_period_end, user_id, subscription_tier')
     .eq('id', cleanerId)
     .single();
@@ -76,7 +76,7 @@ export async function processDunningEvent(
     const gracePeriodEnd = new Date(now.getTime() + GRACE_PERIOD_DAYS * 24 * 60 * 60 * 1000);
 
     await supabase
-      .from('cleaners')
+      .from('pros')
       .update({
         grace_period_end: gracePeriodEnd.toISOString(),
       })
@@ -151,7 +151,7 @@ async function downgradeToFree(cleanerId: string): Promise<void> {
 
   // Update cleaner to free tier
   await supabase
-    .from('cleaners')
+    .from('pros')
     .update({
       subscription_tier: 'free',
       grace_period_end: null,
@@ -182,7 +182,7 @@ export async function getGracePeriodStatus(cleanerId: string): Promise<{
   const supabase = await createClient();
 
   const { data: cleaner } = await supabase
-    .from('cleaners')
+    .from('pros')
     .select('payment_failed_count, grace_period_end')
     .eq('id', cleanerId)
     .single();
@@ -218,7 +218,7 @@ export async function resetDunningState(cleanerId: string): Promise<void> {
   const supabase = await createClient();
 
   await supabase
-    .from('cleaners')
+    .from('pros')
     .update({
       payment_failed_count: 0,
       grace_period_end: null,

@@ -68,7 +68,7 @@ async function getCleanerBySlug(slug: string): Promise<CleanerProfile | null> {
   const supabase = await createClient();
 
   const { data, error } = await supabase
-    .from('cleaners')
+    .from('pros')
     .select(`
       *,
       users(full_name, city, state, zip_code)
@@ -80,7 +80,7 @@ async function getCleanerBySlug(slug: string): Promise<CleanerProfile | null> {
   if (error || !data) {
     // Try by ID as fallback
     const { data: dataById, error: errorById } = await supabase
-      .from('cleaners')
+      .from('pros')
       .select(`
         *,
         users(full_name, city, state, zip_code)

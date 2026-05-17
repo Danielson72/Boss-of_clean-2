@@ -52,7 +52,7 @@ export default async function AdminDashboard() {
 
     // Fetch pending cleaners with completed onboarding
     const { data: cleanersData, error: cleanersError } = await supabase
-      .from('cleaners')
+      .from('pros')
       .select(`
         *,
         user:users(
@@ -88,9 +88,9 @@ export default async function AdminDashboard() {
     // Get stats
     const [statsUsers, statsCleaners, statsPending, statsRejected, statsUnreadMessages] = await Promise.all([
       supabase.from('users').select('*', { count: 'exact', head: true }),
-      supabase.from('cleaners').select('*', { count: 'exact', head: true }).eq('approval_status', 'approved'),
-      supabase.from('cleaners').select('*', { count: 'exact', head: true }).eq('approval_status', 'pending'),
-      supabase.from('cleaners').select('*', { count: 'exact', head: true }).eq('approval_status', 'rejected'),
+      supabase.from('pros').select('*', { count: 'exact', head: true }).eq('approval_status', 'approved'),
+      supabase.from('pros').select('*', { count: 'exact', head: true }).eq('approval_status', 'pending'),
+      supabase.from('pros').select('*', { count: 'exact', head: true }).eq('approval_status', 'rejected'),
       supabase.from('contact_submissions').select('*', { count: 'exact', head: true }).eq('is_read', false),
     ])
 

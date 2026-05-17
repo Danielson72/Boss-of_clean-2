@@ -82,7 +82,7 @@ export default function CustomerDashboard() {
         .from('quote_requests')
         .select(`
           *,
-          cleaner:cleaners(
+          cleaner:pros(
             business_name,
             business_phone
           )

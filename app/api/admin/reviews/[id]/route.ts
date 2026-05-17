@@ -96,7 +96,7 @@ export async function PATCH(
           rating,
           comment,
           cleaner_id,
-          cleaner:cleaners(user_id, business_name),
+          cleaner:pros(user_id, business_name),
           customer:users!reviews_customer_id_fkey(full_name)
         `)
         .eq('id', id)

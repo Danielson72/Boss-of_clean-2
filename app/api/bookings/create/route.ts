@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
 
   // Verify cleaner exists and has instant booking enabled
   const { data: cleaner, error: cleanerError } = await supabase
-    .from('cleaners')
+    .from('pros')
     .select('id, user_id, business_name, business_email, instant_booking, approval_status')
     .eq('id', cleanerId)
     .single();

@@ -40,7 +40,7 @@ async function verifyAdmin(): Promise<{ isAdmin: boolean; userId?: string; error
 async function getProContact(cleanerId: string): Promise<{ email: string; business_name: string; user_id: string } | null> {
   const supabase = await createClient()
   const { data } = await supabase
-    .from('cleaners')
+    .from('pros')
     .select('business_name, user_id, user:users(email)')
     .eq('id', cleanerId)
     .single()
@@ -312,7 +312,7 @@ export async function getCleanerDetails(cleanerId: string): Promise<ActionResult
 
   // Get cleaner with user info and documents
   const { data: cleaner, error: cleanerError } = await supabase
-    .from('cleaners')
+    .from('pros')
     .select(`
       *,
       user:users(

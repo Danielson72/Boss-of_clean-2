@@ -70,7 +70,7 @@ export async function handleDisputeCreated(dispute: Stripe.Dispute): Promise<voi
         : customerField.id;
 
       const { data: cleaner } = await supabase
-        .from('cleaners')
+        .from('pros')
         .select('id')
         .eq('stripe_customer_id', customerId)
         .single();
@@ -99,7 +99,7 @@ export async function handleDisputeCreated(dispute: Stripe.Dispute): Promise<voi
 
   // Get cleaner details
   const { data: cleaner } = await supabase
-    .from('cleaners')
+    .from('pros')
     .select('business_name, user_id, dispute_count')
     .eq('id', cleanerId)
     .single();
@@ -142,7 +142,7 @@ export async function handleDisputeCreated(dispute: Stripe.Dispute): Promise<voi
   // Flag the cleaner
   const newDisputeCount = (cleaner?.dispute_count || 0) + 1;
   await supabase
-    .from('cleaners')
+    .from('pros')
     .update({
       dispute_count: newDisputeCount,
       dispute_status: 'under_review',
@@ -213,13 +213,13 @@ export async function handleDisputeClosed(dispute: Stripe.Dispute): Promise<void
   const newDisputeStatus = (count && count > 0) ? 'under_review' : 'none';
 
   await supabase
-    .from('cleaners')
+    .from('pros')
     .update({ dispute_status: newDisputeStatus })
     .eq('id', disputeRecord.cleaner_id);
 
   // Get cleaner email for notification
   const { data: cleaner } = await supabase
-    .from('cleaners')
+    .from('pros')
     .select('business_name, user_id')
     .eq('id', disputeRecord.cleaner_id)
     .single();

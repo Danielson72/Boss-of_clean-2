@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
 
     // Get cleaner profile
     const { data: cleaner, error: cleanerError } = await supabase
-      .from('cleaners')
+      .from('pros')
       .select('id, stripe_customer_id, stripe_subscription_id, subscription_tier')
       .eq('user_id', user.id)
       .single();
@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
 
           // Update cleaner tier in database
           await supabase
-            .from('cleaners')
+            .from('pros')
             .update({ subscription_tier: planId })
             .eq('id', cleaner.id);
 
@@ -118,7 +118,7 @@ export async function POST(request: NextRequest) {
 
       // Update cleaner with customer ID
       await supabase
-        .from('cleaners')
+        .from('pros')
         .update({ stripe_customer_id: customerId })
         .eq('id', cleaner.id);
     }

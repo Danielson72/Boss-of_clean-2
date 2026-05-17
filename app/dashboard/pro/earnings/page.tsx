@@ -47,7 +47,7 @@ export default function EarningsPage() {
     if (!user) return;
 
     const { data: cleaner, error } = await supabase
-      .from('cleaners')
+      .from('pros')
       .select('id')
       .eq('user_id', user.id)
       .single();

@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
 
     // Get cleaner profile with Stripe customer ID
     const { data: cleaner, error: cleanerError } = await supabase
-      .from('cleaners')
+      .from('pros')
       .select('id, stripe_customer_id')
       .eq('user_id', user.id)
       .single();

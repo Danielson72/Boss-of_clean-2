@@ -92,7 +92,7 @@ export default function CleanerProfileForm({ cleanerData, userData, userId }: Cl
       if (cleanerData) {
         // Update existing profile
         const { error: cleanerError } = await supabase
-          .from('cleaners')
+          .from('pros')
           .update({
             business_name: formData.business_name,
             description: formData.description,
@@ -108,7 +108,7 @@ export default function CleanerProfileForm({ cleanerData, userData, userId }: Cl
       } else {
         // Create new profile
         const { error: cleanerError } = await supabase
-          .from('cleaners')
+          .from('pros')
           .insert({
             user_id: userId,
             business_name: formData.business_name,

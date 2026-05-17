@@ -64,7 +64,7 @@ export async function generateMetadata({ params }: CityPageProps): Promise<Metad
   // Get cleaner stats for this city
   const supabase = await createClient();
   const { count, data: cleaners } = await supabase
-    .from('cleaners')
+    .from('pros')
     .select('average_rating, services', { count: 'exact' })
     .in('approval_status', ['approved', 'pending'])
     .overlaps('service_areas', city.zipCodes);
@@ -106,7 +106,7 @@ export default async function CityPage({ params }: CityPageProps) {
   // Get cleaner data for this city
   const supabase = await createClient();
   const { count, data: cleaners } = await supabase
-    .from('cleaners')
+    .from('pros')
     .select(
       `
       id,
