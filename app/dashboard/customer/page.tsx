@@ -14,21 +14,25 @@ import Link from 'next/link';
 
 interface QuoteRequest {
   id: string;
-  cleaner_id: string;
+  cleaner_id: string | null;
   service_type: string;
-  service_date: string;
-  service_time: string;
+  // DLD-502: service_date/service_time/status are nullable in the DB.
+  // Pending marketplace quotes have no claimed pro and no scheduled time
+  // until a pro responds. The previous non-null types caused runtime
+  // crashes in formatTime/formatDate.
+  service_date: string | null;
+  service_time: string | null;
   address: string;
   city: string;
   zip_code: string;
-  description: string;
-  status: 'pending' | 'responded' | 'accepted' | 'completed' | 'cancelled';
-  quoted_price?: number;
-  response_message?: string;
+  description: string | null;
+  status: 'pending' | 'responded' | 'accepted' | 'completed' | 'cancelled' | null;
+  quoted_price?: number | null;
+  response_message?: string | null;
   created_at: string;
   cleaner: {
     business_name: string;
-    business_phone: string;
+    business_phone: string | null;
   } | null;
 }
 
@@ -197,7 +201,7 @@ export default function CustomerDashboard() {
     .filter(c => !c.redeemed && new Date(c.expires_at) > new Date())
     .reduce((sum, c) => sum + c.amount_cents, 0);
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: string | null | undefined) => {
     switch (status) {
       case 'pending': return 'text-yellow-600 bg-yellow-100';
       case 'responded': return 'text-blue-600 bg-blue-100';
@@ -208,7 +212,7 @@ export default function CustomerDashboard() {
     }
   };
 
-  const getStatusIcon = (status: string) => {
+  const getStatusIcon = (status: string | null | undefined) => {
     switch (status) {
       case 'pending': return <Clock className="h-5 w-5" />;
       case 'responded': return <MessageSquare className="h-5 w-5" />;
@@ -219,7 +223,18 @@ export default function CustomerDashboard() {
     }
   };
 
-  const formatDate = (dateString: string) => {
+  // DLD-502: quote_requests.status is nullable. Default to 'Pending' for
+  // legacy rows without a status. Prevents .charAt() crash on the badge.
+  const formatStatusLabel = (status: string | null | undefined) => {
+    if (!status) return 'Pending';
+    return status.charAt(0).toUpperCase() + status.slice(1);
+  };
+
+  const formatDate = (dateString: string | null | undefined) => {
+    // DLD-502: quote_requests.service_date is nullable for pending marketplace
+    // quotes (pro hasn't responded with a date yet). new Date(null) yields
+    // "Invalid Date" not a crash, but guard explicitly for clarity.
+    if (!dateString) return 'TBD';
     return new Date(dateString).toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
@@ -227,7 +242,11 @@ export default function CustomerDashboard() {
     });
   };
 
-  const formatTime = (timeString: string) => {
+  const formatTime = (timeString: string | null | undefined) => {
+    // DLD-502: quote_requests.service_time is nullable for pending marketplace
+    // quotes. The previous unguarded `.split(':')` threw on null and crashed
+    // the entire Overview render, taking out the dashboard.
+    if (!timeString) return 'TBD';
     const [hours, minutes] = timeString.split(':');
     const hour = parseInt(hours);
     const ampm = hour >= 12 ? 'PM' : 'AM';
@@ -305,7 +324,7 @@ export default function CustomerDashboard() {
                 <div>
                   <p className="text-sm text-gray-600">Active</p>
                   <p className="text-2xl font-bold text-green-600">
-                    {quotes.filter(q => ['responded', 'accepted'].includes(q.status)).length}
+                    {quotes.filter(q => q.status === 'responded' || q.status === 'accepted').length}
                   </p>
                 </div>
                 <CheckCircle className="h-8 w-8 text-green-600" />
@@ -423,7 +442,7 @@ export default function CustomerDashboard() {
                                 </h3>
                                 <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm ${getStatusColor(quote.status)}`}>
                                   {getStatusIcon(quote.status)}
-                                  {quote.status.charAt(0).toUpperCase() + quote.status.slice(1)}
+                                  {formatStatusLabel(quote.status)}
                                 </span>
                               </div>
                               
@@ -489,9 +508,9 @@ export default function CustomerDashboard() {
                                     <p className="font-medium">Contact:</p>
                                     <p>{quote.cleaner?.business_phone || 'N/A'}</p>
                                   </div>
-                                  {!confirmedQuotes.has(quote.id) ? (
+                                  {!confirmedQuotes.has(quote.id) && quote.cleaner_id ? (
                                     <button
-                                      onClick={() => handleConfirmHire(quote.id, quote.cleaner_id)}
+                                      onClick={() => handleConfirmHire(quote.id, quote.cleaner_id!)}
                                       disabled={confirmingHire === quote.id}
                                       className="flex items-center gap-1 bg-emerald-600 text-white px-3 py-1.5 rounded-md hover:bg-emerald-700 disabled:bg-emerald-400 transition duration-300 text-xs font-medium"
                                     >
