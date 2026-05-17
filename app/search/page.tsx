@@ -18,6 +18,7 @@ import type {
 } from '@/components/search/SearchFilters';
 import type { ProviderCardProps } from '@/components/search/ProviderCard';
 import { useSearchHistory } from '@/lib/hooks/useSearchHistory';
+import { useServiceCategories } from '@/lib/hooks/useServiceCategories';
 import { haversineDistance, type ZipCoordinates } from '@/lib/utils/distance';
 import { createLogger } from '@/lib/utils/logger';
 
@@ -59,6 +60,7 @@ export default function SearchPage() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [page, setPage] = useState(1);
   const { recentSearches, addSearch, removeSearch, clearHistory } = useSearchHistory();
+  const { categories: serviceCategories } = useServiceCategories();
 
   // Parse URL params for initial filter state
   const initialFilters = useMemo((): SearchFiltersState => ({
@@ -272,7 +274,11 @@ export default function SearchPage() {
       // Save to recent searches
       if (!append && (filters.selectedZip || filters.location || filters.selectedService)) {
         const parts: string[] = [];
-        if (filters.selectedService) parts.push(filters.selectedService);
+        if (filters.selectedService) {
+          // selectedService is a category slug (DLD-458) — render as display name.
+          const match = serviceCategories.find((c) => c.slug === filters.selectedService);
+          parts.push(match?.display_name ?? filters.selectedService);
+        }
         if (filters.location) parts.push(`in ${filters.location}`);
         else if (filters.selectedZip) parts.push(`near ${filters.selectedZip}`);
         const label = parts.join(' ') || 'Search';
@@ -291,7 +297,7 @@ export default function SearchPage() {
       setLoading(false);
       setLoadingMore(false);
     }
-  }, [filters, supabase, addSearch]);
+  }, [filters, supabase, addSearch, serviceCategories]);
 
   // Initial load and filter changes
   useEffect(() => {

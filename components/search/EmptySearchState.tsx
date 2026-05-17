@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { MapPin, Sparkles, ArrowRight, Mail, CheckCircle2 } from 'lucide-react';
+import { useServiceCategories } from '@/lib/hooks/useServiceCategories';
 
 interface EmptySearchStateProps {
   searchLocation?: string;
@@ -13,6 +14,12 @@ export function EmptySearchState({ searchLocation, searchService }: EmptySearchS
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const { categories } = useServiceCategories();
+
+  // searchService is now a slug (DLD-458) — resolve to display name for UI copy.
+  const serviceLabel = searchService
+    ? categories.find((c) => c.slug === searchService)?.display_name ?? searchService
+    : '';
 
   const handleNotifyMe = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,12 +49,12 @@ export function EmptySearchState({ searchLocation, searchService }: EmptySearchS
     }
   };
 
-  const contextMessage = searchLocation && searchService
-    ? `for ${searchService} in ${searchLocation}`
+  const contextMessage = searchLocation && serviceLabel
+    ? `for ${serviceLabel} in ${searchLocation}`
     : searchLocation
       ? `in ${searchLocation}`
-      : searchService
-        ? `for ${searchService}`
+      : serviceLabel
+        ? `for ${serviceLabel}`
         : 'in your area';
 
   return (
