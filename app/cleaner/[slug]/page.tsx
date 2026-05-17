@@ -35,7 +35,7 @@ interface CleanerProfile {
   insurance_verified: boolean;
   license_verified: boolean;
   background_check: boolean;
-  is_certified: boolean;
+  is_certified?: boolean;
   instant_booking: boolean;
   subscription_tier: string;
   profile_image_url: string;
@@ -85,7 +85,6 @@ const PUBLIC_PROFILE_COLUMNS = `
   insurance_verified,
   license_verified,
   background_check,
-  is_certified,
   instant_booking,
   subscription_tier,
   profile_image_url,
