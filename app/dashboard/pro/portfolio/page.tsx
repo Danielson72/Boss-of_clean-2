@@ -38,7 +38,7 @@ export default function CleanerPortfolioPage() {
     try {
       // Get cleaner ID
       const { data: cleaner, error: cleanerError } = await supabase
-        .from('cleaners')
+        .from('pros')
         .select('id')
         .eq('user_id', user.id)
         .single();

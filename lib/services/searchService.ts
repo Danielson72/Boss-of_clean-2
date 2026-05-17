@@ -96,7 +96,7 @@ export class SearchService {
 
     // First, get the total count
     let countQuery = this.supabase
-      .from('cleaners')
+      .from('pros')
       .select('*', { count: 'exact', head: true })
       .eq('approval_status', 'approved');
 
@@ -131,7 +131,7 @@ export class SearchService {
 
     // Now get the actual data
     let query = this.supabase
-      .from('cleaners')
+      .from('pros')
       .select(`
         *,
         users!inner(full_name, phone, email, city, state, zip_code)
@@ -284,7 +284,7 @@ export class SearchService {
 
   async getCleanerById(id: string): Promise<Cleaner | null> {
     const { data, error } = await this.supabase
-      .from('cleaners')
+      .from('pros')
       .select(`
         *,
         users!inner(full_name, phone, email)
@@ -310,7 +310,7 @@ export class SearchService {
 
   async getFeaturedCleaners(limit: number = 6): Promise<Cleaner[]> {
     const { data, error } = await this.supabase
-      .from('cleaners')
+      .from('pros')
       .select(`
         *,
         users!inner(full_name, phone, email)
@@ -348,7 +348,7 @@ export class SearchService {
   // Get verified cleaners in a specific ZIP code (33801 - Lakeland, FL)
   async getVerifiedCleanersInZip33801(): Promise<Cleaner[]> {
     const { data, error } = await this.supabase
-      .from('cleaners')
+      .from('pros')
       .select(`
         *,
         users!inner(full_name, phone, email, city, zip_code),
@@ -374,7 +374,7 @@ export class SearchService {
   // Generic function to get verified cleaners in any ZIP code
   async getVerifiedCleanersInZipCode(zipCode: string): Promise<Cleaner[]> {
     const { data, error } = await this.supabase
-      .from('cleaners')
+      .from('pros')
       .select(`
         *,
         users!inner(full_name, phone, email, city, zip_code),

@@ -84,7 +84,7 @@ export default async function ProfessionalsPage({
   const supabase = await createClient();
 
   let query = supabase
-    .from('cleaners')
+    .from('pros')
     .select(
       `
       id, business_name, business_slug, business_description,

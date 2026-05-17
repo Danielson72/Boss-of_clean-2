@@ -168,7 +168,7 @@ export function AuthForm({ mode, role = 'customer' }: AuthFormProps) {
           if (role === 'cleaner') {
             // Wait a moment for trigger to complete, then update with full details
             const { data: cleanerData } = await supabase
-              .from('cleaners')
+              .from('pros')
               .select('id')
               .eq('user_id', authData.user.id)
               .single()
@@ -176,7 +176,7 @@ export function AuthForm({ mode, role = 'customer' }: AuthFormProps) {
             if (cleanerData) {
               // Update with business details from the signup form
               await supabase
-                .from('cleaners')
+                .from('pros')
                 .update({
                   business_name: businessName || fullName || email.split('@')[0],
                 })
@@ -205,7 +205,7 @@ export function AuthForm({ mode, role = 'customer' }: AuthFormProps) {
             } else {
               // Fallback: trigger may not have fired yet, create cleaner profile directly
               const { data: newCleaner, error: cleanerError } = await supabase
-                .from('cleaners')
+                .from('pros')
                 .insert({
                   user_id: authData.user.id,
                   business_name: businessName || fullName || email.split('@')[0],

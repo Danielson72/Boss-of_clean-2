@@ -72,7 +72,7 @@ export default function SelectRolePage() {
       // If cleaner role, create cleaner profile entry
       if (selectedRole === 'cleaner') {
         const { error: cleanerError } = await supabase
-          .from('cleaners')
+          .from('pros')
           .insert({
             user_id: user.id,
             business_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'My Cleaning Business',

@@ -32,7 +32,7 @@ export async function GET(
       customer_id,
       cleaner_id,
       customer:users!conversations_customer_id_fkey(id, full_name, email),
-      cleaner:cleaners!conversations_cleaner_id_fkey(id, business_name, user_id)
+      cleaner:pros!conversations_cleaner_id_fkey(id, business_name, user_id)
     `)
     .eq('id', conversationId)
     .single();
@@ -57,7 +57,7 @@ export async function GET(
 
   if (!isCustomer) {
     const { data: cleanerData } = await supabase
-      .from('cleaners')
+      .from('pros')
       .select('id')
       .eq('user_id', user.id)
       .single();
@@ -135,7 +135,7 @@ export async function POST(
 
   if (!isCustomer) {
     const { data: cleanerData } = await supabase
-      .from('cleaners')
+      .from('pros')
       .select('id')
       .eq('user_id', user.id)
       .single();

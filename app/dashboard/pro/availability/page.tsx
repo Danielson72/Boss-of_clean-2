@@ -61,7 +61,7 @@ export default function AvailabilityPage() {
     try {
       // Get cleaner ID and instant_booking setting
       const { data: cleaner, error: cleanerError } = await supabase
-        .from('cleaners')
+        .from('pros')
         .select('id, instant_booking')
         .eq('user_id', user.id)
         .single();
@@ -114,7 +114,7 @@ export default function AvailabilityPage() {
     try {
       // Update instant_booking on cleaners table
       const { error: cleanerError } = await supabase
-        .from('cleaners')
+        .from('pros')
         .update({ instant_booking: instantBooking, updated_at: new Date().toISOString() })
         .eq('id', cleanerId);
 

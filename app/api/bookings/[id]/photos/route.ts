@@ -24,7 +24,7 @@ export async function POST(
 
     // Verify cleaner owns this booking
     const { data: cleaner } = await supabase
-      .from('cleaners')
+      .from('pros')
       .select('id')
       .eq('user_id', user.id)
       .single();

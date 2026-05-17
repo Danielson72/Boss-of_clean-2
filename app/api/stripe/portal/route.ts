@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
 
     // Get user's cleaner profile to verify they have a subscription
     const { data: cleaner } = await supabase
-      .from('cleaners')
+      .from('pros')
       .select('subscription_tier')
       .eq('user_id', user.id)
       .single()

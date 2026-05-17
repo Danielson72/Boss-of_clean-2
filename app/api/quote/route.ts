@@ -139,7 +139,7 @@ export async function POST(request: NextRequest) {
 
     // First, fetch cleaner details including subscription_tier
     const { data: cleaner, error: cleanerError } = await supabase
-      .from('cleaners')
+      .from('pros')
       .select('id, business_name, subscription_tier')
       .eq('id', body.cleaner_id)
       .single();
@@ -258,7 +258,7 @@ export async function POST(request: NextRequest) {
 
     // Fetch cleaner's phone and user_id for SMS
     const { data: cleanerSms } = await supabase
-      .from('cleaners')
+      .from('pros')
       .select('business_phone, user_id')
       .eq('id', body.cleaner_id)
       .single();

@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
 
     // Get cleaner profile
     const { data: cleaner, error: cleanerError } = await supabase
-      .from('cleaners')
+      .from('pros')
       .select('id, stripe_subscription_id, subscription_tier')
       .eq('user_id', user.id)
       .single();

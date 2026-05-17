@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
 
   // Check if user is a participant (as customer or via cleaner record)
   const { data: cleanerRecord } = await supabase
-    .from('cleaners')
+    .from('pros')
     .select('id')
     .eq('user_id', user.id)
     .maybeSingle();

@@ -42,7 +42,7 @@ export default function NewReviewPage() {
         .select(`
           id,
           booking_date,
-          cleaner:cleaners(id, business_name)
+          cleaner:pros(id, business_name)
         `)
         .eq('customer_id', user.id)
         .eq('status', 'completed')
