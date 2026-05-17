@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { SlidersHorizontal, X, ChevronDown } from 'lucide-react';
-import { SERVICE_TYPES } from '@/lib/data/service-types';
+import { useServiceCategories } from '@/lib/hooks/useServiceCategories';
 
 export type AvailabilityFilter = 'any' | 'today' | 'this_week' | 'next_week';
 export type SortByOption = 'relevance' | 'newest' | 'name_az';
@@ -52,6 +52,7 @@ export function SearchFilters({
   isLoading,
 }: SearchFiltersProps) {
   const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const { categories, loading: categoriesLoading } = useServiceCategories();
 
   const updateFilter = <K extends keyof SearchFiltersState>(
     key: K,
@@ -95,12 +96,13 @@ export function SearchFilters({
             id="filter-service"
             value={filters.selectedService}
             onChange={(e) => updateFilter('selectedService', e.target.value)}
-            className="w-full px-4 py-3 bg-brand-cream border border-gray-200 rounded-xl text-brand-dark text-sm appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-brand-gold/50 transition-shadow"
+            disabled={categoriesLoading}
+            className="w-full px-4 py-3 bg-brand-cream border border-gray-200 rounded-xl text-brand-dark text-sm appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-brand-gold/50 transition-shadow disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <option value="">All Services</option>
-            {SERVICE_TYPES.map((st) => (
-              <option key={st.slug} value={st.shortName}>
-                {st.shortName}
+            <option value="">{categoriesLoading ? 'Loading services…' : 'All Services'}</option>
+            {categories.map((c) => (
+              <option key={c.slug} value={c.slug}>
+                {c.display_name}
               </option>
             ))}
           </select>

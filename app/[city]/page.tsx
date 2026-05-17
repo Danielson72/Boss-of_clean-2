@@ -221,7 +221,7 @@ export default async function CityPage({ params }: CityPageProps) {
                     href={`/search?location=${encodeURIComponent(city.name)}`}
                     className="inline-flex items-center gap-2 bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-blue-50 transition"
                   >
-                    Find Cleaners in {city.name}
+                    Find Pros in {city.name}
                     <ArrowRight className="h-5 w-5" />
                   </Link>
                   <Link

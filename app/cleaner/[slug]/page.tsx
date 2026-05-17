@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import Image from 'next/image';
 import {
-  Star, MapPin, Phone, Mail, Globe, Clock, Shield, Award,
+  Star, MapPin, Mail, Globe, Clock, Shield, Award,
   BadgeCheck, CheckCircle2, DollarSign, Users, Calendar,
   MessageSquare, ArrowLeft, Camera
 } from 'lucide-react';
@@ -14,12 +14,12 @@ import type { BusinessHours } from '@/lib/types/database';
 import { getCleanerBadges } from '@/lib/services/badges';
 import { BadgeDisplay, BadgeList } from '@/components/badges/BadgeDisplay';
 
+// NOTE: business_phone intentionally omitted — PII gated behind lead acceptance (DLD-457).
 interface CleanerProfile {
   id: string;
   business_name: string;
   business_slug: string;
   business_description: string;
-  business_phone: string;
   business_email: string;
   website_url: string;
   services: string[];
@@ -64,36 +64,60 @@ interface Review {
   value_rating: number | null;
 }
 
+// Explicit allowlist excluding business_phone (PII — gated by lead acceptance, DLD-457).
+const PUBLIC_PROFILE_COLUMNS = `
+  id,
+  business_name,
+  business_slug,
+  business_description,
+  business_email,
+  website_url,
+  services,
+  service_areas,
+  hourly_rate,
+  minimum_hours,
+  years_experience,
+  employees_count,
+  average_rating,
+  total_reviews,
+  total_jobs,
+  response_time_hours,
+  insurance_verified,
+  license_verified,
+  background_check,
+  is_certified,
+  instant_booking,
+  subscription_tier,
+  profile_image_url,
+  business_images,
+  business_hours,
+  created_at,
+  users(full_name, city, state, zip_code)
+`;
+
 async function getCleanerBySlug(slug: string): Promise<CleanerProfile | null> {
   const supabase = await createClient();
 
   const { data, error } = await supabase
     .from('cleaners')
-    .select(`
-      *,
-      users(full_name, city, state, zip_code)
-    `)
+    .select(PUBLIC_PROFILE_COLUMNS)
     .eq('business_slug', slug)
     .eq('approval_status', 'approved')
     .single();
 
   if (error || !data) {
-    // Try by ID as fallback
     const { data: dataById, error: errorById } = await supabase
       .from('cleaners')
-      .select(`
-        *,
-        users(full_name, city, state, zip_code)
-      `)
+      .select(PUBLIC_PROFILE_COLUMNS)
       .eq('id', slug)
       .eq('approval_status', 'approved')
       .single();
 
     if (errorById || !dataById) return null;
-    return dataById;
+    return dataById as unknown as CleanerProfile;
   }
 
-  return data;
+  return data as unknown as CleanerProfile;
 }
 
 async function getCleanerReviews(cleanerId: string): Promise<Review[]> {
@@ -310,16 +334,6 @@ export default async function CleanerProfilePage({ params }: { params: Promise<{
                   Request Quote
                 </Link>
 
-                {cleaner.business_phone && (
-                  <a
-                    href={`tel:${cleaner.business_phone}`}
-                    className="w-full mt-3 border border-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-50 transition font-medium flex items-center justify-center gap-2"
-                  >
-                    <Phone className="h-5 w-5" />
-                    Call Now
-                  </a>
-                )}
-
                 <StartConversationButton
                   cleanerId={cleaner.id}
                   cleanerName={cleaner.business_name}
@@ -519,15 +533,6 @@ export default async function CleanerProfilePage({ params }: { params: Promise<{
             <div className="bg-white rounded-xl shadow-sm p-6">
               <h3 className="font-semibold text-gray-900 mb-4">Contact Information</h3>
               <div className="space-y-3">
-                {cleaner.business_phone && (
-                  <a
-                    href={`tel:${cleaner.business_phone}`}
-                    className="flex items-center gap-3 text-gray-600 hover:text-blue-600"
-                  >
-                    <Phone className="h-5 w-5" />
-                    <span>{cleaner.business_phone}</span>
-                  </a>
-                )}
                 {cleaner.business_email && (
                   <a
                     href={`mailto:${cleaner.business_email}`}

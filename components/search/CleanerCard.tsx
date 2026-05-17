@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import {
   Star, DollarSign, Award, Shield, BadgeCheck,
-  CheckCircle2, MessageSquare, Phone, User, MapPin
+  CheckCircle2, MessageSquare, User, MapPin
 } from 'lucide-react';
 import { getCleanerBadges, type EarnedBadge } from '@/lib/services/badges';
 import { CompactBadgeDisplay } from '@/components/badges/BadgeDisplay';
@@ -29,7 +29,6 @@ export interface CleanerCardProps {
   backgroundCheckVerified?: boolean;
   isCertified?: boolean;
   instantBooking?: boolean;
-  businessPhone?: string;
   responseTimeHours?: number;
   distance?: number;
   onRequestQuote?: (cleanerId: string) => void;
@@ -55,7 +54,6 @@ export function CleanerCard({
   backgroundCheckVerified,
   isCertified,
   instantBooking,
-  businessPhone,
   responseTimeHours,
   distance,
   onRequestQuote
@@ -258,15 +256,6 @@ export function CleanerCard({
               <MessageSquare className="h-4 w-4" aria-hidden="true" />
               Request Quote
             </button>
-          )}
-          {businessPhone && (
-            <a
-              href={`tel:${businessPhone}`}
-              className="px-3 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-              aria-label={`Call ${businessName} at ${businessPhone}`}
-            >
-              <Phone className="h-4 w-4 text-gray-600" aria-hidden="true" />
-            </a>
           )}
           <Link
             href={profileUrl}
