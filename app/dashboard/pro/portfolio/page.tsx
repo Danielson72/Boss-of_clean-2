@@ -52,18 +52,36 @@ export default function CleanerPortfolioPage() {
 
       setCleanerId(cleaner.id);
 
-      // Get portfolio photos
+      // Get portfolio photos using REAL DB columns (pro_id, url)
+      // Shim to UI shape (cleaner_id, image_url, etc.) for component compatibility
       const { data: portfolioPhotos, error: photosError } = await supabase
         .from('portfolio_photos')
-        .select('*')
-        .eq('cleaner_id', cleaner.id)
+        .select('id, pro_id, url, caption, display_order, created_at')
+        .eq('pro_id', cleaner.id)
         .order('display_order', { ascending: true });
 
       if (photosError) {
         logger.error('Error loading portfolio photos', { function: 'loadPortfolio' }, photosError);
         setMessage({ type: 'error', text: 'Could not load portfolio photos' });
       } else {
-        setPhotos(portfolioPhotos || []);
+        type PortfolioRow = {
+          id: string;
+          pro_id: string;
+          url: string;
+          caption: string | null;
+          display_order: number | null;
+          created_at: string | null;
+        };
+        const dtos: PortfolioPhoto[] = ((portfolioPhotos || []) as PortfolioRow[]).map((row) => ({
+          id: row.id,
+          image_url: row.url,
+          thumbnail_url: undefined,
+          caption: row.caption || undefined,
+          pair_id: undefined,
+          photo_type: 'single' as const,
+          display_order: row.display_order ?? 0,
+        }));
+        setPhotos(dtos);
       }
     } catch (error) {
       logger.error('Error in loadPortfolio', { function: 'loadPortfolio' }, error);

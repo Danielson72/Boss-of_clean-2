@@ -6,20 +6,47 @@ const logger = createLogger({ file: 'api/cleaner/portfolio/route' });
 
 const MAX_PHOTOS = 20;
 
-interface PortfolioPhoto {
+// DB row shape (matches production schema)
+interface PortfolioPhotoRow {
+  id: string;
+  pro_id: string;
+  url: string;
+  caption: string | null;
+  display_order: number | null;
+  created_at: string | null;
+  updated_at: string | null;
+}
+
+// Client-facing shape (kept stable for existing UI components)
+interface PortfolioPhotoDTO {
   id: string;
   cleaner_id: string;
   image_url: string;
-  thumbnail_url?: string;
-  caption?: string;
-  pair_id?: string;
+  thumbnail_url: string | null;
+  caption: string | null;
+  pair_id: string | null;
   photo_type: 'single' | 'before' | 'after';
   display_order: number;
-  created_at: string;
+  created_at: string | null;
+}
+
+// Translate DB row → client DTO (the shim)
+function toDTO(row: PortfolioPhotoRow): PortfolioPhotoDTO {
+  return {
+    id: row.id,
+    cleaner_id: row.pro_id,
+    image_url: row.url,
+    thumbnail_url: null,
+    caption: row.caption,
+    pair_id: null,
+    photo_type: 'single',
+    display_order: row.display_order ?? 0,
+    created_at: row.created_at,
+  };
 }
 
 // GET - Fetch portfolio photos for the authenticated cleaner
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const supabase = await createClient();
 
@@ -28,13 +55,10 @@ export async function GET(request: NextRequest) {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
 
-    // Get cleaner profile
+    // Get pro profile (the pros.id is the pro_id used in portfolio_photos)
     const { data: cleaner, error: cleanerError } = await supabase
       .from('pros')
       .select('id')
@@ -42,38 +66,31 @@ export async function GET(request: NextRequest) {
       .single();
 
     if (cleanerError || !cleaner) {
-      return NextResponse.json(
-        { error: 'Cleaner profile not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Cleaner profile not found' }, { status: 404 });
     }
 
-    // Get portfolio photos
+    // Get portfolio photos using REAL DB columns
     const { data: photos, error: photosError } = await supabase
       .from('portfolio_photos')
-      .select('*')
-      .eq('cleaner_id', cleaner.id)
+      .select('id, pro_id, url, caption, display_order, created_at, updated_at')
+      .eq('pro_id', cleaner.id)
       .order('display_order', { ascending: true });
 
     if (photosError) {
       logger.error('Error fetching portfolio photos', { function: 'GET' }, photosError);
-      return NextResponse.json(
-        { error: 'Failed to fetch portfolio photos' },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: 'Failed to fetch portfolio photos' }, { status: 500 });
     }
 
+    const dtos = (photos as PortfolioPhotoRow[] | null)?.map(toDTO) ?? [];
+
     return NextResponse.json({
-      photos: photos || [],
+      photos: dtos,
       maxPhotos: MAX_PHOTOS,
-      remainingSlots: MAX_PHOTOS - (photos?.length || 0),
+      remainingSlots: MAX_PHOTOS - dtos.length,
     });
   } catch (error) {
     logger.error('Portfolio GET error', { function: 'GET' }, error);
-    return NextResponse.json(
-      { error: 'Failed to fetch portfolio' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch portfolio' }, { status: 500 });
   }
 }
 
@@ -87,13 +104,9 @@ export async function POST(request: NextRequest) {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
 
-    // Get cleaner profile
     const { data: cleaner, error: cleanerError } = await supabase
       .from('pros')
       .select('id')
@@ -101,29 +114,22 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (cleanerError || !cleaner) {
-      return NextResponse.json(
-        { error: 'Cleaner profile not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Cleaner profile not found' }, { status: 404 });
     }
 
-    // Get current photo count
+    // Count existing photos to enforce the cap
     const { count: currentCount } = await supabase
       .from('portfolio_photos')
-      .select('*', { count: 'exact', head: true })
-      .eq('cleaner_id', cleaner.id);
+      .select('id', { count: 'exact', head: true })
+      .eq('pro_id', cleaner.id);
 
     const body = await request.json();
     const { photos } = body as { photos: { image_url: string; caption?: string }[] };
 
     if (!photos || !Array.isArray(photos) || photos.length === 0) {
-      return NextResponse.json(
-        { error: 'No photos provided' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'No photos provided' }, { status: 400 });
     }
 
-    // Check limit
     const availableSlots = MAX_PHOTOS - (currentCount || 0);
     if (photos.length > availableSlots) {
       return NextResponse.json(
@@ -132,53 +138,50 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get max display order
+    // Find next display_order
     const { data: maxOrderData } = await supabase
       .from('portfolio_photos')
       .select('display_order')
-      .eq('cleaner_id', cleaner.id)
+      .eq('pro_id', cleaner.id)
       .order('display_order', { ascending: false })
       .limit(1)
-      .single();
+      .maybeSingle();
 
     let nextOrder = (maxOrderData?.display_order ?? -1) + 1;
 
-    // Insert photos
+    // Insert using REAL DB columns (url, pro_id)
     const photosToInsert = photos.map((photo) => ({
-      cleaner_id: cleaner.id,
-      image_url: photo.image_url,
+      pro_id: cleaner.id,
+      url: photo.image_url,
       caption: photo.caption || null,
-      photo_type: 'single' as const,
       display_order: nextOrder++,
     }));
 
     const { data: insertedPhotos, error: insertError } = await supabase
       .from('portfolio_photos')
       .insert(photosToInsert)
-      .select();
+      .select('id, pro_id, url, caption, display_order, created_at, updated_at');
 
     if (insertError) {
       logger.error('Error inserting portfolio photos', { function: 'POST' }, insertError);
-      return NextResponse.json(
-        { error: 'Failed to add photos' },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: 'Failed to add photos' }, { status: 500 });
     }
 
+    const dtos = (insertedPhotos as PortfolioPhotoRow[] | null)?.map(toDTO) ?? [];
+
     return NextResponse.json({
-      photos: insertedPhotos,
-      message: `${insertedPhotos.length} photo(s) added successfully`,
+      photos: dtos,
+      message: `${dtos.length} photo(s) added successfully`,
     });
   } catch (error) {
     logger.error('Portfolio POST error', { function: 'POST' }, error);
-    return NextResponse.json(
-      { error: 'Failed to add photos' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to add photos' }, { status: 500 });
   }
 }
 
-// PATCH - Update photo(s) - reorder, update caption, or create/remove pairs
+// PATCH - Update photo(s): reorder, caption, pair/unpair
+// Note: 'pair' and 'unpair' require DB columns that don't yet exist in production
+// (pair_id, photo_type). Those actions return 501 until DB migration runs.
 export async function PATCH(request: NextRequest) {
   try {
     const supabase = await createClient();
@@ -188,13 +191,9 @@ export async function PATCH(request: NextRequest) {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
 
-    // Get cleaner profile
     const { data: cleaner, error: cleanerError } = await supabase
       .from('pros')
       .select('id')
@@ -202,38 +201,29 @@ export async function PATCH(request: NextRequest) {
       .single();
 
     if (cleanerError || !cleaner) {
-      return NextResponse.json(
-        { error: 'Cleaner profile not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Cleaner profile not found' }, { status: 404 });
     }
 
     const body = await request.json();
-    const { action, photoId, photos, caption, beforeId, afterId } = body as {
+    const { action, photoId, photos, caption } = body as {
       action: 'reorder' | 'caption' | 'pair' | 'unpair';
       photoId?: string;
       photos?: { id: string; display_order: number }[];
       caption?: string;
-      beforeId?: string;
-      afterId?: string;
     };
 
     switch (action) {
       case 'reorder': {
         if (!photos || !Array.isArray(photos)) {
-          return NextResponse.json(
-            { error: 'Photos array required for reorder' },
-            { status: 400 }
-          );
+          return NextResponse.json({ error: 'Photos array required for reorder' }, { status: 400 });
         }
 
-        // Update each photo's display_order
         for (const photo of photos) {
           const { error } = await supabase
             .from('portfolio_photos')
             .update({ display_order: photo.display_order })
             .eq('id', photo.id)
-            .eq('cleaner_id', cleaner.id);
+            .eq('pro_id', cleaner.id);
 
           if (error) {
             logger.error('Error reordering photo', { function: 'PATCH', photoId: photo.id }, error);
@@ -245,137 +235,43 @@ export async function PATCH(request: NextRequest) {
 
       case 'caption': {
         if (!photoId) {
-          return NextResponse.json(
-            { error: 'Photo ID required' },
-            { status: 400 }
-          );
+          return NextResponse.json({ error: 'Photo ID required' }, { status: 400 });
         }
 
         const { error } = await supabase
           .from('portfolio_photos')
           .update({ caption: caption || null })
           .eq('id', photoId)
-          .eq('cleaner_id', cleaner.id);
+          .eq('pro_id', cleaner.id);
 
         if (error) {
           logger.error('Error updating caption', { function: 'PATCH' }, error);
-          return NextResponse.json(
-            { error: 'Failed to update caption' },
-            { status: 500 }
-          );
+          return NextResponse.json({ error: 'Failed to update caption' }, { status: 500 });
         }
 
         return NextResponse.json({ message: 'Caption updated successfully' });
       }
 
-      case 'pair': {
-        if (!beforeId || !afterId) {
-          return NextResponse.json(
-            { error: 'Before and after photo IDs required' },
-            { status: 400 }
-          );
-        }
-
-        // Generate a new pair ID
-        const pairId = crypto.randomUUID();
-
-        // Update before photo
-        const { error: beforeError } = await supabase
-          .from('portfolio_photos')
-          .update({ pair_id: pairId, photo_type: 'before' })
-          .eq('id', beforeId)
-          .eq('cleaner_id', cleaner.id);
-
-        if (beforeError) {
-          logger.error('Error updating before photo', { function: 'PATCH' }, beforeError);
-          return NextResponse.json(
-            { error: 'Failed to create pair' },
-            { status: 500 }
-          );
-        }
-
-        // Update after photo
-        const { error: afterError } = await supabase
-          .from('portfolio_photos')
-          .update({ pair_id: pairId, photo_type: 'after' })
-          .eq('id', afterId)
-          .eq('cleaner_id', cleaner.id);
-
-        if (afterError) {
-          logger.error('Error updating after photo', { function: 'PATCH' }, afterError);
-          // Rollback before photo
-          await supabase
-            .from('portfolio_photos')
-            .update({ pair_id: null, photo_type: 'single' })
-            .eq('id', beforeId)
-            .eq('cleaner_id', cleaner.id);
-
-          return NextResponse.json(
-            { error: 'Failed to create pair' },
-            { status: 500 }
-          );
-        }
-
-        return NextResponse.json({ message: 'Before/After pair created successfully', pairId });
-      }
-
+      case 'pair':
       case 'unpair': {
-        if (!photoId) {
-          return NextResponse.json(
-            { error: 'Photo ID required' },
-            { status: 400 }
-          );
-        }
-
-        // Get the photo to find its pair_id
-        const { data: photo, error: fetchError } = await supabase
-          .from('portfolio_photos')
-          .select('pair_id')
-          .eq('id', photoId)
-          .eq('cleaner_id', cleaner.id)
-          .single();
-
-        if (fetchError || !photo?.pair_id) {
-          return NextResponse.json(
-            { error: 'Photo not found or not paired' },
-            { status: 404 }
-          );
-        }
-
-        // Unpair both photos
-        const { error } = await supabase
-          .from('portfolio_photos')
-          .update({ pair_id: null, photo_type: 'single' })
-          .eq('pair_id', photo.pair_id)
-          .eq('cleaner_id', cleaner.id);
-
-        if (error) {
-          logger.error('Error unpairing photos', { function: 'PATCH' }, error);
-          return NextResponse.json(
-            { error: 'Failed to unpair photos' },
-            { status: 500 }
-          );
-        }
-
-        return NextResponse.json({ message: 'Photos unpaired successfully' });
+        // DB schema does not yet support before/after pairing.
+        // Tracked for future migration. Return 501 so UI can degrade gracefully.
+        return NextResponse.json(
+          { error: 'Before/After pairing is not yet available' },
+          { status: 501 }
+        );
       }
 
       default:
-        return NextResponse.json(
-          { error: 'Invalid action' },
-          { status: 400 }
-        );
+        return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
     }
   } catch (error) {
     logger.error('Portfolio PATCH error', { function: 'PATCH' }, error);
-    return NextResponse.json(
-      { error: 'Failed to update photos' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to update photos' }, { status: 500 });
   }
 }
 
-// DELETE - Remove a portfolio photo
+// DELETE - Remove a portfolio photo (and its storage object)
 export async function DELETE(request: NextRequest) {
   try {
     const supabase = await createClient();
@@ -385,13 +281,9 @@ export async function DELETE(request: NextRequest) {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
 
-    // Get cleaner profile
     const { data: cleaner, error: cleanerError } = await supabase
       .from('pros')
       .select('id')
@@ -399,80 +291,54 @@ export async function DELETE(request: NextRequest) {
       .single();
 
     if (cleanerError || !cleaner) {
-      return NextResponse.json(
-        { error: 'Cleaner profile not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Cleaner profile not found' }, { status: 404 });
     }
 
     const { searchParams } = new URL(request.url);
     const photoId = searchParams.get('id');
 
     if (!photoId) {
-      return NextResponse.json(
-        { error: 'Photo ID required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Photo ID required' }, { status: 400 });
     }
 
-    // Get photo to check pair_id and get image_url for storage cleanup
+    // Fetch photo to get its storage URL before deleting the row
     const { data: photo, error: fetchError } = await supabase
       .from('portfolio_photos')
-      .select('*')
+      .select('id, url')
       .eq('id', photoId)
-      .eq('cleaner_id', cleaner.id)
+      .eq('pro_id', cleaner.id)
       .single();
 
     if (fetchError || !photo) {
-      return NextResponse.json(
-        { error: 'Photo not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Photo not found' }, { status: 404 });
     }
 
-    // If photo is part of a pair, unpair the other photo
-    if (photo.pair_id) {
-      await supabase
-        .from('portfolio_photos')
-        .update({ pair_id: null, photo_type: 'single' })
-        .eq('pair_id', photo.pair_id)
-        .neq('id', photoId)
-        .eq('cleaner_id', cleaner.id);
-    }
-
-    // Delete photo from database
+    // Delete DB row
     const { error: deleteError } = await supabase
       .from('portfolio_photos')
       .delete()
       .eq('id', photoId)
-      .eq('cleaner_id', cleaner.id);
+      .eq('pro_id', cleaner.id);
 
     if (deleteError) {
       logger.error('Error deleting portfolio photo', { function: 'DELETE' }, deleteError);
-      return NextResponse.json(
-        { error: 'Failed to delete photo' },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: 'Failed to delete photo' }, { status: 500 });
     }
 
-    // Try to delete from storage (extract path from URL)
+    // Best-effort storage cleanup (don't fail the request if this errors)
     try {
-      const url = new URL(photo.image_url);
-      const pathMatch = url.pathname.match(/\/portfolio-photos\/(.+)$/);
+      const fileUrl = new URL(photo.url);
+      const pathMatch = fileUrl.pathname.match(/\/portfolio-photos\/(.+)$/);
       if (pathMatch) {
         await supabase.storage.from('portfolio-photos').remove([pathMatch[1]]);
       }
     } catch (storageError) {
-      // Log but don't fail the request
       logger.warn('Could not delete file from storage', { function: 'DELETE' }, storageError);
     }
 
     return NextResponse.json({ message: 'Photo deleted successfully' });
   } catch (error) {
     logger.error('Portfolio DELETE error', { function: 'DELETE' }, error);
-    return NextResponse.json(
-      { error: 'Failed to delete photo' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to delete photo' }, { status: 500 });
   }
 }

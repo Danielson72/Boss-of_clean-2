@@ -136,13 +136,24 @@ async function getCleanerReviews(cleanerId: string): Promise<Review[]> {
 async function getCleanerPortfolio(cleanerId: string): Promise<PortfolioPhoto[]> {
   const supabase = await createClient();
 
+  // Query REAL DB columns (pro_id, url), shim to PortfolioPhoto shape for the UI
   const { data } = await supabase
     .from('portfolio_photos')
-    .select('id, image_url, thumbnail_url, caption, pair_id, photo_type, display_order')
-    .eq('cleaner_id', cleanerId)
+    .select('id, url, caption, display_order')
+    .eq('pro_id', cleanerId)
     .order('display_order', { ascending: true });
 
-  return (data || []) as PortfolioPhoto[];
+  return ((data || []) as Array<{ id: string; url: string; caption: string | null; display_order: number | null }>).map(
+    (row) => ({
+      id: row.id,
+      image_url: row.url,
+      thumbnail_url: undefined,
+      caption: row.caption || undefined,
+      pair_id: undefined,
+      photo_type: 'single' as const,
+      display_order: row.display_order ?? 0,
+    })
+  ) as PortfolioPhoto[];
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
