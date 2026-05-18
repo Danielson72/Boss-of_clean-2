@@ -7,17 +7,20 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 import { usePendingDocumentActions } from '@/lib/hooks/usePendingDocumentActions';
+import { useProSidebarCounts } from '@/lib/hooks/useProSidebarCounts';
 
 export default function ProDashboardLayout({ children }: { children: React.ReactNode }) {
   const { rejectedCount } = usePendingDocumentActions();
+  // DLD-507: unread badges on Messages, Notifications, and Leads.
+  const { unreadMessages, unreadNotifications, pendingLeads } = useProSidebarCounts();
 
   const proLinks: SidebarLink[] = [
     { href: '/dashboard/pro', label: 'Overview', icon: LayoutDashboard },
     { href: '/dashboard/pro/profile', label: 'My Profile', icon: User },
     { href: '/dashboard/pro/documents', label: 'Documents', icon: ShieldCheck, badge: rejectedCount },
-    { href: '/dashboard/pro/notifications', label: 'Notifications', icon: Bell },
-    { href: '/dashboard/messages', label: 'Messages', icon: MessageSquare },
-    { href: '/dashboard/pro/leads', label: 'Leads', icon: Inbox },
+    { href: '/dashboard/pro/notifications', label: 'Notifications', icon: Bell, badge: unreadNotifications },
+    { href: '/dashboard/messages', label: 'Messages', icon: MessageSquare, badge: unreadMessages },
+    { href: '/dashboard/pro/leads', label: 'Leads', icon: Inbox, badge: pendingLeads },
     { href: '/dashboard/pro/quote-requests', label: 'Quote Requests', icon: FileText },
     { href: '/dashboard/pro/bookings', label: 'Bookings', icon: Calendar },
     { href: '/dashboard/pro/earnings', label: 'Earnings', icon: DollarSign },
