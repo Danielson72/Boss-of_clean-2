@@ -53,11 +53,11 @@ export default function CleanerPortfolioPage() {
       setCleanerId(cleaner.id);
 
       // Get portfolio photos using REAL DB columns (pro_id, url)
-      // Shim to UI shape (cleaner_id, image_url, etc.) for component compatibility
+      // pro_id stores auth user id to match RLS policy pro_id = auth.uid()
       const { data: portfolioPhotos, error: photosError } = await supabase
         .from('portfolio_photos')
         .select('id, pro_id, url, caption, display_order, created_at')
-        .eq('pro_id', cleaner.id)
+        .eq('pro_id', user.id)
         .order('display_order', { ascending: true });
 
       if (photosError) {

@@ -58,7 +58,7 @@ export async function GET(_request: NextRequest) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
 
-    // Get pro profile (the pros.id is the pro_id used in portfolio_photos)
+    // Confirm pro profile exists (RLS uses auth.uid() directly via user.id)
     const { data: cleaner, error: cleanerError } = await supabase
       .from('pros')
       .select('id')
@@ -70,10 +70,11 @@ export async function GET(_request: NextRequest) {
     }
 
     // Get portfolio photos using REAL DB columns
+    // pro_id stores auth user id (matches RLS: pro_id = auth.uid())
     const { data: photos, error: photosError } = await supabase
       .from('portfolio_photos')
       .select('id, pro_id, url, caption, display_order, created_at, updated_at')
-      .eq('pro_id', cleaner.id)
+      .eq('pro_id', user.id)
       .order('display_order', { ascending: true });
 
     if (photosError) {
@@ -117,11 +118,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Cleaner profile not found' }, { status: 404 });
     }
 
-    // Count existing photos to enforce the cap
+    // Count existing photos to enforce the cap (RLS: pro_id = auth.uid())
     const { count: currentCount } = await supabase
       .from('portfolio_photos')
       .select('id', { count: 'exact', head: true })
-      .eq('pro_id', cleaner.id);
+      .eq('pro_id', user.id);
 
     const body = await request.json();
     const { photos } = body as { photos: { image_url: string; caption?: string }[] };
@@ -142,7 +143,7 @@ export async function POST(request: NextRequest) {
     const { data: maxOrderData } = await supabase
       .from('portfolio_photos')
       .select('display_order')
-      .eq('pro_id', cleaner.id)
+      .eq('pro_id', user.id)
       .order('display_order', { ascending: false })
       .limit(1)
       .maybeSingle();
@@ -150,8 +151,9 @@ export async function POST(request: NextRequest) {
     let nextOrder = (maxOrderData?.display_order ?? -1) + 1;
 
     // Insert using REAL DB columns (url, pro_id)
+    // pro_id stores auth user id to satisfy RLS policy pro_id = auth.uid()
     const photosToInsert = photos.map((photo) => ({
-      pro_id: cleaner.id,
+      pro_id: user.id,
       url: photo.image_url,
       caption: photo.caption || null,
       display_order: nextOrder++,
@@ -223,7 +225,7 @@ export async function PATCH(request: NextRequest) {
             .from('portfolio_photos')
             .update({ display_order: photo.display_order })
             .eq('id', photo.id)
-            .eq('pro_id', cleaner.id);
+            .eq('pro_id', user.id);
 
           if (error) {
             logger.error('Error reordering photo', { function: 'PATCH', photoId: photo.id }, error);
@@ -242,7 +244,7 @@ export async function PATCH(request: NextRequest) {
           .from('portfolio_photos')
           .update({ caption: caption || null })
           .eq('id', photoId)
-          .eq('pro_id', cleaner.id);
+          .eq('pro_id', user.id);
 
         if (error) {
           logger.error('Error updating caption', { function: 'PATCH' }, error);
@@ -306,7 +308,7 @@ export async function DELETE(request: NextRequest) {
       .from('portfolio_photos')
       .select('id, url')
       .eq('id', photoId)
-      .eq('pro_id', cleaner.id)
+      .eq('pro_id', user.id)
       .single();
 
     if (fetchError || !photo) {
@@ -318,7 +320,7 @@ export async function DELETE(request: NextRequest) {
       .from('portfolio_photos')
       .delete()
       .eq('id', photoId)
-      .eq('pro_id', cleaner.id);
+      .eq('pro_id', user.id);
 
     if (deleteError) {
       logger.error('Error deleting portfolio photo', { function: 'DELETE' }, deleteError);

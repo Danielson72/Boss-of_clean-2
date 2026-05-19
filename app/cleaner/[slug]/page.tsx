@@ -17,6 +17,7 @@ import { BadgeDisplay, BadgeList } from '@/components/badges/BadgeDisplay';
 // NOTE: business_phone intentionally omitted — PII gated behind lead acceptance (DLD-457).
 interface CleanerProfile {
   id: string;
+  user_id: string;
   business_name: string;
   business_slug: string;
   business_description: string;
@@ -67,6 +68,7 @@ interface Review {
 // Explicit allowlist excluding business_phone (PII — gated by lead acceptance, DLD-457).
 const PUBLIC_PROFILE_COLUMNS = `
   id,
+  user_id,
   business_name,
   business_slug,
   business_description,
@@ -133,14 +135,15 @@ async function getCleanerReviews(cleanerId: string): Promise<Review[]> {
   return data || [];
 }
 
-async function getCleanerPortfolio(cleanerId: string): Promise<PortfolioPhoto[]> {
+async function getCleanerPortfolio(proUserId: string): Promise<PortfolioPhoto[]> {
   const supabase = await createClient();
 
   // Query REAL DB columns (pro_id, url), shim to PortfolioPhoto shape for the UI
+  // pro_id stores auth user id to match RLS policy pro_id = auth.uid()
   const { data } = await supabase
     .from('portfolio_photos')
     .select('id, url, caption, display_order')
-    .eq('pro_id', cleanerId)
+    .eq('pro_id', proUserId)
     .order('display_order', { ascending: true });
 
   return ((data || []) as Array<{ id: string; url: string; caption: string | null; display_order: number | null }>).map(
@@ -184,7 +187,7 @@ export default async function CleanerProfilePage({ params }: { params: Promise<{
   }
 
   const reviews = await getCleanerReviews(cleaner.id);
-  const portfolioPhotos = await getCleanerPortfolio(cleaner.id);
+  const portfolioPhotos = await getCleanerPortfolio(cleaner.user_id);
 
   // Calculate badges based on cleaner metrics
   const earnedBadges = getCleanerBadges({
