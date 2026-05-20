@@ -15,7 +15,7 @@ HOW IT WORKS FOR PROS (CLEANERS / SERVICE PROVIDERS):
 1. Sign up and complete onboarding (business info, services, service areas, documents, photos)
 2. Subscribe to a plan to unlock leads in your area
 3. Respond to quote requests and grow your business
-4. Pricing: Basic $79/mo (5 leads), Pro $199/mo (15 leads), or $15/lead pay-as-you-go
+4. Pricing: Basic $79/mo (priority routing + member lead pricing), Pro $199/mo (first priority + best lead pricing), or pay-as-you-go per lead. Paid plans get matched to customers ahead of free listings and pay a lower per-lead cost — lead volume depends on customer demand in your area.
 
 SERVICES SUPPORTED (14 residential verticals):
 Residential Cleaning, Deep Cleaning, Move-In/Out Cleaning, Maid Service, STR/Airbnb Turnover Cleaning, Pressure Washing, Residential Window Cleaning, Residential Carpet Cleaning, Post-Construction Cleanup, Pool Cleaning, Landscaping, Mobile Car Detailing, Air Duct Cleaning, Handyman (coming soon)

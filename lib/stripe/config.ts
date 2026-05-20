@@ -61,10 +61,10 @@ export const PLAN_DETAILS: Record<SubscriptionTier, {
     leadCredits: 20,
     features: [
       'Premium business listing',
-      '20 lead credits/month',
-      'Additional leads $10 each',
+      'Priority routing — matched ahead of free listings',
+      'Member lead pricing (lower per-lead cost)',
       'Unlimited photos',
-      'Priority in search results',
+      'Priority placement in search results',
       'Business analytics',
       'Phone & email support'
     ]
@@ -76,7 +76,8 @@ export const PLAN_DETAILS: Record<SubscriptionTier, {
     leadCredits: -1,
     features: [
       'Featured business listing',
-      'Unlimited lead credits',
+      'First priority — matched before all other tiers',
+      'Best member lead pricing',
       'Unlimited photos & videos',
       'Top placement in search',
       'Advanced analytics & insights',

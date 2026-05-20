@@ -28,14 +28,16 @@ export interface CancelSubscriptionDialogProps {
 // Features that will be lost when downgrading to free
 const FEATURES_TO_LOSE: Record<string, string[]> = {
   basic: [
-    'Unlimited lead credits (reverts to 5/month)',
+    'Priority routing over free listings',
+    'Member lead pricing',
     'Priority search placement',
     'Up to 10 photos (reverts to 1)',
     'Business analytics',
     'Phone support',
   ],
   pro: [
-    'Unlimited lead credits (reverts to 5/month)',
+    'First priority over all tiers',
+    'Best member lead pricing',
     'Featured business listing',
     'Top search placement',
     'Unlimited photos & videos',

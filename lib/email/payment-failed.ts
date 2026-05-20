@@ -97,7 +97,7 @@ function generateFinalWarningHtml(data: FinalWarningEmailData): string {
     </p>
     <ul style="color: #6b7280; font-size: 14px; margin-bottom: 24px;">
       <li>Priority placement in search results</li>
-      <li>Unlimited lead credits</li>
+      <li>Priority routing &amp; member lead pricing</li>
       <li>Featured listing badge</li>
       <li>Advanced analytics</li>
     </ul>
@@ -126,7 +126,7 @@ function generateDowngradeHtml(data: DowngradeEmailData): string {
       <p style="margin: 0 0 12px 0; color: #374151; font-weight: 600;">Your Free plan includes:</p>
       <ul style="color: #6b7280; font-size: 14px; margin: 0; padding-left: 20px;">
         <li>Basic listing in search results</li>
-        <li>5 lead credits per month</li>
+        <li>Standard per-lead pricing</li>
         <li>1 portfolio photo</li>
       </ul>
     </div>
