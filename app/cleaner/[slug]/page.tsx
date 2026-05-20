@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import Image from 'next/image';
 import {
-  Star, MapPin, Mail, Globe, Clock, Shield, Award,
+  Star, MapPin, Clock, Shield, Award,
   BadgeCheck, CheckCircle2, DollarSign, Users, Calendar,
   MessageSquare, ArrowLeft, Camera
 } from 'lucide-react';
@@ -14,15 +14,14 @@ import type { BusinessHours } from '@/lib/types/database';
 import { getCleanerBadges } from '@/lib/services/badges';
 import { BadgeDisplay, BadgeList } from '@/components/badges/BadgeDisplay';
 
-// NOTE: business_phone intentionally omitted — PII gated behind lead acceptance (DLD-457).
+// NOTE: business_phone, business_email, website_url intentionally omitted —
+// PII gated behind lead acceptance / payment (DLD-457, v1.1 PII wall).
 interface CleanerProfile {
   id: string;
   user_id: string;
   business_name: string;
   business_slug: string;
   business_description: string;
-  business_email: string;
-  website_url: string;
   services: string[];
   service_areas: string[];
   hourly_rate: number;
@@ -65,15 +64,14 @@ interface Review {
   value_rating: number | null;
 }
 
-// Explicit allowlist excluding business_phone (PII — gated by lead acceptance, DLD-457).
+// Explicit allowlist. PII gated behind lead acceptance and NOT exposed publicly:
+// business_phone, business_email, website_url (DLD-457 / v1.1 PII wall).
 const PUBLIC_PROFILE_COLUMNS = `
   id,
   user_id,
   business_name,
   business_slug,
   business_description,
-  business_email,
-  website_url,
   services,
   service_areas,
   hourly_rate,
@@ -543,31 +541,10 @@ export default async function CleanerProfilePage({ params }: { params: Promise<{
             )}
 
             {/* Contact Info */}
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <h3 className="font-semibold text-gray-900 mb-4">Contact Information</h3>
-              <div className="space-y-3">
-                {cleaner.business_email && (
-                  <a
-                    href={`mailto:${cleaner.business_email}`}
-                    className="flex items-center gap-3 text-gray-600 hover:text-blue-600"
-                  >
-                    <Mail className="h-5 w-5" />
-                    <span className="truncate">{cleaner.business_email}</span>
-                  </a>
-                )}
-                {cleaner.website_url && (
-                  <a
-                    href={cleaner.website_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-3 text-gray-600 hover:text-blue-600"
-                  >
-                    <Globe className="h-5 w-5" />
-                    <span className="truncate">Visit Website</span>
-                  </a>
-                )}
-              </div>
-            </div>
+            {/* Contact Information intentionally NOT shown publicly.
+                Email, phone, and website are PII gated behind lead acceptance
+                / payment (v1.1 PII wall, DLD-457). Customers reach the pro via
+                the Request Quote / Send Message structured flow only. */}
 
             {/* Member Since */}
             <div className="bg-white rounded-xl shadow-sm p-6">
