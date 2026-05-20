@@ -68,7 +68,7 @@ export const defaultPlans: Plan[] = [
     description: 'Perfect for getting started',
     features: [
       { name: 'Basic business listing', included: true },
-      { name: '5 lead credits/month', included: true },
+      { name: 'Standard per-lead pricing', included: true },
       { name: '1 photo upload', included: true },
       { name: 'Email support', included: true },
       { name: 'Priority search placement', included: false },
@@ -86,7 +86,8 @@ export const defaultPlans: Plan[] = [
     popular: true,
     features: [
       { name: 'Premium business listing', included: true },
-      { name: 'Unlimited lead credits', included: true, highlight: true },
+      { name: 'Priority routing over free listings', included: true, highlight: true },
+      { name: 'Member lead pricing', included: true, highlight: true },
       { name: 'Up to 10 photos', included: true },
       { name: 'Phone & email support', included: true },
       { name: 'Priority search placement', included: true, highlight: true },
@@ -103,7 +104,8 @@ export const defaultPlans: Plan[] = [
     description: 'For established professionals',
     features: [
       { name: 'Featured business listing', included: true, highlight: true },
-      { name: 'Unlimited lead credits', included: true, highlight: true },
+      { name: 'First priority over all tiers', included: true, highlight: true },
+      { name: 'Best member lead pricing', included: true, highlight: true },
       { name: 'Unlimited photos & videos', included: true },
       { name: 'Priority support', included: true },
       { name: 'Top search placement', included: true, highlight: true },
