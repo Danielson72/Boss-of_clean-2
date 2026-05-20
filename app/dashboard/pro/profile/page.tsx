@@ -38,6 +38,7 @@ interface CleanerProfile {
   business_state?: string;
   business_zip?: string;
   business_images: string[];
+  profile_image_url?: string | null;
   // DLD-449
   primary_category?: string | null;
   secondary_categories?: string[];
@@ -141,6 +142,75 @@ export default function CleanerProfilePage() {
     });
   };
 
+  const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !profile || !user) return;
+
+    // profile-images bucket has a 2MB limit
+    const MAX_LOGO_SIZE = 2 * 1024 * 1024;
+    if (file.size > MAX_LOGO_SIZE) {
+      setMessage('Logo is too large. Maximum size is 2MB. Please choose a smaller image.');
+      return;
+    }
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      setMessage('Logo must be a JPEG, PNG, or WebP image.');
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      // Path MUST start with user.id to satisfy storage RLS:
+      // (storage.foldername(name))[1] = auth.uid()
+      const fileName = `${user.id}/logo-${Date.now()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('profile-images')
+        .upload(fileName, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('profile-images')
+        .getPublicUrl(fileName);
+
+      // Persist immediately so the logo shows on the public profile right away
+      const { error: updateError } = await supabase
+        .from('pros')
+        .update({ profile_image_url: publicUrl, updated_at: new Date().toISOString() })
+        .eq('user_id', user.id);
+
+      if (updateError) throw updateError;
+
+      setProfile({ ...profile, profile_image_url: publicUrl });
+      setMessage('Logo updated successfully!');
+    } catch (error) {
+      logger.error('Error uploading logo', { function: 'handleLogoUpload', error });
+      setMessage('Error uploading logo. Please try again.');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleLogoRemove = async () => {
+    if (!profile || !user) return;
+    setUploading(true);
+    try {
+      const { error } = await supabase
+        .from('pros')
+        .update({ profile_image_url: null, updated_at: new Date().toISOString() })
+        .eq('user_id', user.id);
+      if (error) throw error;
+      setProfile({ ...profile, profile_image_url: null });
+      setMessage('Logo removed.');
+    } catch (error) {
+      logger.error('Error removing logo', { function: 'handleLogoRemove', error });
+      setMessage('Error removing logo.');
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file || !profile || !user) return;
@@ -229,6 +299,7 @@ export default function CleanerProfilePage() {
           business_state: profile.business_state,
           business_zip: profile.business_zip,
           business_images: profile.business_images,
+          profile_image_url: profile.profile_image_url,
           updated_at: new Date().toISOString()
         })
         .eq('user_id', user?.id);
@@ -534,12 +605,71 @@ export default function CleanerProfilePage() {
               />
             </div>
 
+            {/* Business Logo / Profile Picture */}
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                <Camera className="h-5 w-5" />
+                Business Logo
+              </h2>
+              <p className="text-sm text-gray-600 mb-6">
+                This is the main image customers see at the top of your profile. Use your logo or a clear photo of your business.
+              </p>
+
+              <div className="flex items-center gap-6">
+                <div className="flex-shrink-0">
+                  {profile.profile_image_url ? (
+                    <Image
+                      src={profile.profile_image_url}
+                      alt="Business logo"
+                      width={128}
+                      height={128}
+                      className="w-32 h-32 rounded-xl object-cover border border-gray-200 shadow-sm"
+                    />
+                  ) : (
+                    <div className="w-32 h-32 rounded-xl bg-gray-100 border-2 border-dashed border-gray-300 flex flex-col items-center justify-center text-gray-400">
+                      <Camera className="h-8 w-8" />
+                      <span className="text-xs mt-1">No logo yet</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex flex-col gap-3">
+                  <label className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition cursor-pointer font-medium text-sm w-fit">
+                    <Upload className="h-4 w-4" />
+                    {uploading ? 'Uploading...' : profile.profile_image_url ? 'Replace Logo' : 'Upload Logo'}
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      onChange={handleLogoUpload}
+                      className="hidden"
+                      disabled={uploading}
+                    />
+                  </label>
+                  {profile.profile_image_url && (
+                    <button
+                      type="button"
+                      onClick={handleLogoRemove}
+                      disabled={uploading}
+                      className="inline-flex items-center gap-2 text-sm text-red-600 hover:text-red-700 w-fit"
+                    >
+                      <X className="h-4 w-4" />
+                      Remove logo
+                    </button>
+                  )}
+                  <p className="text-xs text-gray-500">JPEG, PNG, or WebP. Max 2MB. Square images look best.</p>
+                </div>
+              </div>
+            </div>
+
             {/* Photo Gallery */}
             <div className="bg-white rounded-lg shadow-sm p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-6 flex items-center gap-2">
+              <h2 className="text-lg font-semibold text-gray-900 mb-2 flex items-center gap-2">
                 <Camera className="h-5 w-5" />
                 Photo Gallery
               </h2>
+              <p className="text-sm text-gray-600 mb-6">
+                Show off your work. These photos appear in the gallery section of your public profile.
+              </p>
               
               <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
                 {profile.business_images.map((photo, index) => (
@@ -578,7 +708,7 @@ export default function CleanerProfilePage() {
               </div>
               
               <p className="text-sm text-gray-600">
-                Upload up to 10 high-quality photos of your work. First photo will be your main profile image.
+                Upload up to 10 high-quality photos of your work.
               </p>
             </div>
 
