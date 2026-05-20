@@ -64,16 +64,48 @@ export async function GET(request: NextRequest) {
   // because Supabase already exchanged it server-side), fall through and check
   // for an existing session instead of erroring out.
   if (code) {
-    const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
+    const { data: exchangeData, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
+
+    // [OAUTH-DIAG] temporary — remove after diagnosis
+    logger.info('[OAUTH-DIAG] code exchange attempt', {
+      function: 'GET',
+      hadCode: true,
+      exchangeSucceeded: !exchangeError,
+      exchangeErrorName: exchangeError?.name ?? null,
+      exchangeErrorStatus: (exchangeError as { status?: number } | null)?.status ?? null,
+      exchangeErrorMsg: exchangeError?.message ?? null,
+      sessionReturned: !!exchangeData?.session,
+      userFromExchange: exchangeData?.user?.email ?? null,
+    })
 
     if (exchangeError) {
       logger.error('OAuth code exchange error (may be already exchanged)', { function: 'GET' }, exchangeError)
     }
+  } else {
+    // [OAUTH-DIAG] temporary — remove after diagnosis
+    logger.info('[OAUTH-DIAG] callback hit with NO code param', {
+      function: 'GET',
+      hadCode: false,
+      allParams: Array.from(requestUrl.searchParams.keys()),
+    })
   }
 
   // Check for an active session — works whether code exchange just succeeded,
   // was already exchanged by Supabase, or user arrived with existing cookies.
   const { data: { user } } = await supabase.auth.getUser()
+
+  // [OAUTH-DIAG] temporary — remove after diagnosis. What cookies exist right now,
+  // and did getUser resolve a user? This tells us if the session landed.
+  logger.info('[OAUTH-DIAG] post-exchange state', {
+    function: 'GET',
+    getUserResolved: !!user,
+    getUserEmail: user?.email ?? null,
+    authCookieNames: cookieStore.getAll()
+      .map((c) => c.name)
+      .filter((n) => n.includes('auth') || n.includes('sb-')),
+    pendingCookieNames: pendingCookies.map((c) => c.name),
+    pendingCookieCount: pendingCookies.length,
+  })
 
   if (!user) {
     // No session at all — redirect to login
