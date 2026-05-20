@@ -425,10 +425,10 @@ export default function CustomerDashboard() {
                     <div className="space-y-4">
                       {quotes.map((quote) => (
                         <div key={quote.id} className="border rounded-lg p-6 hover:shadow-md transition duration-300">
-                          <div className="flex justify-between items-start">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-4 mb-3">
-                                <h3 className="text-lg font-semibold text-gray-900">
+                          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-3">
+                                <h3 className="text-lg font-semibold text-gray-900 break-words">
                                   {quote.cleaner?.business_name || 'Unknown Business'}
                                 </h3>
                                 <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm ${getStatusColor(quote.status)}`}>
@@ -478,12 +478,12 @@ export default function CustomerDashboard() {
                               )}
                             </div>
                             
-                            <div className="ml-4">
+                            <div className="flex-shrink-0 sm:ml-4">
                               {quote.status === 'responded' && (
                                 <button
                                   onClick={() => handleAcceptQuote(quote.id)}
                                   disabled={acceptingQuote === quote.id}
-                                  className="text-sm bg-brand-dark text-brand-cream px-4 py-2 rounded-md hover:bg-brand-navy disabled:opacity-50 transition duration-300 flex items-center gap-1.5 font-medium"
+                                  className="w-full sm:w-auto justify-center text-sm bg-brand-dark text-brand-cream px-4 py-2 rounded-md hover:bg-brand-navy disabled:opacity-50 transition duration-300 flex items-center gap-1.5 font-medium"
                                 >
                                   {acceptingQuote === quote.id ? (
                                     <Loader2 className="h-4 w-4 animate-spin" />
