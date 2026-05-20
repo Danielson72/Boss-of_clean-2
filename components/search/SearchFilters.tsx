@@ -111,6 +111,12 @@ export function SearchFilters({
       </div>
 
       {/* Distance/Radius */}
+      {/* DLD-506: always selectable. Previously `disabled={!filters.selectedZip}`
+          permanently grey-locked the dropdown because the ZIP field lives in
+          the SearchBar hero (separate component) and users didn't make the
+          connection. Distance-without-ZIP is a no-op in the search backend
+          (filtered out when distanceMap is empty), so leaving the dropdown
+          selectable is safe — the hint below clarifies what's needed. */}
       <div>
         <label htmlFor="filter-distance" className="block text-sm font-semibold text-brand-dark mb-2">
           Distance
@@ -120,8 +126,7 @@ export function SearchFilters({
             id="filter-distance"
             value={filters.distance}
             onChange={(e) => updateFilter('distance', e.target.value as DistanceOption)}
-            disabled={!filters.selectedZip}
-            className="w-full px-4 py-3 bg-brand-cream border border-gray-200 rounded-xl text-brand-dark text-sm appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-brand-gold/50 transition-shadow disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full px-4 py-3 bg-brand-cream border border-gray-200 rounded-xl text-brand-dark text-sm appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-brand-gold/50 transition-shadow"
           >
             {DISTANCE_OPTIONS.map((opt) => (
               <option key={opt.value} value={opt.value}>
@@ -131,8 +136,10 @@ export function SearchFilters({
           </select>
           <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
         </div>
-        {!filters.selectedZip && (
-          <p className="text-xs text-gray-400 mt-1">Enter a ZIP code to filter by distance</p>
+        {filters.distance && !filters.selectedZip && (
+          <p className="text-xs text-amber-600 mt-1">
+            Enter a ZIP code in the search bar above to apply distance filtering.
+          </p>
         )}
       </div>
 
