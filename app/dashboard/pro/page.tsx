@@ -183,27 +183,29 @@ export default function CleanerDashboard() {
 
   return (
     <ProtectedRoute requireRole="cleaner">
-      <div className="min-h-screen bg-gray-50">
-        {/* Header */}
-        <div className="bg-white shadow-sm border-b">
+      <div className="min-h-screen bg-brand-cream">
+        {/* Header — branded, mobile-responsive (DLD-519, matches customer template) */}
+        <div className="bg-brand-dark border-b border-brand-gold/20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center py-6">
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">
+            <div className="flex flex-col gap-4 py-5 sm:flex-row sm:items-center sm:justify-between sm:py-6">
+              <div className="min-w-0">
+                <h1 className="font-display text-2xl sm:text-3xl font-bold text-brand-cream truncate">
                   {profile?.business_name || 'Pro Dashboard'}
                 </h1>
+                <div className="mt-2 h-[3px] w-10 rounded-full bg-brand-gold" />
                 {profile?.approval_status === 'pending' && (
-                  <p className="text-sm text-yellow-600 mt-1">
+                  <p className="text-sm text-brand-gold mt-2">
                     Your profile is pending approval
                   </p>
                 )}
               </div>
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 sm:gap-3">
                 <Link
                   href="/dashboard/pro/profile"
-                  className="text-gray-600 hover:text-gray-900"
+                  className="flex items-center gap-2 px-2 py-2.5 text-brand-cream/80 transition hover:text-brand-cream"
                 >
-                  <Settings className="h-6 w-6" />
+                  <Settings className="h-5 w-5 text-brand-gold" />
+                  <span className="sm:hidden lg:inline">Settings</span>
                 </Link>
               </div>
             </div>
@@ -313,51 +315,51 @@ export default function CleanerDashboard() {
             </div>
           </div>
 
-          {/* Stats Overview */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <div className="bg-white rounded-lg shadow-sm p-6">
+          {/* Stats Overview — branded cards (DLD-519) */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div className="bg-white rounded-xl shadow-sm border border-brand-dark/5 border-t-[3px] border-t-brand-gold p-4 sm:p-6">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Total Quotes</p>
-                  <p className="text-2xl font-bold text-gray-900">{quotes.length}</p>
+                <div className="min-w-0">
+                  <p className="text-sm text-gray-500">Total Quotes</p>
+                  <p className="font-display text-2xl sm:text-3xl font-bold text-brand-dark">{quotes.length}</p>
                 </div>
-                <FileText className="h-8 w-8 text-blue-600" />
+                <FileText className="h-7 w-7 sm:h-8 sm:w-8 flex-shrink-0 text-brand-gold" />
               </div>
             </div>
-            
-            <div className="bg-white rounded-lg shadow-sm p-6">
+
+            <div className="bg-white rounded-xl shadow-sm border border-brand-dark/5 border-t-[3px] border-t-brand-navy p-4 sm:p-6">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Pending Quotes</p>
-                  <p className="text-2xl font-bold text-yellow-600">
+                <div className="min-w-0">
+                  <p className="text-sm text-gray-500">Pending Quotes</p>
+                  <p className="font-display text-2xl sm:text-3xl font-bold text-brand-navy">
                     {quotes.filter(q => q.status === 'pending').length}
                   </p>
                 </div>
-                <Clock className="h-8 w-8 text-yellow-600" />
+                <Clock className="h-7 w-7 sm:h-8 sm:w-8 flex-shrink-0 text-brand-navy" />
               </div>
             </div>
-            
-            <div className="bg-white rounded-lg shadow-sm p-6">
+
+            <div className="bg-white rounded-xl shadow-sm border border-brand-dark/5 border-t-[3px] border-t-brand-gold p-4 sm:p-6">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Average Rating</p>
-                  <p className="text-2xl font-bold text-green-600">
+                <div className="min-w-0">
+                  <p className="text-sm text-gray-500">Average Rating</p>
+                  <p className="font-display text-2xl sm:text-3xl font-bold text-brand-dark">
                     {profile?.average_rating.toFixed(1) || '0.0'}
                   </p>
                 </div>
-                <Star className="h-8 w-8 text-green-600" />
+                <Star className="h-7 w-7 sm:h-8 sm:w-8 flex-shrink-0 text-brand-gold" />
               </div>
             </div>
-            
-            <div className="bg-white rounded-lg shadow-sm p-6">
+
+            <div className="bg-white rounded-xl shadow-sm border border-brand-dark/5 border-t-[3px] border-t-brand-navy p-4 sm:p-6">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Total Jobs</p>
-                  <p className="text-2xl font-bold text-purple-600">
+                <div className="min-w-0">
+                  <p className="text-sm text-gray-500">Total Jobs</p>
+                  <p className="font-display text-2xl sm:text-3xl font-bold text-brand-navy">
                     {profile?.total_jobs || 0}
                   </p>
                 </div>
-                <TrendingUp className="h-8 w-8 text-purple-600" />
+                <TrendingUp className="h-7 w-7 sm:h-8 sm:w-8 flex-shrink-0 text-brand-gold" />
               </div>
             </div>
           </div>

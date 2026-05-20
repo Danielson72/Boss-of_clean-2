@@ -39,9 +39,9 @@ export function DashboardSidebar({ links }: DashboardSidebarProps) {
   const navContent = (
     <div className="flex flex-col h-full">
       {/* User info */}
-      <div className="p-4 border-b border-gray-200">
-        <p className="text-sm font-semibold text-gray-900 truncate">{userName}</p>
-        <p className="text-xs text-gray-500 truncate">{userEmail}</p>
+      <div className="p-4 border-b border-brand-gold/20">
+        <p className="text-sm font-semibold text-brand-cream truncate">{userName}</p>
+        <p className="text-xs text-brand-cream/60 truncate">{userEmail}</p>
       </div>
 
       {/* Nav links */}
@@ -56,8 +56,8 @@ export function DashboardSidebar({ links }: DashboardSidebarProps) {
               onClick={() => setMobileOpen(false)}
               className={`relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors mb-0.5 ${
                 active
-                  ? 'bg-brand-gold/10 text-brand-gold'
-                  : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                  ? 'bg-brand-gold/15 text-brand-gold'
+                  : 'text-brand-cream/80 hover:bg-white/5 hover:text-brand-cream'
               }`}
             >
               <Icon className="h-4 w-4 flex-shrink-0" />
@@ -73,10 +73,10 @@ export function DashboardSidebar({ links }: DashboardSidebarProps) {
       </nav>
 
       {/* Sign Out — plain <a> to server route, no client JS needed */}
-      <div className="p-2 border-t border-gray-200">
+      <div className="p-2 border-t border-brand-gold/20">
         <a
           href="/logout"
-          className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-red-50 hover:text-red-700 transition-colors"
+          className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-brand-cream/70 hover:bg-red-500/15 hover:text-red-300 transition-colors"
         >
           <LogOut className="h-4 w-4 flex-shrink-0" />
           Sign Out
@@ -109,16 +109,16 @@ export function DashboardSidebar({ links }: DashboardSidebarProps) {
 
       {/* Mobile sidebar */}
       <aside
-        className={`md:hidden fixed top-0 left-0 z-[55] h-full w-64 bg-white border-r border-gray-200 transform transition-transform duration-200 flex flex-col ${
+        className={`md:hidden fixed top-0 left-0 z-[55] h-full w-64 bg-brand-dark border-r border-brand-gold/20 transform transition-transform duration-200 flex flex-col ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         {/* Close button inside sidebar */}
-        <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200 flex-shrink-0">
-          <span className="text-sm font-semibold text-gray-900">Menu</span>
+        <div className="flex items-center justify-between h-16 px-4 border-b border-brand-gold/20 flex-shrink-0">
+          <span className="font-display text-sm font-semibold text-brand-cream">Menu</span>
           <button
             onClick={() => setMobileOpen(false)}
-            className="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors"
+            className="p-1.5 rounded-lg text-brand-cream/60 hover:bg-white/5 hover:text-brand-cream transition-colors"
             aria-label="Close sidebar"
           >
             <X className="h-5 w-5" />
@@ -130,7 +130,7 @@ export function DashboardSidebar({ links }: DashboardSidebarProps) {
       </aside>
 
       {/* Desktop sidebar */}
-      <aside className="hidden md:block w-64 flex-shrink-0 bg-white border-r border-gray-200 min-h-[calc(100vh-4rem)]">
+      <aside className="hidden md:block w-64 flex-shrink-0 bg-brand-dark border-r border-brand-gold/20 min-h-[calc(100vh-4rem)]">
         {navContent}
       </aside>
     </>
