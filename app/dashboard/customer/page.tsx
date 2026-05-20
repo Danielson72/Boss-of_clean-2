@@ -288,49 +288,49 @@ export default function CustomerDashboard() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Stats Overview */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            <div className="bg-white rounded-xl shadow-sm border border-brand-dark/5 border-t-[3px] border-t-brand-gold p-6">
+            <div className="bg-white rounded-xl shadow-sm border border-brand-dark/5 border-t-[3px] border-t-brand-gold p-4 sm:p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-500">Total Quotes</p>
-                  <p className="font-display text-3xl font-bold text-brand-dark">{quotes.length}</p>
+                  <p className="font-display text-2xl sm:text-3xl font-bold text-brand-dark">{quotes.length}</p>
                 </div>
-                <FileText className="h-8 w-8 text-brand-gold" />
+                <FileText className="h-7 w-7 sm:h-8 sm:w-8 flex-shrink-0 text-brand-gold" />
               </div>
             </div>
             
-            <div className="bg-white rounded-xl shadow-sm border border-brand-dark/5 border-t-[3px] border-t-brand-navy p-6">
+            <div className="bg-white rounded-xl shadow-sm border border-brand-dark/5 border-t-[3px] border-t-brand-navy p-4 sm:p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-500">Pending</p>
-                  <p className="font-display text-3xl font-bold text-brand-navy">
+                  <p className="font-display text-2xl sm:text-3xl font-bold text-brand-navy">
                     {quotes.filter(q => q.status === 'pending').length}
                   </p>
                 </div>
-                <Clock className="h-8 w-8 text-brand-navy" />
+                <Clock className="h-7 w-7 sm:h-8 sm:w-8 flex-shrink-0 text-brand-navy" />
               </div>
             </div>
             
-            <div className="bg-white rounded-xl shadow-sm border border-brand-dark/5 border-t-[3px] border-t-brand-gold p-6">
+            <div className="bg-white rounded-xl shadow-sm border border-brand-dark/5 border-t-[3px] border-t-brand-gold p-4 sm:p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-500">Active</p>
-                  <p className="font-display text-3xl font-bold text-brand-dark">
+                  <p className="font-display text-2xl sm:text-3xl font-bold text-brand-dark">
                     {quotes.filter(q => ['responded', 'accepted'].includes(q.status)).length}
                   </p>
                 </div>
-                <CheckCircle className="h-8 w-8 text-brand-gold" />
+                <CheckCircle className="h-7 w-7 sm:h-8 sm:w-8 flex-shrink-0 text-brand-gold" />
               </div>
             </div>
             
-            <div className="bg-white rounded-xl shadow-sm border border-brand-dark/5 border-t-[3px] border-t-brand-navy p-6">
+            <div className="bg-white rounded-xl shadow-sm border border-brand-dark/5 border-t-[3px] border-t-brand-navy p-4 sm:p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-500">Completed</p>
-                  <p className="font-display text-3xl font-bold text-brand-navy">
+                  <p className="font-display text-2xl sm:text-3xl font-bold text-brand-navy">
                     {quotes.filter(q => q.status === 'completed').length}
                   </p>
                 </div>
-                <Star className="h-8 w-8 text-brand-navy" />
+                <Star className="h-7 w-7 sm:h-8 sm:w-8 flex-shrink-0 text-brand-navy" />
               </div>
             </div>
 
