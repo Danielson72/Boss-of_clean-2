@@ -242,38 +242,43 @@ export default function CustomerDashboard() {
 
   return (
     <ProtectedRoute requireRole="customer">
-      <div className="min-h-screen bg-gray-50">
-        {/* Header */}
-        <div className="bg-white shadow-sm border-b">
+      <div className="min-h-screen bg-brand-cream">
+        {/* Header — branded, mobile-responsive */}
+        <div className="bg-brand-dark border-b border-brand-gold/20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center py-6">
-              <h1 className="text-2xl font-bold text-gray-900">Customer Dashboard</h1>
-              <div className="flex items-center gap-4">
+            <div className="flex flex-col gap-4 py-5 sm:flex-row sm:items-center sm:justify-between sm:py-6">
+              <div>
+                <h1 className="font-display text-2xl sm:text-3xl font-bold text-brand-cream">Customer Dashboard</h1>
+                <div className="mt-2 h-[3px] w-10 rounded-full bg-brand-gold" />
+              </div>
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                 <Link
-                  href="/dashboard/messages"
-                  className="flex items-center gap-2 text-gray-600 hover:text-gray-900 font-medium"
+                  href="/search"
+                  className="flex flex-1 sm:flex-none items-center justify-center gap-2 rounded-md bg-brand-gold px-4 py-2.5 font-medium text-brand-dark transition hover:bg-brand-gold-light"
                 >
-                  <MessageSquare className="h-5 w-5" />
-                  Messages
+                  <Home className="h-5 w-5" />
+                  Find Pros
                 </Link>
                 <Link
                   href="/quote-request"
-                  className="flex items-center gap-1 text-gray-600 hover:text-gray-900 font-medium"
+                  className="flex flex-1 sm:flex-none items-center justify-center gap-2 rounded-md border border-brand-cream/30 bg-white/5 px-4 py-2.5 font-medium text-brand-cream transition hover:bg-white/10"
                 >
                   <FileText className="h-5 w-5" />
                   Request Quote
                 </Link>
                 <Link
-                  href="/search"
-                  className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition duration-300"
+                  href="/dashboard/messages"
+                  className="flex items-center gap-2 px-2 py-2.5 font-medium text-brand-cream/80 transition hover:text-brand-cream"
                 >
-                  Find Pros
+                  <MessageSquare className="h-5 w-5 text-brand-gold" />
+                  <span className="sm:hidden lg:inline">Messages</span>
                 </Link>
                 <Link
                   href="/settings"
-                  className="text-gray-600 hover:text-gray-900"
+                  className="flex items-center gap-2 px-2 py-2.5 text-brand-cream/80 transition hover:text-brand-cream"
                 >
-                  <Settings className="h-6 w-6" />
+                  <Settings className="h-5 w-5 text-brand-gold" />
+                  <span className="sm:hidden lg:inline">Settings</span>
                 </Link>
               </div>
             </div>
@@ -283,49 +288,49 @@ export default function CustomerDashboard() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Stats Overview */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            <div className="bg-white rounded-lg shadow-sm p-6">
+            <div className="bg-white rounded-xl shadow-sm border border-brand-dark/5 border-t-[3px] border-t-brand-gold p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Total Quotes</p>
-                  <p className="text-2xl font-bold text-gray-900">{quotes.length}</p>
+                  <p className="text-sm text-gray-500">Total Quotes</p>
+                  <p className="font-display text-3xl font-bold text-brand-dark">{quotes.length}</p>
                 </div>
-                <FileText className="h-8 w-8 text-blue-600" />
+                <FileText className="h-8 w-8 text-brand-gold" />
               </div>
             </div>
             
-            <div className="bg-white rounded-lg shadow-sm p-6">
+            <div className="bg-white rounded-xl shadow-sm border border-brand-dark/5 border-t-[3px] border-t-brand-navy p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Pending</p>
-                  <p className="text-2xl font-bold text-yellow-600">
+                  <p className="text-sm text-gray-500">Pending</p>
+                  <p className="font-display text-3xl font-bold text-brand-navy">
                     {quotes.filter(q => q.status === 'pending').length}
                   </p>
                 </div>
-                <Clock className="h-8 w-8 text-yellow-600" />
+                <Clock className="h-8 w-8 text-brand-navy" />
               </div>
             </div>
             
-            <div className="bg-white rounded-lg shadow-sm p-6">
+            <div className="bg-white rounded-xl shadow-sm border border-brand-dark/5 border-t-[3px] border-t-brand-gold p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Active</p>
-                  <p className="text-2xl font-bold text-green-600">
+                  <p className="text-sm text-gray-500">Active</p>
+                  <p className="font-display text-3xl font-bold text-brand-dark">
                     {quotes.filter(q => ['responded', 'accepted'].includes(q.status)).length}
                   </p>
                 </div>
-                <CheckCircle className="h-8 w-8 text-green-600" />
+                <CheckCircle className="h-8 w-8 text-brand-gold" />
               </div>
             </div>
             
-            <div className="bg-white rounded-lg shadow-sm p-6">
+            <div className="bg-white rounded-xl shadow-sm border border-brand-dark/5 border-t-[3px] border-t-brand-navy p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Completed</p>
-                  <p className="text-2xl font-bold text-gray-600">
+                  <p className="text-sm text-gray-500">Completed</p>
+                  <p className="font-display text-3xl font-bold text-brand-navy">
                     {quotes.filter(q => q.status === 'completed').length}
                   </p>
                 </div>
-                <Star className="h-8 w-8 text-gray-600" />
+                <Star className="h-8 w-8 text-brand-navy" />
               </div>
             </div>
 
@@ -371,8 +376,8 @@ export default function CustomerDashboard() {
                   onClick={() => setActiveTab('quotes')}
                   className={`px-6 py-3 font-medium border-b-2 transition duration-300 ${
                     activeTab === 'quotes'
-                      ? 'border-blue-600 text-blue-600'
-                      : 'border-transparent text-gray-600 hover:text-gray-900'
+                      ? 'border-brand-gold text-brand-dark'
+                      : 'border-transparent text-gray-500 hover:text-brand-dark'
                   }`}
                 >
                   Quote Requests
@@ -399,7 +404,7 @@ export default function CustomerDashboard() {
                 <div>
                   {loading ? (
                     <div className="text-center py-12">
-                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-gold mx-auto mb-4"></div>
                       <p className="text-gray-600">Loading quotes...</p>
                     </div>
                   ) : quotes.length === 0 ? (
@@ -411,7 +416,7 @@ export default function CustomerDashboard() {
                       </p>
                       <Link
                         href="/search"
-                        className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-300"
+                        className="inline-flex items-center px-4 py-2 bg-brand-gold text-brand-dark font-medium rounded-md hover:bg-brand-gold-light transition duration-300"
                       >
                         Find Pros
                       </Link>
@@ -478,12 +483,12 @@ export default function CustomerDashboard() {
                                 <button
                                   onClick={() => handleAcceptQuote(quote.id)}
                                   disabled={acceptingQuote === quote.id}
-                                  className="text-sm bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 disabled:bg-green-400 transition duration-300 flex items-center gap-1"
+                                  className="text-sm bg-brand-dark text-brand-cream px-4 py-2 rounded-md hover:bg-brand-navy disabled:opacity-50 transition duration-300 flex items-center gap-1.5 font-medium"
                                 >
                                   {acceptingQuote === quote.id ? (
                                     <Loader2 className="h-4 w-4 animate-spin" />
                                   ) : (
-                                    <CheckCircle className="h-4 w-4" />
+                                    <CheckCircle className="h-4 w-4 text-brand-gold" />
                                   )}
                                   Accept Quote
                                 </button>
