@@ -382,8 +382,8 @@ export function AuthForm({ mode, role = 'customer' }: AuthFormProps) {
             height={80}
             className="rounded-full"
           />
-          <h1 className="text-2xl font-bold mt-3">Boss of Clean</h1>
-          <p className="text-gray-500 text-sm">Purrfection is our Standard</p>
+          <h1 className="font-display text-2xl font-bold mt-3 text-brand-dark">Boss of Clean</h1>
+          <p className="text-brand-gold text-sm font-medium">Purrfection is our Standard</p>
         </div>
         <CardTitle>{mode === 'login' ? 'Sign In' : isCleaner ? 'Pro Account' : 'Create Account'}</CardTitle>
         <CardDescription>
@@ -536,7 +536,7 @@ export function AuthForm({ mode, role = 'customer' }: AuthFormProps) {
         <CardFooter className="flex flex-col space-y-4">
           <Button
             type="submit"
-            className="w-full"
+            className="w-full bg-brand-gold text-brand-dark font-semibold hover:bg-brand-gold-light disabled:opacity-50"
             disabled={loading || (isSignup && !tcpaConsented)}
           >
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
