@@ -67,7 +67,7 @@ export async function GET(request: NextRequest) {
     const { data: exchangeData, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
 
     // [OAUTH-DIAG] temporary — remove after diagnosis
-    logger.info('[OAUTH-DIAG] code exchange attempt', {
+    logger.warn('[OAUTH-DIAG] code exchange attempt', {
       function: 'GET',
       hadCode: true,
       exchangeSucceeded: !exchangeError,
@@ -83,7 +83,7 @@ export async function GET(request: NextRequest) {
     }
   } else {
     // [OAUTH-DIAG] temporary — remove after diagnosis
-    logger.info('[OAUTH-DIAG] callback hit with NO code param', {
+    logger.warn('[OAUTH-DIAG] callback hit with NO code param', {
       function: 'GET',
       hadCode: false,
       allParams: Array.from(requestUrl.searchParams.keys()),
@@ -96,7 +96,7 @@ export async function GET(request: NextRequest) {
 
   // [OAUTH-DIAG] temporary — remove after diagnosis. What cookies exist right now,
   // and did getUser resolve a user? This tells us if the session landed.
-  logger.info('[OAUTH-DIAG] post-exchange state', {
+  logger.warn('[OAUTH-DIAG] post-exchange state', {
     function: 'GET',
     getUserResolved: !!user,
     getUserEmail: user?.email ?? null,
