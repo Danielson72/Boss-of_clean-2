@@ -457,11 +457,11 @@ export default function CleanerDashboard() {
                         <p className="font-medium">Messages</p>
                       </Link>
                       <Link
-                        href="/dashboard/pro/leads"
+                        href="/dashboard/pro/quote-requests"
                         className="p-4 border rounded-lg hover:shadow-md transition duration-300 text-center"
                       >
                         <Inbox className="h-8 w-8 text-blue-600 mx-auto mb-2" />
-                        <p className="font-medium">View Leads</p>
+                        <p className="font-medium">Quote Requests</p>
                       </Link>
                       <Link
                         href="/dashboard/pro/profile"
