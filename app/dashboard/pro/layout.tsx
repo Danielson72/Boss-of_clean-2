@@ -2,7 +2,7 @@
 
 import { DashboardSidebar, type SidebarLink } from '@/components/dashboard/DashboardSidebar';
 import {
-  LayoutDashboard, User, Inbox, FileText, Calendar,
+  LayoutDashboard, User, FileText, Calendar,
   DollarSign, Clock, Images, Star, MapPin, CreditCard, Bell, MessageSquare,
   ShieldCheck,
 } from 'lucide-react';
@@ -20,8 +20,7 @@ export default function ProDashboardLayout({ children }: { children: React.React
     { href: '/dashboard/pro/documents', label: 'Documents', icon: ShieldCheck, badge: rejectedCount },
     { href: '/dashboard/pro/notifications', label: 'Notifications', icon: Bell, badge: unreadNotifications },
     { href: '/dashboard/messages', label: 'Messages', icon: MessageSquare, badge: unreadMessages },
-    { href: '/dashboard/pro/leads', label: 'Leads', icon: Inbox, badge: pendingLeads },
-    { href: '/dashboard/pro/quote-requests', label: 'Quote Requests', icon: FileText },
+    { href: '/dashboard/pro/quote-requests', label: 'Quote Requests', icon: FileText, badge: pendingLeads },
     { href: '/dashboard/pro/bookings', label: 'Bookings', icon: Calendar },
     { href: '/dashboard/pro/earnings', label: 'Earnings', icon: DollarSign },
     { href: '/dashboard/pro/availability', label: 'Availability', icon: Clock },
