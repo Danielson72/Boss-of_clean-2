@@ -5,7 +5,7 @@ import { sendNewMessageEmail } from '@/lib/email/new-message';
 import { rateLimitRoute, RATE_LIMITS } from '@/lib/middleware/rate-limit';
 import { createLogger } from '@/lib/utils/logger';
 import { notifyProNewMessage, notifyCustomerQuoteReceived, sendSMSIfEnabled } from '@/lib/sms/notifications';
-import { filterPII } from '@/lib/pii-filter';
+import { filterPII, filterPIIWithWindow } from '@/lib/pii-filter';
 
 const logger = createLogger({ file: 'api/messages/route' });
 
@@ -295,7 +295,28 @@ export async function POST(request: NextRequest) {
     }
     // Customers fall through with isUnlocked = false (no exceptions).
 
-    const piiResult = filterPII(content.trim(), isUnlocked)
+    // A6 (DLD-514): cumulative rolling-window scrubber. filterPII catches PII in
+    // this single message; filterPIIWithWindow also catches a phone/email split
+    // across the sender's recent messages (e.g. "407" / "461" / "6039"). We only
+    // pay for the extra read when the conversation is still locked.
+    let piiResult: ReturnType<typeof filterPII> = filterPII(content.trim(), isUnlocked)
+
+    if (!isUnlocked && !piiResult.blocked && actualConversationId) {
+      // Pull this sender's recent messages in this conversation (cumulative window).
+      const { data: recentRows } = await supabase
+        .from('messages')
+        .select('content, created_at')
+        .eq('conversation_id', actualConversationId)
+        .eq('sender_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(5)
+
+      const recentSenderMessages = (recentRows || [])
+        .map((r: { content: string | null }) => r.content || '')
+        .filter(Boolean)
+
+      piiResult = filterPIIWithWindow(recentSenderMessages, content.trim(), isUnlocked)
+    }
 
     if (piiResult.blocked) {
       // Audit log (service-role to bypass RLS).
