@@ -64,10 +64,11 @@ export async function getMarketplaceQuotes(): Promise<{
       return { success: false, error: 'Your account must be approved to view leads' };
     }
 
-    // Fetch marketplace quotes (RLS now allows this) + own claimed quotes.
-    // PII (last name, email, phone, street) is NEVER selected here — pro is pre-acceptance.
-    // Customer's first name is derived from users.full_name via JOIN at read time.
-    const selectCols = 'id, service_type, property_type, property_size, zip_code, city, description, service_date, frequency, status, cleaner_id, quoted_price, response_message, responded_at, created_at, customer:users!quote_requests_customer_id_fkey(full_name)';
+    // Read from quote_requests_pro_view (DLD-513/A5): a security-barrier view that
+    // exposes ONLY pre-acceptance-safe columns + customer_first_name. Even a future
+    // select('*') here CANNOT return address, customer_id, email, phone, or TCPA data —
+    // those columns do not exist in the view. Structural PII defense.
+    const selectCols = 'id, service_type, property_type, property_size, zip_code, city, description, service_date, frequency, status, cleaner_id, quoted_price, response_message, responded_at, created_at, customer_first_name';
 
     type RawRow = {
       id: string;
@@ -85,24 +86,17 @@ export async function getMarketplaceQuotes(): Promise<{
       response_message: string | null;
       responded_at: string | null;
       created_at: string;
-      customer?: { full_name: string | null } | { full_name: string | null }[] | null;
-    };
-
-    const toFirstName = (row: RawRow): string | null => {
-      const c = Array.isArray(row.customer) ? row.customer[0] : row.customer;
-      const fullName = c?.full_name?.trim();
-      if (!fullName) return null;
-      return fullName.split(/\s+/)[0] || null;
+      customer_first_name: string | null;
     };
 
     const stripCustomer = (row: RawRow): MarketplaceQuote => {
-      const { customer: _customer, ...rest } = row;
-      return { ...rest, customer_first_name: toFirstName(row) };
+      // View already returns first-name-only; pass through directly.
+      return { ...row };
     };
 
     // 1. Pending marketplace quotes (cleaner_id IS NULL)
     const { data: marketplaceQuotes, error: mqError } = await supabase
-      .from('quote_requests')
+      .from('quote_requests_pro_view')
       .select(selectCols)
       .is('cleaner_id', null)
       .eq('status', 'pending')
@@ -116,7 +110,7 @@ export async function getMarketplaceQuotes(): Promise<{
 
     // 2. Quotes this pro has already claimed/responded to (still pre-acceptance — no PII)
     const { data: myQuotes, error: myError } = await supabase
-      .from('quote_requests')
+      .from('quote_requests_pro_view')
       .select(selectCols)
       .eq('cleaner_id', cleaner.id)
       .order('created_at', { ascending: false })
