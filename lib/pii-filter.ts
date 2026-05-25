@@ -183,23 +183,30 @@ export function filterPIIWithWindow(
   const combined = [...recentSenderMessages, newContent].join(' ')
 
   // Re-run the standard patterns on the combined text (catches an email or
-  // phone formed only when fragments are joined).
-  const combinedHit = filterPII(combined, false)
-  if (combinedHit.blocked) {
-    return { ...combinedHit, patternHit: `windowed_${combinedHit.patternHit}` }
-  }
+  // phone formed only when fragments are joined). Only meaningful when the NEW
+  // message contributes to forming it — a clean new message must never be
+  // blocked because of dirty history.
+  const newHasDigits = normalizeDigits(newContent).length > 0
+  if (newHasDigits) {
+    const combinedHit = filterPII(combined, false)
+    if (combinedHit.blocked) {
+      return { ...combinedHit, patternHit: `windowed_${combinedHit.patternHit}` }
+    }
 
-  // Cumulative digit count — catches a 10-digit phone assembled across messages,
-  // including spelled-out and space-separated digits.
-  const digitCount = normalizeDigits(combined).length
-  if (digitCount >= 10) {
-    return {
-      blocked: true,
-      patternHit: 'windowed_phone_digits',
-      message: 'To share contact info, unlock this lead first.',
-      cumulativeDigits: digitCount,
+    // Cumulative digit count — catches a 10-digit phone assembled across messages,
+    // including spelled-out and space-separated digits. Guarded by newHasDigits so
+    // a zero-digit message ("okay", "yes", "sounds good") is never blocked by the
+    // window, no matter what the conversation history contains.
+    const digitCount = normalizeDigits(combined).length
+    if (digitCount >= 10) {
+      return {
+        blocked: true,
+        patternHit: 'windowed_phone_digits',
+        message: 'To share contact info, unlock this lead first.',
+        cumulativeDigits: digitCount,
+      }
     }
   }
 
-  return { blocked: false, cumulativeDigits: digitCount }
+  return { blocked: false }
 }
