@@ -187,18 +187,3 @@ export async function getUpcomingInvoice(
     return null;
   }
 }
-
-/**
- * Send invoice to customer via email
- */
-export async function sendInvoice(invoiceId: string): Promise<boolean> {
-  const stripe = getStripe();
-
-  try {
-    await stripe.invoices.sendInvoice(invoiceId);
-    return true;
-  } catch (error) {
-    logger.error('Error sending invoice:', {}, error);
-    return false;
-  }
-}
