@@ -145,30 +145,6 @@ export async function findCustomerByEmail(email: string): Promise<CustomerListRe
 }
 
 /**
- * Get available pricing information
- * Useful for debugging and validation
- */
-export async function listPrices(limit = 10) {
-  if (shouldUseMCP()) {
-    try {
-      // Try MCP first
-      const mcpStripeTool = getMCPStripeTool();
-      const mcpResult = await mcpStripeTool?.list_prices?.({ limit })
-      if (mcpResult) {
-        logger.debug('Prices retrieved via MCP')
-        return mcpResult
-      }
-    } catch (error) {
-      logger.warn('MCP price listing failed, falling back to SDK:', {}, error)
-    }
-  }
-
-  // SDK fallback
-  const stripe = getStripe()
-  return await stripe.prices.list({ limit })
-}
-
-/**
  * Check MCP connectivity (for debugging)
  */
 export async function testMCPConnection(): Promise<{ available: boolean; error?: string }> {
