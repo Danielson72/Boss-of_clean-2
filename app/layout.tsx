@@ -10,6 +10,7 @@ import Footer from '@/components/Footer';
 import { AuthProvider } from '@/lib/context/AuthContext';
 import { Toaster } from '@/components/ui/sonner';
 import BocAssistantLoader from '@/components/boc-assistant/BocAssistantLoader';
+import PWARegister from '@/components/PWARegister';
 
 const dmSans = DM_Sans({
   subsets: ['latin'],
@@ -43,6 +44,12 @@ export const metadata: Metadata = {
     apple: '/apple-touch-icon.png',
   },
   manifest: '/site.webmanifest',
+  themeColor: '#FF5F1F',
+  appleWebApp: {
+    capable: true,
+    title: 'Boss of Clean',
+    statusBarStyle: 'default',
+  },
   robots: {
     index: true,
     follow: true,
@@ -100,6 +107,7 @@ export default function RootLayout({
           </div>
           <Toaster />
           <BocAssistantLoader />
+          <PWARegister />
         </AuthProvider>
       </body>
     </html>
