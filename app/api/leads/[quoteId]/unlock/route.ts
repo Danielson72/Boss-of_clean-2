@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createServiceRoleClient } from '@/lib/supabase/service-role';
 import { getStripe, getSiteUrl } from '@/lib/stripe/config';
 import { createLogger } from '@/lib/utils/logger';
 
@@ -141,15 +142,28 @@ export async function POST(
   // 6. SYNCHRONOUSLY back-write the session id BEFORE returning, so the webhook's
   //    UPDATE-by-session-id always finds the row no matter how fast payment
   //    completes (insert-first + link-before-return closes the race).
-  const { error: linkErr } = await supabase
+  //
+  //    Must run on the SERVICE-ROLE client: lead_acceptances has RLS enabled and
+  //    the only UPDATE-capable policy is "Service role manages unlocks". The pro
+  //    user client has SELECT/INSERT but NO UPDATE policy, so a user-client
+  //    UPDATE matches 0 rows with a null error — phantom success that never
+  //    writes the session id (pro pays, webhook can't find the row, capture
+  //    fails). Ownership + 'accepted' status are already guarded above, so a
+  //    service-role UPDATE scoped to this exact row id is correct and safe. We
+  //    .select() to get the affected rows and treat 0 rows as a hard failure —
+  //    never return a checkout URL for a row we couldn't link.
+  const admin = createServiceRoleClient();
+  const { data: linked, error: linkErr } = await admin
     .from('lead_acceptances')
     .update({ stripe_checkout_session_id: session.id })
-    .eq('id', leadAcceptanceId);
-  if (linkErr) {
+    .eq('id', leadAcceptanceId)
+    .select('id');
+  if (linkErr || !linked || linked.length === 0) {
     logger.error('Failed to link session to lead_acceptance', {
       function: 'POST',
       quoteId,
       leadAcceptanceId,
+      rowsAffected: linked?.length ?? 0,
     }, linkErr);
     return NextResponse.json({ error: 'Could not finalize checkout.' }, { status: 500 });
   }
