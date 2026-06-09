@@ -63,8 +63,14 @@ async function handleStripeEvent(event: Stripe.Event): Promise<void> {
         // Subscription will be created via customer.subscription.created event
       } else if (session.mode === 'payment' && session.metadata?.type === 'lead_unlock') {
         await processEventWithRetry(event, async () => {
-          const { createClient } = await import('@/lib/supabase/server');
-          const supabase = await createClient();
+          // A9 Slice 1 (DLD-517): this capture runs with no user session, so the
+          // anon @/lib/supabase/server client is blocked by RLS on
+          // lead_acceptances (no anon/authenticated UPDATE policy — only
+          // "Service role manages unlocks" ALL). Use the service-role client so
+          // the pending → captured flip actually persists. Scoped to this
+          // lead-unlock branch only; the subscription path above is unchanged.
+          const { createServiceRoleClient } = await import('@/lib/supabase/service-role');
+          const supabase = createServiceRoleClient();
 
           const { quote_request_id, cleaner_id, amount_cents } = session.metadata!;
           const amountCents = parseInt(amount_cents, 10);
