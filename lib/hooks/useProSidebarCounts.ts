@@ -7,6 +7,7 @@ interface UseProSidebarCountsResult {
   unreadMessages: number;
   unreadNotifications: number;
   pendingLeads: number;
+  actionNeededLeads: number;
   isLoading: boolean;
   error: Error | null;
 }
@@ -23,6 +24,10 @@ const POLL_INTERVAL_MS = 30_000;
  *   `read = false`.
  * - pendingLeads: marketplace + assigned quote_requests for this pro
  *   in `pending` status.
+ * - actionNeededLeads (DLD-517 A9 Slice 2): accepted quotes for this pro that
+ *   the customer has confirmed-hired (hire_confirmations row) but the pro has
+ *   not yet unlocked (no `captured` lead_acceptances). Powers the
+ *   "Action Needed" sidebar badge → /dashboard/pro/leads.
  *
  * Polls every 30s and re-fetches on window focus. Returns zeros
  * (no badge) for unauthenticated users, non-pro roles, or any error
@@ -32,6 +37,7 @@ export function useProSidebarCounts(): UseProSidebarCountsResult {
   const [unreadMessages, setUnreadMessages] = useState(0);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
   const [pendingLeads, setPendingLeads] = useState(0);
+  const [actionNeededLeads, setActionNeededLeads] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
@@ -50,6 +56,7 @@ export function useProSidebarCounts(): UseProSidebarCountsResult {
           setUnreadMessages(0);
           setUnreadNotifications(0);
           setPendingLeads(0);
+          setActionNeededLeads(0);
           setError(null);
           return;
         }
@@ -66,6 +73,7 @@ export function useProSidebarCounts(): UseProSidebarCountsResult {
           setUnreadMessages(0);
           setUnreadNotifications(0);
           setPendingLeads(0);
+          setActionNeededLeads(0);
           setError(null);
           return;
         }
@@ -92,6 +100,48 @@ export function useProSidebarCounts(): UseProSidebarCountsResult {
         setUnreadMessages(messages.count ?? 0);
         setUnreadNotifications(notifications.count ?? 0);
         setPendingLeads(leads.count ?? 0);
+
+        // Action Needed: accepted quotes this pro was confirmed-hired for and
+        // has not yet unlocked (no `captured` lead_acceptances). Mirrors the
+        // getHiredLeadsAwaitingUnlock server action's eligibility.
+        const { data: accepted } = await supabase
+          .from('quote_requests')
+          .select('id')
+          .eq('cleaner_id', pro.id)
+          .eq('status', 'accepted')
+          .limit(100);
+        if (cancelled) return;
+
+        const acceptedIds = ((accepted || []) as { id: string }[]).map((q) => q.id);
+        if (acceptedIds.length === 0) {
+          setActionNeededLeads(0);
+        } else {
+          const [hires, captured] = await Promise.all([
+            supabase
+              .from('hire_confirmations')
+              .select('quote_request_id')
+              .eq('cleaner_id', pro.id)
+              .in('quote_request_id', acceptedIds),
+            supabase
+              .from('lead_acceptances')
+              .select('quote_request_id')
+              .eq('cleaner_id', pro.id)
+              .eq('status', 'captured')
+              .in('quote_request_id', acceptedIds),
+          ]);
+          if (cancelled) return;
+
+          const hiredSet = new Set(
+            ((hires.data || []) as { quote_request_id: string }[]).map((h) => h.quote_request_id)
+          );
+          const capturedSet = new Set(
+            ((captured.data || []) as { quote_request_id: string }[]).map((c) => c.quote_request_id)
+          );
+          setActionNeededLeads(
+            acceptedIds.filter((id) => hiredSet.has(id) && !capturedSet.has(id)).length
+          );
+        }
+
         setError(null);
       } catch (err) {
         if (cancelled) return;
@@ -100,6 +150,7 @@ export function useProSidebarCounts(): UseProSidebarCountsResult {
         setUnreadMessages(0);
         setUnreadNotifications(0);
         setPendingLeads(0);
+        setActionNeededLeads(0);
       } finally {
         if (!cancelled) setIsLoading(false);
       }
@@ -116,5 +167,5 @@ export function useProSidebarCounts(): UseProSidebarCountsResult {
     };
   }, []);
 
-  return { unreadMessages, unreadNotifications, pendingLeads, isLoading, error };
+  return { unreadMessages, unreadNotifications, pendingLeads, actionNeededLeads, isLoading, error };
 }

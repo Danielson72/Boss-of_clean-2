@@ -55,6 +55,25 @@ export async function POST(
     );
   }
 
+  // 2a-bis. SERVER-SIDE HIRE GATE (A9 Slice 2 / DLD-517): the $30 prompt fires
+  //         only AFTER the customer confirms the hire, not on mere acceptance.
+  //         Require a hire_confirmations row for (quote, this pro) before we
+  //         create any lead_acceptances row or Stripe session. RLS policy
+  //         "Pros can view confirmations for their leads" scopes this read.
+  //         hire_confirmations.cleaner_id = pros.id (set from quote.cleaner_id).
+  const { data: hire } = await supabase
+    .from('hire_confirmations')
+    .select('id')
+    .eq('quote_request_id', quoteId)
+    .eq('cleaner_id', pro.id)
+    .maybeSingle();
+  if (!hire) {
+    return NextResponse.json(
+      { error: 'Lead not yet confirmed by customer.' },
+      { status: 403 }
+    );
+  }
+
   // 2b. Duplicate-unlock guard — return any existing pending/captured row instead
   //     of minting a second (no double-charge, no orphan rows).
   const { data: existing } = await supabase
@@ -123,8 +142,8 @@ export async function POST(
           },
         },
       ],
-      success_url: `${siteUrl}/dashboard/pro/quote-requests?unlocked=${quoteId}`,
-      cancel_url: `${siteUrl}/dashboard/pro/quote-requests?canceled=${quoteId}`,
+      success_url: `${siteUrl}/dashboard/pro/leads?unlocked=${quoteId}`,
+      cancel_url: `${siteUrl}/dashboard/pro/leads?canceled=${quoteId}`,
       customer_email: user.email ?? undefined,
       metadata: {
         type: 'lead_unlock', // REQUIRED — webhook gate
