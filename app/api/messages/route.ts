@@ -47,7 +47,10 @@ export async function GET() {
     cleanerId = cleanerData?.id || null;
   }
 
-  // Fetch conversations
+  // Fetch conversations. DLD-558: the last-message preview rides along as an
+  // embedded resource capped to 1 row per conversation (referencedTable
+  // order/limit) — one round-trip instead of the previous per-conversation
+  // N+1 query loop.
   let query = supabase
     .from('conversations')
     .select(`
@@ -59,9 +62,12 @@ export async function GET() {
       cleaner_unread_count,
       created_at,
       customer:users!conversations_customer_id_fkey(id, full_name, email),
-      cleaner:pros!conversations_cleaner_id_fkey(id, business_name, user_id)
+      cleaner:pros!conversations_cleaner_id_fkey(id, business_name, user_id),
+      messages(content, sender_role, created_at)
     `)
-    .order('last_message_at', { ascending: false, nullsFirst: false });
+    .order('last_message_at', { ascending: false, nullsFirst: false })
+    .order('created_at', { referencedTable: 'messages', ascending: false })
+    .limit(1, { referencedTable: 'messages' });
 
   if (isCustomer) {
     query = query.eq('customer_id', user.id);
@@ -78,24 +84,18 @@ export async function GET() {
     return NextResponse.json({ error: 'Failed to fetch conversations' }, { status: 500 });
   }
 
-  // Get last message for each conversation
-  const conversationsWithPreview = await Promise.all(
-    (conversations || []).map(async (conv) => {
-      const { data: lastMessage } = await supabase
-        .from('messages')
-        .select('content, sender_role, created_at')
-        .eq('conversation_id', conv.id)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .single();
-
-      return {
-        ...conv,
-        lastMessage: lastMessage || null,
-        unreadCount: isCustomer ? conv.customer_unread_count : conv.cleaner_unread_count,
-      };
-    })
-  );
+  // Shape the response: pull the single embedded message out as lastMessage
+  // (keeps the payload identical to the old per-conversation query version).
+  const conversationsWithPreview = (conversations || []).map((conv) => {
+    const { messages: embedded, ...rest } = conv as typeof conv & {
+      messages?: { content: string; sender_role: string; created_at: string }[];
+    };
+    return {
+      ...rest,
+      lastMessage: embedded?.[0] || null,
+      unreadCount: isCustomer ? conv.customer_unread_count : conv.cleaner_unread_count,
+    };
+  });
 
   return NextResponse.json({ conversations: conversationsWithPreview });
 }

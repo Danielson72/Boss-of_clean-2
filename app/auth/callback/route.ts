@@ -4,6 +4,7 @@ import { NextRequest } from 'next/server'
 import { cookies } from 'next/headers'
 import { createLogger } from '@/lib/utils/logger'
 import { roleToDashboardPath } from '@/lib/utils/dashboard-path'
+import { rateLimitRoute, getClientIp, RATE_LIMITS } from '@/lib/middleware/rate-limit'
 
 const logger = createLogger({ file: 'auth/callback/route' })
 
@@ -17,6 +18,12 @@ function getRedirectOrigin(request: NextRequest, requestUrl: URL): string {
 }
 
 export async function GET(request: NextRequest) {
+  // DLD-558: server-side auth surface — throttle code-exchange attempts per IP.
+  // (Password login/signup go client -> Supabase GoTrue directly, which has its
+  // own rate limits; this callback is the endpoint we own.)
+  const rateLimited = await rateLimitRoute('auth-callback-ip', getClientIp(request), RATE_LIMITS.auth)
+  if (rateLimited) return rateLimited
+
   const requestUrl = new URL(request.url)
   const code = requestUrl.searchParams.get('code')
   const origin = getRedirectOrigin(request, requestUrl)

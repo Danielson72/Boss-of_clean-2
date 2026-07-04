@@ -71,8 +71,11 @@ const SERVICE_OPTIONS = [
 ];
 
 interface ProfessionalsPageProps {
-  searchParams: Promise<{ service?: string; sort?: string }>;
+  searchParams: Promise<{ service?: string; sort?: string; page?: string }>;
 }
+
+// DLD-558: the directory previously selected every approved pro unbounded.
+const PAGE_SIZE = 24;
 
 export default async function ProfessionalsPage({
   searchParams,
@@ -80,6 +83,7 @@ export default async function ProfessionalsPage({
   const params = await searchParams;
   const activeService = params.service || '';
   const sortBy = params.sort || 'rating';
+  const page = Math.max(1, parseInt(params.page || '1', 10) || 1);
 
   const supabase = await createClient();
 
@@ -92,7 +96,8 @@ export default async function ProfessionalsPage({
       average_rating, total_reviews, total_jobs, hourly_rate,
       years_experience, insurance_verified, instant_booking, subscription_tier,
       users(city, state)
-    `
+    `,
+      { count: 'exact' }
     )
     .eq('approval_status', 'approved');
 
@@ -120,10 +125,13 @@ export default async function ProfessionalsPage({
         .order('total_reviews', { ascending: false });
   }
 
-  const { data: cleaners } = await query;
+  const from = (page - 1) * PAGE_SIZE;
+  const { data: cleaners, count } = await query.range(from, from + PAGE_SIZE - 1);
   const pros = (cleaners || []) as DirectoryCleaner[];
+  const totalCount = count ?? pros.length;
+  const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
 
-  // Build sort URL helper
+  // Build sort URL helper (changing sort resets to page 1)
   function sortUrl(sort: string) {
     const p = new URLSearchParams();
     if (activeService) p.set('service', activeService);
@@ -136,6 +144,15 @@ export default async function ProfessionalsPage({
     const p = new URLSearchParams();
     if (service) p.set('service', service);
     if (sortBy !== 'rating') p.set('sort', sortBy);
+    const qs = p.toString();
+    return qs ? `/professionals?${qs}` : '/professionals';
+  }
+
+  function pageUrl(target: number) {
+    const p = new URLSearchParams();
+    if (activeService) p.set('service', activeService);
+    if (sortBy !== 'rating') p.set('sort', sortBy);
+    if (target > 1) p.set('page', String(target));
     const qs = p.toString();
     return qs ? `/professionals?${qs}` : '/professionals';
   }
@@ -247,9 +264,9 @@ export default async function ProfessionalsPage({
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
             <p className="text-gray-600">
               <span className="font-semibold text-brand-dark">
-                {pros.length}
+                {totalCount}
               </span>{' '}
-              professional{pros.length !== 1 ? 's' : ''} found
+              professional{totalCount !== 1 ? 's' : ''} found
               {activeService && (
                 <span>
                   {' '}
@@ -470,6 +487,39 @@ export default async function ProfessionalsPage({
                 >
                   View All Professionals
                 </Link>
+              )}
+            </div>
+          )}
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-4 mt-10">
+              {page > 1 ? (
+                <Link
+                  href={pageUrl(page - 1)}
+                  className="px-4 py-2 rounded-lg bg-white border border-gray-200 text-sm font-medium text-brand-dark hover:border-brand-gold/40 transition"
+                >
+                  Previous
+                </Link>
+              ) : (
+                <span className="px-4 py-2 rounded-lg bg-gray-100 text-sm font-medium text-gray-400">
+                  Previous
+                </span>
+              )}
+              <span className="text-sm text-gray-600">
+                Page {page} of {totalPages}
+              </span>
+              {page < totalPages ? (
+                <Link
+                  href={pageUrl(page + 1)}
+                  className="px-4 py-2 rounded-lg bg-white border border-gray-200 text-sm font-medium text-brand-dark hover:border-brand-gold/40 transition"
+                >
+                  Next
+                </Link>
+              ) : (
+                <span className="px-4 py-2 rounded-lg bg-gray-100 text-sm font-medium text-gray-400">
+                  Next
+                </span>
               )}
             </div>
           )}

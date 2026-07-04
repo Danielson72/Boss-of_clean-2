@@ -20,6 +20,8 @@ export const RATE_LIMITS = {
   messageSend: { maxRequests: 20, windowSeconds: 60 } as RateLimitConfig,
   /** Auth endpoints (login/signup): 5 per minute per IP */
   auth: { maxRequests: 5, windowSeconds: 60 } as RateLimitConfig,
+  /** Contact form: 5 per minute per IP (also the profile for the future /api/david) */
+  contact: { maxRequests: 5, windowSeconds: 60 } as RateLimitConfig,
 } as const;
 
 // ---------------------------------------------------------------------------
