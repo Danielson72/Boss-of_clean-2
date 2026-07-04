@@ -4,6 +4,7 @@ import { getStripe } from '@/lib/stripe/config';
 import { subscriptionService } from '@/lib/stripe/subscription-service';
 import { webhookEventService } from '@/lib/stripe/webhook-event-service';
 import { handleDisputeCreated, handleDisputeClosed } from '@/lib/stripe/disputes';
+import { sendLeadContactEmail } from '@/lib/email/lead-unlock';
 import { createLogger } from '@/lib/utils/logger';
 import type Stripe from 'stripe';
 
@@ -72,8 +73,9 @@ async function handleStripeEvent(event: Stripe.Event): Promise<void> {
           const { createServiceRoleClient } = await import('@/lib/supabase/service-role');
           const supabase = createServiceRoleClient();
 
-          const { quote_request_id, cleaner_id, amount_cents } = session.metadata!;
+          const { quote_request_id, cleaner_id, amount_cents, lead_acceptance_id } = session.metadata!;
           const amountCents = parseInt(amount_cents, 10);
+          const paymentIntentId = session.payment_intent as string;
 
           logger.info('Lead unlock payment completed', {
             sessionId: session.id,
@@ -83,18 +85,131 @@ async function handleStripeEvent(event: Stripe.Event): Promise<void> {
           });
 
           // Update lead_acceptances: pending → captured
+          const nowIso = new Date().toISOString();
           const { error: unlockError } = await supabase
             .from('lead_acceptances')
             .update({
               status: 'captured',
-              unlocked_at: new Date().toISOString(),
-              stripe_payment_intent_id: session.payment_intent as string,
+              unlocked_at: nowIso,
+              captured_at: nowIso,
+              stripe_payment_intent_id: paymentIntentId,
             })
             .eq('stripe_checkout_session_id', session.id);
 
           if (unlockError) {
             logger.error('Failed to update lead_acceptances', { function: 'handleStripeEvent' }, unlockError);
             throw unlockError;
+          }
+
+          // Read the quote once (service-role): supplies payments metadata
+          // (city/service_type) and the customer's contact for the handoff email.
+          // PII read — scoped narrowly by quote id.
+          const { data: quote } = await supabase
+            .from('quote_requests')
+            .select('customer_id, city, service_type, customer:users!customer_id(full_name, email, phone)')
+            .eq('id', quote_request_id)
+            .single();
+
+          const leadCity = quote?.city || '';
+          const serviceType = quote?.service_type || '';
+
+          // Record the lead-unlock payment, idempotently: skip if this payment
+          // intent already wrote a row (Stripe may redeliver this event).
+          const { data: existingPayment } = await supabase
+            .from('payments')
+            .select('id')
+            .eq('stripe_payment_intent_id', paymentIntentId)
+            .maybeSingle();
+
+          if (!existingPayment) {
+            const paymentMetadata: Record<string, string> = {
+              type: 'lead_unlock',
+              quote_request_id,
+              lead_city: leadCity,
+              service_type: serviceType,
+            };
+            // Older checkout sessions may predate lead_acceptance_id in metadata.
+            if (lead_acceptance_id) {
+              paymentMetadata.lead_acceptance_id = lead_acceptance_id;
+            }
+
+            const { error: paymentError } = await supabase.from('payments').insert({
+              cleaner_id,
+              amount: amountCents / 100, // payments.amount is DOLLARS
+              currency: 'usd',
+              status: 'succeeded',
+              description: 'Lead unlock',
+              stripe_payment_intent_id: paymentIntentId,
+              paid_at: nowIso,
+              metadata: paymentMetadata,
+            });
+
+            if (paymentError) {
+              // Concurrent retry: another delivery passed the pre-check and inserted
+              // first. The DB unique index on stripe_payment_intent_id rejects this
+              // one with 23505 — treat as already-processed and continue (no dup,
+              // no throw; the contact email still fires below).
+              if ((paymentError as { code?: string }).code === '23505') {
+                logger.info('Lead unlock payment already recorded (unique violation), skipping insert', {
+                  function: 'handleStripeEvent',
+                  paymentIntentId,
+                });
+              } else {
+                logger.error('Failed to record lead unlock payment', { function: 'handleStripeEvent' }, paymentError);
+                throw paymentError;
+              }
+            }
+          }
+
+          // Release the customer's contact to the pro. Look up the pro's
+          // notification email: prefer business_email, fall back to users.email.
+          const { data: pro } = await supabase
+            .from('pros')
+            .select('business_name, business_email, user_id')
+            .eq('id', cleaner_id)
+            .single();
+
+          let proAccountEmail: string | null = null;
+          if (pro?.user_id) {
+            const { data: proUser } = await supabase
+              .from('users')
+              .select('email')
+              .eq('id', pro.user_id)
+              .single();
+            proAccountEmail = proUser?.email ?? null;
+          }
+
+          const recipientEmail: string | null = pro?.business_email || proAccountEmail;
+          // supabase infers the embedded read as an array; a many-to-one FK embed
+          // returns a single object at runtime — normalize to be safe either way.
+          const customerRaw = quote?.customer as unknown;
+          const customer = (Array.isArray(customerRaw) ? customerRaw[0] : customerRaw) as
+            | { full_name: string | null; email: string | null; phone: string | null }
+            | null
+            | undefined;
+
+          if (recipientEmail && customer) {
+            // Fire-and-forget: a mail failure must NEVER fail the webhook or the
+            // payments write (mirrors the notification batch in api/messages/route.ts).
+            Promise.allSettled([
+              sendLeadContactEmail({
+                recipientEmail,
+                proName: pro?.business_name || 'there',
+                customerName: customer.full_name || 'Customer',
+                customerEmail: customer.email || '',
+                customerPhone: customer.phone,
+                serviceType,
+                city: leadCity,
+              }),
+            ]).catch((err) =>
+              logger.error('Lead unlock email batch error', { function: 'handleStripeEvent' }, err)
+            );
+          } else {
+            logger.warn('Lead unlock: missing pro email or customer contact, skipping handoff email', {
+              function: 'handleStripeEvent',
+              sessionId: session.id,
+              quoteRequestId: quote_request_id,
+            });
           }
 
           logger.info('Lead unlock fully processed', {
