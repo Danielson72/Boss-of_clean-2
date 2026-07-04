@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServiceRoleClient } from '@/lib/supabase/service-role';
 import { createLogger } from '@/lib/utils/logger';
 import { sendResendEmail, wrapEmailTemplate, generateInfoBox, ALERTS_FROM } from '@/lib/email/resend';
+import { rateLimitRoute, getClientIp, RATE_LIMITS } from '@/lib/middleware/rate-limit';
 
 const logger = createLogger({ file: 'api/contact/route' });
 
@@ -11,6 +12,11 @@ const ADMIN_EMAIL = 'admin@bossofclean.com';
 
 export async function POST(request: NextRequest) {
   try {
+    // DLD-558: unauthenticated endpoint that writes a row + sends an email per
+    // request — throttle per IP before doing any work.
+    const rateLimited = await rateLimitRoute('contact-ip', getClientIp(request), RATE_LIMITS.contact);
+    if (rateLimited) return rateLimited;
+
     const body = await request.json();
     const { name, email, subject, message } = body;
 
