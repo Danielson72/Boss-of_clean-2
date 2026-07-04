@@ -5,7 +5,9 @@
  * and sends notifications to admin and cleaner.
  */
 
-import { createClient } from '@/lib/supabase/server';
+// Service-role client: dispute handlers run from the Stripe webhook with no
+// user session, where the cookie/anon client is blocked by RLS on writes.
+import { createServiceRoleClient } from '@/lib/supabase/service-role';
 import {
   sendDisputeAdminAlert,
   sendDisputeCleanerNotification,
@@ -17,7 +19,7 @@ import type Stripe from 'stripe';
 const logger = createLogger({ file: 'lib/stripe/disputes' });
 
 export async function handleDisputeCreated(dispute: Stripe.Dispute): Promise<void> {
-  const supabase = await createClient();
+  const supabase = createServiceRoleClient();
 
   const chargeId = typeof dispute.charge === 'string'
     ? dispute.charge
@@ -127,7 +129,7 @@ export async function handleDisputeCreated(dispute: Stripe.Dispute): Promise<voi
     ? new Date(dispute.evidence_details.due_by * 1000).toISOString()
     : null;
 
-  await supabase.from('disputes').insert({
+  const { error: disputeInsertError } = await supabase.from('disputes').insert({
     stripe_dispute_id: dispute.id,
     cleaner_id: cleanerId,
     charge_id: chargeId,
@@ -138,16 +140,22 @@ export async function handleDisputeCreated(dispute: Stripe.Dispute): Promise<voi
     status: dispute.status,
     evidence_due_by: evidenceDueBy,
   });
+  if (disputeInsertError) {
+    throw new Error(`disputes insert failed for ${dispute.id}: ${disputeInsertError.message}`);
+  }
 
   // Flag the cleaner
   const newDisputeCount = (cleaner?.dispute_count || 0) + 1;
-  await supabase
+  const { error: prosFlagError } = await supabase
     .from('pros')
     .update({
       dispute_count: newDisputeCount,
       dispute_status: 'under_review',
     })
     .eq('id', cleanerId);
+  if (prosFlagError) {
+    throw new Error(`pros dispute-flag update failed for ${dispute.id}: ${prosFlagError.message}`);
+  }
 
   // Notify admin
   await sendDisputeAdminAlert({
@@ -176,12 +184,12 @@ export async function handleDisputeCreated(dispute: Stripe.Dispute): Promise<voi
 }
 
 export async function handleDisputeClosed(dispute: Stripe.Dispute): Promise<void> {
-  const supabase = await createClient();
+  const supabase = createServiceRoleClient();
 
   const outcome = dispute.status === 'won' ? 'won' : 'lost';
 
   // Update dispute record
-  await supabase
+  const { error: disputeUpdateError } = await supabase
     .from('disputes')
     .update({
       status: dispute.status,
@@ -189,6 +197,9 @@ export async function handleDisputeClosed(dispute: Stripe.Dispute): Promise<void
       updated_at: new Date().toISOString(),
     })
     .eq('stripe_dispute_id', dispute.id);
+  if (disputeUpdateError) {
+    throw new Error(`disputes update failed for ${dispute.id}: ${disputeUpdateError.message}`);
+  }
 
   // Get dispute details for cleaner lookup
   const { data: disputeRecord } = await supabase
@@ -212,10 +223,13 @@ export async function handleDisputeClosed(dispute: Stripe.Dispute): Promise<void
 
   const newDisputeStatus = (count && count > 0) ? 'under_review' : 'none';
 
-  await supabase
+  const { error: prosStatusError } = await supabase
     .from('pros')
     .update({ dispute_status: newDisputeStatus })
     .eq('id', disputeRecord.cleaner_id);
+  if (prosStatusError) {
+    throw new Error(`pros dispute-status update failed for ${dispute.id}: ${prosStatusError.message}`);
+  }
 
   // Get cleaner email for notification
   const { data: cleaner } = await supabase

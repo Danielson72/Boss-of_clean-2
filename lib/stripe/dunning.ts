@@ -11,7 +11,9 @@
  *  - Downgrade: Day 7 (grace period expires)
  */
 
-import { createClient } from '@/lib/supabase/server';
+// Service-role client: dunning runs from webhook handlers with no user
+// session, where the cookie/anon client is blocked by RLS on pros/subscriptions.
+import { createServiceRoleClient } from '@/lib/supabase/service-role';
 import { sendPaymentFailedEmail, sendFinalWarningEmail, sendDowngradeEmail } from '@/lib/email/payment-failed';
 import { createLogger } from '../utils/logger';
 
@@ -35,7 +37,7 @@ export async function processDunningEvent(
   cleanerId: string,
   invoiceId: string
 ): Promise<DunningState> {
-  const supabase = await createClient();
+  const supabase = createServiceRoleClient();
 
   // Get current cleaner state
   const { data: cleaner } = await supabase
@@ -75,19 +77,25 @@ export async function processDunningEvent(
     // First failure: Start grace period, send first warning
     const gracePeriodEnd = new Date(now.getTime() + GRACE_PERIOD_DAYS * 24 * 60 * 60 * 1000);
 
-    await supabase
+    const { error: graceError } = await supabase
       .from('pros')
       .update({
         grace_period_end: gracePeriodEnd.toISOString(),
       })
       .eq('id', cleanerId);
+    if (graceError) {
+      throw new Error(`pros grace-period update failed for ${cleanerId}: ${graceError.message}`);
+    }
 
     // Update subscription status to past_due
-    await supabase
+    const { error: pastDueError } = await supabase
       .from('subscriptions')
       .update({ status: 'past_due' })
       .eq('cleaner_id', cleanerId)
       .neq('status', 'canceled');
+    if (pastDueError) {
+      throw new Error(`subscriptions past_due update failed for ${cleanerId}: ${pastDueError.message}`);
+    }
 
     state.gracePeriodEnd = gracePeriodEnd.toISOString();
     state.isInGracePeriod = true;
@@ -147,10 +155,10 @@ export async function processDunningEvent(
  * Downgrade a cleaner to the free tier after grace period expiration.
  */
 async function downgradeToFree(cleanerId: string): Promise<void> {
-  const supabase = await createClient();
+  const supabase = createServiceRoleClient();
 
   // Update cleaner to free tier
-  await supabase
+  const { error: downgradeError } = await supabase
     .from('pros')
     .update({
       subscription_tier: 'free',
@@ -158,13 +166,19 @@ async function downgradeToFree(cleanerId: string): Promise<void> {
       payment_failed_count: 0,
     })
     .eq('id', cleanerId);
+  if (downgradeError) {
+    throw new Error(`pros downgrade failed for ${cleanerId}: ${downgradeError.message}`);
+  }
 
   // Mark subscription as canceled
-  await supabase
+  const { error: cancelError } = await supabase
     .from('subscriptions')
     .update({ status: 'canceled' })
     .eq('cleaner_id', cleanerId)
     .neq('status', 'canceled');
+  if (cancelError) {
+    throw new Error(`subscriptions cancel failed for ${cleanerId}: ${cancelError.message}`);
+  }
 
   logger.info(`Cleaner ${cleanerId} downgraded to free tier after failed payments`);
 }
@@ -179,7 +193,7 @@ export async function getGracePeriodStatus(cleanerId: string): Promise<{
   gracePeriodEnd: string | null;
   daysRemaining: number | null;
 }> {
-  const supabase = await createClient();
+  const supabase = createServiceRoleClient();
 
   const { data: cleaner } = await supabase
     .from('pros')
@@ -215,22 +229,28 @@ export async function getGracePeriodStatus(cleanerId: string): Promise<{
  * Called by the payment succeeded handler.
  */
 export async function resetDunningState(cleanerId: string): Promise<void> {
-  const supabase = await createClient();
+  const supabase = createServiceRoleClient();
 
-  await supabase
+  const { error: resetError } = await supabase
     .from('pros')
     .update({
       payment_failed_count: 0,
       grace_period_end: null,
     })
     .eq('id', cleanerId);
+  if (resetError) {
+    throw new Error(`pros dunning reset failed for ${cleanerId}: ${resetError.message}`);
+  }
 
   // Restore subscription status to active
-  await supabase
+  const { error: reactivateError } = await supabase
     .from('subscriptions')
     .update({ status: 'active' })
     .eq('cleaner_id', cleanerId)
     .eq('status', 'past_due');
+  if (reactivateError) {
+    throw new Error(`subscriptions reactivate failed for ${cleanerId}: ${reactivateError.message}`);
+  }
 
   logger.info(`Dunning state reset for cleaner ${cleanerId}`);
 }
