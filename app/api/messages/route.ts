@@ -6,6 +6,7 @@ import { rateLimitRoute, RATE_LIMITS } from '@/lib/middleware/rate-limit';
 import { createLogger } from '@/lib/utils/logger';
 import { notifyProNewMessage, notifyCustomerQuoteReceived, sendSMSIfEnabled } from '@/lib/sms/notifications';
 import { filterPII, filterPIIWithWindow } from '@/lib/pii-filter';
+import { capturedCustomerIdsForPro, redactCustomerForPro } from '@/lib/lead-pii';
 
 const logger = createLogger({ file: 'api/messages/route' });
 
@@ -78,6 +79,19 @@ export async function GET() {
     return NextResponse.json({ error: 'Failed to fetch conversations' }, { status: 500 });
   }
 
+  // SEC-01 (DLD-555): PII wall. A pro only sees the customer's full name and
+  // email after paying the lead fee (a captured lead_acceptance on one of that
+  // customer's quotes). Locked conversations get first name only, no email —
+  // same exposure as quote_requests_pro_view.
+  let unlockedCustomerIds = new Set<string>();
+  if (!isCustomer && cleanerId) {
+    unlockedCustomerIds = await capturedCustomerIdsForPro(
+      supabase,
+      cleanerId,
+      (conversations || []).map((c) => c.customer_id)
+    );
+  }
+
   // Get last message for each conversation
   const conversationsWithPreview = await Promise.all(
     (conversations || []).map(async (conv) => {
@@ -89,8 +103,17 @@ export async function GET() {
         .limit(1)
         .single();
 
+      // FK embed may be typed as array; normalize before redacting.
+      const customerRaw = conv.customer as unknown;
+      const customerObj = (Array.isArray(customerRaw) ? customerRaw[0] : customerRaw) as
+        | { id: string; full_name: string | null; email: string | null }
+        | null;
+
       return {
         ...conv,
+        customer: isCustomer
+          ? customerObj
+          : redactCustomerForPro(customerObj, unlockedCustomerIds.has(conv.customer_id)),
         lastMessage: lastMessage || null,
         unreadCount: isCustomer ? conv.customer_unread_count : conv.cleaner_unread_count,
       };

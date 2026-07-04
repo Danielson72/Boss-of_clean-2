@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createServiceRoleClient } from '@/lib/supabase/service-role';
 import { createLogger } from '@/lib/utils/logger';
+import { proHasCapturedQuote } from '@/lib/lead-pii';
+import { scrubText } from '@/lib/pii-filter';
 
 const logger = createLogger({ file: 'api/quotes/[id]/accept/route' });
 
@@ -133,6 +135,28 @@ export async function POST(
   let booking = existingBooking;
   let bookingError = null;
   if (!existingBooking) {
+    // SEC-02 (DLD-555): PII wall at write time. The street address and raw
+    // notes only go on the booking once this pro has PAID for the lead (a
+    // captured lead_acceptance on this quote). Until then the booking carries
+    // the quote_requests_pro_view exposure: city + zip only, with the notes
+    // scrubbed of embedded contact info. Gating the write (not just the pro
+    // read path) also covers direct RLS-scoped client reads of bookings. The
+    // full address reaches the pro through the paid unlock handoff instead.
+    const hasCaptured = await proHasCapturedQuote(admin, quote.cleaner_id, quoteId);
+    const rawInstructions = quote.description || quote.special_requests || null;
+    const safeInstructions = hasCaptured
+      ? rawInstructions
+      : rawInstructions
+        ? scrubText(rawInstructions).scrubbed
+        : null;
+    if (!hasCaptured) {
+      logger.info('Booking created with PII-walled fields (lead not captured)', {
+        function: 'POST',
+        quoteId,
+        cleanerId: quote.cleaner_id,
+      });
+    }
+
     const insertRes = await admin
       .from('bookings')
       .insert({
@@ -146,8 +170,8 @@ export async function POST(
         start_time: safeStartTime,
         end_time: endTime,
         zip_code: quote.zip_code || '',
-        address: quote.address || quote.city || '',
-        special_instructions: quote.description || quote.special_requests || null,
+        address: hasCaptured ? (quote.address || quote.city || '') : (quote.city || ''),
+        special_instructions: safeInstructions,
         estimated_price: quote.quoted_price || 0,
         estimated_hours: estimatedHours,
         status: 'confirmed',
