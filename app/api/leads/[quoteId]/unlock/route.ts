@@ -91,12 +91,30 @@ export async function POST(
   const stripe = getStripe();
 
   if (existing?.status === 'pending' && existing.stripe_checkout_session_id) {
-    // Resume the in-flight checkout rather than minting a duplicate session.
+    // NEW-03 (DLD-557): decide by the prior session's actual state.
+    //  - open (unexpired)  -> resume it; never mint a second payable session.
+    //  - complete          -> the pro already PAID; the webhook capture is in
+    //                         flight. Minting a new session here would let the
+    //                         same lead be paid twice — reject instead.
+    //  - expired           -> fall through; the conditional link below swaps
+    //                         the stale id atomically.
     const prior = await stripe.checkout.sessions.retrieve(existing.stripe_checkout_session_id);
     if (prior.status === 'open' && prior.url) {
       return NextResponse.json({ url: prior.url, leadAcceptanceId: existing.id, resumed: true });
     }
-    // Otherwise fall through and create a fresh session for the existing row.
+    if (prior.status === 'complete') {
+      logger.warn('unlock.session_reuse_rejected: prior session already complete, capture in flight', {
+        function: 'POST',
+        quoteId,
+        leadAcceptanceId: existing.id,
+        priorSessionId: existing.stripe_checkout_session_id,
+      });
+      return NextResponse.json(
+        { error: 'Payment already completed for this lead; unlock is processing.', leadAcceptanceId: existing.id },
+        { status: 409 }
+      );
+    }
+    // expired -> fall through and create a fresh session for the existing row.
   }
 
   // 3 + 4. Insert the keystone row FIRST (status='pending') using the pro's own
@@ -171,20 +189,51 @@ export async function POST(
   //    service-role UPDATE scoped to this exact row id is correct and safe. We
   //    .select() to get the affected rows and treat 0 rows as a hard failure —
   //    never return a checkout URL for a row we couldn't link.
+  //    NEW-03 (DLD-557): the link is a compare-and-swap, not a blind overwrite.
+  //    Guards in the WHERE clause:
+  //      - status must still be 'pending' (a captured row's session id is
+  //        immutable — overwriting it would orphan the paid session), and
+  //      - the stored session id must be exactly what we inspected above
+  //        (the stale/expired one), or NULL for a fresh row.
+  //    A concurrent request that already linked a *different* session makes
+  //    this match 0 rows; we then expire our just-created session (so no
+  //    dangling payable checkout exists) and reject instead of overwriting.
   const admin = createServiceRoleClient();
-  const { data: linked, error: linkErr } = await admin
+  let linkQuery = admin
     .from('lead_acceptances')
     .update({ stripe_checkout_session_id: session.id })
     .eq('id', leadAcceptanceId)
-    .select('id');
+    .eq('status', 'pending');
+  if (existing?.stripe_checkout_session_id) {
+    linkQuery = linkQuery.eq('stripe_checkout_session_id', existing.stripe_checkout_session_id);
+  } else {
+    linkQuery = linkQuery.is('stripe_checkout_session_id', null);
+  }
+  const { data: linked, error: linkErr } = await linkQuery.select('id');
   if (linkErr || !linked || linked.length === 0) {
-    logger.error('Failed to link session to lead_acceptance', {
+    logger.error('unlock.session_link_rejected: 0 rows linked (status changed or session already replaced)', {
       function: 'POST',
       quoteId,
       leadAcceptanceId,
+      newSessionId: session.id,
+      priorSessionId: existing?.stripe_checkout_session_id ?? null,
       rowsAffected: linked?.length ?? 0,
     }, linkErr);
-    return NextResponse.json({ error: 'Could not finalize checkout.' }, { status: 500 });
+    // Best-effort: kill the unlinked session so the pro can't pay a checkout
+    // the webhook will never be able to match.
+    try {
+      await stripe.checkout.sessions.expire(session.id);
+    } catch (expireErr) {
+      logger.error('unlock.session_expire_failed for unlinked session', {
+        function: 'POST',
+        quoteId,
+        sessionId: session.id,
+      }, expireErr);
+    }
+    return NextResponse.json(
+      { error: 'Another checkout for this lead is already in progress. Refresh and try again.' },
+      { status: 409 }
+    );
   }
 
   return NextResponse.json({ url: session.url, leadAcceptanceId });

@@ -84,9 +84,15 @@ async function handleStripeEvent(event: Stripe.Event): Promise<void> {
             amountCents,
           });
 
-          // Update lead_acceptances: pending → captured
+          // Update lead_acceptances: pending → captured.
+          // NEW-03 (DLD-557): .select() the affected rows and treat 0 rows as a
+          // hard failure. Keying on stripe_checkout_session_id alone previously
+          // passed silently when no row matched (phantom capture: pro paid,
+          // nothing flipped) — e.g. if the session id was replaced after this
+          // checkout was created. Throwing sends it through the retry path and,
+          // if still unmatched, surfaces as a webhook failure Stripe re-delivers.
           const nowIso = new Date().toISOString();
-          const { error: unlockError } = await supabase
+          const { data: capturedRows, error: unlockError } = await supabase
             .from('lead_acceptances')
             .update({
               status: 'captured',
@@ -94,11 +100,22 @@ async function handleStripeEvent(event: Stripe.Event): Promise<void> {
               captured_at: nowIso,
               stripe_payment_intent_id: paymentIntentId,
             })
-            .eq('stripe_checkout_session_id', session.id);
+            .eq('stripe_checkout_session_id', session.id)
+            .select('id');
 
           if (unlockError) {
             logger.error('Failed to update lead_acceptances', { function: 'handleStripeEvent' }, unlockError);
             throw unlockError;
+          }
+          if (!capturedRows || capturedRows.length === 0) {
+            logger.error('capture.zero_rows: no lead_acceptance matched this checkout session — phantom capture averted', {
+              function: 'handleStripeEvent',
+              sessionId: session.id,
+              leadAcceptanceId: lead_acceptance_id ?? null,
+              quoteRequestId: quote_request_id,
+              cleanerId: cleaner_id,
+            });
+            throw new Error(`lead_acceptances capture matched 0 rows for session ${session.id}`);
           }
 
           // Read the quote once (service-role): supplies payments metadata
