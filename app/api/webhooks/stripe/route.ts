@@ -4,7 +4,7 @@ import { getStripe } from '@/lib/stripe/config';
 import { subscriptionService } from '@/lib/stripe/subscription-service';
 import { webhookEventService } from '@/lib/stripe/webhook-event-service';
 import { handleDisputeCreated, handleDisputeClosed } from '@/lib/stripe/disputes';
-import { sendLeadContactEmail } from '@/lib/email/lead-unlock';
+import { sendLeadContactEmail, sendAdminSaleNotification } from '@/lib/email/lead-unlock';
 import { createLogger } from '@/lib/utils/logger';
 import type Stripe from 'stripe';
 
@@ -121,6 +121,9 @@ async function handleStripeEvent(event: Stripe.Event): Promise<void> {
             .eq('stripe_payment_intent_id', paymentIntentId)
             .maybeSingle();
 
+          // True only when THIS delivery inserted a fresh payments row — gates
+          // the admin sale alert so Stripe redeliveries don't re-notify.
+          let paymentRecorded = false;
           if (!existingPayment) {
             const paymentMetadata: Record<string, string> = {
               type: 'lead_unlock',
@@ -158,6 +161,8 @@ async function handleStripeEvent(event: Stripe.Event): Promise<void> {
                 logger.error('Failed to record lead unlock payment', { function: 'handleStripeEvent' }, paymentError);
                 throw paymentError;
               }
+            } else {
+              paymentRecorded = true;
             }
           }
 
@@ -210,6 +215,25 @@ async function handleStripeEvent(event: Stripe.Event): Promise<void> {
               sessionId: session.id,
               quoteRequestId: quote_request_id,
             });
+          }
+
+          // Internal "new sale" alert to admin@bossofclean.com. Only on a
+          // freshly-recorded payment (not on Stripe redeliveries). Fire-and-
+          // forget: a mail failure must NEVER fail the webhook or the payments
+          // write (same contract as the handoff email above).
+          if (paymentRecorded) {
+            Promise.allSettled([
+              sendAdminSaleNotification({
+                proName: pro?.business_name || 'Unknown pro',
+                customerName: customer?.full_name || 'Customer',
+                serviceType,
+                city: leadCity,
+                amount: amountCents / 100, // dollars
+                paymentIntentId,
+              }),
+            ]).catch((err) =>
+              logger.error('Admin sale email batch error', { function: 'handleStripeEvent' }, err)
+            );
           }
 
           logger.info('Lead unlock fully processed', {

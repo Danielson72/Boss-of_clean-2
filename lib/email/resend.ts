@@ -154,6 +154,21 @@ export function generateButton(text: string, url: string, color: 'primary' | 'su
 }
 
 /**
+ * Escape user-supplied values before interpolating into email HTML.
+ * Prevents stored-field HTML/script injection into the admin inbox
+ * (AUDIT_2026-07: unescaped-interpolation flag). Callers pass user data
+ * (names, emails, service/city) through this before building templates.
+ */
+export function escapeHtml(value: string | null | undefined): string {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+/**
  * Generate an info box
  */
 export function generateInfoBox(items: { label: string; value: string }[]): string {
