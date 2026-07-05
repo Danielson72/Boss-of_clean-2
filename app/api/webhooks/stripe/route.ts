@@ -286,6 +286,11 @@ async function handleStripeEvent(event: Stripe.Event): Promise<void> {
       );
       break;
 
+    // Basil (2025+ Stripe API) emits invoice.paid; older versions emit
+    // invoice.payment_succeeded — and both can fire for the same invoice.
+    // handlePaymentSucceeded dedupes per invoice_id, so the double delivery
+    // records one payment.
+    case 'invoice.paid':
     case 'invoice.payment_succeeded':
       await processEventWithRetry(event, () =>
         subscriptionService.handlePaymentSucceeded(
