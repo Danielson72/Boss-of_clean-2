@@ -18,6 +18,11 @@ const WELCOME_MESSAGE: Message = {
 
 const BOSS_ORANGE = '#FF5F1F'
 
+// DLD-559: flag-gated cutover to the OpenRouter-powered "David" route.
+// Defaults OFF — the legacy /api/boc-chat path stays live until
+// NEXT_PUBLIC_DAVID_ENABLED=true is set (requires OPENROUTER_API_KEY too).
+const DAVID_ENABLED = process.env.NEXT_PUBLIC_DAVID_ENABLED === 'true'
+
 export default function BocAssistant() {
   const [open, setOpen] = useState(false)
   const [messages, setMessages] = useState<Message[]>([WELCOME_MESSAGE])
@@ -44,12 +49,52 @@ export default function BocAssistant() {
     setLoading(true)
 
     try {
+      const history = next.filter(m => m.id !== 'welcome').map(m => ({ role: m.role, content: m.content }))
+
+      if (DAVID_ENABLED) {
+        // David path: /api/david streams plain-text deltas — append as they arrive.
+        const res = await fetch('/api/david', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ messages: history }),
+        })
+
+        if (!res.ok || !res.body) {
+          const fallback = res.status === 429
+            ? "You're sending messages a bit fast — give me a minute and try again."
+            : "I'm having trouble responding right now. Please try again soon."
+          setMessages(prev => [...prev, { id: `a-${Date.now()}`, role: 'assistant', content: fallback }])
+          return
+        }
+
+        const assistantId = `a-${Date.now()}`
+        setMessages(prev => [...prev, { id: assistantId, role: 'assistant', content: '' }])
+        const reader = res.body.getReader()
+        const decoder = new TextDecoder()
+        let acc = ''
+        for (;;) {
+          const { done, value } = await reader.read()
+          if (done) break
+          acc += decoder.decode(value, { stream: true })
+          const current = acc
+          setMessages(prev => prev.map(m => (m.id === assistantId ? { ...m, content: current } : m)))
+        }
+        if (!acc) {
+          setMessages(prev =>
+            prev.map(m =>
+              m.id === assistantId
+                ? { ...m, content: "I'm having trouble responding. Please try again." }
+                : m
+            )
+          )
+        }
+        return
+      }
+
       const res = await fetch('/api/boc-chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          messages: next.filter(m => m.id !== 'welcome').map(m => ({ role: m.role, content: m.content })),
-        }),
+        body: JSON.stringify({ messages: history }),
       })
 
       const data = await res.json()
