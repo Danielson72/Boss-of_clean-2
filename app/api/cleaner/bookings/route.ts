@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createLogger } from '@/lib/utils/logger';
+import { capturedCustomerIdsForPro, redactCustomerForPro } from '@/lib/lead-pii';
 
 const logger = createLogger({ file: 'api/cleaner/bookings/route' });
 
@@ -44,5 +45,35 @@ export async function GET() {
     return NextResponse.json({ error: 'Failed to fetch bookings' }, { status: 500 });
   }
 
-  return NextResponse.json({ bookings: bookings || [] });
+  // SEC-02 (DLD-555): PII wall. Until this pro has a captured (paid)
+  // lead_acceptance for the customer, redact contact fields to the
+  // quote_requests_pro_view exposure: first name, no email, no street
+  // address, scrub-safe fields only. Also covers legacy rows written with a
+  // full address before the write-time wall existed.
+  const rows = bookings || [];
+  const unlockedCustomerIds = await capturedCustomerIdsForPro(
+    supabase,
+    cleaner.id,
+    rows.map((b: { customer_id: string }) => b.customer_id)
+  );
+
+  const walledBookings = rows.map((b: Record<string, unknown>) => {
+    const isUnlocked = unlockedCustomerIds.has(b.customer_id as string);
+    const customerRaw = b.customer as unknown;
+    const customerObj = (Array.isArray(customerRaw) ? customerRaw[0] : customerRaw) as
+      | { id: string; full_name: string | null; email: string | null }
+      | null;
+
+    if (isUnlocked) {
+      return { ...b, customer: customerObj };
+    }
+    return {
+      ...b,
+      customer: redactCustomerForPro(customerObj, false),
+      address: '', // zip_code stays — same exposure as quote_requests_pro_view
+      special_instructions: null,
+    };
+  });
+
+  return NextResponse.json({ bookings: walledBookings });
 }

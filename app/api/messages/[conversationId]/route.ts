@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createLogger } from '@/lib/utils/logger';
+import { proHasCapturedLeadForCustomer, redactCustomerForPro } from '@/lib/lead-pii';
 
 const logger = createLogger({ file: 'api/messages/[conversationId]/route' });
 
@@ -85,8 +86,23 @@ export async function GET(
     return NextResponse.json({ error: 'Failed to fetch messages' }, { status: 500 });
   }
 
+  // SEC-01 (DLD-555): PII wall. Pros only see the customer's full name/email
+  // after a captured (paid) lead_acceptance on one of this customer's quotes.
+  let conversation = conv;
+  if (!isCustomer) {
+    const customerRaw = conv.customer as unknown;
+    const customerObj = (Array.isArray(customerRaw) ? customerRaw[0] : customerRaw) as
+      | { id: string; full_name: string | null; email: string | null }
+      | null;
+    const isUnlocked = await proHasCapturedLeadForCustomer(supabase, conv.cleaner_id, conv.customer_id);
+    conversation = {
+      ...conv,
+      customer: redactCustomerForPro(customerObj, isUnlocked) as unknown as typeof conv.customer,
+    };
+  }
+
   return NextResponse.json({
-    conversation: conv,
+    conversation,
     messages: messages || [],
     isCustomer,
   });
