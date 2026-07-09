@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server';
+import { createServiceRoleClient } from '@/lib/supabase/service-role';
 import { createLogger } from '../utils/logger';
 import type Stripe from 'stripe';
 
@@ -11,7 +11,9 @@ export interface WebhookEventRecord {
 
 export class WebhookEventService {
   private async getSupabase() {
-    return await createClient();
+    // Webhooks have no user session; the RPC helpers require service_role
+    // after the RPC EXECUTE lockdown migration (PR #73).
+    return createServiceRoleClient();
   }
 
   /**
