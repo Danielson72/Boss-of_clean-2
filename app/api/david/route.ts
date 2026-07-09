@@ -11,7 +11,7 @@ export const maxDuration = 25
 // The key is server-side ONLY (never NEXT_PUBLIC_); the route degrades to a
 // 503 when it's absent so the widget can hide/disable itself gracefully.
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions'
-const DAVID_MODEL = 'google/gemini-flash-1.5'
+const DAVID_MODEL = 'google/gemini-2.5-flash-lite'
 const MAX_TOKENS = 500
 
 // 10 messages per IP per hour (standalone config — the traffic-slice branch's
@@ -24,10 +24,10 @@ const MAX_CONTENT_CHARS = 1000
 
 const DAVID_SYSTEM_PROMPT =
   "You are David, the friendly assistant for Boss of Clean, Florida's home and business services marketplace. " +
-  'Help visitors post quote requests, understand how lead fees work for pros, and navigate the site. ' +
+  'Help visitors post quote requests, understand how the $30 pay-per-lead model works for pros, and navigate the site. ' +
   'Never reveal customer contact information. ' +
-  "Never discuss other companies' platforms. " +
-  'Keep answers short and warm. Tagline: Purrfection is our Standard.'
+  'Never discuss or recommend competitor platforms. ' +
+  "Keep answers short, warm, professional. Boss of Clean's tagline is 'Purrfection is our Standard.'"
 
 interface ChatMessage {
   role: 'user' | 'assistant'
