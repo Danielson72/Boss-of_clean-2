@@ -4,7 +4,7 @@ import { DashboardSidebar, type SidebarLink } from '@/components/dashboard/Dashb
 import {
   LayoutDashboard, User, FileText, Calendar,
   DollarSign, Clock, Images, Star, MapPin, CreditCard, Bell, MessageSquare,
-  ShieldCheck, Lock,
+  ShieldCheck, Lock, Users, Receipt,
 } from 'lucide-react';
 import { usePendingDocumentActions } from '@/lib/hooks/usePendingDocumentActions';
 import { useProSidebarCounts } from '@/lib/hooks/useProSidebarCounts';
@@ -22,6 +22,7 @@ export default function ProDashboardLayout({ children }: { children: React.React
     { href: '/dashboard/messages', label: 'Messages', icon: MessageSquare, badge: unreadMessages },
     { href: '/dashboard/pro/quote-requests', label: 'Quote Requests', icon: FileText, badge: pendingLeads },
     { href: '/dashboard/pro/leads', label: 'Action Needed', icon: Lock, badge: actionNeededLeads },
+    { href: '/dashboard/pro/customers', label: 'My Customers', icon: Users },
     { href: '/dashboard/pro/bookings', label: 'Bookings', icon: Calendar },
     { href: '/dashboard/pro/earnings', label: 'Earnings', icon: DollarSign },
     { href: '/dashboard/pro/availability', label: 'Availability', icon: Clock },
@@ -29,6 +30,7 @@ export default function ProDashboardLayout({ children }: { children: React.React
     { href: '/dashboard/pro/reviews', label: 'Reviews', icon: Star },
     { href: '/dashboard/pro/service-areas', label: 'Service Areas', icon: MapPin },
     { href: '/dashboard/pro/billing', label: 'Billing', icon: CreditCard },
+    { href: '/dashboard/pro/payments', label: 'Payments', icon: Receipt },
   ];
 
   return (
