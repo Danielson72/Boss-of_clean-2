@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createServiceRoleClient } from '@/lib/supabase/service-role';
 import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger({ file: 'api/bookings/[id]/photos/route' });
@@ -63,6 +64,15 @@ export async function POST(
       return NextResponse.json({ error: 'Maximum 10 photos per upload' }, { status: 400 });
     }
 
+    // DLD-567: upload via the service-role client. The session client writes
+    // to portfolio-photos under job-photos/<bookingId>/..., but the bucket's
+    // only INSERT policy requires uid-prefixed folders, so every job-photo
+    // upload was silently failing. Ownership is already verified above
+    // (auth user -> pros row -> booking.cleaner_id match), so a service-role
+    // upload scoped to this booking's folder is safe. DB reads/writes below
+    // stay on the RLS-scoped session client.
+    const admin = createServiceRoleClient();
+
     const uploadedPhotos: { url: string; type: string }[] = [];
     const errors: string[] = [];
 
@@ -83,7 +93,7 @@ export async function POST(
       const arrayBuffer = await file.arrayBuffer();
       const buffer = new Uint8Array(arrayBuffer);
 
-      const { error: uploadError } = await supabase.storage
+      const { error: uploadError } = await admin.storage
         .from('portfolio-photos')
         .upload(fileName, buffer, {
           contentType: file.type,
@@ -99,7 +109,7 @@ export async function POST(
 
       const {
         data: { publicUrl },
-      } = supabase.storage.from('portfolio-photos').getPublicUrl(fileName);
+      } = admin.storage.from('portfolio-photos').getPublicUrl(fileName);
 
       uploadedPhotos.push({ url: publicUrl, type: photoType });
     }
