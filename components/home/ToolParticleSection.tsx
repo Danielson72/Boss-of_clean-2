@@ -215,8 +215,14 @@ export default function ToolParticleSection() {
     }
 
     let animId: number;
+    // Run the ambience for a fixed window, then settle on the last frame.
+    // An endless rAF loop keeps the page permanently "busy" (breaks
+    // headless captures / burns battery) for a decorative background.
+    const SETTLE_AFTER_MS = 8000;
+    const startedAt = performance.now();
 
     const animate = () => {
+      if (performance.now() - startedAt > SETTLE_AFTER_MS) return; // settle
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       // Ambient glow blobs
