@@ -10,7 +10,7 @@ Advisor totals: **297 multiple_permissive_policies**, **10 auth_rls_initplan**,
 | File | Scope |
 |---|---|
 | `20260710170000_perf_fk_indexes_and_dup_indexes.sql` | A: 3 FK indexes + drop 3 duplicate indexes |
-| `20260710170100_perf_rls_initplan_fixes.sql` | B: wrap `auth.*()` in `(SELECT …)` in the 10 flagged policies |
+| `20260710170100_perf_initplan_fixes.sql` | B: wrap `auth.*()` in `(SELECT …)` in the 10 flagged policies |
 | `20260710170200_perf_policy_consolidation_top5.sql` | C: consolidate permissive policies on users, pros, quote_requests, conversations, messages, payments |
 
 ## A — Indexes
