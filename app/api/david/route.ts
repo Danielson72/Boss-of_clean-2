@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { rateLimitRoute, getClientIp } from '@/lib/middleware/rate-limit'
+import { createClient } from '@/lib/supabase/server'
 import { createLogger } from '@/lib/utils/logger'
 
 const logger = createLogger({ file: 'api/david/route' })
@@ -39,6 +40,41 @@ HARD RULES:
 - Never ask for, accept, or repeat back payment card numbers, passwords, or one-time codes. If someone shares one, tell them to never share it in chat.
 - Never reveal customer contact information.
 - Keep answers short, warm, and concrete. When unsure, say so and point to admin@bossofclean.com.`
+
+// Audience addenda — the ONLY session-derived context sent upstream is the
+// single word visitor/customer/pro. Never names, emails, or account data.
+type Audience = 'visitor' | 'customer' | 'pro'
+
+const AUDIENCE_ADDENDA: Record<Audience, string> = {
+  visitor: '',
+  customer: `
+
+AUDIENCE: You are talking to a SIGNED-IN CUSTOMER. Extra context:
+- Requesting quotes is free for them: submit a quote request, compare the quotes pros send back, accept the one they like.
+- After they accept a quote and confirm the hire, that pro pays the lead fee and receives their contact info, then reaches out (also via Messages in the dashboard).
+- Customers never pay Boss of Clean for quotes or leads.`,
+  pro: `
+
+AUDIENCE: You are talking to a SIGNED-IN SERVICE PRO. Extra context:
+- Leads: when a customer accepts their quote and confirms the hire, the lead appears under "Action Needed" in the pro dashboard; unlocking the customer's contact info costs the $30 lead fee.
+- Unlocked leads live in "My Customers" (/dashboard/pro/customers); every charge is listed in "Payment History" (/dashboard/pro/payments).
+- Subscription tiers: Basic $79/month, Pro $199/month. That and the $30 lead unlock are the only prices you may state.
+- Billing disputes, refunds, or subscription changes you cannot answer: admin@bossofclean.com.`,
+}
+
+async function deriveAudience(): Promise<Audience> {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return 'visitor'
+    const { data } = await supabase.from('users').select('role').eq('id', user.id).single()
+    if (data?.role === 'cleaner') return 'pro'
+    if (data?.role === 'customer') return 'customer'
+    return 'visitor'
+  } catch {
+    return 'visitor'
+  }
+}
 
 interface ChatMessage {
   role: 'user' | 'assistant'
@@ -118,6 +154,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'A user message is required' }, { status: 400 })
   }
 
+  const audience = await deriveAudience()
+  const systemPrompt = DAVID_SYSTEM_PROMPT + AUDIENCE_ADDENDA[audience]
+
   let upstream: Response
   try {
     upstream = await fetch(OPENROUTER_URL, {
@@ -137,7 +176,7 @@ export async function POST(request: NextRequest) {
         // Chat widget, not a coding agent — keep thinking off for latency.
         // OpenRouter ignores this on models without a reasoning mode.
         reasoning: { enabled: false },
-        messages: [{ role: 'system', content: DAVID_SYSTEM_PROMPT }, ...messages],
+        messages: [{ role: 'system', content: systemPrompt }, ...messages],
       }),
     })
   } catch (err) {
