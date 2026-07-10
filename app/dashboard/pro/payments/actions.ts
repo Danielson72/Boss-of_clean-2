@@ -23,6 +23,8 @@ export interface PaymentRow {
   quote_request_id: string | null;
   service_type: string | null;
   lead_city: string | null;
+  /** Stripe receipt (charge receipt_url or hosted invoice URL) — DLD-566 */
+  receipt_url: string | null;
 }
 
 export async function getPaymentHistory(): Promise<{
@@ -72,6 +74,10 @@ export async function getPaymentHistory(): Promise<{
         quote_request_id: typeof meta.quote_request_id === 'string' ? meta.quote_request_id : null,
         service_type: typeof meta.service_type === 'string' ? meta.service_type : null,
         lead_city: typeof meta.lead_city === 'string' ? meta.lead_city : null,
+        receipt_url:
+          typeof meta.receipt_url === 'string' && meta.receipt_url.startsWith('https://')
+            ? meta.receipt_url
+            : null,
       };
     });
 

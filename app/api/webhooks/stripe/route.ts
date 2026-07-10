@@ -142,12 +142,31 @@ async function handleStripeEvent(event: Stripe.Event): Promise<void> {
           // the admin sale alert so Stripe redeliveries don't re-notify.
           let paymentRecorded = false;
           if (!existingPayment) {
+            // DLD-566: capture the Stripe receipt link for Payment History.
+            // Best-effort — a failed retrieve must never fail the capture flow.
+            let receiptUrl: string | null = null;
+            try {
+              const pi = await getStripe().paymentIntents.retrieve(paymentIntentId, {
+                expand: ['latest_charge'],
+              });
+              const charge = pi.latest_charge as Stripe.Charge | null;
+              receiptUrl = charge?.receipt_url ?? null;
+            } catch (receiptErr) {
+              logger.warn('Could not fetch receipt_url for lead unlock payment', {
+                function: 'handleStripeEvent',
+                paymentIntentId,
+              }, receiptErr);
+            }
+
             const paymentMetadata: Record<string, string> = {
               type: 'lead_unlock',
               quote_request_id,
               lead_city: leadCity,
               service_type: serviceType,
             };
+            if (receiptUrl) {
+              paymentMetadata.receipt_url = receiptUrl;
+            }
             // Older checkout sessions may predate lead_acceptance_id in metadata.
             if (lead_acceptance_id) {
               paymentMetadata.lead_acceptance_id = lead_acceptance_id;
