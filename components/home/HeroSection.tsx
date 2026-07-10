@@ -3,8 +3,10 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { Search, MapPin, ChevronDown } from 'lucide-react';
+import { Search, MapPin, ChevronDown, Check } from 'lucide-react';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 
+// Fallback only — the live list is passed in from service_categories.
 const SERVICE_OPTIONS = [
   'House Cleaning',
   'Deep Cleaning',
@@ -28,10 +30,17 @@ const SERVICE_OPTIONS = [
   'Airbnb / Vacation Rental Turnover',
 ];
 
-export default function HeroSection() {
+export default function HeroSection({ services }: { services?: string[] }) {
+  const options = services && services.length > 0 ? services : SERVICE_OPTIONS;
   const [serviceType, setServiceType] = useState('');
   const [zipCode, setZipCode] = useState('');
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [sheetQuery, setSheetQuery] = useState('');
   const router = useRouter();
+
+  const filteredOptions = options.filter((s) =>
+    s.toLowerCase().includes(sheetQuery.trim().toLowerCase())
+  );
 
   const handleSearch = (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -80,20 +89,74 @@ export default function HeroSection() {
               className="bg-white rounded-2xl shadow-2xl p-3 sm:p-4 max-w-3xl mx-auto lg:mx-0"
             >
               <div className="flex flex-col sm:flex-row gap-3">
-                {/* Service Type */}
+                {/* Service Type — searchable bottom sheet on small screens,
+                    native select from sm: up. 16px font prevents iOS zoom. */}
                 <div className="relative flex-1">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
-                  <select
-                    value={serviceType}
-                    onChange={(e) => setServiceType(e.target.value)}
-                    className="w-full pl-12 pr-10 py-4 bg-brand-cream rounded-xl text-brand-dark font-medium text-sm appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-brand-gold/50 transition-shadow"
-                  >
-                    <option value="">What service do you need?</option>
-                    {SERVICE_OPTIONS.map((s) => (
-                      <option key={s} value={s}>{s}</option>
-                    ))}
-                  </select>
-                  <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                  {/* Mobile: bottom-sheet picker */}
+                  <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+                    <SheetTrigger asChild>
+                      <button
+                        type="button"
+                        className="sm:hidden w-full pl-12 pr-10 py-4 min-h-[48px] bg-brand-cream rounded-xl text-left font-medium text-base focus:outline-none focus:ring-2 focus:ring-brand-gold/50"
+                      >
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
+                        <span className={serviceType ? 'text-brand-dark' : 'text-gray-400'}>
+                          {serviceType || 'What service do you need?'}
+                        </span>
+                        <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                      </button>
+                    </SheetTrigger>
+                    <SheetContent side="bottom" className="h-[75vh] rounded-t-2xl p-0 flex flex-col">
+                      <div className="p-4 border-b border-gray-100">
+                        <div className="relative">
+                          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
+                          <input
+                            type="text"
+                            value={sheetQuery}
+                            onChange={(e) => setSheetQuery(e.target.value)}
+                            placeholder="Search services..."
+                            className="w-full pl-12 pr-4 py-3 min-h-[48px] bg-brand-cream rounded-xl text-brand-dark text-base focus:outline-none focus:ring-2 focus:ring-brand-gold/50"
+                          />
+                        </div>
+                      </div>
+                      <div className="flex-1 overflow-y-auto p-2">
+                        {filteredOptions.map((s) => (
+                          <button
+                            key={s}
+                            type="button"
+                            onClick={() => {
+                              setServiceType(s);
+                              setSheetOpen(false);
+                              setSheetQuery('');
+                            }}
+                            className="w-full flex items-center justify-between px-4 py-3.5 min-h-[48px] rounded-xl text-left text-base text-brand-dark hover:bg-brand-cream active:bg-brand-cream"
+                          >
+                            {s}
+                            {serviceType === s && <Check className="h-5 w-5 text-brand-gold" />}
+                          </button>
+                        ))}
+                        {filteredOptions.length === 0 && (
+                          <p className="px-4 py-6 text-center text-gray-400 text-base">No matching services</p>
+                        )}
+                      </div>
+                    </SheetContent>
+                  </Sheet>
+
+                  {/* Desktop / tablet: native select */}
+                  <div className="hidden sm:block">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
+                    <select
+                      value={serviceType}
+                      onChange={(e) => setServiceType(e.target.value)}
+                      className="w-full pl-12 pr-10 py-4 min-h-[48px] bg-brand-cream rounded-xl text-brand-dark font-medium text-base appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-brand-gold/50 transition-shadow"
+                    >
+                      <option value="">What service do you need?</option>
+                      {options.map((s) => (
+                        <option key={s} value={s}>{s}</option>
+                      ))}
+                    </select>
+                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                  </div>
                 </div>
 
                 {/* ZIP Code */}
@@ -107,7 +170,7 @@ export default function HeroSection() {
                     maxLength={5}
                     pattern="[0-9]*"
                     inputMode="numeric"
-                    className="w-full pl-12 pr-4 py-4 bg-brand-cream rounded-xl text-brand-dark font-medium text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-gold/50 transition-shadow"
+                    className="w-full pl-12 pr-4 py-4 min-h-[48px] bg-brand-cream rounded-xl text-brand-dark font-medium text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-gold/50 transition-shadow"
                   />
                 </div>
 
@@ -130,7 +193,7 @@ export default function HeroSection() {
           {/* Right column — CEO Cat Image */}
           <div className="relative flex-shrink-0 order-1 lg:order-2 w-64 sm:w-80 md:w-96 lg:w-[420px] xl:w-[480px]">
             {/* Gold glow behind the frame — layered for rich highlight effect */}
-            <div className="absolute -inset-8 bg-brand-gold/20 rounded-[2rem] blur-[60px] animate-pulse-slow" />
+            <div className="absolute -inset-8 bg-brand-gold/20 rounded-[2rem] blur-[60px] animate-pulse-slow motion-reduce:animate-none" />
             <div className="absolute -inset-5 bg-brand-gold/15 rounded-3xl blur-3xl" />
             <div className="absolute -inset-3 bg-brand-gold/10 rounded-2xl blur-2xl" />
 

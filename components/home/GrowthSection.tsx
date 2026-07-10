@@ -26,13 +26,18 @@ function useInView(threshold = 0.3) {
 }
 
 function CountUp({ target, suffix = '', duration = 2000 }: { target: number; suffix?: string; duration?: number }) {
-  const [count, setCount] = useState(0);
+  // SSR renders the REAL value (no "0 Florida Counties" in raw HTML / for
+  // crawlers). The count-up runs client-side from 0 once in view, unless
+  // the user prefers reduced motion — then the value just stays put.
+  const [count, setCount] = useState(target);
   const [started, setStarted] = useState(false);
   const ref = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
+
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -82,7 +87,7 @@ function CountUp({ target, suffix = '', duration = 2000 }: { target: number; suf
 const CURVE_PATH = 'M 0 180 C 80 170, 160 150, 240 130 C 320 110, 400 95, 480 80 C 560 65, 640 45, 720 35 C 800 25, 880 15, 960 10';
 const AREA_PATH = CURVE_PATH + ' L 960 200 L 0 200 Z';
 
-export default function GrowthSection() {
+export default function GrowthSection({ categoriesCount = 14 }: { categoriesCount?: number }) {
   const { ref: sectionRef, isInView } = useInView(0.2);
   const [pathLength, setPathLength] = useState(0);
   const pathRef = useRef<SVGPathElement>(null);
@@ -99,8 +104,9 @@ export default function GrowthSection() {
 
   const stats = [
     { value: 67, suffix: '', label: 'Florida Counties Served', icon: MapPin },
-    { value: 14, suffix: '+', label: 'Pro Service Categories', icon: TrendingUp },
-    { value: 0, suffix: '%', label: 'Lead Fee Markup', icon: Building2 },
+    { value: categoriesCount, suffix: '+', label: 'Pro Service Categories', icon: TrendingUp },
+    // "0" is the whole point here — phrased so it reads as the benefit it is.
+    { value: 0, suffix: '%', label: 'Lead Fee Markup — pros keep what they earn', icon: Building2 },
   ];
 
   // Dot positions along the curve (approximate x,y for key points)

@@ -43,6 +43,8 @@ const nextConfig = {
     ]
   },
   images: {
+    // Serve AVIF/WebP variants (AVIF ~50% smaller than PNG for the hero).
+    formats: ['image/avif', 'image/webp'],
     remotePatterns: [
       { protocol: 'https', hostname: '**.supabase.co' },
       { protocol: 'https', hostname: '**.supabase.in' },

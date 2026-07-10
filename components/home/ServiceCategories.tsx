@@ -114,7 +114,49 @@ const services: ServiceCategory[] = [
   },
 ];
 
-export default function ServiceCategories() {
+// slug → icon for DB-driven categories; anything unmapped gets Sparkles.
+const SLUG_ICONS: Record<string, LucideIcon> = {
+  residential: Home,
+  deep_cleaning: Sparkles,
+  maid_service: Brush,
+  move_in_out: Home,
+  post_construction: Wrench,
+  str_turnover: Home,
+  window_cleaning: ShowerHead,
+  carpet_cleaning: Brush,
+  pressure_washing: Droplets,
+  air_duct_cleaning: Fan,
+  landscaping: Trees,
+  handyman: Wrench,
+  hvac: Thermometer,
+  plumbing: ShowerHead,
+  electrical: Zap,
+  pest_control: Bug,
+  gutter_cleaning: Droplets,
+  junk_removal: Trash2,
+  pool_service: Waves,
+  mobile_detailing: Car,
+};
+
+interface DbCategory {
+  slug: string;
+  display_name: string;
+  description: string | null;
+}
+
+export default function ServiceCategories({ categories }: { categories?: DbCategory[] }) {
+  // Drive the grid from service_categories when available so it can never
+  // drift from the hero dropdown; static list is the no-DB fallback.
+  const items =
+    categories && categories.length > 0
+      ? categories.map((c) => ({
+          icon: SLUG_ICONS[c.slug] ?? Sparkles,
+          name: c.display_name,
+          description: c.description ?? '',
+          searchParam: c.display_name,
+        }))
+      : services;
+
   return (
     <section className="py-20 sm:py-28 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -141,7 +183,7 @@ export default function ServiceCategories() {
 
         {/* Service grid */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6">
-          {services.map((service) => (
+          {items.map((service) => (
             <Link
               key={service.name}
               href={`/search?service=${encodeURIComponent(service.searchParam)}`}

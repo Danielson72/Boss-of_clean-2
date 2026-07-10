@@ -116,8 +116,8 @@ export default function Footer() {
         <div className="border-t border-white/10 py-8">
           {/* Disclaimer */}
           <p className="text-xs text-gray-500 leading-relaxed max-w-4xl mx-auto text-center mb-4">
-            Boss of Clean is a home services marketplace
-            connecting homeowners with independent service providers. We are not a
+            Boss of Clean is a pro services marketplace
+            connecting homeowners and businesses with independent service providers. We are not a
             cleaning company and do not directly employ, supervise, or control
             service providers listed on our platform. All service providers are
             independent businesses responsible for their own licensing, insurance,

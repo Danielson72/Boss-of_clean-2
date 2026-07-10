@@ -10,6 +10,7 @@ import Footer from '@/components/Footer';
 import { AuthProvider } from '@/lib/context/AuthContext';
 import { Toaster } from '@/components/ui/sonner';
 import BocAssistantLoader from '@/components/boc-assistant/BocAssistantLoader';
+import StickyMobileCta from '@/components/home/StickyMobileCta';
 
 const dmSans = DM_Sans({
   subsets: ['latin'],
@@ -26,7 +27,7 @@ const playfair = Playfair_Display({
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'https://bossofclean.com'),
   title: {
-    default: "Boss of Clean \u2014 Florida's Home Services Marketplace",
+    default: "Boss of Clean \u2014 Florida's Pro Service Marketplace",
     template: "%s | Boss of Clean",
   },
   description: 'Find trusted, verified home service professionals in Florida. Get free quotes for cleaning, pressure washing, landscaping, pool cleaning, and more. Purrfection is our Standard.',
@@ -58,17 +59,17 @@ export const metadata: Metadata = {
     google: '9OamLmj5CpbZMWeIGL_sbC_Vh2_c_FanbjQyQqZ8DX0',
   },
   openGraph: {
-    title: "Boss of Clean \u2014 Florida's Home Services Marketplace",
+    title: "Boss of Clean \u2014 Florida's Pro Service Marketplace",
     description: 'Find trusted, verified home service professionals in Florida. Get free quotes for cleaning, pressure washing, landscaping, pool cleaning, and more.',
     url: 'https://bossofclean.com',
     siteName: 'Boss of Clean',
     type: 'website',
     locale: 'en_US',
-    images: [{ url: '/og-logo.png', width: 1200, height: 630, alt: 'Boss of Clean \u2014 Florida Home Services Marketplace' }],
+    images: [{ url: '/og-logo.png', width: 1200, height: 630, alt: 'Boss of Clean \u2014 Florida Pro Service Marketplace' }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: "Boss of Clean \u2014 Florida's Home Services Marketplace",
+    title: "Boss of Clean \u2014 Florida's Pro Service Marketplace",
     description: 'Find trusted, verified home service professionals in Florida. Get free quotes for cleaning, pressure washing, landscaping, pool cleaning, and more.',
     images: ['/og-logo.png'],
     creator: '@bossofclean',
@@ -99,6 +100,7 @@ export default function RootLayout({
             <Footer />
           </div>
           <Toaster />
+          <StickyMobileCta />
           <BocAssistantLoader />
         </AuthProvider>
       </body>
