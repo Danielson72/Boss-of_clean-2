@@ -11,7 +11,8 @@ export const maxDuration = 25
 // The key is server-side ONLY (never NEXT_PUBLIC_); the route degrades to a
 // 503 when it's absent so the widget can hide/disable itself gracefully.
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions'
-const DAVID_MODEL = 'google/gemini-flash-1.5'
+// Server-side only (never NEXT_PUBLIC_) — model choice must not ship to the client.
+const DAVID_MODEL = process.env.DAVID_MODEL || 'z-ai/glm-5.2'
 const MAX_TOKENS = 500
 
 // 10 messages per IP per hour (standalone config — the traffic-slice branch's
@@ -22,16 +23,53 @@ const DAVID_RATE_LIMIT = { maxRequests: 10, windowSeconds: 3600 }
 const MAX_TURNS = 12
 const MAX_CONTENT_CHARS = 1000
 
-const DAVID_SYSTEM_PROMPT =
-  "You are David, the friendly assistant for Boss of Clean, Florida's home and business services marketplace. " +
-  'Help visitors post quote requests, understand how lead fees work for pros, and navigate the site. ' +
-  'Never reveal customer contact information. ' +
-  "Never discuss other companies' platforms. " +
-  'Keep answers short and warm. Tagline: Purrfection is our Standard.'
+const DAVID_SYSTEM_PROMPT = `You are David, the friendly customer-service assistant for Boss of Clean, Florida's home and business services marketplace. Tagline: "Purrfection is our Standard."
+
+FACTS YOU KNOW:
+- Boss of Clean serves Florida ONLY — all 67 Florida counties. If asked about a Florida city (Miami, Orlando, Tampa, etc.), the answer is yes.
+- How it works for customers: browse pros or submit a quote request (a free account is required to submit), compare quotes, accept the one you like. Requesting and receiving quotes is FREE for customers.
+- How it works for pros: creating a profile and receiving quote requests is free. When a customer accepts a pro's quote and confirms the hire, the pro pays a $30 lead fee to unlock that customer's contact info. That is the pricing you may state — do not invent any other prices, discounts, or fees. Pros set their own service prices.
+- Service categories: residential/house cleaning, deep cleaning, move-in/move-out cleaning, Airbnb/short-term-rental turnover, maid service, pressure washing, window cleaning, carpet cleaning, post-construction cleaning, pool cleaning, landscaping, car detailing, and air duct cleaning.
+- Support: for billing disputes, refunds, account problems, or anything you cannot resolve, direct people to admin@bossofclean.com.
+
+HARD RULES:
+- You are a customer-service agent for Boss of Clean, not a general assistant. Politely decline anything off-topic (homework, writing code, other companies, news, etc.) and steer back to Boss of Clean.
+- NEVER mention, acknowledge, or discuss any other company or brand, including any you might believe is affiliated. If asked about one, say you can only help with Boss of Clean.
+- Never give legal advice, guarantees of work quality, or price promises beyond the facts above. Service pros are independent businesses.
+- Never ask for, accept, or repeat back payment card numbers, passwords, or one-time codes. If someone shares one, tell them to never share it in chat.
+- Never reveal customer contact information.
+- Keep answers short, warm, and concrete. When unsure, say so and point to admin@bossofclean.com.`
 
 interface ChatMessage {
   role: 'user' | 'assistant'
   content: string
+}
+
+// Scrub obvious PII from user text before it leaves for OpenRouter.
+// Card-like numbers first (so phone patterns can't partially match them),
+// then emails, then US-style phone numbers. Values are never logged —
+// only which categories fired.
+const PII_PATTERNS: { name: string; re: RegExp; placeholder: string }[] = [
+  { name: 'card', re: /\b(?:\d[ -]?){13,19}\b/g, placeholder: '[card number removed]' },
+  { name: 'email', re: /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g, placeholder: '[email removed]' },
+  {
+    name: 'phone',
+    re: /(?:\+?1[\s.-]?)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}\b/g,
+    placeholder: '[phone removed]',
+  },
+]
+
+function scrubPii(text: string): { text: string; hits: string[] } {
+  const hits: string[] = []
+  let out = text
+  for (const { name, re, placeholder } of PII_PATTERNS) {
+    if (re.test(out)) {
+      hits.push(name)
+      out = out.replace(re, placeholder)
+    }
+    re.lastIndex = 0
+  }
+  return { text: out, hits }
 }
 
 export async function POST(request: NextRequest) {
@@ -62,7 +100,19 @@ export async function POST(request: NextRequest) {
         m.content.trim().length > 0
     )
     .slice(-MAX_TURNS)
-    .map((m) => ({ role: m.role, content: m.content.slice(0, MAX_CONTENT_CHARS) }))
+    .map((m) => {
+      const capped = m.content.slice(0, MAX_CONTENT_CHARS)
+      if (m.role !== 'user') return { role: m.role, content: capped }
+      const { text, hits } = scrubPii(capped)
+      if (hits.length > 0) {
+        // Log categories only — never the raw values.
+        logger.info('PII scrubbed from user message before OpenRouter', {
+          function: 'POST',
+          categories: hits.join(','),
+        })
+      }
+      return { role: m.role, content: text }
+    })
 
   if (messages.length === 0 || messages[messages.length - 1].role !== 'user') {
     return NextResponse.json({ error: 'A user message is required' }, { status: 400 })
@@ -76,12 +126,17 @@ export async function POST(request: NextRequest) {
         Authorization: `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
         'HTTP-Referer': 'https://bossofclean.com',
-        'X-Title': 'Boss of Clean — David',
+        // ASCII only — non-ASCII header values (the previous em-dash) make
+        // fetch throw before the request is ever sent.
+        'X-Title': 'Boss of Clean - David',
       },
       body: JSON.stringify({
         model: DAVID_MODEL,
         max_tokens: MAX_TOKENS,
         stream: true,
+        // Chat widget, not a coding agent — keep thinking off for latency.
+        // OpenRouter ignores this on models without a reasoning mode.
+        reasoning: { enabled: false },
         messages: [{ role: 'system', content: DAVID_SYSTEM_PROMPT }, ...messages],
       }),
     })
