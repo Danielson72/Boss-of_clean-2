@@ -31,14 +31,16 @@ Screenshots: `docs/screenshots/e2e-launch/01–10`.
   in a different browser than signup (normal PKCE behavior; email still
   confirms and password login works). Cosmetic; consider stripping the param
   or showing "email confirmed — please sign in."
-- **F3 — Refund/review policies are drafts only** (`docs/legal-drafts/`, PR
-  #71). No live /refund-policy route and no footer link. /terms and /privacy
-  render clean (no placeholder text). Decide: publish before launch or accept
-  terms+privacy as sufficient day-one.
-- **F4 — Duplicate DLD-567 PRs.** My #85 (path fix, merged) supersedes #80
-  (service-role approach, still open) — **close #80**. Also open from the
-  ticket batch: #81 (DLD-566 receipt_url — nice-to-have) and #83 (DLD-572
-  phase-2 RLS migration — prepared, NOT applied, post-launch).
+- **F3 — Refund/review policies: RESOLVED.** Published as live routes
+  /refund-policy and /review-policy (PR #87), styled to match /terms and
+  linked in the footer. Terms preserved verbatim from the drafts; nothing
+  invented. Four items still need Daniel's sign-off (attorney review status;
+  /terms "5% platform fee" contradiction with the lead-fee model; whether the
+  dashboard refund/review-flag controls exist; effective date) — see PR #87.
+- **F4 — Duplicate DLD-567 PRs: RESOLVED.** #85 (path fix) merged; #80
+  (service-role approach) closed as superseded. Still open from the ticket
+  batch: #81 (DLD-566 receipt_url — nice-to-have) and #83 (DLD-572 phase-2
+  RLS migration — prepared, NOT applied, post-launch).
 - **F5 — Footer was cleaning-only** — fixed and live in #85 (now driven by
   service_categories, same as homepage + David).
 
@@ -47,8 +49,10 @@ Screenshots: `docs/screenshots/e2e-launch/01–10`.
    unlock) — the only untested production leg; webhook + capture path was
    proven with real July payments.
 2. Daniel: Supabase dashboard email-template copy fix (F1).
-3. Decision: publish refund/review policy pages or defer (F3).
-4. Close PR #80 as superseded; schedule #81, #83 post-launch.
+3. Daniel: sign off the 4 [DANIEL: CONFIRM] items on the now-published
+   legal pages (PR #87) — attorney review, /terms fee-model contradiction,
+   dashboard controls, effective date.
+4. Schedule #81 (receipt_url) and #83 (phase-2 RLS, not applied) post-launch.
 5. Post-launch calendar: Stripe CLI keys expire 2026-10-02 (DLD-571);
    84 unused-index review after real traffic.
 
