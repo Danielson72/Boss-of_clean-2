@@ -1,7 +1,10 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { Phone, Mail } from 'lucide-react';
+import { getPublicCategories } from '@/lib/services/public-categories';
 
+// Fallback only — the live list comes from service_categories (same helper
+// as the homepage) so the footer can never drift from the real taxonomy.
 const serviceCategories = [
   'House Cleaning',
   'Deep Cleaning',
@@ -27,7 +30,11 @@ const quickLinks = [
   { label: 'Terms of Service', href: '/terms' },
 ];
 
-export default function Footer() {
+export default async function Footer() {
+  const dbCategories = await getPublicCategories();
+  const services =
+    dbCategories.length > 0 ? dbCategories.map((c) => c.display_name) : serviceCategories;
+
   return (
     <footer className="bg-brand-dark text-white" role="contentinfo">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -50,7 +57,7 @@ export default function Footer() {
               </div>
             </div>
             <p className="text-gray-400 text-sm leading-relaxed mb-6">
-              Florida&apos;s home services marketplace — cleaning, landscaping, handyman, and more.
+              Florida&apos;s Pro Service Marketplace — plumbing, handyman, landscaping, cleaning, and more.
             </p>
             <address className="space-y-3 not-italic text-sm">
               <a
@@ -100,7 +107,7 @@ export default function Footer() {
               className="grid grid-cols-2 gap-x-6 gap-y-2.5"
               aria-label="Available home services"
             >
-              {serviceCategories.map((service) => (
+              {services.map((service) => (
                 <li key={service}>
                   <span className="text-gray-400 text-sm">{service}</span>
                 </li>
