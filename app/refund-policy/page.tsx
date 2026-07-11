@@ -145,8 +145,7 @@ export default function RefundPolicyPage() {
             <p className="text-gray-600 leading-relaxed">
               Refund claims are audited. Submitting false claims, or claiming a refund on a lead the
               Pro in fact serviced (on or off platform), is grounds for claim denial, clawback, and
-              account suspension. Initiating a card chargeback while a refund claim is open may pause
-              the claim.
+              account suspension.
             </p>
           </section>
 

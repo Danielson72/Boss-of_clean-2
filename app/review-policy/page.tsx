@@ -94,7 +94,7 @@ export default function ReviewPolicyPage() {
             </h2>
             <p className="text-gray-600 leading-relaxed">
               Reviews must be about the service experience. We remove content that is unlawful,
-              defamatory, doxxing (posting someone&apos;s private contact info), hate speech,
+              defamatory per se, doxxing (posting someone&apos;s private contact info), hate speech,
               spam/ads, or unrelated to the job. We do <strong>not</strong> remove a review merely
               because it is negative.
             </p>
