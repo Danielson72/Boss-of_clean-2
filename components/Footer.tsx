@@ -28,6 +28,8 @@ const quickLinks = [
   { label: 'Help Center', href: '/help' },
   { label: 'Privacy Policy', href: '/privacy' },
   { label: 'Terms of Service', href: '/terms' },
+  { label: 'Refund Policy', href: '/refund-policy' },
+  { label: 'Review Policy', href: '/review-policy' },
 ];
 
 export default async function Footer() {
