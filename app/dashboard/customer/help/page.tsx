@@ -38,10 +38,6 @@ const customerFaqs = [
     q: 'What does Boss-Verified mean?',
     a: 'Boss-Verified professionals have passed a background check, have valid business insurance on file, and maintain a 4.5+ star rating. It is our highest trust badge.',
   },
-  {
-    q: 'How do I earn account credits?',
-    a: 'Confirm a hire from an accepted quote and you will earn a $10 credit. Credits show under Credits on your Overview page and expire 90 days after issue.',
-  },
 ];
 
 function FaqItem({ question, answer }: { question: string; answer: string }) {
