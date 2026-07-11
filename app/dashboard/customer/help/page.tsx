@@ -24,7 +24,7 @@ const customerFaqs = [
   },
   {
     q: 'How does payment work?',
-    a: 'Payments are processed securely through Stripe. Your payment is held until the job is completed to your satisfaction. Saving a payment method is coming soon.',
+    a: 'You pay your pro directly for the service, on the terms you agree with them. Boss of Clean connects you with independent pros — we do not hold or process payment for the service and take no cut of the job.',
   },
   {
     q: 'What if I need to cancel a booking?',

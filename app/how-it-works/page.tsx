@@ -20,7 +20,7 @@ const homeownerSteps = [
     icon: CalendarCheck,
     step: 'Step 2',
     title: 'Book',
-    description: 'Choose a verified pro and pick a time that works for you. Payment is held securely through Stripe until the job is completed.',
+    description: 'Choose a pro and agree on a time that works for you. You arrange payment for the service directly with your pro.',
   },
   {
     icon: Sparkles,
@@ -184,12 +184,12 @@ export default function HowItWorksPage() {
               <p className="text-gray-600 text-sm">Exclusive leads &mdash; never shared</p>
             </div>
             <div>
-              <p className="text-3xl font-bold text-brand-gold mb-1">5%</p>
-              <p className="text-gray-600 text-sm">Fair platform fee &mdash; no hidden costs</p>
+              <p className="text-3xl font-bold text-brand-gold mb-1">0%</p>
+              <p className="text-gray-600 text-sm">We never take a cut of your job</p>
             </div>
             <div>
-              <p className="text-3xl font-bold text-brand-gold mb-1">24hr</p>
-              <p className="text-gray-600 text-sm">Lead quality guarantee response</p>
+              <p className="text-3xl font-bold text-brand-gold mb-1">7-day</p>
+              <p className="text-gray-600 text-sm">Window to report a bad lead</p>
             </div>
           </div>
         </div>

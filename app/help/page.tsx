@@ -13,7 +13,7 @@ const homeownerFaqs = [
   {
     question: 'How does payment work?',
     answer:
-      'All payments are processed securely through Stripe. When you book a service, your payment is held securely until the job is completed to your satisfaction. Professionals receive their payout within 2\u20133 business days after completion.',
+      'You pay your Pro directly for the service, on the terms you agree with them. Boss of Clean is a marketplace that connects you with independent Pros \u2014 we do not hold or process payment for the service and we take no percentage of the job. The only Boss of Clean charge is a lead-unlock fee paid by the Pro after you accept their quote.',
   },
   {
     question: 'What if I need to cancel?',
@@ -46,7 +46,7 @@ const proFaqs = [
   {
     question: 'How do I get paid?',
     answer:
-      'After a job is marked as completed, your payout is processed via Stripe direct deposit within 2\u20133 business days. A 5% platform fee is deducted automatically. You can view all your earnings and payout history in your Pro Dashboard.',
+      'Customers pay you directly for your work, on the terms you agree with them. Boss of Clean does not process or hold your service payments and takes no percentage of your jobs. The only Boss of Clean charge is the per-lead unlock fee (shown before you pay) plus any optional subscription \u2014 see the Pricing page.',
   },
   {
     question: 'What are the subscription tiers?',
@@ -56,7 +56,7 @@ const proFaqs = [
   {
     question: 'How do I dispute a bad lead?',
     answer:
-      'Go to your Pro Dashboard, navigate to Leads, and click "Report Issue" on any lead you believe is invalid. We review all disputes within 48 hours. If the lead is verified as invalid (fake info, out-of-area, duplicate), credits are issued to your account automatically.',
+      'If you unlock a lead that was defective — disconnected or wrong contact info, fake or fraudulent, a duplicate, materially out of your service area, or cancelled before you could make contact — you can request a refund of the lead-unlock fee under our Lead Fee Refund Policy. Submit the request from your Pro Dashboard or email admin@bossofclean.com within 7 calendar days of the charge; we decide within 5 business days.',
   },
 ];
 
