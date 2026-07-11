@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { rateLimitRoute, getClientIp } from '@/lib/middleware/rate-limit'
 import { createClient } from '@/lib/supabase/server'
+import { getPublicCategories } from '@/lib/services/public-categories'
 import { createLogger } from '@/lib/utils/logger'
 
 const logger = createLogger({ file: 'api/david/route' })
@@ -24,14 +25,36 @@ const DAVID_RATE_LIMIT = { maxRequests: 10, windowSeconds: 3600 }
 const MAX_TURNS = 12
 const MAX_CONTENT_CHARS = 1000
 
-const DAVID_SYSTEM_PROMPT = `You are David, the friendly customer-service assistant for Boss of Clean, Florida's home and business services marketplace. Tagline: "Purrfection is our Standard."
+// Mirrors the homepage taxonomy fallback — used only if the live
+// service_categories fetch fails. Same 20 categories, same carve-out.
+const FALLBACK_CATEGORIES =
+  'Residential Cleaning, Deep Cleaning, Maid Service, Move In / Out Cleaning, Post-Construction Cleaning, STR Turnover Cleaning, Window Cleaning, Carpet Cleaning, Pressure Washing, Air Duct Cleaning, Landscaping, Handyman Services, HVAC, Plumbing, Electrical, Pest Control, Gutter Cleaning, Junk Removal, Pool Service, Mobile Detailing'
+
+// The category list comes from the SAME service_categories helper the
+// homepage uses (active, non-alias, Coverall carve-out applied), cached
+// in-process for an hour so David can never drift from the live taxonomy.
+let categoriesCache: { list: string; at: number } | null = null
+async function liveCategoryList(): Promise<string> {
+  const TTL = 60 * 60 * 1000
+  if (categoriesCache && Date.now() - categoriesCache.at < TTL) return categoriesCache.list
+  const cats = await getPublicCategories()
+  const list = cats.length > 0 ? cats.map((c) => c.display_name).join(', ') : FALLBACK_CATEGORIES
+  categoriesCache = { list, at: Date.now() }
+  return list
+}
+
+const davidSystemPrompt = (categoryList: string) =>
+  `You are David, the friendly customer-service assistant for Boss of Clean — Florida's marketplace for home AND business service pros of every kind, not just cleaning. Plumbers, handymen, landscapers, HVAC techs, electricians, pest control, pressure washers, detailers, and more. Tagline: "Purrfection is our Standard."
 
 FACTS YOU KNOW:
 - Boss of Clean serves Florida ONLY — all 67 Florida counties. If asked about a Florida city (Miami, Orlando, Tampa, etc.), the answer is yes.
-- How it works for customers: browse pros or submit a quote request (a free account is required to submit), compare quotes, accept the one you like. Requesting and receiving quotes is FREE for customers.
+- How it works for customers: browse pros or submit a quote request (a free account is required to submit), compare quotes, accept the one you like. Requesting and receiving quotes is FREE for customers — whether it's a plumber, a handyman, a landscaper, or a cleaner.
 - How it works for pros: creating a profile and receiving quote requests is free. When a customer accepts a pro's quote and confirms the hire, the pro pays a $30 lead fee to unlock that customer's contact info. That is the pricing you may state — do not invent any other prices, discounts, or fees. Pros set their own service prices.
-- Service categories: residential/house cleaning, deep cleaning, move-in/move-out cleaning, Airbnb/short-term-rental turnover, maid service, pressure washing, window cleaning, carpet cleaning, post-construction cleaning, pool cleaning, landscaping, car detailing, and air duct cleaning.
+- The full list of service categories offered: ${categoryList}.
+- COMMERCIAL CLEANING IS NOT OFFERED: Boss of Clean does not currently offer commercial or office cleaning. If someone asks for it, say so plainly and pivot to what IS available for businesses — landscaping, plumbing, HVAC, electrical, pest control, pressure washing, handyman work, and other commercial-friendly categories above.
 - Support: for billing disputes, refunds, account problems, or anything you cannot resolve, direct people to admin@bossofclean.com.
+
+STYLE: when giving examples of services, vary them — lead with plumbing, handyman, landscaping, or HVAC as often as cleaning. Boss of Clean is a full pro-services marketplace and should never sound like a cleaning company.
 
 HARD RULES:
 - You are a customer-service agent for Boss of Clean, not a general assistant. Politely decline anything off-topic (homework, writing code, other companies, news, etc.) and steer back to Boss of Clean.
@@ -155,7 +178,7 @@ export async function POST(request: NextRequest) {
   }
 
   const audience = await deriveAudience()
-  const systemPrompt = DAVID_SYSTEM_PROMPT + AUDIENCE_ADDENDA[audience]
+  const systemPrompt = davidSystemPrompt(await liveCategoryList()) + AUDIENCE_ADDENDA[audience]
 
   let upstream: Response
   try {
