@@ -78,7 +78,13 @@ export async function POST(
       }
 
       const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg';
-      const fileName = `job-photos/${params.id}/${photoType}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+      // DLD-567: path MUST start with the uploader's auth.uid() to satisfy the
+      // portfolio-photos INSERT policy ((storage.foldername(name))[1] =
+      // auth.uid()). The old job-photos/<bookingId>/... prefix failed RLS, so
+      // booking-photo uploads errored in prod. No data migration needed —
+      // photo_url stores the full public URL, not this path, and there were
+      // zero existing job-photos objects.
+      const fileName = `${user.id}/job-photos/${params.id}/${photoType}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
 
       const arrayBuffer = await file.arrayBuffer();
       const buffer = new Uint8Array(arrayBuffer);
