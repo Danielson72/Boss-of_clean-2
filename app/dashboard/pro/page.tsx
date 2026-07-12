@@ -425,20 +425,20 @@ export default function CleanerDashboard() {
                       </div>
                     </div>
                     
-                    {/* Verification Status */}
+                    {/* Documents */}
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-900 mb-4">Verification Status</h3>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-4">Documents</h3>
                       <div className="space-y-3">
                         <div className="flex items-center gap-2">
                           <Shield className={`h-4 w-4 ${profile?.insurance_verified ? 'text-green-600' : 'text-gray-400'}`} />
                           <span className="text-sm">
-                            Insurance {profile?.insurance_verified ? 'Verified' : 'Not Verified'}
+                            Insurance {profile?.insurance_verified ? 'on file' : 'not provided'}
                           </span>
                         </div>
                         <div className="flex items-center gap-2">
                           <CheckCircle className={`h-4 w-4 ${profile?.license_verified ? 'text-green-600' : 'text-gray-400'}`} />
                           <span className="text-sm">
-                            License {profile?.license_verified ? 'Verified' : 'Not Verified'}
+                            License {profile?.license_verified ? 'on file' : 'not provided'}
                           </span>
                         </div>
                       </div>

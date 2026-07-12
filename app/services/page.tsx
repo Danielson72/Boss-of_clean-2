@@ -48,7 +48,7 @@ export default function ServicesPage() {
           <p className="text-lg md:text-xl text-blue-100 max-w-3xl">
             Find professional cleaners for any job. From regular house cleaning to
             specialized services like pressure washing and post-construction cleanup,
-            we connect you with verified Florida professionals.
+            we connect you with independent Florida professionals.
           </p>
         </div>
       </section>
@@ -155,7 +155,7 @@ export default function ServicesPage() {
             Ready to Find Your Perfect Cleaner?
           </h2>
           <p className="text-blue-100 text-lg mb-8 max-w-2xl mx-auto">
-            Search thousands of verified home service professionals in Florida.
+            Search thousands of home service professionals in Florida.
             Compare quotes and book in minutes.
           </p>
           <Link

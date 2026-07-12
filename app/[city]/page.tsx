@@ -286,7 +286,7 @@ export default async function CityPage({ params }: CityPageProps) {
               Cleaning Services Available in {city.name}
             </h2>
             <p className="text-gray-600 text-center mb-12 max-w-2xl mx-auto">
-              Our verified home service professionals offer a wide range of services to meet
+              Our home service professionals offer a wide range of services to meet
               your needs in {city.name} and surrounding {city.county} County areas.
             </p>
 
