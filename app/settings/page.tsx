@@ -12,6 +12,7 @@ import {
   LogOut, Trash2, Mail, Phone, MapPin, CheckCircle, X
 } from 'lucide-react';
 import Link from 'next/link';
+import { normalizeToE164, formatPhoneForDisplay } from '@/lib/phone';
 import { useRouter } from 'next/navigation';
 
 interface UserSettings {
@@ -52,7 +53,8 @@ export default function SettingsPage() {
 
       if (error) throw error;
 
-      setSettings(data);
+      // Show the stored E.164 number in friendly national format.
+      setSettings({ ...data, phone: formatPhoneForDisplay(data.phone) });
     } catch (error) {
       logger.error('Error loading settings', { function: 'loadSettings', error });
       setMessage('Error loading settings');
@@ -63,14 +65,24 @@ export default function SettingsPage() {
 
   const handleSave = async () => {
     if (!settings) return;
-    
+
+    // Phone is optional; normalize to E.164 when present, reject if invalid.
+    let phoneToStore: string | null = null;
+    if (settings.phone?.trim()) {
+      phoneToStore = normalizeToE164(settings.phone);
+      if (!phoneToStore) {
+        setMessage('Please enter a valid US phone number.');
+        return;
+      }
+    }
+
     setSaving(true);
     try {
       const { error } = await supabase
         .from('users')
         .update({
           full_name: settings.full_name,
-          phone: settings.phone,
+          phone: phoneToStore,
           address: settings.address,
           city: settings.city,
           zip_code: settings.zip_code,

@@ -5,6 +5,7 @@ import {
   normalizeCategorySlugs,
   reconcileProCategories,
 } from '@/lib/services/pro-categories'
+import { normalizeToE164 } from '@/lib/phone'
 
 const logger = createLogger({ file: 'api/cleaners/onboarding/route' })
 
@@ -99,6 +100,19 @@ export async function POST(request: NextRequest) {
 
     if (!step || step < 1 || step > 6) {
       return NextResponse.json({ error: 'Invalid step' }, { status: 400 })
+    }
+
+    // Store business_phone in E.164 (the SMS layer only sends to E.164). Normalize
+    // here so it applies to both the column write and the onboarding_data blob.
+    if (data?.business_phone != null && `${data.business_phone}`.trim() !== '') {
+      const phoneE164 = normalizeToE164(String(data.business_phone))
+      if (!phoneE164) {
+        return NextResponse.json(
+          { error: 'Please enter a valid US business phone number.' },
+          { status: 400 }
+        )
+      }
+      data.business_phone = phoneE164
     }
 
     // DLD-449: Resolve category slugs against the canonical taxonomy.

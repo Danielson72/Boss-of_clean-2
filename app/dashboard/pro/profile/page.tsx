@@ -16,6 +16,7 @@ import { createLogger } from '@/lib/utils/logger';
 import CategorySelector from '@/components/onboarding/CategorySelector';
 import { recordProSmsConsent, revokeProSmsConsent } from '@/lib/actions/tcpa';
 import { PRO_SMS_CONSENT_TEXT } from '@/lib/sms/consent-copy';
+import { normalizeToE164, formatPhoneForDisplay } from '@/lib/phone';
 
 const logger = createLogger({ file: 'app/dashboard/pro/profile/page.tsx' });
 
@@ -91,8 +92,11 @@ export default function CleanerProfilePage() {
         setProfile({
           ...data,
           secondary_categories: secondary,
+          // Show the stored E.164 number in friendly national format.
+          business_phone: formatPhoneForDisplay(data.business_phone),
         });
         // Show as opted-in only when consent is on file for the current number.
+        // Compare against the raw stored value (both are E.164).
         setSmsConsent(!!(data.sms_consent_at && data.sms_consent_phone === data.business_phone));
       } else {
         // Create default profile if none exists
@@ -274,7 +278,13 @@ export default function CleanerProfilePage() {
       setMessage('A valid 5-digit ZIP code is required');
       return;
     }
-    
+
+    const businessPhoneE164 = normalizeToE164(profile.business_phone);
+    if (!businessPhoneE164) {
+      setMessage('Please enter a valid US business phone number.');
+      return;
+    }
+
     setSaving(true);
     try {
       // DLD-449: route category changes through the dedicated endpoint so
@@ -298,7 +308,7 @@ export default function CleanerProfilePage() {
         .update({
           business_name: profile.business_name,
           business_description: profile.business_description,
-          business_phone: profile.business_phone,
+          business_phone: businessPhoneE164,
           business_email: profile.business_email,
           hourly_rate: profile.hourly_rate,
           minimum_hours: profile.minimum_hours,
