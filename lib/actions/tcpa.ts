@@ -51,6 +51,23 @@ export async function recordProSmsConsent(userId: string, userAgent: string): Pr
       sms_consent_phone: pro?.business_phone ?? null,
     })
     .eq('user_id', userId);
+
+  // DLD-577: consenting to automated texts IS opting into them. There is no
+  // separate pro-side SMS-preference UI, and the send gate also checks
+  // notification_preferences.sms_enabled — so enable it here, or the consent
+  // is meaningless and no text can ever send.
+  await supabase
+    .from('notification_preferences')
+    .upsert(
+      {
+        user_id: userId,
+        sms_enabled: true,
+        sms_new_leads: true,
+        sms_new_messages: true,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: 'user_id' }
+    );
 }
 
 /**
@@ -69,6 +86,19 @@ export async function revokeProSmsConsent(userId: string): Promise<void> {
       sms_consent_ua: null,
       sms_consent_text: null,
       sms_consent_phone: null,
+    })
+    .eq('user_id', userId);
+
+  // DLD-577: revoking consent also turns off the SMS notification preference so
+  // no further texts send. (Consent gate would already fail-closed; this keeps
+  // the preference state honest too.)
+  await supabase
+    .from('notification_preferences')
+    .update({
+      sms_enabled: false,
+      sms_new_leads: false,
+      sms_new_messages: false,
+      updated_at: new Date().toISOString(),
     })
     .eq('user_id', userId);
 }
