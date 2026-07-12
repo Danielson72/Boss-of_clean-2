@@ -10,18 +10,33 @@ async function clientIp(): Promise<string> {
   return forwarded ? forwarded.split(',')[0].trim() : (headersList.get('x-real-ip') || 'unknown');
 }
 
-export async function recordUserTcpaConsent(userId: string, userAgent: string): Promise<void> {
+/**
+ * Persist TCPA consent AND signup contact (phone, full_name) via the service
+ * role. At signup the email is not yet confirmed, so the client has no session
+ * and a direct client-side `users` UPDATE is blocked by the users_update RLS
+ * policy (auth.uid() = id) — that silently dropped the phone (DLD-576). Writing
+ * here bypasses RLS and returns a result so the caller can surface failures.
+ */
+export async function recordUserTcpaConsent(
+  userId: string,
+  userAgent: string,
+  contact?: { phone?: string | null; fullName?: string | null }
+): Promise<{ ok: boolean; error?: string }> {
   const ip = await clientIp();
 
+  const update: Record<string, unknown> = {
+    tcpa_consent_at: new Date().toISOString(),
+    tcpa_consent_ip: ip,
+    tcpa_consent_ua: userAgent.slice(0, 512),
+  };
+  if (contact?.phone) update.phone = contact.phone;
+  if (contact?.fullName) update.full_name = contact.fullName;
+
   const supabase = createServiceRoleClient();
-  await supabase
-    .from('users')
-    .update({
-      tcpa_consent_at: new Date().toISOString(),
-      tcpa_consent_ip: ip,
-      tcpa_consent_ua: userAgent.slice(0, 512),
-    })
-    .eq('id', userId);
+  const { error } = await supabase.from('users').update(update).eq('id', userId);
+
+  if (error) return { ok: false, error: error.message };
+  return { ok: true };
 }
 
 /**

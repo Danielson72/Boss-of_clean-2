@@ -158,18 +158,19 @@ export function AuthForm({ mode, role = 'customer' }: AuthFormProps) {
 
         if (authData.user) {
           // The handle_new_user DB trigger creates the users row automatically.
-          // Update it with additional fields the trigger doesn't have.
-          await supabase
-            .from('users')
-            .update({
-              full_name: fullName || null,
-              phone: phoneE164,
-              updated_at: new Date().toISOString(),
-            })
-            .eq('id', authData.user.id)
-
-          // Record TCPA consent (IP captured server-side)
-          recordUserTcpaConsent(authData.user.id, navigator.userAgent).catch(() => {})
+          // Persist phone + full_name + TCPA consent via a service-role server
+          // action: the email isn't confirmed yet so the client has no session,
+          // and a direct client-side users UPDATE is blocked by RLS (DLD-576).
+          const profileResult = await recordUserTcpaConsent(
+            authData.user.id,
+            navigator.userAgent,
+            { phone: phoneE164, fullName: fullName || null }
+          )
+          if (!profileResult.ok) {
+            // No more silent drops — surface it (account still exists).
+            console.error('Failed to persist signup contact info', profileResult.error)
+            setError('Your account was created, but we could not save your phone number. Please add it in your profile settings.')
+          }
 
           // If cleaner, update the trigger-created cleaners profile with form data
           if (role === 'cleaner') {
