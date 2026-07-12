@@ -83,7 +83,6 @@ export const SERVICE_TYPES = [
 export const DOCUMENT_TYPES = [
   { value: 'license', label: 'Business License', required: false },
   { value: 'insurance', label: 'Liability Insurance', required: true },
-  { value: 'background_check', label: 'Background Check', required: false },
   { value: 'certification', label: 'Certification', required: false }
 ]
 

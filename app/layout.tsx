@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     default: "Boss of Clean \u2014 Florida's Pro Service Marketplace",
     template: "%s | Boss of Clean",
   },
-  description: 'Find trusted, verified home service professionals in Florida. Get free quotes for cleaning, pressure washing, landscaping, pool cleaning, and more. Purrfection is our Standard.',
+  description: 'Find local home service professionals in Florida. Get free quotes for cleaning, pressure washing, landscaping, pool cleaning, and more. Purrfection is our Standard.',
   keywords: 'home services Florida, house cleaning, landscaping, handyman, pool service, pressure washing, carpet cleaning, Boss of Clean, Florida home services marketplace, home professionals platform, cleaning services',
   authors: [{ name: 'Boss of Clean' }],
   creator: 'Boss of Clean',
@@ -60,7 +60,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: "Boss of Clean \u2014 Florida's Pro Service Marketplace",
-    description: 'Find trusted, verified home service professionals in Florida. Get free quotes for cleaning, pressure washing, landscaping, pool cleaning, and more.',
+    description: 'Find local home service professionals in Florida. Get free quotes for cleaning, pressure washing, landscaping, pool cleaning, and more.',
     url: 'https://bossofclean.com',
     siteName: 'Boss of Clean',
     type: 'website',
@@ -70,7 +70,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: "Boss of Clean \u2014 Florida's Pro Service Marketplace",
-    description: 'Find trusted, verified home service professionals in Florida. Get free quotes for cleaning, pressure washing, landscaping, pool cleaning, and more.',
+    description: 'Find local home service professionals in Florida. Get free quotes for cleaning, pressure washing, landscaping, pool cleaning, and more.',
     images: ['/og-logo.png'],
     creator: '@bossofclean',
   },

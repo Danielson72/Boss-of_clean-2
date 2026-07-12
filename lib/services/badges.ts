@@ -3,7 +3,7 @@ import { SupabaseClient } from '@supabase/supabase-js';
 /**
  * Badge types that can be earned by cleaners
  */
-export type BadgeType = 'fast_responder' | 'top_rated' | 'verified';
+export type BadgeType = 'fast_responder' | 'top_rated' | 'documents_on_file';
 
 /**
  * Badge definition with display properties
@@ -56,10 +56,10 @@ export const BADGE_DEFINITIONS: Record<BadgeType, BadgeDefinition> = {
     color: 'text-purple-700',
     bgColor: 'bg-purple-100',
   },
-  verified: {
-    type: 'verified',
-    name: 'Verified Pro',
-    description: 'Insurance and license verified by admin',
+  documents_on_file: {
+    type: 'documents_on_file',
+    name: 'Documents on File',
+    description: 'This pro has uploaded license and insurance documents. Boss of Clean does not verify them — confirm directly with the pro.',
     icon: 'shield-check',
     color: 'text-emerald-700',
     bgColor: 'bg-emerald-100',
@@ -98,11 +98,12 @@ export function evaluateTopRated(averageRating: number, totalReviews: number): b
 }
 
 /**
- * Evaluate if a cleaner qualifies for the Verified badge
- * Requires both insurance and license verified by admin
+ * Evaluate if a cleaner has both license and insurance documents on file.
+ * Mechanism only — Boss of Clean does not verify these documents or make any
+ * claim about their accuracy.
  */
-export function evaluateVerified(insuranceVerified: boolean, licenseVerified: boolean): boolean {
-  return insuranceVerified === true && licenseVerified === true;
+export function evaluateHasDocuments(insuranceOnFile: boolean, licenseOnFile: boolean): boolean {
+  return insuranceOnFile === true && licenseOnFile === true;
 }
 
 /**
@@ -121,9 +122,9 @@ export function getCleanerBadges(cleaner: CleanerBadgeData): EarnedBadge[] {
     badges.push({ ...BADGE_DEFINITIONS.top_rated });
   }
 
-  // Verified badge
-  if (evaluateVerified(cleaner.insurance_verified, cleaner.license_verified)) {
-    badges.push({ ...BADGE_DEFINITIONS.verified });
+  // Documents-on-file badge (mechanism only — no verification claim)
+  if (evaluateHasDocuments(cleaner.insurance_verified, cleaner.license_verified)) {
+    badges.push({ ...BADGE_DEFINITIONS.documents_on_file });
   }
 
   return badges;

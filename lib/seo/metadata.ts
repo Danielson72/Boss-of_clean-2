@@ -7,7 +7,7 @@ import type { Metadata } from 'next';
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://bossofclean.com';
 const SITE_NAME = 'Boss of Clean';
-const DEFAULT_DESCRIPTION = 'Find trusted, verified home service professionals in Florida. Get free quotes for cleaning, pressure washing, landscaping, pool cleaning, and more. Purrfection is our Standard.';
+const DEFAULT_DESCRIPTION = 'Find local home service professionals in Florida. Get free quotes for cleaning, pressure washing, landscaping, pool cleaning, and more. Purrfection is our Standard.';
 
 export interface MetadataOptions {
   title: string;

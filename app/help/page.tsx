@@ -26,7 +26,7 @@ const homeownerFaqs = [
       'After your job is marked as completed, you\u2019ll receive an email prompting you to rate and review your cleaning professional. You can also leave reviews from your customer dashboard under Bookings. Honest reviews help other homeowners and reward great professionals.',
   },
   {
-    question: 'What do the license and insurance badges mean?',
+    question: 'Does Boss of Clean verify a pro’s license and insurance?',
     answer:
       'Pros may upload license and insurance documents to their profile. Where a Pro has uploaded them, we display what was provided. Boss of Clean does not independently verify licensing, insurance, or background, and does not guarantee any Pro\u2019s work. Always confirm credentials directly with the Pro before hiring.',
   },

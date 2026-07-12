@@ -757,45 +757,33 @@ export default function CleanerProfilePage() {
               </p>
             </div>
 
-            {/* Verification Status */}
+            {/* License & Insurance Documents */}
             <div className="bg-white rounded-lg shadow-sm p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-6 flex items-center gap-2">
+              <h2 className="text-lg font-semibold text-gray-900 mb-2 flex items-center gap-2">
                 <Shield className="h-5 w-5" />
-                Verification Status
+                License &amp; Insurance Documents
               </h2>
-              
+              <p className="text-sm text-gray-600 mb-6">
+                You may provide your business license and proof of insurance. Where you provide them,
+                Boss of Clean displays what you submitted on your profile. Boss of Clean does not
+                independently verify these documents &mdash; customers should confirm them with you directly.
+              </p>
+
               <div className="space-y-4">
                 <div className="flex items-center justify-between p-4 border rounded-lg">
                   <div className="flex items-center gap-3">
                     <Shield className={`h-5 w-5 ${profile.insurance_verified ? 'text-green-600' : 'text-gray-400'}`} />
                     <div>
-                      <p className="font-medium">Insurance Verification</p>
-                      <p className="text-sm text-gray-600">Upload proof of liability insurance</p>
+                      <p className="font-medium">Proof of insurance</p>
+                      <p className="text-sm text-gray-600">Liability insurance document</p>
                     </div>
                   </div>
                   <span className={`px-3 py-1 rounded-full text-sm ${
-                    profile.insurance_verified 
-                      ? 'bg-green-100 text-green-800' 
+                    profile.insurance_verified
+                      ? 'bg-green-100 text-green-800'
                       : 'bg-gray-100 text-gray-600'
                   }`}>
-                    {profile.insurance_verified ? 'Verified' : 'Pending'}
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <BadgeCheck className={`h-5 w-5 ${profile.background_check ? 'text-green-600' : 'text-gray-400'}`} />
-                    <div>
-                      <p className="font-medium">Background Documentation</p>
-                      <p className="text-sm text-gray-600">Complete criminal background screening</p>
-                    </div>
-                  </div>
-                  <span className={`px-3 py-1 rounded-full text-sm ${
-                    profile.background_check 
-                      ? 'bg-green-100 text-green-800' 
-                      : 'bg-gray-100 text-gray-600'
-                  }`}>
-                    {profile.background_check ? 'Verified' : 'Pending'}
+                    {profile.insurance_verified ? 'On file' : 'Not provided'}
                   </span>
                 </div>
 
@@ -803,22 +791,22 @@ export default function CleanerProfilePage() {
                   <div className="flex items-center gap-3">
                     <CheckCircle className={`h-5 w-5 ${profile.license_verified ? 'text-green-600' : 'text-gray-400'}`} />
                     <div>
-                      <p className="font-medium">Business License</p>
-                      <p className="text-sm text-gray-600">Upload business license or registration</p>
+                      <p className="font-medium">Business license</p>
+                      <p className="text-sm text-gray-600">Business license or registration</p>
                     </div>
                   </div>
                   <span className={`px-3 py-1 rounded-full text-sm ${
-                    profile.license_verified 
-                      ? 'bg-green-100 text-green-800' 
+                    profile.license_verified
+                      ? 'bg-green-100 text-green-800'
                       : 'bg-gray-100 text-gray-600'
                   }`}>
-                    {profile.license_verified ? 'Verified' : 'Pending'}
+                    {profile.license_verified ? 'On file' : 'Not provided'}
                   </span>
                 </div>
               </div>
-              
+
               <p className="text-sm text-gray-600 mt-4">
-                Contact support to submit verification documents and get your badges.
+                Contact support to submit or update these documents.
               </p>
             </div>
           </div>

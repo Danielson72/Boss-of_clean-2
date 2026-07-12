@@ -35,7 +35,7 @@ const customerFaqs = [
     a: 'After a job is marked completed, you will receive an email with a review link. You can also leave reviews from My Bookings in your dashboard.',
   },
   {
-    q: 'What do the license and insurance badges mean?',
+    q: 'Does Boss of Clean verify a pro’s license and insurance?',
     a: 'Pros may upload license and insurance documents to their profile. Where a pro has uploaded them, we display what was provided. Boss of Clean does not independently verify licensing, insurance, or background, and does not guarantee any pro’s work. Confirm credentials directly with the pro before hiring.',
   },
 ];

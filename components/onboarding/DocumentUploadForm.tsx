@@ -125,7 +125,7 @@ export default function DocumentUploadForm({ data, onChange, onNext, onBack, isS
       <div>
         <h2 className="text-2xl font-bold text-gray-900">Upload Documents</h2>
         <p className="text-gray-600 mt-1">
-          Upload verification documents to build trust with customers
+          Upload your license and insurance so we can display them on your profile
         </p>
       </div>
 
@@ -155,7 +155,6 @@ export default function DocumentUploadForm({ data, onChange, onNext, onBack, isS
                   <p className="text-sm text-gray-500 mt-1">
                     {docType.value === 'insurance' && 'Proof of liability insurance coverage'}
                     {docType.value === 'license' && 'Business license or registration'}
-                    {docType.value === 'background_check' && 'Background documentation'}
                     {docType.value === 'certification' && 'Professional certifications'}
                   </p>
                 </div>

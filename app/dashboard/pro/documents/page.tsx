@@ -21,16 +21,19 @@ const REQUIRED_DOCS = [
 
 const OPTIONAL_DOCS = [
   { type: 'id_photo', label: 'Photo ID' },
-  { type: 'background_check', label: 'Background Check' },
   { type: 'other', label: 'Other Document' },
 ];
 
 const ALL_DOCS = [...REQUIRED_DOCS, ...OPTIONAL_DOCS];
 
+// Note: `verification_status` is an internal admin-review state (kept so the
+// admin document-review flow keeps working). The labels shown to the pro make
+// no verification claim — an accepted document is simply displayed on their
+// profile; Boss of Clean does not verify its contents.
 const statusConfig = {
-  pending: { label: 'Pending Review', icon: Clock, className: 'bg-yellow-100 text-yellow-800' },
-  verified: { label: 'Verified', icon: CheckCircle, className: 'bg-green-100 text-green-800' },
-  rejected: { label: 'Rejected', icon: XCircle, className: 'bg-red-100 text-red-800' },
+  pending: { label: 'Pending review', icon: Clock, className: 'bg-yellow-100 text-yellow-800' },
+  verified: { label: 'On file', icon: CheckCircle, className: 'bg-green-100 text-green-800' },
+  rejected: { label: 'Not accepted', icon: XCircle, className: 'bg-red-100 text-red-800' },
 };
 
 function StatusBadge({ status }: { status: keyof typeof statusConfig }) {
@@ -84,7 +87,7 @@ export default function ProDocumentsPage() {
       if (!res.ok) {
         showToast('error', data.details ?? data.error ?? 'Upload failed');
       } else {
-        showToast('success', 'Document uploaded. Admin will review within 1–2 business days.');
+        showToast('success', 'Document uploaded. We’ll review it before it appears on your profile.');
         await loadDocuments();
       }
     } catch {
@@ -104,9 +107,11 @@ export default function ProDocumentsPage() {
     <ProtectedRoute requireRole="cleaner">
       <div className="min-h-screen bg-gray-50">
         <div className="max-w-3xl mx-auto px-4 py-10">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Verification Documents</h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Documents</h1>
           <p className="text-gray-600 mb-8">
-            Upload the required documents to get your account verified. Admin reviews within 1–2 business days.
+            Upload your business license and proof of insurance. Where you provide them, we display
+            what you submitted on your profile. Boss of Clean does not independently verify these
+            documents. We review uploads before they appear (typically within 1–2 business days).
           </p>
 
           {toast && (
