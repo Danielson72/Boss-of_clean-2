@@ -49,7 +49,7 @@ export const PLAN_DETAILS: Record<SubscriptionTier, {
     leadCredits: 0,
     features: [
       'Basic business listing',
-      'Pay-per-lead ($15/lead)',
+      'Pay-per-lead ($30/lead)',
       '1 photo upload',
       'Email support'
     ]

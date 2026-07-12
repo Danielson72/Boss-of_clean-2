@@ -8,7 +8,7 @@ const homeownerFaqs = [
   {
     question: 'How do I find a cleaner?',
     answer:
-      'Head to our Search page and enter your ZIP code along with the type of service you need. You can filter by service type, sort by rating or price, and browse verified professional profiles. Each listing shows reviews, pricing, and trust badges so you can choose with confidence.',
+      'Head to our Search page and enter your ZIP code along with the type of service you need. You can filter by service type, sort by rating or price, and browse professional profiles. Each listing shows reviews, pricing, and any license or insurance documents the Pro has chosen to upload, so you can decide who to contact.',
   },
   {
     question: 'How does payment work?',
@@ -26,9 +26,9 @@ const homeownerFaqs = [
       'After your job is marked as completed, you\u2019ll receive an email prompting you to rate and review your cleaning professional. You can also leave reviews from your customer dashboard under Bookings. Honest reviews help other homeowners and reward great professionals.',
   },
   {
-    question: 'What does Boss-Verified mean?',
+    question: 'What do the license and insurance badges mean?',
     answer:
-      'Boss-Verified professionals have passed our verification process: background check completed, valid business insurance on file, and a minimum 4.5-star rating maintained over time. It\u2019s our highest trust badge and means you\u2019re hiring a proven professional.',
+      'Pros may upload license and insurance documents to their profile. Where a Pro has uploaded them, we display what was provided. Boss of Clean does not independently verify licensing, insurance, or background, and does not guarantee any Pro\u2019s work. Always confirm credentials directly with the Pro before hiring.',
   },
 ];
 

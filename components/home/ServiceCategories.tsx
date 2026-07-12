@@ -177,7 +177,7 @@ export default function ServiceCategories({ categories }: { categories?: DbCateg
           </h2>
           <p className="text-gray-500 text-lg">
             Residential and commercial — from house cleaning to handyman work, pool service to plumbing.
-            Find vetted Florida pros for every job.
+            Find local Florida pros for every job.
           </p>
         </div>
 

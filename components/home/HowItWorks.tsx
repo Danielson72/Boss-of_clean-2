@@ -10,8 +10,8 @@ const steps = [
   {
     number: '02',
     icon: Users,
-    title: 'Browse Vetted Pros',
-    description: 'See verified Florida pros in your area with profiles, services, and contact details.',
+    title: 'Browse Local Pros',
+    description: 'See Florida pros in your area with profiles, services, and contact details.',
   },
   {
     number: '03',

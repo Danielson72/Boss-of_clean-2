@@ -4,7 +4,7 @@ import { generatePageMetadata } from '@/lib/seo/metadata';
 
 export const metadata = generatePageMetadata({
   title: 'About Us',
-  description: 'Boss of Clean is building Florida\'s most trusted home services marketplace. Learn about our mission to connect homeowners and businesses with independent professionals across cleaning, landscaping, handyman services, and more.',
+  description: 'Boss of Clean is building Florida\'s home services marketplace. Learn about our mission to connect homeowners and businesses with independent professionals across cleaning, landscaping, handyman services, and more.',
   path: '/about',
   keywords: [
     'home services Florida',
@@ -39,7 +39,7 @@ export default function AboutPage() {
             About <span className="text-brand-gold">Boss of Clean</span>
           </h1>
           <p className="text-gray-300 text-lg sm:text-xl max-w-2xl mx-auto">
-            Building Florida&apos;s most trusted home services marketplace
+            Building Florida&apos;s home services marketplace
           </p>
           <p className="text-gray-400 text-base sm:text-lg max-w-2xl mx-auto mt-3">
             Cleaning. Landscaping. Handyman. And every home pro in between.
@@ -191,7 +191,7 @@ export default function AboutPage() {
           Join the Boss of Clean Community
         </h2>
         <p className="text-gray-600 text-lg mb-8 max-w-2xl mx-auto">
-          Whether you&apos;re looking for a trusted home service professional or want to
+          Whether you&apos;re looking for a local home service professional or want to
           grow your service business, we&apos;re here to help.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">

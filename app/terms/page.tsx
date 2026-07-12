@@ -36,6 +36,14 @@ export default function TermsPage() {
               1. Platform Role &mdash; a Neutral Marketplace
             </h2>
             <p className="text-gray-600 leading-relaxed mb-4">
+              These Terms of Service (&ldquo;Terms&rdquo;) are a binding agreement between you and{' '}
+              <strong>Boss of Clean LLC</strong>, a Florida limited liability company (Florida
+              Document No. L26000115956), located at 50 Frisco Court, Apopka, FL 32712
+              (&ldquo;Boss of Clean,&rdquo; &ldquo;we,&rdquo; or &ldquo;us&rdquo;). You must be at
+              least 18 years old to use the platform. By accessing or using Boss of Clean, you agree
+              to these Terms.
+            </p>
+            <p className="text-gray-600 leading-relaxed mb-4">
               Boss of Clean operates a Florida marketplace that connects customers with independent
               home and business service professionals (&ldquo;Pros&rdquo;) across many categories,
               including cleaning, handyman work, plumbing, HVAC, electrical, pest control,
@@ -188,14 +196,21 @@ export default function TermsPage() {
             <h2 className="font-display text-2xl font-bold text-brand-dark mb-4">
               8. No Warranty; No Guarantee of Pros
             </h2>
-            <p className="text-gray-600 leading-relaxed">
-              The platform is provided &ldquo;as is&rdquo; and &ldquo;as available,&rdquo; without
-              warranties of any kind, express or implied, to the maximum extent permitted by Florida
-              law. Boss of Clean does not warrant or guarantee the work, conduct, qualifications,
-              licensing, insurance, background, or availability of any Pro, or that any job will be
-              completed or completed to a particular standard. Listing on the platform is not an
-              endorsement. You are responsible for evaluating a Pro (or a customer) before entering
-              into any agreement, including confirming licensing and insurance where appropriate.
+            <p className="text-gray-600 leading-relaxed font-semibold uppercase tracking-wide">
+              THE PLATFORM IS PROVIDED &ldquo;AS IS&rdquo; AND &ldquo;AS AVAILABLE,&rdquo; WITHOUT
+              WARRANTIES OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING ANY IMPLIED WARRANTIES OF
+              MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT, TO THE MAXIMUM
+              EXTENT PERMITTED BY FLORIDA LAW. BOSS OF CLEAN DOES NOT VERIFY, WARRANT, OR GUARANTEE
+              THE WORK, CONDUCT, QUALIFICATIONS, LICENSING, INSURANCE, BACKGROUND, OR AVAILABILITY OF
+              ANY PRO, OR THAT ANY JOB WILL BE COMPLETED OR COMPLETED TO A PARTICULAR STANDARD.
+            </p>
+            <p className="text-gray-600 leading-relaxed mt-4">
+              Boss of Clean does not conduct background checks and does not independently verify a
+              Pro&apos;s licensing or insurance. Where a Pro uploads license or insurance documents,
+              we display what the Pro provided; we do not confirm its accuracy or validity. Listing
+              on the platform is not an endorsement. You are responsible for evaluating a Pro (or a
+              customer) and confirming licensing and insurance directly before entering into any
+              agreement.
             </p>
           </section>
 
@@ -225,9 +240,10 @@ export default function TermsPage() {
               any indirect, incidental, special, consequential, or punitive damages, or for any
               damages arising out of the acts or omissions of a Pro or a customer, the services (or
               failure to provide services), property damage, personal injury, lost profits, or loss
-              of data, arising out of or related to your use of the platform. Our total liability for
-              any claim shall not exceed the total Boss of Clean fees you paid us in the twelve (12)
-              months preceding the claim.
+              of data, arising out of or related to your use of the platform. Our total aggregate liability for
+              any and all claims shall not exceed the greater of (a) the total Boss of Clean fees you
+              paid us in the twelve (12) months preceding the claim, or (b) one hundred dollars
+              (US $100).
             </p>
           </section>
 
@@ -240,7 +256,8 @@ export default function TermsPage() {
               agents from any claims, damages, losses, or expenses (including reasonable
               attorneys&apos; fees) arising out of your use of the platform, your services or your
               hiring of a Pro, your violation of these terms, or your violation of any law or the
-              rights of a third party.
+              rights of a third party &mdash; except to the extent such claims are caused by Boss of
+              Clean&apos;s own gross negligence or willful misconduct.
             </p>
           </section>
 
@@ -279,6 +296,12 @@ export default function TermsPage() {
               proceeding permitted under these terms shall be brought in the state or federal courts
               located in Orange County, Florida. This section governs disputes between you and Boss
               of Clean; disputes between a customer and a Pro are addressed in Section 7.
+            </p>
+            <p className="text-gray-600 leading-relaxed mt-4 font-semibold uppercase tracking-wide">
+              CLASS ACTION AND JURY WAIVER: TO THE MAXIMUM EXTENT PERMITTED BY LAW, YOU AND BOSS OF
+              CLEAN EACH AGREE TO BRING CLAIMS AGAINST THE OTHER ONLY IN AN INDIVIDUAL CAPACITY, AND
+              NOT AS A PLAINTIFF OR CLASS MEMBER IN ANY PURPORTED CLASS, COLLECTIVE, OR REPRESENTATIVE
+              PROCEEDING, AND EACH WAIVES ANY RIGHT TO A JURY TRIAL.
             </p>
           </section>
 

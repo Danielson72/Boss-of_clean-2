@@ -300,19 +300,19 @@ export default async function CleanerProfilePage({ params }: { params: Promise<{
                 {cleaner.is_certified && (
                   <span className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
                     <BadgeCheck className="h-4 w-4" />
-                    Boss of Clean Certified
+                    Boss of Clean Member
                   </span>
                 )}
                 {cleaner.insurance_verified && (
                   <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
                     <Shield className="h-4 w-4" />
-                    Insured
+                    Insurance doc on file
                   </span>
                 )}
                 {cleaner.license_verified && (
                   <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
                     <CheckCircle2 className="h-4 w-4" />
-                    Licensed
+                    License doc on file
                   </span>
                 )}
                 {cleaner.background_check && (
@@ -322,6 +322,11 @@ export default async function CleanerProfilePage({ params }: { params: Promise<{
                   </span>
                 )}
               </div>
+
+              {/* Credentials disclaimer — BOC is a neutral marketplace and does not verify pro-provided info */}
+              <p className="mt-3 text-xs text-gray-500 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
+                Information shown is provided by the pro and is not independently verified by Boss of Clean. Please confirm licensing and insurance directly with the pro before hiring.
+              </p>
             </div>
 
             {/* CTA Section */}

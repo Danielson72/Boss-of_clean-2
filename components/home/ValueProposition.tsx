@@ -4,7 +4,7 @@ const values = [
   {
     icon: MapPin,
     title: 'Local Florida Pros',
-    description: 'Verified pros in all 67 counties, serving both residential and commercial customers.',
+    description: 'Local pros in all 67 counties, serving both residential and commercial customers.',
   },
   {
     icon: DollarSign,

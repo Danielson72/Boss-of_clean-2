@@ -299,11 +299,11 @@ export default function STRTurnoverPage() {
                 <ArrowRight className="h-5 w-5" />
               </Link>
               <Link
-                href="/guarantee"
+                href="/refund-policy"
                 className="inline-flex items-center justify-center gap-2 px-8 py-3 border-2 border-white/30 text-white rounded-lg font-semibold hover:bg-white/10 transition"
               >
                 <Shield className="h-5 w-5" />
-                Purrfection Promise
+                Lead Fee Refund Policy
               </Link>
             </div>
           </div>

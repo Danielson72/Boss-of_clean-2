@@ -54,7 +54,7 @@ const plans: Plan[] = [
       'Basic business listing on the marketplace',
       'Profile page with services and service areas',
       'Pay-per-lead pricing — no monthly commitment',
-      'Standard leads $25 · Deep cleans $35 · Specialty $45',
+      'Flat $30 per lead — no tiers, no percentages',
       'Every lead is exclusive — never shared',
     ],
     cta: 'Get Started Free',
@@ -72,7 +72,7 @@ const plans: Plan[] = [
       'Priority lead routing — you see qualified leads first',
       'Featured placement in category and city search',
       'Priority in customer notifications',
-      'Verified pro badge and profile highlights',
+      'Profile highlights',
       'Business analytics dashboard',
     ],
     cta: 'Start Basic',
@@ -366,41 +366,18 @@ export default async function PricingPage() {
               Every lead is exclusive — sent to a single pro, never shared.
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-white rounded-2xl p-6 text-center border border-gray-200">
+          <div className="max-w-sm mx-auto">
+            <div className="bg-white rounded-2xl p-8 text-center border border-gray-200">
               <p className="text-xs font-semibold text-brand-gold uppercase tracking-wider mb-2">
-                Standard Lead
+                Flat Per-Lead Price
               </p>
               <div className="flex items-baseline justify-center mb-3">
-                <span className="font-display text-4xl font-bold text-brand-dark">$25</span>
+                <span className="font-display text-5xl font-bold text-brand-dark">$30</span>
                 <span className="text-gray-400 text-base ml-1">/lead</span>
               </div>
               <p className="text-gray-600 text-sm leading-relaxed">
-                Standard cleaning, handyman, landscaping, and most recurring service categories.
-              </p>
-            </div>
-            <div className="bg-white rounded-2xl p-6 text-center border border-gray-200">
-              <p className="text-xs font-semibold text-brand-gold uppercase tracking-wider mb-2">
-                Deep Clean Lead
-              </p>
-              <div className="flex items-baseline justify-center mb-3">
-                <span className="font-display text-4xl font-bold text-brand-dark">$35</span>
-                <span className="text-gray-400 text-base ml-1">/lead</span>
-              </div>
-              <p className="text-gray-600 text-sm leading-relaxed">
-                Deep cleans, move-in/move-out, post-construction, and higher-ticket one-time jobs.
-              </p>
-            </div>
-            <div className="bg-white rounded-2xl p-6 text-center border border-gray-200">
-              <p className="text-xs font-semibold text-brand-gold uppercase tracking-wider mb-2">
-                Specialty Lead
-              </p>
-              <div className="flex items-baseline justify-center mb-3">
-                <span className="font-display text-4xl font-bold text-brand-dark">$45</span>
-                <span className="text-gray-400 text-base ml-1">/lead</span>
-              </div>
-              <p className="text-gray-600 text-sm leading-relaxed">
-                HVAC, plumbing, electrical, pest control, and other licensed-trade specialty leads.
+                One flat price for every lead — cleaning, handyman, HVAC, plumbing, electrical, pest
+                control, and every other category. No tiers, no percentages, no surprises.
               </p>
             </div>
           </div>

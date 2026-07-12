@@ -402,7 +402,7 @@ export default function CleanerProfilePage() {
               <div className="flex items-center justify-center gap-3">
                 <BadgeCheck className="h-8 w-8 text-green-600" />
                 <div>
-                  <h3 className="text-lg font-bold text-green-800">Boss of Clean Certified™</h3>
+                  <h3 className="text-lg font-bold text-green-800">Boss of Clean Member</h3>
                   <p className="text-sm text-green-700">Your business meets all verification requirements</p>
                 </div>
               </div>

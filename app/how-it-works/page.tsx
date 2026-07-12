@@ -4,7 +4,7 @@ import { generatePageMetadata } from '@/lib/seo/metadata';
 
 export const metadata = generatePageMetadata({
   title: 'How It Works',
-  description: 'Learn how Boss of Clean connects Florida homeowners with verified home service professionals. Simple search, easy booking, guaranteed satisfaction.',
+  description: 'Learn how Boss of Clean connects Florida homeowners with independent home service professionals. Simple search, compare pros, and hire directly.',
   path: '/how-it-works',
   keywords: ['how it works', 'find a cleaner', 'hire cleaning professional', 'Boss of Clean process'],
 });
@@ -14,7 +14,7 @@ const homeownerSteps = [
     icon: Search,
     step: 'Step 1',
     title: 'Search',
-    description: 'Enter your ZIP code and the type of cleaning service you need. Browse verified professional profiles, read real reviews, and compare pricing.',
+    description: 'Enter your ZIP code and the type of cleaning service you need. Browse professional profiles, read real reviews, and compare pricing.',
   },
   {
     icon: CalendarCheck,
@@ -26,7 +26,7 @@ const homeownerSteps = [
     icon: Sparkles,
     step: 'Step 3',
     title: 'Relax',
-    description: 'We handle the rest. Your pro arrives on time, does the job right, and you enjoy a spotless space. Purrfection is our Standard.',
+    description: 'You and your pro arrange the details and complete the job directly. Purrfection is our Standard.',
   },
 ];
 
@@ -80,7 +80,7 @@ export default function HowItWorksPage() {
             For Homeowners
           </p>
           <h2 className="font-display text-3xl sm:text-4xl font-bold text-brand-dark">
-            Find a Trusted Cleaner in 3 Steps
+            Find a Local Cleaner in 3 Steps
           </h2>
         </div>
 

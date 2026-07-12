@@ -13,13 +13,13 @@ import {
 } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'Find Verified Home Service Professionals in Florida',
+  title: 'Find Home Service Professionals in Florida',
   description:
-    'Browse our directory of verified, insured home service professionals across Florida. View portfolios, read reviews, and request free quotes. Purrfection is our Standard.',
+    'Browse our directory of independent home service professionals across Florida. View portfolios, read reviews, and request free quotes. Purrfection is our Standard.',
   openGraph: {
-    title: 'Find Verified Home Service Professionals | Boss of Clean',
+    title: 'Find Home Service Professionals | Boss of Clean',
     description:
-      'Browse our directory of verified, insured home service professionals across Florida. View portfolios, read reviews, and request free quotes.',
+      'Browse our directory of independent home service professionals across Florida. View portfolios, read reviews, and request free quotes.',
     url: 'https://bossofclean.com/professionals',
   },
 };
@@ -144,9 +144,9 @@ export default async function ProfessionalsPage({
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
-    name: 'Verified Home Service Professionals in Florida',
+    name: 'Home Service Professionals in Florida',
     description:
-      'Directory of verified, insured home service professionals on Boss of Clean.',
+      'Directory of independent home service professionals on Boss of Clean.',
     url: 'https://bossofclean.com/professionals',
     numberOfItems: pros.length,
     itemListElement: pros.slice(0, 20).map((pro, i) => ({
@@ -182,10 +182,10 @@ export default async function ProfessionalsPage({
         <section className="bg-brand-dark text-white py-16 lg:py-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h1 className="text-4xl lg:text-5xl font-bold font-display mb-4">
-              Our Verified Professionals
+              Florida Home Service Professionals
             </h1>
             <p className="text-lg text-gray-300 max-w-2xl mx-auto mb-8">
-              Every professional on Boss of Clean is vetted and verified.
+              Independent professionals across Florida.
               Browse portfolios, read real reviews, and request a free quote.
             </p>
             <div className="flex flex-wrap justify-center gap-4">
@@ -385,7 +385,7 @@ export default async function ProfessionalsPage({
                         {pro.insurance_verified && (
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-700 text-xs rounded-full">
                             <Shield className="h-3 w-3" />
-                            Insured
+                            Insurance doc on file
                           </span>
                         )}
                         {pro.instant_booking && (

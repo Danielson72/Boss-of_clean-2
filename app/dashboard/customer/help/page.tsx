@@ -20,7 +20,7 @@ interface ContactSubmission {
 const customerFaqs = [
   {
     q: 'How do I find a cleaner?',
-    a: 'Go to the Search page, enter your ZIP code, and filter by service type. Each listing shows reviews, pricing, and Boss-Verified badges so you can choose with confidence.',
+    a: 'Go to the Search page, enter your ZIP code, and filter by service type. Each listing shows reviews, pricing, and any license or insurance documents the pro has chosen to upload, so you can decide who to contact.',
   },
   {
     q: 'How does payment work?',
@@ -35,8 +35,8 @@ const customerFaqs = [
     a: 'After a job is marked completed, you will receive an email with a review link. You can also leave reviews from My Bookings in your dashboard.',
   },
   {
-    q: 'What does Boss-Verified mean?',
-    a: 'Boss-Verified professionals have passed a background check, have valid business insurance on file, and maintain a 4.5+ star rating. It is our highest trust badge.',
+    q: 'What do the license and insurance badges mean?',
+    a: 'Pros may upload license and insurance documents to their profile. Where a pro has uploaded them, we display what was provided. Boss of Clean does not independently verify licensing, insurance, or background, and does not guarantee any pro’s work. Confirm credentials directly with the pro before hiring.',
   },
 ];
 

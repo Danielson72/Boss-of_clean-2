@@ -42,6 +42,15 @@ const nextConfig = {
       },
     ]
   },
+  async redirects() {
+    return [
+      {
+        source: '/guarantee',
+        destination: '/refund-policy',
+        permanent: true,
+      },
+    ]
+  },
   images: {
     // Serve AVIF/WebP variants (AVIF ~50% smaller than PNG for the hero).
     formats: ['image/avif', 'image/webp'],
