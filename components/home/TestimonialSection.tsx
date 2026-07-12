@@ -9,7 +9,6 @@ interface Testimonial {
   text: string;
   rating: number;
   date: string;
-  verifiedBooking?: boolean;
 }
 
 function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
@@ -44,13 +43,6 @@ function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
           {testimonial.serviceType}
         </span>
       </div>
-
-      {/* Verified badge - for future use */}
-      {testimonial.verifiedBooking && (
-        <div className="mt-3 pt-3 border-t border-gray-50">
-          <span className="text-xs text-green-600 font-medium">Verified Booking</span>
-        </div>
-      )}
     </div>
   );
 }

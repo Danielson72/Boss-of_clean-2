@@ -295,7 +295,7 @@ export default async function CleanerProfilePage({ params }: { params: Promise<{
                 </div>
               )}
 
-              {/* Verification Badges */}
+              {/* Member status & uploaded documents */}
               <div className="flex flex-wrap gap-2">
                 {cleaner.is_certified && (
                   <span className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">

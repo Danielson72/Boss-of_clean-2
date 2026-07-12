@@ -183,20 +183,21 @@ export function generateCleanerSchema(cleaner: CleanerProfile, serviceArea?: Ser
     };
   }
 
-  // Add verification badges
+  // Documents the pro has provided (mechanism only — Boss of Clean does not
+  // verify these; do not emit any "Verified" claim in structured data).
   const additionalProperties: Array<{ '@type': string; name: string; value: string }> = [];
   if (cleaner.insurance_verified) {
     additionalProperties.push({
       '@type': 'PropertyValue',
-      name: 'Insurance',
-      value: 'Verified',
+      name: 'Insurance document',
+      value: 'On file',
     });
   }
   if (cleaner.license_verified) {
     additionalProperties.push({
       '@type': 'PropertyValue',
-      name: 'License',
-      value: 'Verified',
+      name: 'License document',
+      value: 'On file',
     });
   }
   if (cleaner.years_experience) {

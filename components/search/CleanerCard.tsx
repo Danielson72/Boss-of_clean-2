@@ -119,7 +119,7 @@ export function CleanerCard({
             </span>
           </div>
 
-          {/* Certified Badge Overlay */}
+          {/* Member Overlay */}
           {isCertified && (
             <div className="absolute top-3 left-3">
               <div
@@ -183,7 +183,7 @@ export function CleanerCard({
             </div>
           )}
 
-          {/* Certification or Individual Verifications */}
+          {/* Member status or uploaded documents */}
           {isCertified ? (
             <div className="bg-gradient-to-r from-green-100 to-green-50 border border-green-300 rounded-lg p-3 mb-2" role="status">
               <div className="flex items-center gap-2 text-sm font-bold">
@@ -193,7 +193,7 @@ export function CleanerCard({
               <p className="text-xs text-green-700 mt-1">Independent cleaning professional</p>
             </div>
           ) : (
-            <div className="space-y-1" role="list" aria-label="Verifications">
+            <div className="space-y-1" role="list" aria-label="Uploaded documents">
               {insuranceVerified && (
                 <div className="flex items-center gap-2 text-xs" role="listitem">
                   <Shield className="h-3.5 w-3.5 text-blue-500" aria-hidden="true" />
