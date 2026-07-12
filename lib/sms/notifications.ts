@@ -8,6 +8,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { createLogger } from '../utils/logger';
 import { sendSMS } from './twilio';
+import { proHasValidSmsConsent } from './consent';
 
 const logger = createLogger({ file: 'lib/sms/notifications' });
 
@@ -97,6 +98,17 @@ export async function notifyProNewLead(
     return { success: false, error: 'SMS not enabled' };
   }
 
+  // TCPA / FTSA gate: never text a pro without a valid on-file consent record
+  // for this exact number. Fail-closed — no record → skip and log.
+  const consented = await proHasValidSmsConsent(userId, phoneNumber);
+  if (!consented) {
+    logger.info('No valid SMS consent on file for pro, skipping new-lead text', {
+      function: 'notifyProNewLead',
+      userId,
+    });
+    return { success: false, error: 'No SMS consent on file' };
+  }
+
   const service = serviceType.replace(/_/g, ' ');
   const body = `Boss of Clean: New ${service} lead in ${zipCode} from ${customerName}. Log in to respond. Reply STOP to unsubscribe`;
 
@@ -118,6 +130,17 @@ export async function notifyProNewMessage(
       userId,
     });
     return { success: false, error: 'SMS not enabled' };
+  }
+
+  // TCPA / FTSA gate: never text a pro without a valid on-file consent record
+  // for this exact number. Fail-closed — no record → skip and log.
+  const consented = await proHasValidSmsConsent(userId, phoneNumber);
+  if (!consented) {
+    logger.info('No valid SMS consent on file for pro, skipping new-message text', {
+      function: 'notifyProNewMessage',
+      userId,
+    });
+    return { success: false, error: 'No SMS consent on file' };
   }
 
   const body = `Boss of Clean: New message from ${customerName}. Log in to reply. Reply STOP to unsubscribe`;

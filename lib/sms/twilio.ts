@@ -7,6 +7,7 @@
 
 import twilio from 'twilio';
 import { createLogger } from '../utils/logger';
+import { isPhoneOptedOut } from './consent';
 
 const logger = createLogger({ file: 'lib/sms/twilio' });
 
@@ -54,6 +55,12 @@ export async function sendSMS(to: string, body: string): Promise<SendSMSResult> 
   if (!isValidUSPhone(to)) {
     logger.warn('Invalid phone number format', { function: 'sendSMS', to });
     return { success: false, error: `Invalid US phone number: ${to}` };
+  }
+
+  // Honor STOP for every recipient (pros and customers). Fail-closed.
+  if (await isPhoneOptedOut(to)) {
+    logger.info('Recipient opted out of SMS, skipping', { function: 'sendSMS', to });
+    return { success: false, error: 'Recipient opted out' };
   }
 
   try {

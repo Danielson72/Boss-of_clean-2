@@ -14,6 +14,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createLogger } from '@/lib/utils/logger';
 import CategorySelector from '@/components/onboarding/CategorySelector';
+import { recordProSmsConsent, revokeProSmsConsent } from '@/lib/actions/tcpa';
+import { PRO_SMS_CONSENT_TEXT } from '@/lib/sms/consent-copy';
 
 const logger = createLogger({ file: 'app/dashboard/pro/profile/page.tsx' });
 
@@ -42,6 +44,9 @@ interface CleanerProfile {
   // DLD-449
   primary_category?: string | null;
   secondary_categories?: string[];
+  // SMS consent audit (mirrors users.tcpa_consent_*)
+  sms_consent_at?: string | null;
+  sms_consent_phone?: string | null;
 }
 
 export default function CleanerProfilePage() {
@@ -52,6 +57,9 @@ export default function CleanerProfilePage() {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState('');
+  // Separate, opt-in SMS consent. Reflects whether valid consent is on file for
+  // the current business_phone; the pro toggles it and it applies on save.
+  const [smsConsent, setSmsConsent] = useState(false);
   const supabase = createClient();
 
   useEffect(() => {
@@ -84,6 +92,8 @@ export default function CleanerProfilePage() {
           ...data,
           secondary_categories: secondary,
         });
+        // Show as opted-in only when consent is on file for the current number.
+        setSmsConsent(!!(data.sms_consent_at && data.sms_consent_phone === data.business_phone));
       } else {
         // Create default profile if none exists
         const newProfile = {
@@ -310,6 +320,19 @@ export default function CleanerProfilePage() {
         return;
       }
 
+      // Apply SMS consent choice. Consent binds to the phone just saved; an
+      // unchecked box unconditionally revokes any consent so sends stop. Revoke
+      // is unconditional (not gated on stale loaded state) and idempotent, so a
+      // same-session opt-in then opt-out is honored. Both run through
+      // service-role server actions (IP captured server-side).
+      if (user?.id) {
+        if (smsConsent) {
+          await recordProSmsConsent(user.id, navigator.userAgent).catch(() => {});
+        } else {
+          await revokeProSmsConsent(user.id).catch(() => {});
+        }
+      }
+
       setMessage('Profile updated successfully!');
       setTimeout(() => setMessage(''), 3000);
     } catch (error) {
@@ -449,8 +472,20 @@ export default function CleanerProfilePage() {
                     className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="(555) 123-4567"
                   />
+                  {/* SMS consent — separate, opt-in, not a condition of service */}
+                  <label className="mt-3 flex items-start gap-3">
+                    <input
+                      type="checkbox"
+                      checked={smsConsent}
+                      onChange={(e) => setSmsConsent(e.target.checked)}
+                      className="mt-1 h-4 w-4 shrink-0 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    />
+                    <span className="text-xs text-gray-600 leading-snug">
+                      {PRO_SMS_CONSENT_TEXT}
+                    </span>
+                  </label>
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Website URL (Optional)

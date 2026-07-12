@@ -5,10 +5,12 @@ import { useAuth } from '@/lib/context/AuthContext';
 import { ProtectedRoute } from '@/lib/auth/protected-route';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
-import { 
-  Building2, Phone, Mail, Globe, DollarSign, Clock, 
+import {
+  Building2, Phone, Mail, Globe, DollarSign, Clock,
   MapPin, CheckCircle, AlertCircle, Info
 } from 'lucide-react';
+import { recordProSmsConsent } from '@/lib/actions/tcpa';
+import { PRO_SMS_CONSENT_TEXT } from '@/lib/sms/consent-copy';
 
 const serviceTypes = [
   { value: 'residential', label: 'Residential Cleaning' },
@@ -56,6 +58,8 @@ export default function CleanerSetupPage() {
   });
 
   const [customZipCode, setCustomZipCode] = useState('');
+  // Separate, opt-in SMS consent. NOT a condition of creating a profile.
+  const [smsConsent, setSmsConsent] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -148,6 +152,12 @@ export default function CleanerSetupPage() {
         });
 
       if (error) throw error;
+
+      // Record SMS consent only if the pro affirmatively opted in. IP is
+      // captured server-side; consent is bound to the business_phone just saved.
+      if (smsConsent && user?.id) {
+        recordProSmsConsent(user.id, navigator.userAgent).catch(() => {});
+      }
 
       setSuccess('Profile created successfully! Redirecting to dashboard...');
       setTimeout(() => {
@@ -469,6 +479,22 @@ export default function CleanerSetupPage() {
                     />
                   </div>
                 )}
+              </div>
+
+              {/* SMS consent — separate, opt-in, not a condition of signing up */}
+              <div className="border border-gray-200 rounded-md p-4">
+                <label className="flex items-start gap-3">
+                  <input
+                    type="checkbox"
+                    name="smsConsent"
+                    checked={smsConsent}
+                    onChange={(e) => setSmsConsent(e.target.checked)}
+                    className="mt-1 h-4 w-4 shrink-0 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <span className="text-xs text-gray-600 leading-snug">
+                    {PRO_SMS_CONSENT_TEXT}
+                  </span>
+                </label>
               </div>
 
               {/* Info Box */}
