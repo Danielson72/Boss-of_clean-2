@@ -8,6 +8,7 @@ import {
   User, MapPin, Save, Bell, Settings, CheckCircle, XCircle, Loader2
 } from 'lucide-react';
 import Link from 'next/link';
+import { normalizeToE164, formatPhoneForDisplay } from '@/lib/phone';
 
 interface CustomerProfile {
   id: string;
@@ -46,7 +47,8 @@ export default function CustomerProfilePage() {
       if (error && error.code !== 'PGRST116') throw error;
 
       if (data) {
-        setProfile(data);
+        // Show the stored E.164 number in friendly national format.
+        setProfile({ ...data, phone: formatPhoneForDisplay(data.phone) });
       } else {
         setProfile({
           id: user?.id || '',
@@ -68,13 +70,24 @@ export default function CustomerProfilePage() {
   const handleProfileSave = async () => {
     if (!profile) return;
 
+    // Phone is optional here; normalize to E.164 when present, reject if invalid.
+    let phoneToStore: string | null = null;
+    if (profile.phone?.trim()) {
+      phoneToStore = normalizeToE164(profile.phone);
+      if (!phoneToStore) {
+        setMessage('Please enter a valid US phone number.');
+        setTimeout(() => setMessage(''), 3000);
+        return;
+      }
+    }
+
     setSaving(true);
     try {
       const { error } = await supabase
         .from('users')
         .update({
           full_name: profile.full_name,
-          phone: profile.phone,
+          phone: phoneToStore,
           address: profile.address,
           city: profile.city,
           zip_code: profile.zip_code,

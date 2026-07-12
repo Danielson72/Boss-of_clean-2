@@ -14,6 +14,7 @@ import { Loader2, Mail, CheckCircle, Eye, EyeOff } from 'lucide-react'
 import { resendVerificationEmail, canResendEmail, markEmailResent, getResendCooldownRemaining } from '@/lib/email/verification'
 import { GoogleSignInButton } from '@/components/auth/GoogleSignInButton'
 import { recordUserTcpaConsent } from '@/lib/actions/tcpa'
+import { normalizeToE164 } from '@/lib/phone'
 
 interface AuthFormProps {
   mode: 'login' | 'signup'
@@ -121,6 +122,12 @@ export function AuthForm({ mode, role = 'customer' }: AuthFormProps) {
           setLoading(false)
           return
         }
+        const phoneE164 = normalizeToE164(phone)
+        if (!phoneE164) {
+          setError('Please enter a valid US phone number.')
+          setLoading(false)
+          return
+        }
         if (!tcpaConsented) {
           setError('You must agree to the contact consent to continue.')
           setLoading(false)
@@ -156,7 +163,7 @@ export function AuthForm({ mode, role = 'customer' }: AuthFormProps) {
             .from('users')
             .update({
               full_name: fullName || null,
-              phone: phone || null,
+              phone: phoneE164,
               updated_at: new Date().toISOString(),
             })
             .eq('id', authData.user.id)

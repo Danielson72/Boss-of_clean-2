@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { recordProSmsConsent } from '@/lib/actions/tcpa';
 import { PRO_SMS_CONSENT_TEXT } from '@/lib/sms/consent-copy';
+import { normalizeToE164 } from '@/lib/phone';
 
 const serviceTypes = [
   { value: 'residential', label: 'Residential Cleaning' },
@@ -125,10 +126,16 @@ export default function CleanerSetupPage() {
       setError('Please select at least one service area');
       return;
     }
-    
+
+    const businessPhoneE164 = normalizeToE164(formData.business_phone);
+    if (!businessPhoneE164) {
+      setError('Please enter a valid US business phone number.');
+      return;
+    }
+
     setLoading(true);
     setError('');
-    
+
     try {
       const { error } = await supabase
         .from('pros')
@@ -136,7 +143,7 @@ export default function CleanerSetupPage() {
           user_id: user?.id,
           business_name: formData.business_name,
           business_description: formData.business_description,
-          business_phone: formData.business_phone,
+          business_phone: businessPhoneE164,
           business_email: formData.business_email,
           website_url: formData.website_url || null,
           services: formData.services,
