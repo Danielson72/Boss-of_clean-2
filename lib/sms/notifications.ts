@@ -149,6 +149,39 @@ export async function notifyProNewMessage(
 }
 
 /**
+ * Notify a pro that a customer accepted their quote.
+ */
+export async function notifyProQuoteAccepted(
+  userId: string,
+  phoneNumber: string,
+  quoteAmount: number
+) {
+  const enabled = await isSmsEnabled(userId, 'sms_new_leads');
+  if (!enabled) {
+    logger.info('SMS disabled for new leads, skipping quote-accepted text', {
+      function: 'notifyProQuoteAccepted',
+      userId,
+    });
+    return { success: false, error: 'SMS not enabled' };
+  }
+
+  // TCPA / FTSA gate: never text a pro without a valid on-file consent record
+  // for this exact number. Fail-closed — no record → skip and log.
+  const consented = await proHasValidSmsConsent(userId, phoneNumber);
+  if (!consented) {
+    logger.info('No valid SMS consent on file for pro, skipping quote-accepted text', {
+      function: 'notifyProQuoteAccepted',
+      userId,
+    });
+    return { success: false, error: 'No SMS consent on file' };
+  }
+
+  const body = `Boss of Clean: Your $${quoteAmount} quote was accepted! Log in to unlock the customer's contact and respond. Reply STOP to unsubscribe`;
+
+  return sendSMS(phoneNumber, body);
+}
+
+/**
  * Notify a customer that a pro has sent them a quote.
  */
 export async function notifyCustomerQuoteReceived(
