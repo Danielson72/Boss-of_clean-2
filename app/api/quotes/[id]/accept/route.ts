@@ -4,6 +4,8 @@ import { createServiceRoleClient } from '@/lib/supabase/service-role';
 import { createLogger } from '@/lib/utils/logger';
 import { proHasCapturedQuote } from '@/lib/lead-pii';
 import { scrubText } from '@/lib/pii-filter';
+import { sendQuoteAcceptedProEmail, sendQuoteAcceptedCustomerEmail } from '@/lib/email/notifications';
+import { notifyProQuoteAccepted, sendSMSIfEnabled } from '@/lib/sms/notifications';
 
 const logger = createLogger({ file: 'api/quotes/[id]/accept/route' });
 
@@ -212,16 +214,65 @@ export async function POST(
 
   // Booking exists (created now or already present from a prior accept). Reuse
   // the `admin` client from the accept write — no second service client needed.
+  const quotedPrice = Number(quote.quoted_price) || 0;
+  const businessName = (quote.cleaner.business_name as string) || 'Your pro';
+
+  // Pro in-app notification.
   try {
     await admin.from('notifications').insert({
       user_id: quote.cleaner.user_id,
       type: 'quote_accepted',
       title: 'Quote Accepted!',
-      message: `Your quote of $${quote.quoted_price} has been accepted. A booking has been created.`,
+      message: `Your quote of $${quotedPrice} has been accepted. A booking has been created.`,
       action_url: '/dashboard/pro/bookings',
     });
   } catch (notifErr) {
     logger.error('Failed to create cleaner notification', { function: 'POST' }, notifErr);
+  }
+
+  // Fetch contact details (service-role) for pro email/SMS and customer email.
+  const [{ data: proContact }, { data: customer }] = await Promise.all([
+    admin.from('pros').select('business_email, business_phone').eq('id', quote.cleaner_id).single(),
+    admin.from('users').select('full_name, email').eq('id', quote.customer_id).single(),
+  ]);
+
+  // Pro: email + consent-gated SMS. This is the moment before they pay the $30
+  // lead fee, so notify immediately. All non-blocking.
+  if (proContact?.business_email) {
+    sendQuoteAcceptedProEmail({
+      to: proContact.business_email,
+      businessName,
+      quoteAmount: quotedPrice,
+      quoteId,
+    }).catch((err) => logger.error('Failed pro quote-accepted email', { function: 'POST' }, err));
+  }
+  if (proContact?.business_phone) {
+    // Routes through the #89 consent gate (fail-closed): no consent → no text.
+    sendSMSIfEnabled(() =>
+      notifyProQuoteAccepted(quote.cleaner.user_id, proContact.business_phone, quotedPrice)
+    ).catch((err) => logger.error('Pro quote-accepted SMS error', { function: 'POST' }, err));
+  }
+
+  // Customer: in-app + email confirmation explaining what happens next.
+  try {
+    await admin.from('notifications').insert({
+      user_id: quote.customer_id,
+      type: 'quote_accepted',
+      title: 'Quote accepted',
+      message: `You accepted ${businessName}'s $${quotedPrice} quote. They'll receive your contact info and reach out to arrange the details.`,
+      action_url: '/dashboard/customer',
+    });
+  } catch (notifErr) {
+    logger.error('Failed to create customer notification', { function: 'POST' }, notifErr);
+  }
+  const customerEmail = customer?.email;
+  if (customerEmail) {
+    sendQuoteAcceptedCustomerEmail({
+      to: customerEmail,
+      customerName: (customer?.full_name as string) || 'there',
+      businessName,
+      quoteAmount: quotedPrice,
+    }).catch((err) => logger.error('Failed customer quote-accepted email', { function: 'POST' }, err));
   }
 
   logger.info('Quote accepted and booking confirmed', {

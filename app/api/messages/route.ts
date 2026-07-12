@@ -398,7 +398,9 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // SMS notification: look up recipient's phone number
+  // SMS notification: look up recipient's phone number. Also capture the
+  // recipient's user_id so we can write an in-app notification row.
+  let recipientUserId: string | null = null;
   if (isCustomer && cleanerId) {
     // Customer sent message to cleaner — notify the cleaner via SMS
     const { data: cleanerSms } = await supabase
@@ -406,6 +408,8 @@ export async function POST(request: NextRequest) {
       .select('business_phone, user_id')
       .eq('id', cleanerId)
       .single();
+
+    if (cleanerSms?.user_id) recipientUserId = cleanerSms.user_id;
 
     if (cleanerSms?.business_phone && cleanerSms?.user_id) {
       notifications.push(
@@ -423,6 +427,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (conv?.customer_id) {
+      recipientUserId = conv.customer_id;
       const { data: customerUser } = await supabase
         .from('users')
         .select('phone')
@@ -437,6 +442,24 @@ export async function POST(request: NextRequest) {
         );
       }
     }
+  }
+
+  // In-app notification row for the recipient (service-role: writing to another
+  // user's notifications row). Fire-and-forget.
+  if (recipientUserId) {
+    const preview = content.trim().substring(0, 100);
+    createServiceRoleClient()
+      .from('notifications')
+      .insert({
+        user_id: recipientUserId,
+        type: 'new_message',
+        title: 'New message',
+        message: `${senderName}: ${preview}`,
+        action_url: '/dashboard/messages',
+      })
+      .then(({ error }) => {
+        if (error) logger.error('Failed to create message notification', { function: 'POST' }, error);
+      });
   }
 
   // Fire all notifications, never let failures break the response

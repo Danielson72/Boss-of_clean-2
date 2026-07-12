@@ -123,6 +123,85 @@ function generateQuoteConfirmationEmailHtml(data: QuoteConfirmationEmailData): s
   return wrapEmailTemplate(content);
 }
 
+export interface QuoteAcceptedProEmailData {
+  to: string;
+  businessName: string;
+  quoteAmount: number;
+  quoteId: string;
+}
+
+export interface QuoteAcceptedCustomerEmailData {
+  to: string;
+  customerName: string;
+  businessName: string;
+  quoteAmount: number;
+}
+
+/**
+ * Generate "your quote was accepted" email for the pro.
+ * Neutral-marketplace copy: BOC facilitates the introduction; the lead fee
+ * unlocks contact info. No guarantees about the job.
+ */
+function generateQuoteAcceptedProEmailHtml(data: QuoteAcceptedProEmailData): string {
+  const content = `
+    <h2 style="color: #111827; font-size: 24px; margin: 0 0 8px 0;">Your quote was accepted!</h2>
+    <p style="color: #6b7280; font-size: 16px; margin-bottom: 24px;">
+      Hi ${data.businessName}, a customer accepted your quote of <strong>$${data.quoteAmount}</strong>.
+    </p>
+
+    <div style="background: #ecfdf5; border-radius: 8px; padding: 16px; margin: 20px 0; border-left: 4px solid #10b981;">
+      <p style="margin: 0; color: #065f46; font-size: 14px;">
+        <strong>Next step:</strong> pay the $30 lead fee to unlock the customer's contact
+        details, then reach out to arrange the job directly. The lead fee is for the
+        introduction only.
+      </p>
+    </div>
+
+    ${generateButton('Unlock Contact & Respond', `${BASE_URL}/dashboard/pro/leads`)}
+
+    <p style="color: #6b7280; font-size: 14px; margin-top: 24px;">
+      You set your own prices and arrange the work directly with the customer. Boss of
+      Clean is a marketplace that connects you — it is not a party to the job.
+    </p>
+  `;
+
+  return wrapEmailTemplate(content);
+}
+
+/**
+ * Generate "you accepted a quote" confirmation for the customer.
+ * Neutral-marketplace copy: explains what happens next without any guarantee or
+ * vetting claim.
+ */
+function generateQuoteAcceptedCustomerEmailHtml(data: QuoteAcceptedCustomerEmailData): string {
+  const content = `
+    <h2 style="color: #111827; font-size: 24px; margin: 0 0 8px 0;">You accepted a quote</h2>
+    <p style="color: #6b7280; font-size: 16px; margin-bottom: 24px;">
+      Hi ${data.customerName}, you accepted <strong>${data.businessName}</strong>'s quote of
+      <strong>$${data.quoteAmount}</strong>.
+    </p>
+
+    <div style="background: #eff6ff; border-radius: 8px; padding: 16px; margin: 20px 0; border-left: 4px solid #2563eb;">
+      <p style="margin: 0; color: #1e40af; font-size: 14px;">
+        <strong>What happens next?</strong><br>
+        ${data.businessName} will receive your contact information and reach out to
+        arrange the details directly with you. You and the pro agree on scheduling,
+        payment for the service, and any other terms between yourselves.
+      </p>
+    </div>
+
+    ${generateButton('View in Your Dashboard', `${BASE_URL}/dashboard/customer`)}
+
+    <p style="color: #6b7280; font-size: 14px; margin-top: 24px;">
+      Boss of Clean connects you with independent professionals and does not vet, verify,
+      or guarantee any pro. Please confirm licensing and insurance directly with the pro
+      before work begins.
+    </p>
+  `;
+
+  return wrapEmailTemplate(content);
+}
+
 /**
  * Send email notification to cleaner about new lead
  */
@@ -175,6 +254,43 @@ export async function sendQuoteConfirmationEmail(data: QuoteConfirmationEmailDat
     to: data.to,
     subject: 'Your cleaning quote request has been submitted!',
     html: generateQuoteConfirmationEmailHtml(data),
+  });
+
+  return result.success;
+}
+
+/**
+ * Send "your quote was accepted" email to the pro.
+ */
+export async function sendQuoteAcceptedProEmail(data: QuoteAcceptedProEmailData): Promise<boolean> {
+  logger.info('Sending quote-accepted (pro) notification', {
+    function: 'sendQuoteAcceptedProEmail',
+    to: data.to,
+    quoteId: data.quoteId,
+  });
+
+  const result = await sendResendEmail({
+    to: data.to,
+    subject: 'Your quote was accepted — unlock the customer contact',
+    html: generateQuoteAcceptedProEmailHtml(data),
+  });
+
+  return result.success;
+}
+
+/**
+ * Send "you accepted a quote" confirmation email to the customer.
+ */
+export async function sendQuoteAcceptedCustomerEmail(data: QuoteAcceptedCustomerEmailData): Promise<boolean> {
+  logger.info('Sending quote-accepted (customer) confirmation', {
+    function: 'sendQuoteAcceptedCustomerEmail',
+    to: data.to,
+  });
+
+  const result = await sendResendEmail({
+    to: data.to,
+    subject: `You accepted ${data.businessName}'s quote`,
+    html: generateQuoteAcceptedCustomerEmailHtml(data),
   });
 
   return result.success;

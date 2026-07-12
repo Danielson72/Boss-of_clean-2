@@ -4,6 +4,7 @@ import { headers } from 'next/headers';
 import { createClient } from '@/lib/supabase/server';
 import { createServiceRoleClient } from '@/lib/supabase/service-role';
 import { sendQuoteConfirmationEmail, sendNewLeadEmail } from '@/lib/email/notifications';
+import { notifyProNewLead, sendSMSIfEnabled } from '@/lib/sms/notifications';
 import { checkRateLimit, RATE_LIMITS } from '@/lib/middleware/rate-limit';
 import { createLogger } from '@/lib/utils/logger';
 
@@ -146,13 +147,13 @@ export async function submitQuoteRequest(
     // ============================================
     // Match by: approved cleaners whose service_areas include this zip code
     // Fallback: if no service_areas match, try cleaners whose user zip matches
-    let matchedPros: { cleaner_id: string; user_id: string; email: string; business_name: string }[] = [];
+    let matchedPros: { cleaner_id: string; user_id: string; email: string; business_name: string; business_phone: string | null }[] = [];
 
     try {
       // Primary match: service_areas table (service-role: cross-customer read)
       const { data: areaMatches } = await adminSupabase
         .from('service_areas')
-        .select('cleaner_id, cleaner:pros!inner(id, business_name, user_id, approval_status, user:users!inner(email))')
+        .select('cleaner_id, cleaner:pros!inner(id, business_name, user_id, approval_status, business_phone, user:users!inner(email))')
         .eq('zip_code', data.zip_code);
 
       if (areaMatches && areaMatches.length > 0) {
@@ -169,6 +170,7 @@ export async function submitQuoteRequest(
               user_id: cleaner.user_id as string,
               email: user.email as string,
               business_name: cleaner.business_name as string,
+              business_phone: (cleaner.business_phone as string) ?? null,
             };
           });
       }
@@ -178,7 +180,7 @@ export async function submitQuoteRequest(
       if (matchedPros.length === 0) {
         const { data: allApproved } = await adminSupabase
           .from('pros')
-          .select('id, business_name, user_id, user:users!inner(email)')
+          .select('id, business_name, user_id, business_phone, user:users!inner(email)')
           .eq('approval_status', 'approved');
 
         if (allApproved && allApproved.length > 0) {
@@ -189,6 +191,7 @@ export async function submitQuoteRequest(
               user_id: c.user_id,
               email: user.email as string,
               business_name: c.business_name,
+              business_phone: (c.business_phone as string) ?? null,
             };
           });
         }
@@ -234,6 +237,17 @@ export async function submitQuoteRequest(
       }).catch((err) =>
         logger.error('Failed to send pro email', { function: 'submitQuoteRequest', email: pro.email }, err)
       );
+
+      // SMS notification (consent-gated, fire-and-forget). Routes through the
+      // #89 consent gate inside notifyProNewLead — no consent record → no text,
+      // just email + in-app. Customer name is withheld pre-acceptance (PII).
+      if (pro.business_phone) {
+        sendSMSIfEnabled(() =>
+          notifyProNewLead(pro.user_id, pro.business_phone as string, 'A customer', data.service_type, data.zip_code)
+        ).catch((err) =>
+          logger.error('Pro new-lead SMS error', { function: 'submitQuoteRequest', userId: pro.user_id }, err)
+        );
+      }
     }
 
     // ============================================
