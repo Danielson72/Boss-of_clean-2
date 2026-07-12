@@ -236,8 +236,9 @@ export default function DocumentUploadForm({ data, onChange, onNext, onBack, isS
       <Alert>
         <AlertCircle className="h-4 w-4" />
         <AlertDescription>
-          Documents will be reviewed by our team within 1-2 business days. You can continue
-          with the onboarding process while documents are being verified.
+          Documents you upload are stored on your profile and shown to customers as provided.
+          Boss of Clean does not independently verify these documents. You can continue with the
+          onboarding process after uploading.
         </AlertDescription>
       </Alert>
 

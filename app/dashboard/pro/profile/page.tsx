@@ -396,14 +396,14 @@ export default function CleanerProfilePage() {
         </div>
 
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* Boss of Clean Certified Badge */}
+          {/* Boss of Clean Member Badge */}
           {profile?.is_certified && (
             <div className="mb-6 bg-gradient-to-r from-green-50 to-green-100 border border-green-300 rounded-lg p-4">
               <div className="flex items-center justify-center gap-3">
                 <BadgeCheck className="h-8 w-8 text-green-600" />
                 <div>
-                  <h3 className="text-lg font-bold text-green-800">Boss of Clean Certified™</h3>
-                  <p className="text-sm text-green-700">Your business meets all verification requirements</p>
+                  <h3 className="text-lg font-bold text-green-800">Boss of Clean Member</h3>
+                  <p className="text-sm text-green-700">Your business is listed on the Boss of Clean marketplace</p>
                 </div>
               </div>
             </div>

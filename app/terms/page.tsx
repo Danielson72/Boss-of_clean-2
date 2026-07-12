@@ -3,7 +3,8 @@ import { generatePageMetadata } from '@/lib/seo/metadata';
 
 export const metadata = generatePageMetadata({
   title: 'Terms of Service',
-  description: 'Boss of Clean terms of service. Understand the rules and expectations for using our Florida cleaning services marketplace.',
+  description:
+    'Boss of Clean terms of service. How our Florida home and business services marketplace works, the roles of customers and independent Pros, fees, and platform protections.',
   path: '/terms',
   keywords: ['terms of service', 'user agreement', 'Boss of Clean terms'],
 });
@@ -23,7 +24,7 @@ export default function TermsPage() {
           <p className="text-gray-300 text-lg max-w-2xl mx-auto">
             Please read these terms carefully before using Boss of Clean.
           </p>
-          <p className="text-gray-500 text-sm mt-4">Last updated: March 2026</p>
+          <p className="text-gray-500 text-sm mt-4">Last updated: July 2026</p>
         </div>
       </section>
 
@@ -32,126 +33,184 @@ export default function TermsPage() {
         <div className="prose prose-lg prose-gray max-w-none">
           <section className="mb-12">
             <h2 className="font-display text-2xl font-bold text-brand-dark mb-4">
-              1. Platform Role
+              1. Platform Role &mdash; a Neutral Marketplace
             </h2>
+            <p className="text-gray-600 leading-relaxed mb-4">
+              These Terms of Service (&ldquo;Terms&rdquo;) are a binding agreement between you and{' '}
+              <strong>Boss of Clean LLC</strong>, a Florida limited liability company (Florida
+              Document No. L26000115956), located at 50 Frisco Court, Apopka, FL 32712
+              (&ldquo;Boss of Clean,&rdquo; &ldquo;we,&rdquo; or &ldquo;us&rdquo;). You must be at
+              least 18 years old to use the platform. By accessing or using Boss of Clean, you agree
+              to these Terms.
+            </p>
+            <p className="text-gray-600 leading-relaxed mb-4">
+              Boss of Clean operates a Florida marketplace that connects customers with independent
+              home and business service professionals (&ldquo;Pros&rdquo;) across many categories,
+              including cleaning, handyman work, plumbing, HVAC, electrical, pest control,
+              landscaping, pool service, pressure washing, and mobile detailing.
+            </p>
             <p className="text-gray-600 leading-relaxed">
-              Boss of Clean is a marketplace platform that connects homeowners with independent
-              cleaning and home service professionals. We are <strong>not</strong> an employer,
-              contractor, or agent of any service provider listed on our platform. All cleaning
-              professionals are independent businesses responsible for their own operations,
-              licensing, insurance, tax obligations, and quality of work. Boss of Clean facilitates
-              the connection but does not supervise, direct, or control the services provided.
+              Boss of Clean is <strong>only</strong> the platform. We are <strong>not</strong> an
+              employer, contractor, agent, partner, or joint venturer of any Pro, and we are{' '}
+              <strong>not a party</strong> to any agreement for services between a customer and a
+              Pro. We do not employ, supervise, direct, or control Pros; we do not perform, inspect,
+              or manage any job; and we do not endorse, certify, or guarantee any Pro, their
+              qualifications, or their work. Any hiring decision, service agreement, schedule, scope,
+              and price are set directly between the customer and the Pro.
             </p>
           </section>
 
           <section className="mb-12">
             <h2 className="font-display text-2xl font-bold text-brand-dark mb-4">
-              2. Customer Responsibilities
+              2. Professionals Are Independent Businesses
+            </h2>
+            <p className="text-gray-600 leading-relaxed mb-4">
+              Each Pro is an independent business, solely responsible for its own operations. By
+              listing on Boss of Clean, a Pro represents and agrees that they are responsible for:
+            </p>
+            <ul className="list-disc pl-6 space-y-2 text-gray-600">
+              <li>obtaining and maintaining all licenses, permits, and insurance required for their trade and service area;</li>
+              <li>the quality, safety, timeliness, and legality of the services they provide;</li>
+              <li>their own pricing, taxes, employees or subcontractors, tools, and equipment;</li>
+              <li>compliance with all applicable local, state, and federal laws and regulations;</li>
+              <li>accurate profile information, including services, service areas, and availability.</li>
+            </ul>
+          </section>
+
+          <section className="mb-12">
+            <h2 className="font-display text-2xl font-bold text-brand-dark mb-4">
+              3. Customer Responsibilities
             </h2>
             <ul className="list-disc pl-6 space-y-2 text-gray-600">
               <li>Provide accurate contact information, property details, and service requirements.</li>
-              <li>Be present or provide access as agreed at the scheduled service time.</li>
-              <li>Pay for completed services promptly through the platform.</li>
-              <li>Treat service professionals with respect and maintain a safe working environment.</li>
-              <li>Report issues through the platform&apos;s dispute resolution process rather than withholding payment.</li>
+              <li>Be present or provide access as agreed with your Pro at the scheduled service time.</li>
+              <li>Pay your Pro directly for the services you agree to, on the terms you agree with them.</li>
+              <li>Treat Pros with respect and maintain a safe working environment.</li>
+              <li>Raise any service issue first with your Pro, and use the platform&apos;s support channels if you cannot resolve it.</li>
             </ul>
           </section>
 
           <section className="mb-12">
             <h2 className="font-display text-2xl font-bold text-brand-dark mb-4">
-              3. Professional Responsibilities
+              4. Payments and Fees
             </h2>
+            <p className="text-gray-600 leading-relaxed mb-4">
+              <strong>Payment for services is directly between the customer and the Pro.</strong>{' '}
+              Boss of Clean does not set, collect, hold, escrow, or process payment for the services
+              a Pro provides, and does not issue payouts to Pros for those services. We take{' '}
+              <strong>no percentage or commission</strong> of any job. How and when a customer pays a
+              Pro (and any deposit, cancellation, or refund terms for the service itself) is agreed
+              between the customer and that Pro.
+            </p>
+            <p className="text-gray-600 leading-relaxed mb-4">
+              Boss of Clean&apos;s <strong>only</strong> financial relationship with a Pro is:
+            </p>
             <ul className="list-disc pl-6 space-y-2 text-gray-600">
-              <li>Maintain all required business licenses and insurance for your service area.</li>
-              <li>Complete booked jobs on time and to the standard described in your profile.</li>
-              <li>Respond to leads and customer inquiries in a timely manner.</li>
-              <li>Maintain accurate profile information including services, pricing, and availability.</li>
-              <li>Report to Boss of Clean any safety concerns or incidents that occur during a job.</li>
-              <li>Comply with all applicable local, state, and federal laws and regulations.</li>
+              <li>
+                <strong>A per-lead unlock fee.</strong> After a customer accepts a Pro&apos;s quote
+                and confirms they want to hire that Pro, the Pro pays a flat lead-unlock fee to
+                receive that customer&apos;s contact information for the job. The fee is for the
+                introduction; it is not a commission on the job and is not a guarantee that the job
+                will proceed. The current fee is shown to the Pro before payment and on our{' '}
+                <Link href="/pricing" className="text-brand-gold hover:underline">
+                  Pricing
+                </Link>{' '}
+                page. Refunds of the lead-unlock fee are governed by our{' '}
+                <Link href="/refund-policy" className="text-brand-gold hover:underline">
+                  Lead Fee Refund Policy
+                </Link>
+                .
+              </li>
+              <li>
+                <strong>Optional subscription plans.</strong> Pros may choose a paid subscription for
+                additional marketplace features. Plan prices and features are described on the{' '}
+                <Link href="/pricing" className="text-brand-gold hover:underline">
+                  Pricing
+                </Link>{' '}
+                page. Subscription fees are billed for the plan period and are separate from the
+                lead-unlock fee.
+              </li>
             </ul>
+            <p className="text-gray-600 leading-relaxed mt-4">
+              All Boss of Clean fees are processed securely through our payment processor, Stripe.
+            </p>
           </section>
 
           <section className="mb-12">
             <h2 className="font-display text-2xl font-bold text-brand-dark mb-4">
-              4. Payment Terms
+              5. Cancellations and No-Shows
+            </h2>
+            <p className="text-gray-600 leading-relaxed">
+              Because the service agreement is between the customer and the Pro, any cancellation,
+              rescheduling, no-show, deposit, or cancellation-fee terms for a job are set and
+              enforced between those two parties. Boss of Clean is not a party to those terms, does
+              not charge or collect service cancellation or no-show fees, and does not refund amounts
+              a customer pays a Pro. We encourage both sides to communicate changes as early as
+              possible; repeated no-shows or cancellations by a Pro may affect their standing on the
+              platform.
+            </p>
+          </section>
+
+          <section className="mb-12">
+            <h2 className="font-display text-2xl font-bold text-brand-dark mb-4">
+              6. Reviews
+            </h2>
+            <p className="text-gray-600 leading-relaxed">
+              Reviews reflect the opinions of the customers who write them and must follow our{' '}
+              <Link href="/review-policy" className="text-brand-gold hover:underline">
+                Review Policy
+              </Link>
+              . Boss of Clean moderates reviews against that policy but does not endorse review
+              content.
+            </p>
+          </section>
+
+          <section className="mb-12">
+            <h2 className="font-display text-2xl font-bold text-brand-dark mb-4">
+              7. Disputes Between Customers and Pros
             </h2>
             <p className="text-gray-600 leading-relaxed mb-4">
-              All payments are processed securely through Stripe. Boss of Clean charges a
-              <strong> 5% platform fee</strong> on completed bookings. This fee is deducted from
-              the professional&apos;s payout and covers payment processing, lead delivery, platform
-              maintenance, and customer support.
+              Any dispute about a service &mdash; its quality, price, scheduling, damage, or
+              completion &mdash; is between the customer and the Pro, who are responsible for
+              resolving it directly. Boss of Clean is not the payer, insurer, guarantor, or arbiter
+              of the underlying job and is not responsible for a Pro&apos;s acts or omissions.
             </p>
             <p className="text-gray-600 leading-relaxed">
-              Professionals receive payouts via Stripe direct deposit within 2&ndash;3 business
-              days after a job is marked as completed. Subscription fees for lead access are billed
-              monthly and are non-refundable for the current billing period.
-            </p>
-          </section>
-
-          <section className="mb-12">
-            <h2 className="font-display text-2xl font-bold text-brand-dark mb-4">
-              5. Cancellation Policy
-            </h2>
-            <p className="text-gray-600 leading-relaxed mb-4">
-              <strong>Customers:</strong> Cancellations made at least 24 hours before the scheduled
-              service time incur no charge. Cancellations within 24 hours of the scheduled time may
-              be subject to a cancellation fee of up to 50% of the quoted price, at the professional&apos;s
-              discretion.
-            </p>
-            <p className="text-gray-600 leading-relaxed">
-              <strong>Professionals:</strong> Cancellations should be communicated to the customer as
-              early as possible. Repeated cancellations by a professional may result in account
-              suspension or removal from the platform.
-            </p>
-          </section>
-
-          <section className="mb-12">
-            <h2 className="font-display text-2xl font-bold text-brand-dark mb-4">
-              6. No-Show Policy
-            </h2>
-            <p className="text-gray-600 leading-relaxed mb-4">
-              <strong>Customer no-shows:</strong> If a customer is not available at the scheduled time
-              and has not communicated a cancellation, the professional may charge a no-show fee of up
-              to 100% of the quoted price.
-            </p>
-            <p className="text-gray-600 leading-relaxed">
-              <strong>Professional no-shows:</strong> If a professional fails to arrive at the scheduled
-              time without prior notice, the customer is entitled to a full refund. Repeated no-shows
-              will result in account suspension.
-            </p>
-          </section>
-
-          <section className="mb-12">
-            <h2 className="font-display text-2xl font-bold text-brand-dark mb-4">
-              7. Dispute Resolution
-            </h2>
-            <p className="text-gray-600 leading-relaxed mb-4">
-              If a dispute arises between a customer and a professional, both parties should first
-              attempt to resolve it through the platform&apos;s messaging system. If a resolution
-              cannot be reached, either party may file a dispute through their dashboard or by
-              contacting{' '}
+              As a courtesy, we may provide information from platform records (such as messages and
+              request history) to help the parties resolve a dispute, and we may take account actions
+              against a user who violates these terms. Our financial remedies are limited to the
+              Boss of Clean fees a user paid us &mdash; for example, a lead-unlock fee refund under
+              our{' '}
+              <Link href="/refund-policy" className="text-brand-gold hover:underline">
+                Lead Fee Refund Policy
+              </Link>
+              . You may also contact{' '}
               <a href="mailto:admin@bossofclean.com" className="text-brand-gold hover:underline">
                 admin@bossofclean.com
-              </a>.
-            </p>
-            <p className="text-gray-600 leading-relaxed">
-              Boss of Clean will review disputes and may issue credits, refunds, or account actions
-              as appropriate. Any disputes not resolved through our support process shall be settled
-              by binding arbitration in the State of Florida, in accordance with the rules of the
-              American Arbitration Association.
+              </a>
+              .
             </p>
           </section>
 
           <section className="mb-12">
             <h2 className="font-display text-2xl font-bold text-brand-dark mb-4">
-              8. Lead Quality Guarantee
+              8. No Warranty; No Guarantee of Pros
             </h2>
-            <p className="text-gray-600 leading-relaxed">
-              Boss of Clean stands behind the quality of leads delivered to professionals. If a
-              professional receives a lead that is verifiably invalid (fake contact information,
-              out-of-service-area, or duplicate), they may report it through their dashboard within
-              48 hours. Verified invalid leads will be credited back to the professional&apos;s
-              account within 48 hours of review.
+            <p className="text-gray-600 leading-relaxed font-semibold uppercase tracking-wide">
+              THE PLATFORM IS PROVIDED &ldquo;AS IS&rdquo; AND &ldquo;AS AVAILABLE,&rdquo; WITHOUT
+              WARRANTIES OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING ANY IMPLIED WARRANTIES OF
+              MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT, TO THE MAXIMUM
+              EXTENT PERMITTED BY FLORIDA LAW. BOSS OF CLEAN DOES NOT VERIFY, WARRANT, OR GUARANTEE
+              THE WORK, CONDUCT, QUALIFICATIONS, LICENSING, INSURANCE, BACKGROUND, OR AVAILABILITY OF
+              ANY PRO, OR THAT ANY JOB WILL BE COMPLETED OR COMPLETED TO A PARTICULAR STANDARD.
+            </p>
+            <p className="text-gray-600 leading-relaxed mt-4">
+              Boss of Clean does not conduct background checks and does not independently verify a
+              Pro&apos;s licensing or insurance. Where a Pro uploads license or insurance documents,
+              we display what the Pro provided; we do not confirm its accuracy or validity. Listing
+              on the platform is not an endorsement. You are responsible for evaluating a Pro (or a
+              customer) and confirming licensing and insurance directly before entering into any
+              agreement.
             </p>
           </section>
 
@@ -161,13 +220,14 @@ export default function TermsPage() {
             </h2>
             <p className="text-gray-600 leading-relaxed">
               By providing your phone number on Boss of Clean, you consent to receive transactional
-              SMS messages related to your account, including booking confirmations, lead notifications,
+              SMS messages related to your account, including request, quote, and lead notifications
               and service updates. Message and data rates may apply. You may opt out at any time by
-              replying <strong>STOP</strong> to any text message. For help, reply <strong>HELP</strong> or
-              contact{' '}
+              replying <strong>STOP</strong> to any text message. For help, reply <strong>HELP</strong>{' '}
+              or contact{' '}
               <a href="mailto:admin@bossofclean.com" className="text-brand-gold hover:underline">
                 admin@bossofclean.com
-              </a>.
+              </a>
+              .
             </p>
           </section>
 
@@ -176,47 +236,85 @@ export default function TermsPage() {
               10. Limitation of Liability
             </h2>
             <p className="text-gray-600 leading-relaxed">
-              Boss of Clean provides the platform &ldquo;as is&rdquo; and &ldquo;as available.&rdquo;
-              To the maximum extent permitted by Florida law, Boss of Clean shall not be liable for any
-              indirect, incidental, special, consequential, or punitive damages arising out of or related
-              to your use of the platform, including but not limited to damages for property damage,
-              personal injury, lost profits, or loss of data. Our total liability shall not exceed the
-              amount you have paid to Boss of Clean in the twelve (12) months preceding the claim.
+              To the maximum extent permitted by Florida law, Boss of Clean shall not be liable for
+              any indirect, incidental, special, consequential, or punitive damages, or for any
+              damages arising out of the acts or omissions of a Pro or a customer, the services (or
+              failure to provide services), property damage, personal injury, lost profits, or loss
+              of data, arising out of or related to your use of the platform. Our total aggregate liability for
+              any and all claims shall not exceed the greater of (a) the total Boss of Clean fees you
+              paid us in the twelve (12) months preceding the claim, or (b) one hundred dollars
+              (US $100).
             </p>
           </section>
 
           <section className="mb-12">
             <h2 className="font-display text-2xl font-bold text-brand-dark mb-4">
-              11. Account Termination
+              11. Indemnification
             </h2>
             <p className="text-gray-600 leading-relaxed">
-              Boss of Clean reserves the right to suspend or terminate any account that violates
-              these terms, engages in fraudulent activity, receives repeated complaints, or otherwise
-              harms the safety or integrity of the marketplace. Users may delete their account at any
-              time by contacting support.
+              You agree to indemnify and hold harmless Boss of Clean and its officers, employees, and
+              agents from any claims, damages, losses, or expenses (including reasonable
+              attorneys&apos; fees) arising out of your use of the platform, your services or your
+              hiring of a Pro, your violation of these terms, or your violation of any law or the
+              rights of a third party &mdash; except to the extent such claims are caused by Boss of
+              Clean&apos;s own gross negligence or willful misconduct.
             </p>
           </section>
 
           <section className="mb-12">
             <h2 className="font-display text-2xl font-bold text-brand-dark mb-4">
-              12. Governing Law
+              12. Account Termination
             </h2>
             <p className="text-gray-600 leading-relaxed">
-              These terms are governed by and construed in accordance with the laws of the State
-              of Florida, without regard to its conflict of law principles. Any legal action arising
-              from these terms shall be filed in the courts of Orange County, Florida.
+              Boss of Clean may suspend or terminate any account that violates these terms, engages
+              in fraudulent activity, receives repeated substantiated complaints, or otherwise harms
+              the safety or integrity of the marketplace. You may delete your account at any time by
+              contacting support.
+            </p>
+          </section>
+
+          <section className="mb-12">
+            <h2 className="font-display text-2xl font-bold text-brand-dark mb-4">
+              13. Changes to These Terms
+            </h2>
+            <p className="text-gray-600 leading-relaxed">
+              We may update these terms from time to time. Material changes will be reflected by the
+              &ldquo;Last updated&rdquo; date above, and your continued use of the platform after a
+              change means you accept the updated terms.
+            </p>
+          </section>
+
+          <section className="mb-12">
+            <h2 className="font-display text-2xl font-bold text-brand-dark mb-4">
+              14. Governing Law and Dispute Resolution
+            </h2>
+            <p className="text-gray-600 leading-relaxed">
+              These terms are governed by the laws of the State of Florida, without regard to its
+              conflict of law principles. Any dispute between you and Boss of Clean that is not
+              resolved through our support process shall be resolved by binding arbitration in
+              Florida under the rules of the American Arbitration Association, and any court
+              proceeding permitted under these terms shall be brought in the state or federal courts
+              located in Orange County, Florida. This section governs disputes between you and Boss
+              of Clean; disputes between a customer and a Pro are addressed in Section 7.
+            </p>
+            <p className="text-gray-600 leading-relaxed mt-4 font-semibold uppercase tracking-wide">
+              CLASS ACTION AND JURY WAIVER: TO THE MAXIMUM EXTENT PERMITTED BY LAW, YOU AND BOSS OF
+              CLEAN EACH AGREE TO BRING CLAIMS AGAINST THE OTHER ONLY IN AN INDIVIDUAL CAPACITY, AND
+              NOT AS A PLAINTIFF OR CLASS MEMBER IN ANY PURPORTED CLASS, COLLECTIVE, OR REPRESENTATIVE
+              PROCEEDING, AND EACH WAIVES ANY RIGHT TO A JURY TRIAL.
             </p>
           </section>
 
           <section>
             <h2 className="font-display text-2xl font-bold text-brand-dark mb-4">
-              13. Contact
+              15. Contact
             </h2>
             <p className="text-gray-600 leading-relaxed">
               Questions about these terms? Contact us at{' '}
               <a href="mailto:admin@bossofclean.com" className="text-brand-gold hover:underline">
                 admin@bossofclean.com
               </a>
+              .
             </p>
           </section>
         </div>

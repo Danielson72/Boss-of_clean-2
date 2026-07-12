@@ -20,11 +20,11 @@ interface ContactSubmission {
 const customerFaqs = [
   {
     q: 'How do I find a cleaner?',
-    a: 'Go to the Search page, enter your ZIP code, and filter by service type. Each listing shows reviews, pricing, and Boss-Verified badges so you can choose with confidence.',
+    a: 'Go to the Search page, enter your ZIP code, and filter by service type. Each listing shows reviews, pricing, and any license or insurance documents the pro has chosen to upload, so you can decide who to contact.',
   },
   {
     q: 'How does payment work?',
-    a: 'Payments are processed securely through Stripe. Your payment is held until the job is completed to your satisfaction. Saving a payment method is coming soon.',
+    a: 'You pay your pro directly for the service, on the terms you agree with them. Boss of Clean connects you with independent pros — we do not hold or process payment for the service and take no cut of the job.',
   },
   {
     q: 'What if I need to cancel a booking?',
@@ -35,12 +35,8 @@ const customerFaqs = [
     a: 'After a job is marked completed, you will receive an email with a review link. You can also leave reviews from My Bookings in your dashboard.',
   },
   {
-    q: 'What does Boss-Verified mean?',
-    a: 'Boss-Verified professionals have passed a background check, have valid business insurance on file, and maintain a 4.5+ star rating. It is our highest trust badge.',
-  },
-  {
-    q: 'How do I earn account credits?',
-    a: 'Confirm a hire from an accepted quote and you will earn a $10 credit. Credits show under Credits on your Overview page and expire 90 days after issue.',
+    q: 'What do the license and insurance badges mean?',
+    a: 'Pros may upload license and insurance documents to their profile. Where a pro has uploaded them, we display what was provided. Boss of Clean does not independently verify licensing, insurance, or background, and does not guarantee any pro’s work. Confirm credentials directly with the pro before hiring.',
   },
 ];
 

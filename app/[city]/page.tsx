@@ -258,7 +258,7 @@ export default async function CityPage({ params }: CityPageProps) {
                   <li className="flex items-start gap-3">
                     <Star className="h-6 w-6 text-green-400 flex-shrink-0" />
                     <div>
-                      <p className="font-medium">Satisfaction Guaranteed</p>
+                      <p className="font-medium">Real Customer Reviews</p>
                       <p className="text-sm text-blue-200">
                         Read real reviews from local customers
                       </p>

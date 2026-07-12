@@ -2,7 +2,7 @@ import { generatePageMetadata } from '@/lib/seo/metadata';
 
 export const metadata = generatePageMetadata({
   title: 'Find Professionals Near You',
-  description: 'Search for trusted cleaning and home service professionals in your Florida area. Compare prices, read reviews, and get free quotes.',
+  description: 'Search for local cleaning and home service professionals in your Florida area. Compare prices, read reviews, and get free quotes.',
   path: '/search',
   keywords: ['find pros near me', 'Florida home service professionals', 'home service search', 'cleaning quotes'],
 });

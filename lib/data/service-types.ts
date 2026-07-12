@@ -55,7 +55,7 @@ export const SERVICE_TYPES: ServiceType[] = [
       'Consistent, reliable cleaning schedules',
       'Customized cleaning checklists',
       'Eco-friendly product options available',
-      'Independent, insured professionals'
+      'Independent local professionals'
     ],
     faqs: [
       {
@@ -279,8 +279,8 @@ export const SERVICE_TYPES: ServiceType[] = [
         answer: 'Schedule cleaning after all belongings are removed. Empty homes are faster and easier to clean thoroughly. Most cleaners offer scheduling within 24-48 hours of your move-out date to accommodate timing with landlord inspections.'
       },
       {
-        question: 'Will move-out cleaning guarantee my deposit back?',
-        answer: 'A professional move-out clean significantly improves your chances of full deposit return. While we cant guarantee landlord decisions, documented professional cleaning shows good faith. Some landlords specify requirements we can match or exceed.'
+        question: 'Will move-out cleaning help me get my deposit back?',
+        answer: 'A thorough move-out clean can improve your chances of a full deposit return, and documented professional cleaning shows good faith. No one can guarantee a landlord\'s decision. If your lease specifies cleaning requirements, share them with your pro so they can plan the job accordingly.'
       },
       {
         question: 'Do you offer move-in cleaning for new homes?',
@@ -336,7 +336,7 @@ export const SERVICE_TYPES: ServiceType[] = [
     name: 'Maid Service',
     shortName: 'Maid Service',
     description: 'Professional recurring maid service in Florida. Reliable, scheduled home cleaning you can count on.',
-    longDescription: 'Our maid service provides consistent, reliable home cleaning on your schedule. Unlike one-time cleaning, maid service builds a relationship with your home over time, ensuring nothing is missed and preferences are remembered. Choose weekly, bi-weekly, or monthly service with the same trusted cleaner. Perfect for busy Florida families and professionals who want a consistently clean home without the hassle.',
+    longDescription: 'Our maid service provides consistent, reliable home cleaning on your schedule. Unlike one-time cleaning, maid service builds a relationship with your home over time, ensuring nothing is missed and preferences are remembered. Choose weekly, bi-weekly, or monthly service with the same cleaner. Perfect for busy Florida families and professionals who want a consistently clean home without the hassle.',
     priceRange: { min: 100, max: 250, unit: 'job' },
     averageTime: '2-4 hours',
     icon: 'CalendarCheck',
@@ -366,7 +366,7 @@ export const SERVICE_TYPES: ServiceType[] = [
       },
       {
         question: 'What if Im not satisfied with a cleaning?',
-        answer: 'Reputable maid services offer satisfaction guarantees. If you notice issues after a cleaning, contact the service within 24 hours for a re-clean of problem areas at no charge. Ongoing feedback helps improve service quality.'
+        answer: 'Policies vary by pro. Many independent pros will return to address problem areas if you contact them promptly after a cleaning, so ask your pro about their re-clean policy before booking. Boss of Clean does not perform the cleaning or guarantee any pro\'s work. Leaving an honest review also helps other customers.'
       }
     ],
     keywords: ['maid service Florida', 'recurring house cleaning', 'scheduled cleaning service', 'regular maid', 'weekly cleaning']
@@ -389,7 +389,7 @@ export const SERVICE_TYPES: ServiceType[] = [
       'Proper chemical balance for safe swimming',
       'Extended equipment lifespan',
       'Algae and debris prevention',
-      'Licensed and insured pool technicians'
+      'Independent local pool technicians'
     ],
     faqs: [
       {
@@ -422,7 +422,7 @@ export const SERVICE_TYPES: ServiceType[] = [
       'Expert knowledge of Florida plants',
       'Consistent weekly/biweekly maintenance',
       'Proper irrigation management',
-      'Licensed and insured professionals'
+      'Independent local professionals'
     ],
     faqs: [
       {
@@ -479,7 +479,7 @@ export const SERVICE_TYPES: ServiceType[] = [
     name: 'Air Duct Cleaning',
     shortName: 'Air Duct Cleaning',
     description: 'Professional air duct and HVAC cleaning services in Florida. Improve air quality and system efficiency.',
-    longDescription: 'Air duct cleaning services to improve indoor air quality in Florida homes and businesses. Our certified technicians remove dust, mold, allergens, and debris from your HVAC system using professional-grade equipment. In Florida\'s humid climate, ductwork is prone to mold growth and allergen buildup, making regular cleaning essential for healthy indoor air and optimal AC efficiency.',
+    longDescription: 'Air duct cleaning services to improve indoor air quality in Florida homes and businesses. Technicians remove dust, mold, allergens, and debris from your HVAC system using professional-grade equipment. In Florida\'s humid climate, ductwork is prone to mold growth and allergen buildup, making regular cleaning essential for healthy indoor air and optimal AC efficiency.',
     priceRange: { min: 200, max: 600, unit: 'job' },
     averageTime: '3-5 hours',
     icon: 'Wind',
@@ -488,7 +488,7 @@ export const SERVICE_TYPES: ServiceType[] = [
       'Reduced allergens and mold',
       'Better HVAC efficiency and lower energy bills',
       'Essential for Florida humidity and mold prevention',
-      'NADCA-certified technicians'
+      'Air duct and HVAC cleaning technicians'
     ],
     faqs: [
       {

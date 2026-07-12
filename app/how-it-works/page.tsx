@@ -4,7 +4,7 @@ import { generatePageMetadata } from '@/lib/seo/metadata';
 
 export const metadata = generatePageMetadata({
   title: 'How It Works',
-  description: 'Learn how Boss of Clean connects Florida homeowners with verified home service professionals. Simple search, easy booking, guaranteed satisfaction.',
+  description: 'Learn how Boss of Clean connects Florida homeowners with independent home service professionals. Simple search, compare pros, and hire directly.',
   path: '/how-it-works',
   keywords: ['how it works', 'find a cleaner', 'hire cleaning professional', 'Boss of Clean process'],
 });
@@ -14,19 +14,19 @@ const homeownerSteps = [
     icon: Search,
     step: 'Step 1',
     title: 'Search',
-    description: 'Enter your ZIP code and the type of cleaning service you need. Browse verified professional profiles, read real reviews, and compare pricing.',
+    description: 'Enter your ZIP code and the type of cleaning service you need. Browse professional profiles, read real reviews, and compare pricing.',
   },
   {
     icon: CalendarCheck,
     step: 'Step 2',
     title: 'Book',
-    description: 'Choose a verified pro and pick a time that works for you. Payment is held securely through Stripe until the job is completed.',
+    description: 'Choose a pro and agree on a time that works for you. You arrange payment for the service directly with your pro.',
   },
   {
     icon: Sparkles,
     step: 'Step 3',
     title: 'Relax',
-    description: 'We handle the rest. Your pro arrives on time, does the job right, and you enjoy a spotless space. Purrfection is our Standard.',
+    description: 'You and your pro arrange the details and complete the job directly. Purrfection is our Standard.',
   },
 ];
 
@@ -80,7 +80,7 @@ export default function HowItWorksPage() {
             For Homeowners
           </p>
           <h2 className="font-display text-3xl sm:text-4xl font-bold text-brand-dark">
-            Find a Trusted Cleaner in 3 Steps
+            Find a Local Cleaner in 3 Steps
           </h2>
         </div>
 
@@ -184,12 +184,12 @@ export default function HowItWorksPage() {
               <p className="text-gray-600 text-sm">Exclusive leads &mdash; never shared</p>
             </div>
             <div>
-              <p className="text-3xl font-bold text-brand-gold mb-1">5%</p>
-              <p className="text-gray-600 text-sm">Fair platform fee &mdash; no hidden costs</p>
+              <p className="text-3xl font-bold text-brand-gold mb-1">0%</p>
+              <p className="text-gray-600 text-sm">We never take a cut of your job</p>
             </div>
             <div>
-              <p className="text-3xl font-bold text-brand-gold mb-1">24hr</p>
-              <p className="text-gray-600 text-sm">Lead quality guarantee response</p>
+              <p className="text-3xl font-bold text-brand-gold mb-1">7-day</p>
+              <p className="text-gray-600 text-sm">Window to report a bad lead</p>
             </div>
           </div>
         </div>

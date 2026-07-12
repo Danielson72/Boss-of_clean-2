@@ -125,10 +125,10 @@ export function CleanerCard({
               <div
                 className="bg-green-600 text-white px-2 py-1 rounded-full text-xs font-bold flex items-center gap-1"
                 role="status"
-                aria-label="Boss of Clean Certified cleaner"
+                aria-label="Boss of Clean member"
               >
                 <BadgeCheck className="h-3 w-3" aria-hidden="true" />
-                CERTIFIED
+                MEMBER
               </div>
             </div>
           )}
@@ -188,7 +188,7 @@ export function CleanerCard({
             <div className="bg-gradient-to-r from-green-100 to-green-50 border border-green-300 rounded-lg p-3 mb-2" role="status">
               <div className="flex items-center gap-2 text-sm font-bold">
                 <BadgeCheck className="h-5 w-5 text-green-600" aria-hidden="true" />
-                <span className="text-green-800">Boss of Clean Certified</span>
+                <span className="text-green-800">Boss of Clean Member</span>
               </div>
               <p className="text-xs text-green-700 mt-1">Independent cleaning professional</p>
             </div>
@@ -197,7 +197,7 @@ export function CleanerCard({
               {insuranceVerified && (
                 <div className="flex items-center gap-2 text-xs" role="listitem">
                   <Shield className="h-3.5 w-3.5 text-blue-500" aria-hidden="true" />
-                  <span className="text-gray-600">Insured</span>
+                  <span className="text-gray-600">Insurance doc on file</span>
                 </div>
               )}
               {backgroundCheckVerified && (
@@ -209,7 +209,7 @@ export function CleanerCard({
               {licenseVerified && (
                 <div className="flex items-center gap-2 text-xs" role="listitem">
                   <CheckCircle2 className="h-3.5 w-3.5 text-blue-500" aria-hidden="true" />
-                  <span className="text-gray-600">Licensed</span>
+                  <span className="text-gray-600">License doc on file</span>
                 </div>
               )}
             </div>

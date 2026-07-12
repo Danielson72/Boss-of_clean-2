@@ -79,7 +79,7 @@ export default function HeroSection({ services }: { services?: string[] }) {
             {/* Subheadline */}
             <p className="text-lg sm:text-xl text-gray-300 max-w-2xl mx-auto lg:mx-0 mb-10 leading-relaxed">
               Florida&apos;s fair, transparent alternative to Thumbtack, Angi, and HomeAdvisor.
-              Vetted pros for cleaning, handyman, HVAC, plumbing, electrical, pool service,
+              Local pros for cleaning, handyman, HVAC, plumbing, electrical, pool service,
               and every job your home or business needs.
             </p>
 
