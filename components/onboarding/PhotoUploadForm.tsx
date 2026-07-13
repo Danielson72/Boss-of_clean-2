@@ -39,8 +39,11 @@ export default function PhotoUploadForm({ data, onChange, onNext, onBack, isSubm
       .upload(fileName, file)
 
     if (uploadError) {
-      // Fallback: use object URL for preview, store filename for later
-      return URL.createObjectURL(file)
+      // Never fake success with a blob: URL — it dies with the tab, so the photo
+      // would look uploaded but never persist. Surface the failure and return
+      // null so the caller doesn't save a dead URL.
+      setError(`We couldn't upload your photo. ${uploadError.message}. Please try again.`)
+      return null
     }
 
     const { data: urlData } = supabase.storage
