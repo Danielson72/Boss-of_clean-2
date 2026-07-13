@@ -76,21 +76,58 @@ export default function CleanerBookingsPage() {
 
       if (!cleaner) return;
 
-      const { data, error } = await supabase
+      // DLD-579: bookings.customer_id FKs to auth.users, but the display fields
+      // (full_name/phone) live on public.users and there is no FK from bookings
+      // to public.users to embed. The old `customer:users!bookings_customer_id_fkey`
+      // embed therefore failed with PGRST200 and the whole query threw, so NO
+      // bookings ever rendered. Fetch bookings first, then look up the customers
+      // from public.users in a second, non-fatal query and attach them.
+      const { data: rows, error } = await supabase
         .from('bookings')
-        .select(`
-          *,
-          customer:users!bookings_customer_id_fkey(
-            full_name,
-            email,
-            phone
-          )
-        `)
+        .select('*')
         .eq('cleaner_id', cleaner.id)
         .order('booking_date', { ascending: true });
 
       if (error) throw error;
-      setBookings(data || []);
+
+      const bookingRows = (rows || []) as Array<
+        Record<string, unknown> & { customer_id: string }
+      >;
+      const customerIds = Array.from(
+        new Set(bookingRows.map((b) => b.customer_id).filter(Boolean))
+      );
+
+      const customerById = new Map<
+        string,
+        { full_name: string; email: string; phone?: string }
+      >();
+      if (customerIds.length > 0) {
+        const { data: customers, error: customersError } = await supabase
+          .from('users')
+          .select('id, full_name, email, phone')
+          .in('id', customerIds);
+        if (customersError) {
+          // Non-fatal: still show the bookings, just without customer names.
+          logger.error('Error loading booking customers', {
+            function: 'loadBookings',
+            error: customersError,
+          });
+        }
+        for (const c of customers || []) {
+          customerById.set(c.id, {
+            full_name: c.full_name || 'Customer',
+            email: c.email || '',
+            phone: c.phone || undefined,
+          });
+        }
+      }
+
+      const withCustomers = bookingRows.map((b) => ({
+        ...b,
+        customer:
+          customerById.get(b.customer_id) || { full_name: 'Customer', email: '' },
+      })) as CleanerBooking[];
+      setBookings(withCustomers);
     } catch (error) {
       logger.error('Error loading bookings', { function: 'loadBookings', error });
     } finally {
