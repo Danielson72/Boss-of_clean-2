@@ -318,6 +318,17 @@ export default function CleanerProfilePage() {
 
       if (profileError) {
         logger.error('Error saving profile', { function: 'handleSave', error: profileError });
+        // A duplicate business name collides on the business_slug unique index
+        // (cleaners_business_slug_key) via the generate_business_slug trigger and
+        // comes back as a raw Postgres 23505. Map it to a clear, actionable
+        // message instead of leaking the constraint text to the pro.
+        const isDuplicateName =
+          profileError.code === '23505' &&
+          /business_slug/i.test(`${profileError.message ?? ''} ${profileError.details ?? ''}`);
+        if (isDuplicateName) {
+          setMessage('That business name is already taken — please choose another.');
+          return;
+        }
         saveErrors.push(`profile — ${profileError.message}`);
       }
 
