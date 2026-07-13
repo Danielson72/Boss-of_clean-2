@@ -263,7 +263,11 @@ export default function CleanerProfilePage() {
   };
 
   const handleSave = async () => {
-    if (!profile) return;
+    if (!profile) {
+      // Never fail silently — surface why the save didn't run (DLD-581).
+      setMessage('Profile is still loading — please wait a moment and try again.');
+      return;
+    }
 
     // Validate required address fields
     if (!profile.business_address?.trim()) {
@@ -279,9 +283,19 @@ export default function CleanerProfilePage() {
       return;
     }
 
-    const businessPhoneE164 = normalizeToE164(profile.business_phone);
-    if (!businessPhoneE164) {
-      setMessage('Please enter a valid US business phone number.');
+    // DLD-581: business_phone is OPTIONAL — messaging is a valid contact channel,
+    // so a pro can save with no phone. Only two things block the save, and both
+    // show a specific message (never a silent early-return):
+    //   1. a phone was entered but isn't a valid US number, or
+    //   2. SMS consent is checked but there's no valid number to text.
+    const hasPhoneInput = !!profile.business_phone?.trim();
+    const businessPhoneE164 = hasPhoneInput ? normalizeToE164(profile.business_phone) : null;
+    if (hasPhoneInput && !businessPhoneE164) {
+      setMessage('That business phone number isn’t a valid US number. Fix it, or clear the field to save without a phone.');
+      return;
+    }
+    if (smsConsent && !businessPhoneE164) {
+      setMessage('A valid business phone number is required to turn on SMS text alerts. Add a number, or uncheck SMS consent to save without one.');
       return;
     }
 
