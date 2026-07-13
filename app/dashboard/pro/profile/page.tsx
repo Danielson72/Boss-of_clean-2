@@ -287,23 +287,15 @@ export default function CleanerProfilePage() {
 
     setSaving(true);
     try {
-      // DLD-449: route category changes through the dedicated endpoint so
-      // pro_categories stays in sync with pros.primary_category.
-      const categoriesResponse = await fetch('/api/pros/categories', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          primary_category: profile.primary_category ?? null,
-          secondary_categories: profile.secondary_categories ?? [],
-        }),
-      });
-      if (!categoriesResponse.ok) {
-        const result = await categoriesResponse.json().catch(() => ({}));
-        setMessage(`Error saving categories: ${result.error || 'Unknown error'}`);
-        return;
-      }
+      // DLD-578: the profile write and the categories sync are INDEPENDENT —
+      // one failing must not discard the other. Previously a non-2xx from the
+      // categories PATCH early-returned before the pros.update ran, silently
+      // dropping every profile edit (e.g. a business rename). Run both, collect
+      // errors separately, and surface a distinct message per failure.
+      const saveErrors: string[] = [];
 
-      const { error } = await supabase
+      // Core profile write.
+      const { error: profileError } = await supabase
         .from('pros')
         .update({
           business_name: profile.business_name,
@@ -324,23 +316,50 @@ export default function CleanerProfilePage() {
         })
         .eq('user_id', user?.id);
 
-      if (error) {
-        logger.error('Error saving profile', { function: 'handleSave', error });
-        setMessage(`Error saving profile: ${error.message}`);
-        return;
+      if (profileError) {
+        logger.error('Error saving profile', { function: 'handleSave', error: profileError });
+        saveErrors.push(`profile — ${profileError.message}`);
       }
 
-      // Apply SMS consent choice. Consent binds to the phone just saved; an
+      // DLD-449: keep pro_categories in sync with pros.primary_category via the
+      // dedicated endpoint. Decoupled from the profile write above (DLD-578).
+      try {
+        const categoriesResponse = await fetch('/api/pros/categories', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            primary_category: profile.primary_category ?? null,
+            secondary_categories: profile.secondary_categories ?? [],
+          }),
+        });
+        if (!categoriesResponse.ok) {
+          const result = await categoriesResponse.json().catch(() => ({}));
+          logger.error('Error saving categories', { function: 'handleSave', error: result.error });
+          saveErrors.push(`categories — ${result.error || 'Unknown error'}`);
+        }
+      } catch (categoriesError) {
+        const msg = categoriesError instanceof Error ? categoriesError.message : 'request failed';
+        logger.error('Error saving categories', { function: 'handleSave', error: msg });
+        saveErrors.push(`categories — ${msg}`);
+      }
+
+      // Apply SMS consent choice only when the profile (and its phone) actually
+      // saved — consent binds to the phone just saved; an
       // unchecked box unconditionally revokes any consent so sends stop. Revoke
       // is unconditional (not gated on stale loaded state) and idempotent, so a
       // same-session opt-in then opt-out is honored. Both run through
       // service-role server actions (IP captured server-side).
-      if (user?.id) {
+      if (user?.id && !profileError) {
         if (smsConsent) {
           await recordProSmsConsent(user.id, navigator.userAgent).catch(() => {});
         } else {
           await revokeProSmsConsent(user.id).catch(() => {});
         }
+      }
+
+      if (saveErrors.length > 0) {
+        setMessage(`Couldn't save everything — ${saveErrors.join('; ')}`);
+        return;
       }
 
       setMessage('Profile updated successfully!');
