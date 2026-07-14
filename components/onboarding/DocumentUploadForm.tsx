@@ -43,10 +43,28 @@ export default function DocumentUploadForm({ data, onChange, onNext, onBack, isS
     setError(null)
 
     try {
+      // cleaner-documents RLS requires the first path segment to be the pro's id
+      // (pros.id for this user). Uploading under any other prefix is rejected —
+      // which is what silently pushed onboarding documents onto dead blob: URLs.
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        setError('Your session expired. Please sign in again to upload documents.')
+        return
+      }
+      const { data: pro, error: proError } = await supabase
+        .from('pros')
+        .select('id')
+        .eq('user_id', user.id)
+        .single()
+      if (proError || !pro) {
+        setError('We couldn\'t find your pro profile to attach this document to. Please refresh and try again.')
+        return
+      }
+
       // Generate unique file name
       const fileExt = file.name.split('.').pop()
       const fileName = `${type}_${Date.now()}.${fileExt}`
-      const filePath = `documents/${fileName}`
+      const filePath = `${pro.id}/${fileName}`
 
       // Upload to Supabase Storage
       const { error: uploadError } = await supabase.storage

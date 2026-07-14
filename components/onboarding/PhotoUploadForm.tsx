@@ -31,8 +31,17 @@ export default function PhotoUploadForm({ data, onChange, onNext, onBack, isSubm
       return null
     }
 
+    // profile-images / portfolio-photos RLS require the first path segment to be
+    // the uploader's auth uid — otherwise every INSERT is rejected (which is what
+    // silently pushed onboarding uploads onto dead blob: URLs before).
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      setError('Your session expired. Please sign in again to upload photos.')
+      return null
+    }
+
     const ext = file.name.split('.').pop()
-    const fileName = `${folder}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`
+    const fileName = `${user.id}/${folder}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`
 
     const { error: uploadError } = await supabase.storage
       .from(bucket)
