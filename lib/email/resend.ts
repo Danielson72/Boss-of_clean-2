@@ -105,13 +105,14 @@ export function wrapEmailTemplate(content: string, options?: { includeUnsubscrib
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>Boss of Clean</title>
+      <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
     </head>
-    <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; margin: 0; padding: 0; background-color: #f3f4f6;">
+    <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; margin: 0; padding: 0; background-color: #FAF8F5;">
       <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
         <!-- Header -->
-        <div style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); color: white; padding: 24px; border-radius: 12px 12px 0 0; text-align: center;">
-          <h1 style="margin: 0; font-size: 28px; font-weight: bold;">Boss of Clean</h1>
-          <p style="margin: 8px 0 0 0; opacity: 0.9; font-size: 14px;">Purrfection is our Standard</p>
+        <div style="background: linear-gradient(135deg, #0C1220 0%, #1A2332 100%); color: #FAF8F5; padding: 24px; border-radius: 12px 12px 0 0; text-align: center;">
+          <h1 style="margin: 0; font-size: 30px; font-weight: 700; font-family: 'Playfair Display', Georgia, 'Times New Roman', serif; color: #FAF8F5;">Boss of <span style="color: #FF5F1F;">Clean</span></h1>
+          <p style="margin: 8px 0 0 0; font-size: 14px; color: #C8A35F;">Purrfection is our Standard</p>
         </div>
 
         <!-- Content -->
@@ -138,7 +139,7 @@ export function wrapEmailTemplate(content: string, options?: { includeUnsubscrib
  */
 export function generateButton(text: string, url: string, color: 'primary' | 'success' | 'warning' = 'primary'): string {
   const colors = {
-    primary: '#2563eb',
+    primary: '#FF5F1F',
     success: '#16a34a',
     warning: '#ea580c',
   };
@@ -177,7 +178,7 @@ export function generateInfoBox(items: { label: string; value: string }[]): stri
     .join('');
 
   return `
-    <div style="background: #f9fafb; border-radius: 8px; padding: 16px; margin: 20px 0; border-left: 4px solid #2563eb;">
+    <div style="background: #f9fafb; border-radius: 8px; padding: 16px; margin: 20px 0; border-left: 4px solid #FF5F1F;">
       ${rows}
     </div>
   `;

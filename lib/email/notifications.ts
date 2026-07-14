@@ -39,15 +39,16 @@ export interface QuoteConfirmationEmailData {
 /**
  * Generate new lead email HTML
  */
-function generateNewLeadEmailHtml(data: NewLeadEmailData): string {
+export function generateNewLeadEmailHtml(data: NewLeadEmailData): string {
+  const service = data.serviceType?.replace(/_/g, ' ') || 'service';
   const content = `
     <h2 style="color: #111827; font-size: 24px; margin: 0 0 8px 0;">New Lead Alert!</h2>
     <p style="color: #6b7280; font-size: 16px; margin-bottom: 24px;">
-      Hi ${data.businessName}, a customer in your area is looking for cleaning services!
+      Hi ${data.businessName}, a customer in your area is looking for ${service} services!
     </p>
 
     ${generateInfoBox([
-      { label: 'Service Type', value: data.serviceType.replace(/_/g, ' ') },
+      { label: 'Service Type', value: service },
       { label: 'Location', value: data.zipCode },
       { label: 'Preferred Date', value: data.preferredDate || 'Flexible' },
     ])}
@@ -56,7 +57,7 @@ function generateNewLeadEmailHtml(data: NewLeadEmailData): string {
 
     <div style="background: #fef3c7; border-radius: 8px; padding: 16px; margin: 20px 0; border-left: 4px solid #f59e0b;">
       <p style="margin: 0; color: #92400e; font-size: 14px;">
-        <strong>Act fast!</strong> This lead will be available to other cleaners in your area. Respond quickly for the best chance at winning the job.
+        <strong>Act fast!</strong> This lead will be available to other pros in your area. Respond quickly for the best chance at winning the job.
       </p>
     </div>
   `;
@@ -67,11 +68,11 @@ function generateNewLeadEmailHtml(data: NewLeadEmailData): string {
 /**
  * Generate quote response email HTML
  */
-function generateQuoteResponseEmailHtml(data: QuoteResponseEmailData): string {
+export function generateQuoteResponseEmailHtml(data: QuoteResponseEmailData): string {
   const content = `
     <h2 style="color: #111827; font-size: 24px; margin: 0 0 8px 0;">You've Received a Quote!</h2>
     <p style="color: #6b7280; font-size: 16px; margin-bottom: 24px;">
-      Hi ${data.customerName}, <strong>${data.businessName}</strong> has responded to your cleaning request.
+      Hi ${data.customerName}, <strong>${data.businessName}</strong> has responded to your quote request.
     </p>
 
     ${generateInfoBox([
@@ -80,7 +81,7 @@ function generateQuoteResponseEmailHtml(data: QuoteResponseEmailData): string {
     ])}
 
     ${data.message ? `
-      <div style="background: #f9fafb; border-radius: 8px; padding: 16px; margin: 20px 0; border-left: 4px solid #2563eb;">
+      <div style="background: #f9fafb; border-radius: 8px; padding: 16px; margin: 20px 0; border-left: 4px solid #FF5F1F;">
         <p style="margin: 0; font-weight: 600; color: #374151;">Message from ${data.businessName}:</p>
         <p style="margin: 8px 0 0 0; color: #4b5563; font-style: italic;">"${data.message}"</p>
       </div>
@@ -89,7 +90,7 @@ function generateQuoteResponseEmailHtml(data: QuoteResponseEmailData): string {
     ${generateButton('View Quote & Book', `${BASE_URL}/dashboard/customer`)}
 
     <p style="color: #6b7280; font-size: 14px; margin-top: 24px;">
-      Compare quotes from multiple cleaners to find the best fit for your needs.
+      Compare quotes from multiple pros to find the best fit for your needs.
     </p>
   `;
 
@@ -99,24 +100,24 @@ function generateQuoteResponseEmailHtml(data: QuoteResponseEmailData): string {
 /**
  * Generate quote confirmation email HTML
  */
-function generateQuoteConfirmationEmailHtml(data: QuoteConfirmationEmailData): string {
+export function generateQuoteConfirmationEmailHtml(data: QuoteConfirmationEmailData): string {
   const content = `
     <h2 style="color: #111827; font-size: 24px; margin: 0 0 8px 0;">Quote Request Submitted!</h2>
     <p style="color: #6b7280; font-size: 16px; margin-bottom: 24px;">
-      Hi ${data.customerName}, your cleaning quote request has been sent to <strong>${data.matchCount}</strong> qualified cleaners in your area.
+      Hi ${data.customerName}, your quote request has been sent to <strong>${data.matchCount}</strong> pros in your area.
     </p>
 
     <div style="background: #ecfdf5; border-radius: 8px; padding: 16px; margin: 20px 0; border-left: 4px solid #10b981;">
       <p style="margin: 0; color: #065f46; font-size: 14px;">
         <strong>What happens next?</strong><br>
-        Cleaners will review your request and send you personalized quotes. You'll receive an email each time a cleaner responds.
+        Pros will review your request and send you personalized quotes. You'll receive an email each time a pro responds.
       </p>
     </div>
 
     ${generateButton('Check Quote Status', `${BASE_URL}/dashboard/customer`)}
 
     <p style="color: #6b7280; font-size: 14px; margin-top: 24px;">
-      Most cleaners respond within 24 hours. You can view and compare all quotes from your dashboard.
+      Most pros respond within 24 hours. You can view and compare all quotes from your dashboard.
     </p>
   `;
 
@@ -142,7 +143,7 @@ export interface QuoteAcceptedCustomerEmailData {
  * Neutral-marketplace copy: BOC facilitates the introduction; the lead fee
  * unlocks contact info. No guarantees about the job.
  */
-function generateQuoteAcceptedProEmailHtml(data: QuoteAcceptedProEmailData): string {
+export function generateQuoteAcceptedProEmailHtml(data: QuoteAcceptedProEmailData): string {
   const content = `
     <h2 style="color: #111827; font-size: 24px; margin: 0 0 8px 0;">Your quote was accepted!</h2>
     <p style="color: #6b7280; font-size: 16px; margin-bottom: 24px;">
@@ -173,7 +174,7 @@ function generateQuoteAcceptedProEmailHtml(data: QuoteAcceptedProEmailData): str
  * Neutral-marketplace copy: explains what happens next without any guarantee or
  * vetting claim.
  */
-function generateQuoteAcceptedCustomerEmailHtml(data: QuoteAcceptedCustomerEmailData): string {
+export function generateQuoteAcceptedCustomerEmailHtml(data: QuoteAcceptedCustomerEmailData): string {
   const content = `
     <h2 style="color: #111827; font-size: 24px; margin: 0 0 8px 0;">You accepted a quote</h2>
     <p style="color: #6b7280; font-size: 16px; margin-bottom: 24px;">
@@ -181,8 +182,8 @@ function generateQuoteAcceptedCustomerEmailHtml(data: QuoteAcceptedCustomerEmail
       <strong>$${data.quoteAmount}</strong>.
     </p>
 
-    <div style="background: #eff6ff; border-radius: 8px; padding: 16px; margin: 20px 0; border-left: 4px solid #2563eb;">
-      <p style="margin: 0; color: #1e40af; font-size: 14px;">
+    <div style="background: #FFF3EC; border-radius: 8px; padding: 16px; margin: 20px 0; border-left: 4px solid #FF5F1F;">
+      <p style="margin: 0; color: #9A3A12; font-size: 14px;">
         <strong>What happens next?</strong><br>
         ${data.businessName} will receive your contact information and reach out to
         arrange the details directly with you. You and the pro agree on scheduling,
@@ -193,9 +194,8 @@ function generateQuoteAcceptedCustomerEmailHtml(data: QuoteAcceptedCustomerEmail
     ${generateButton('View in Your Dashboard', `${BASE_URL}/dashboard/customer`)}
 
     <p style="color: #6b7280; font-size: 14px; margin-top: 24px;">
-      Boss of Clean connects you with independent professionals and does not vet, verify,
-      or guarantee any pro. Please confirm licensing and insurance directly with the pro
-      before work begins.
+      Boss of Clean is a marketplace that connects you with independent professionals.
+      Please confirm licensing and insurance directly with the pro before work begins.
     </p>
   `;
 
@@ -214,7 +214,7 @@ export async function sendNewLeadEmail(data: NewLeadEmailData): Promise<boolean>
 
   const result = await sendResendEmail({
     to: data.to,
-    subject: `New cleaning lead in ${data.zipCode}!`,
+    subject: `New ${data.serviceType?.replace(/_/g, ' ') || 'service'} lead in ${data.zipCode}!`,
     html: generateNewLeadEmailHtml(data),
   });
 
@@ -252,7 +252,7 @@ export async function sendQuoteConfirmationEmail(data: QuoteConfirmationEmailDat
 
   const result = await sendResendEmail({
     to: data.to,
-    subject: 'Your cleaning quote request has been submitted!',
+    subject: 'Your quote request has been submitted!',
     html: generateQuoteConfirmationEmailHtml(data),
   });
 
