@@ -33,11 +33,11 @@ export interface BookingConfirmationData {
 /**
  * Generate customer confirmation email HTML
  */
-function generateCustomerConfirmationHtml(data: BookingConfirmationData): string {
+export function generateCustomerConfirmationHtml(data: BookingConfirmationData): string {
   const content = `
     <h2 style="color: #111827; font-size: 24px; margin: 0 0 8px 0;">Booking Confirmed!</h2>
     <p style="color: #6b7280; font-size: 16px; margin-bottom: 24px;">
-      Hi ${data.customerName}, your cleaning has been scheduled with <strong>${data.businessName}</strong>.
+      Hi ${data.customerName}, your ${data.serviceType?.replace(/_/g, ' ') || 'service'} has been scheduled with <strong>${data.businessName}</strong>.
     </p>
 
     ${generateInfoBox([
@@ -69,7 +69,7 @@ function generateCustomerConfirmationHtml(data: BookingConfirmationData): string
 /**
  * Generate cleaner notification email HTML
  */
-function generateCleanerNotificationHtml(data: BookingConfirmationData): string {
+export function generateCleanerNotificationHtml(data: BookingConfirmationData): string {
   const content = `
     <h2 style="color: #111827; font-size: 24px; margin: 0 0 8px 0;">New Booking!</h2>
     <p style="color: #6b7280; font-size: 16px; margin-bottom: 24px;">

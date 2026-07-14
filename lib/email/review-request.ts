@@ -28,14 +28,14 @@ export function generateReviewRequestHtml(
   reviewUrl: string
 ): string {
   const content = `
-    <h2 style="color: #111827; font-size: 24px; margin: 0 0 8px 0;">How was your cleaning?</h2>
+    <h2 style="color: #111827; font-size: 24px; margin: 0 0 8px 0;">How was your service?</h2>
     <p style="color: #6b7280; font-size: 16px; margin-bottom: 24px;">
       Hi ${data.customerName}, your <strong>${data.serviceType.replace(/_/g, ' ')}</strong> with
       <strong>${data.businessName}</strong> on ${data.bookingDate} is complete.
     </p>
 
     <p style="color: #6b7280; font-size: 16px; margin-bottom: 24px;">
-      Your feedback helps other customers find great cleaners and helps
+      Your feedback helps other customers find great pros and helps
       ${data.businessName} improve their service.
     </p>
 
@@ -73,7 +73,7 @@ export async function sendReviewRequestEmail(
 
   const result = await sendResendEmail({
     to: data.customerEmail,
-    subject: `How was your cleaning with ${data.businessName}?`,
+    subject: `How was your service with ${data.businessName}?`,
     html: generateReviewRequestHtml(data, reviewUrl),
   });
 

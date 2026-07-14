@@ -50,12 +50,12 @@ function generateAdminAlertHtml(data: DisputeAdminAlertData): string {
   const content = `
     <h2 style="color: #dc2626; font-size: 24px; margin: 0 0 8px 0;">Stripe Dispute Alert</h2>
     <p style="color: #6b7280; font-size: 16px; margin-bottom: 24px;">
-      A payment dispute has been filed against a cleaner on the platform.
+      A payment dispute has been filed against a pro on the platform.
     </p>
 
     ${generateInfoBox([
       { label: 'Dispute ID', value: data.disputeId },
-      { label: 'Cleaner', value: `${data.cleanerName} (${data.cleanerEmail})` },
+      { label: 'Pro', value: `${data.cleanerName} (${data.cleanerEmail})` },
       { label: 'Amount', value: `$${amountFormatted} ${data.currency.toUpperCase()}` },
       { label: 'Reason', value: data.reason },
       { label: 'Charge ID', value: data.chargeId },

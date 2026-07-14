@@ -32,7 +32,7 @@ export function generateNewMessageHtml(
       <strong>${data.senderName}</strong>.
     </p>
 
-    <div style="background: #f9fafb; border-radius: 8px; padding: 16px; margin: 20px 0; border-left: 4px solid #2563eb;">
+    <div style="background: #f9fafb; border-radius: 8px; padding: 16px; margin: 20px 0; border-left: 4px solid #FF5F1F;">
       <p style="color: #374151; font-size: 14px; margin: 0; font-style: italic;">
         "${data.messagePreview}${data.messagePreview.length >= 100 ? '...' : ''}"
       </p>
