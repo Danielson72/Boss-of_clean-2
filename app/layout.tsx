@@ -1,5 +1,5 @@
 import './globals.css';
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 
 import { DM_Sans, Playfair_Display } from 'next/font/google';
 import Header from '@/components/Header';
@@ -8,6 +8,7 @@ import { AuthProvider } from '@/lib/context/AuthContext';
 import { Toaster } from '@/components/ui/sonner';
 import BocAssistantLoader from '@/components/boc-assistant/BocAssistantLoader';
 import StickyMobileCta from '@/components/home/StickyMobileCta';
+import InstallPrompt from '@/components/pwa/InstallPrompt';
 
 const dmSans = DM_Sans({
   subsets: ['latin'],
@@ -41,6 +42,11 @@ export const metadata: Metadata = {
     apple: '/apple-touch-icon.png',
   },
   manifest: '/site.webmanifest',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'Boss of Clean',
+  },
   robots: {
     index: true,
     follow: true,
@@ -73,6 +79,12 @@ export const metadata: Metadata = {
   },
 };
 
+export const viewport: Viewport = {
+  themeColor: '#2563EB',
+  width: 'device-width',
+  initialScale: 1,
+};
+
 export default function RootLayout({
   children,
 }: {
@@ -97,6 +109,7 @@ export default function RootLayout({
             <Footer />
           </div>
           <Toaster />
+          <InstallPrompt />
           <StickyMobileCta />
           <BocAssistantLoader />
         </AuthProvider>
