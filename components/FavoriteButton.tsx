@@ -28,6 +28,7 @@ export function FavoriteButton({
   const [isFavorited, setIsFavorited] = useState(initialFavorited);
   const [loading, setLoading] = useState(false);
   const [favoriteCount, setFavoriteCount] = useState(count);
+  const [error, setError] = useState<string | null>(null);
   const supabase = createClient();
 
   const sizeClasses = {
@@ -71,6 +72,7 @@ export function FavoriteButton({
     }
 
     setLoading(true);
+    setError(null);
 
     try {
       if (isFavorited) {
@@ -81,10 +83,9 @@ export function FavoriteButton({
           .eq('customer_id', user.id)
           .eq('cleaner_id', cleanerId);
 
-        if (!error) {
-          setIsFavorited(false);
-          setFavoriteCount((prev) => Math.max(0, prev - 1));
-        }
+        if (error) throw error;
+        setIsFavorited(false);
+        setFavoriteCount((prev) => Math.max(0, prev - 1));
       } else {
         // Add to favorites
         const { error } = await supabase.from('customer_favorites').insert({
@@ -92,13 +93,14 @@ export function FavoriteButton({
           cleaner_id: cleanerId,
         });
 
-        if (!error) {
-          setIsFavorited(true);
-          setFavoriteCount((prev) => prev + 1);
-        }
+        if (error) throw error;
+        setIsFavorited(true);
+        setFavoriteCount((prev) => prev + 1);
       }
-    } catch (error) {
-      // Error toggling favorite - silently fail for client component
+    } catch {
+      // Don't fail silently — briefly tell the user it didn't stick.
+      setError("Couldn't update favorites. Please try again.");
+      setTimeout(() => setError(null), 3000);
     } finally {
       setLoading(false);
     }
@@ -120,10 +122,19 @@ export function FavoriteButton({
         disabled:opacity-50
         disabled:cursor-not-allowed
         flex items-center gap-1
+        relative
         ${className}
       `}
-      title={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
+      title={error ?? (isFavorited ? 'Remove from favorites' : 'Add to favorites')}
     >
+      {error && (
+        <span
+          role="alert"
+          className="absolute bottom-full left-1/2 z-10 mb-1 -translate-x-1/2 whitespace-nowrap rounded bg-red-600 px-2 py-1 text-xs text-white shadow"
+        >
+          {error}
+        </span>
+      )}
       <Heart
         className={`
           ${sizeClasses[size]}

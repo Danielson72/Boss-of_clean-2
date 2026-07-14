@@ -14,6 +14,7 @@ interface MessageInputProps {
 export function MessageInput({ onSend, disabled, placeholder = 'Type a message...', showTemplates = true }: MessageInputProps) {
   const [content, setContent] = useState('');
   const [sending, setSending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [showTemplatePicker, setShowTemplatePicker] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const pickerRef = useRef<HTMLDivElement>(null);
@@ -46,12 +47,17 @@ export function MessageInput({ onSend, disabled, placeholder = 'Type a message..
     if (!trimmed || sending || disabled) return;
 
     setSending(true);
+    setError(null);
     try {
       await onSend(trimmed);
+      // Only clear the box once the send actually succeeded.
       setContent('');
       if (textareaRef.current) {
         textareaRef.current.style.height = 'auto';
       }
+    } catch (err) {
+      // Never fail silently — keep the typed text and tell the user.
+      setError(err instanceof Error ? err.message : 'Message failed to send. Please try again.');
     } finally {
       setSending(false);
     }
@@ -100,6 +106,12 @@ export function MessageInput({ onSend, disabled, placeholder = 'Type a message..
             );
           })}
         </div>
+      )}
+
+      {error && (
+        <p className="mb-2 text-sm text-red-600" role="alert">
+          {error}
+        </p>
       )}
 
       <div className="flex items-end gap-2">

@@ -54,20 +54,10 @@ export default function DocumentUploadForm({ data, onChange, onNext, onBack, isS
         .upload(filePath, file)
 
       if (uploadError) {
-        // If bucket doesn't exist, store as base64 temporarily
-        // Storage upload error - fall back to local storage
-        // For now, just save the file info locally
-        const newDoc: DocumentUpload = {
-          document_type: type as DocumentUpload['document_type'],
-          file_name: file.name,
-          file_url: URL.createObjectURL(file),
-          file_size: file.size,
-          mime_type: file.type,
-          verification_status: 'pending'
-        }
-
-        const existingDocs = documents.filter((d) => d.document_type !== type)
-        onChange({ ...data, documents: [...existingDocs, newDoc] })
+        // Never fake success: a blob: URL dies with the tab, so the document
+        // would look "uploaded" but never actually persist (silent data loss).
+        // Surface the real failure and stop so the pro can retry.
+        setError(`We couldn't upload your ${type.replace(/_/g, ' ')}. ${uploadError.message}. Please try again.`)
         return
       }
 

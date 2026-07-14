@@ -181,14 +181,20 @@ export function AuthForm({ mode, role = 'customer' }: AuthFormProps) {
               .eq('user_id', authData.user.id)
               .single()
 
+            // Track whether the cleaner's business details / service area saved.
+            // These run after the account is created; a silent failure here means
+            // the pro won't match leads in their ZIP and never knows why.
+            let cleanerSetupFailed = false
+
             if (cleanerData) {
               // Update with business details from the signup form
-              await supabase
+              const { error: bizErr } = await supabase
                 .from('pros')
                 .update({
                   business_name: businessName || fullName || email.split('@')[0],
                 })
                 .eq('id', cleanerData.id)
+              if (bizErr) cleanerSetupFailed = true
 
               // Seed initial service area if zip provided
               if (zipCode) {
@@ -199,7 +205,7 @@ export function AuthForm({ mode, role = 'customer' }: AuthFormProps) {
                   .single()
 
                 if (zipData) {
-                  await supabase
+                  const { error: areaErr } = await supabase
                     .from('service_areas')
                     .insert({
                       cleaner_id: cleanerData.id,
@@ -208,6 +214,7 @@ export function AuthForm({ mode, role = 'customer' }: AuthFormProps) {
                       county: zipData.county,
                       is_primary: true,
                     })
+                  if (areaErr) cleanerSetupFailed = true
                 }
               }
             } else {
@@ -222,6 +229,8 @@ export function AuthForm({ mode, role = 'customer' }: AuthFormProps) {
                 .select('id')
                 .single()
 
+              if (cleanerError) cleanerSetupFailed = true
+
               if (!cleanerError && newCleaner && zipCode) {
                 const { data: zipData } = await supabase
                   .from('florida_zipcodes')
@@ -230,7 +239,7 @@ export function AuthForm({ mode, role = 'customer' }: AuthFormProps) {
                   .single()
 
                 if (zipData) {
-                  await supabase
+                  const { error: areaErr } = await supabase
                     .from('service_areas')
                     .insert({
                       cleaner_id: newCleaner.id,
@@ -239,8 +248,14 @@ export function AuthForm({ mode, role = 'customer' }: AuthFormProps) {
                       county: zipData.county,
                       is_primary: true,
                     })
+                  if (areaErr) cleanerSetupFailed = true
                 }
               }
+            }
+
+            if (cleanerSetupFailed) {
+              // Account exists; be honest that business setup didn't fully save.
+              setError('Your account was created, but we couldn\'t save all your business details. Please finish setting up your business name and service area in your profile after you verify your email.')
             }
           }
           // Notify admin of new signup (fire and forget - don't block signup flow)
