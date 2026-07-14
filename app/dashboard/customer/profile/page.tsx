@@ -61,7 +61,8 @@ export default function CustomerProfilePage() {
         });
       }
     } catch {
-      // silently fail for client component
+      // Don't fail silently — tell the user the profile didn't load (DLD-583).
+      setMessage('We couldn\'t load your profile. Please refresh the page and try again.');
     } finally {
       setLoading(false);
     }
