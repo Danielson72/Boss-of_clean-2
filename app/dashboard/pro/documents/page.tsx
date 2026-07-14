@@ -61,7 +61,12 @@ export default function ProDocumentsPage() {
       if (res.ok) {
         const data = await res.json();
         setDocuments(data);
+      } else {
+        // Don't leave the list silently empty on failure (DLD-583).
+        setToast({ type: 'error', message: 'We couldn\'t load your documents. Please refresh the page.' });
       }
+    } catch {
+      setToast({ type: 'error', message: 'We couldn\'t load your documents. Please check your connection and refresh.' });
     } finally {
       setLoading(false);
     }

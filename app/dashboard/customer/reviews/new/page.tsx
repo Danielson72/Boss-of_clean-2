@@ -67,7 +67,8 @@ export default function NewReviewPage() {
 
       setBookings(unreviewedBookings as CompletedBooking[]);
     } catch (err) {
-      console.error('Error loading bookings:', err);
+      // Don't fail silently — tell the user the list didn't load (DLD-583).
+      setError('We couldn\'t load your completed bookings. Please refresh the page and try again.');
     } finally {
       setLoadingBookings(false);
     }
