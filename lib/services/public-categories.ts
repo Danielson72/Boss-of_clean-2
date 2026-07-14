@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server';
+import { createPublicClient } from '@/lib/supabase/public';
 
 /**
  * Public-facing service categories for homepage taxonomy (hero dropdown +
@@ -19,7 +19,7 @@ export interface PublicCategory {
 
 export async function getPublicCategories(): Promise<PublicCategory[]> {
   try {
-    const supabase = await createClient();
+    const supabase = createPublicClient();
     const { data, error } = await supabase
       .from('service_categories')
       .select('slug, display_name, description, supports_residential, alias_for, priority_order')
