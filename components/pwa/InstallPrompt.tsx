@@ -37,14 +37,17 @@ function isStandalone(): boolean {
   return Boolean(displayStandalone || iosStandalone);
 }
 
-function isIosSafari(): boolean {
+function isIos(): boolean {
   if (typeof navigator === 'undefined') return false;
   const ua = navigator.userAgent;
-  const isIos = /iphone|ipad|ipod/i.test(ua) ||
-    // iPadOS 13+ reports as Mac; detect via touch
-    (/Macintosh/i.test(ua) && typeof document !== 'undefined' && 'ontouchend' in document);
-  const isSafari = /safari/i.test(ua) && !/crios|fxios|edgios|chrome|android/i.test(ua);
-  return isIos && isSafari;
+  // No browser on iOS (Safari, Chrome/CriOS, Firefox/FxiOS, Edge) supports
+  // beforeinstallprompt — they all run WebKit. So treat ALL iOS as the
+  // manual "Add to Home Screen" case, regardless of which browser.
+  return (
+    /iphone|ipad|ipod/i.test(ua) ||
+    // iPadOS 13+ reports as "MacIntel"; distinguish from a real Mac via touch.
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+  );
 }
 
 export default function InstallPrompt() {
@@ -67,14 +70,16 @@ export default function InstallPrompt() {
       setDeferredPrompt(null);
     };
 
-    window.addEventListener('beforeinstallprompt', onBeforeInstall);
-    window.addEventListener('appinstalled', onInstalled);
-
-    // iOS Safari has no beforeinstallprompt — show manual instructions.
-    if (isIosSafari()) {
+    // iOS never fires beforeinstallprompt (any browser) — show manual steps
+    // and DON'T register the prompt listener (the Install button must never
+    // appear on iOS). Non-iOS: listen for the real event to drive the button.
+    if (isIos()) {
       setShowIosBanner(true);
       setVisible(true);
+    } else {
+      window.addEventListener('beforeinstallprompt', onBeforeInstall);
     }
+    window.addEventListener('appinstalled', onInstalled);
 
     return () => {
       window.removeEventListener('beforeinstallprompt', onBeforeInstall);
@@ -121,7 +126,7 @@ export default function InstallPrompt() {
         )}
       </div>
 
-      {!showIosBanner && (
+      {!showIosBanner && deferredPrompt && (
         <button
           type="button"
           onClick={install}
