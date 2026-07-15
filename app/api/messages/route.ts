@@ -320,7 +320,7 @@ export async function POST(request: NextRequest) {
 
     // A6 (DLD-514): cumulative rolling-window scrubber. filterPII catches PII in
     // this single message; filterPIIWithWindow also catches a phone/email split
-    // across the sender's recent messages (e.g. "407" / "461" / "6039"). We only
+    // across the sender's recent messages (e.g. "555" / "123" / "4567"). We only
     // pay for the extra read when the conversation is still locked.
     let piiResult: ReturnType<typeof filterPII> = filterPII(content.trim(), isUnlocked)
 

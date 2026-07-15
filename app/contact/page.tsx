@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Mail, Phone, MapPin, ArrowRight, CheckCircle2, Loader2 } from 'lucide-react';
+import { Mail, MapPin, ArrowRight, CheckCircle2, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -182,19 +182,6 @@ export default function ContactPage() {
                 Contact Information
               </h2>
               <div className="space-y-5">
-                <a
-                  href="tel:407-461-6039"
-                  className="flex items-center gap-4 text-gray-700 hover:text-brand-gold transition-colors group"
-                >
-                  <div className="w-10 h-10 rounded-full bg-brand-gold/10 flex items-center justify-center flex-shrink-0 group-hover:bg-brand-gold/20 transition-colors">
-                    <Phone className="h-5 w-5 text-brand-gold" />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-brand-dark">Phone</p>
-                    <p className="text-sm">407-461-6039</p>
-                  </div>
-                </a>
-
                 <a
                   href="mailto:admin@bossofclean.com"
                   className="flex items-center gap-4 text-gray-700 hover:text-brand-gold transition-colors group"
