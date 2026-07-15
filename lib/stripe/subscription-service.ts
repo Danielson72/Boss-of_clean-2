@@ -334,7 +334,11 @@ export class SubscriptionService {
           currency: currency || 'usd',
           status: 'succeeded',
           description: 'Monthly subscription payment',
-          metadata: { invoice_id: invoice.id },
+          // DLD-566: hosted_invoice_url is the invoice-world receipt link —
+          // stored under the same receipt_url key the Payment History reads.
+          metadata: invoice.hosted_invoice_url
+            ? { invoice_id: invoice.id, receipt_url: invoice.hosted_invoice_url }
+            : { invoice_id: invoice.id },
           paid_at: new Date().toISOString(),
         });
         if (paymentError) {
