@@ -107,9 +107,9 @@ export async function POST(request: NextRequest) {
               </div>
               <div style="border-top: 1px solid #e5e7eb; padding-top: 20px; margin-top: 24px;">
                 <p style="color: #4b5563; font-size: 14px; margin: 0 0 4px 0;">
-                  If you need immediate assistance, call us at
+                  If you need anything else, just reply to this email or reach us at
                 </p>
-                <a href="tel:407-461-6039" style="color: #FF5F1F; font-size: 18px; font-weight: 700; text-decoration: none;">407-461-6039</a>
+                <a href="mailto:admin@bossofclean.com" style="color: #FF5F1F; font-size: 18px; font-weight: 700; text-decoration: none;">admin@bossofclean.com</a>
               </div>
             </div>
             <div style="text-align: center; padding: 24px; color: #9ca3af; font-size: 12px;">

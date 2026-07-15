@@ -129,14 +129,14 @@ export async function hashContent(content: string): Promise<string> {
  *
  * filterPII() catches PII inside a SINGLE message. But a determined sender can
  * split a phone number across several messages, each individually under any
- * threshold: "my number" / "is 407" / "461" / "6039". filterPIIWithWindow()
+ * threshold: "my number" / "is 555" / "123" / "4567". filterPIIWithWindow()
  * closes that gap by concatenating the sender's recent messages in this
  * conversation with the new one and re-checking the combined text — including
  * a cumulative digit count that catches an assembled phone number.
  *
- * It also normalizes spelled-out digits ("four zero seven") and strips spacing
- * tricks before counting, so "4 0 7 4 6 1 6 0 3 9" and "four oh seven..." are
- * caught the same as "4074616039".
+ * It also normalizes spelled-out digits ("five five five") and strips spacing
+ * tricks before counting, so "5 5 5 1 2 3 4 5 6 7" and "five five five..." are
+ * caught the same as "5551234567".
  *
  * Returns blocked:false immediately when isUnlocked is true.
  */

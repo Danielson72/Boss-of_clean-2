@@ -6,7 +6,7 @@ import { ProtectedRoute } from '@/lib/auth/protected-route';
 import { createClient } from '@/lib/supabase/client';
 import {
   HelpCircle, ChevronDown, Mail, MessageSquare, CheckCircle, XCircle,
-  Loader2, Phone, Send, Clock
+  Loader2, Send, Clock
 } from 'lucide-react';
 
 interface ContactSubmission {
@@ -172,11 +172,11 @@ export default function CustomerHelpPage() {
                 <h1 className="text-xl font-semibold text-gray-900">Help & Support</h1>
               </div>
               <a
-                href="tel:407-461-6039"
+                href="mailto:admin@bossofclean.com"
                 className="hidden sm:flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900"
               >
-                <Phone className="h-4 w-4" />
-                407-461-6039
+                <Mail className="h-4 w-4" />
+                admin@bossofclean.com
               </a>
             </div>
           </div>

@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { Phone, Mail } from 'lucide-react';
+import { Mail } from 'lucide-react';
 import { getPublicCategories } from '@/lib/services/public-categories';
 
 // Fallback only — the live list comes from service_categories (same helper
@@ -63,14 +63,6 @@ export default async function Footer() {
               Florida&apos;s Pro Service Marketplace — plumbing, handyman, landscaping, cleaning, and more.
             </p>
             <address className="space-y-3 not-italic text-sm">
-              <a
-                href="tel:407-461-6039"
-                className="flex items-center gap-2.5 text-gray-400 hover:text-brand-gold transition-colors"
-                aria-label="Call us at 407-461-6039"
-              >
-                <Phone className="h-4 w-4 text-brand-gold flex-shrink-0" aria-hidden="true" />
-                407-461-6039
-              </a>
               <a
                 href="mailto:admin@bossofclean.com"
                 className="flex items-center gap-2.5 text-gray-400 hover:text-brand-gold transition-colors"
