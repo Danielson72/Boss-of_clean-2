@@ -17,8 +17,12 @@
 --   * requires_license_fl = false. Florida has no statewide arborist
 --     license, so false is correct as-is; flagged for confirmation.
 --
--- Idempotent (ON CONFLICT DO NOTHING) and wrapped in a transaction to
--- match the taxonomy migration's conventions.
+-- slug = 'tree_service' (underscore) to match the existing taxonomy
+-- convention — every other slug is snake_case, and the quote form value,
+-- pro_categories.category, and canonical_service_slug() all key off it.
+--
+-- ALREADY APPLIED to production as slug 'tree_service'. This file is kept
+-- as the historical record; ON CONFLICT DO NOTHING makes a re-run a no-op.
 -- =====================================================================
 
 BEGIN;
@@ -26,7 +30,7 @@ BEGIN;
 INSERT INTO public.service_categories
   (slug, display_name, description, fee_tier, supports_residential, supports_commercial, requires_license_fl, is_active, alias_for, priority_order)
 VALUES
-  ('tree-service', 'Tree Service', 'Tree trimming, pruning, removal, and stump grinding.', 'standard', TRUE, TRUE, FALSE, TRUE, NULL, 290)
+  ('tree_service', 'Tree Service', 'Tree trimming, pruning, removal, and stump grinding.', 'standard', TRUE, TRUE, FALSE, TRUE, NULL, 290)
 ON CONFLICT (slug) DO NOTHING;
 
 COMMIT;
@@ -35,8 +39,8 @@ COMMIT;
 -- Post-migration verification (run manually after apply):
 --
 --   SELECT slug, display_name, fee_tier, priority_order
---   FROM public.service_categories WHERE slug = 'tree-service';
---   -- expect: tree-service | Tree Service | standard | 290
+--   FROM public.service_categories WHERE slug = 'tree_service';
+--   -- expect: tree_service | Tree Service | standard | 290
 --
 --   SELECT count(*) FROM public.service_categories;
 --   -- expect: 25 rows (was 24)
