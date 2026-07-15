@@ -14,6 +14,7 @@ import {
   Zap,
   Bug,
   Trees,
+  TreePine,
   Car,
   Brush,
   Trash2,
@@ -136,6 +137,7 @@ const SLUG_ICONS: Record<string, LucideIcon> = {
   junk_removal: Trash2,
   pool_service: Waves,
   mobile_detailing: Car,
+  'tree_service': TreePine,
 };
 
 interface DbCategory {

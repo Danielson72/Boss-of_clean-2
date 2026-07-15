@@ -39,6 +39,7 @@ const SERVICE_TYPES = [
   { value: 'post_construction', label: 'Post-Construction', icon: Hammer },
   { value: 'pool_cleaning', label: 'Pool Cleaning', icon: Waves },
   { value: 'landscaping', label: 'Landscaping', icon: TreePine },
+  { value: 'tree_service', label: 'Tree Service', icon: TreePine },
   { value: 'mobile_car_detailing', label: 'Car Detailing', icon: Car },
   { value: 'air_duct_cleaning', label: 'Air Duct Cleaning', icon: Wind },
 ];
