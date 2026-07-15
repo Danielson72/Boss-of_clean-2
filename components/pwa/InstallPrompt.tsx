@@ -1,6 +1,8 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { detectPlatform, getDeferredPrompt, subscribeInstall } from '@/lib/pwa/install';
 
 // z-index stack (documented so future widgets stay clear):
 //   - David chat launcher/panel: z-50, fixed bottom-right
@@ -8,14 +10,13 @@ import { useEffect, useState } from 'react';
 //   - InstallPrompt (this):      z-[60], fixed TOP banner
 // A top banner never shares vertical space with the two bottom-fixed
 // widgets, so both remain fully tappable.
+//
+// The banner is now a thin entry point: it links to /install, where the
+// browser/OS-specific steps live (iOS forbids programmatic install in every
+// browser, so cramming steps into a banner never worked well).
 
 const DISMISS_KEY = 'boc_pwa_install_dismissed';
 const DISMISS_WINDOW_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
-
-type BeforeInstallPromptEvent = Event & {
-  prompt: () => Promise<void>;
-  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
-};
 
 function recentlyDismissed(): boolean {
   try {
@@ -29,62 +30,24 @@ function recentlyDismissed(): boolean {
   }
 }
 
-function isStandalone(): boolean {
-  if (typeof window === 'undefined') return false;
-  const displayStandalone = window.matchMedia?.('(display-mode: standalone)').matches;
-  // iOS Safari exposes navigator.standalone
-  const iosStandalone = (window.navigator as unknown as { standalone?: boolean }).standalone === true;
-  return Boolean(displayStandalone || iosStandalone);
-}
-
-function isIos(): boolean {
-  if (typeof navigator === 'undefined') return false;
-  const ua = navigator.userAgent;
-  // No browser on iOS (Safari, Chrome/CriOS, Firefox/FxiOS, Edge) supports
-  // beforeinstallprompt — they all run WebKit. So treat ALL iOS as the
-  // manual "Add to Home Screen" case, regardless of which browser.
-  return (
-    /iphone|ipad|ipod/i.test(ua) ||
-    // iPadOS 13+ reports as "MacIntel"; distinguish from a real Mac via touch.
-    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
-  );
-}
-
 export default function InstallPrompt() {
-  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-  const [showIosBanner, setShowIosBanner] = useState(false);
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    if (isStandalone() || recentlyDismissed()) return;
-
-    const onBeforeInstall = (e: Event) => {
-      e.preventDefault();
-      setDeferredPrompt(e as BeforeInstallPromptEvent);
-      setVisible(true);
+    const evaluate = () => {
+      const p = detectPlatform();
+      if (p.isStandalone || recentlyDismissed()) {
+        setVisible(false);
+        return;
+      }
+      // Install matters on phones; on desktop only show if a real prompt exists.
+      const isPhone = p.os === 'ios' || p.os === 'android';
+      setVisible(isPhone || getDeferredPrompt() !== null);
     };
 
-    const onInstalled = () => {
-      setVisible(false);
-      setShowIosBanner(false);
-      setDeferredPrompt(null);
-    };
-
-    // iOS never fires beforeinstallprompt (any browser) — show manual steps
-    // and DON'T register the prompt listener (the Install button must never
-    // appear on iOS). Non-iOS: listen for the real event to drive the button.
-    if (isIos()) {
-      setShowIosBanner(true);
-      setVisible(true);
-    } else {
-      window.addEventListener('beforeinstallprompt', onBeforeInstall);
-    }
-    window.addEventListener('appinstalled', onInstalled);
-
-    return () => {
-      window.removeEventListener('beforeinstallprompt', onBeforeInstall);
-      window.removeEventListener('appinstalled', onInstalled);
-    };
+    evaluate();
+    // A late-firing beforeinstallprompt can bring a desktop user into scope.
+    return subscribeInstall(evaluate);
   }, []);
 
   const dismiss = () => {
@@ -93,14 +56,6 @@ export default function InstallPrompt() {
     } catch {
       /* ignore */
     }
-    setVisible(false);
-  };
-
-  const install = async () => {
-    if (!deferredPrompt) return;
-    await deferredPrompt.prompt();
-    await deferredPrompt.userChoice;
-    setDeferredPrompt(null);
     setVisible(false);
   };
 
@@ -114,27 +69,16 @@ export default function InstallPrompt() {
       style={{ paddingTop: 'calc(0.625rem + env(safe-area-inset-top))' }}
     >
       <span className="text-2xl leading-none" aria-hidden="true">🐱</span>
-      <div className="flex-1 min-w-0 text-sm">
-        {showIosBanner ? (
-          <p className="leading-snug">
-            <span className="font-semibold">Install Boss of Clean:</span>{' '}
-            tap the Share button{' '}
-            <span aria-hidden="true">⎋</span>, then &lsquo;Add to Home Screen&rsquo;.
-          </p>
-        ) : (
-          <p className="font-semibold leading-snug">Install the Boss of Clean app</p>
-        )}
-      </div>
+      <p className="flex-1 min-w-0 text-sm font-semibold leading-snug">
+        <span aria-hidden="true">📱</span> Install our app
+      </p>
 
-      {!showIosBanner && deferredPrompt && (
-        <button
-          type="button"
-          onClick={install}
-          className="shrink-0 bg-white text-[#2563EB] font-semibold text-sm px-4 py-2 min-h-[40px] rounded-lg hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-white"
-        >
-          Install App
-        </button>
-      )}
+      <Link
+        href="/install"
+        className="shrink-0 bg-white text-[#2563EB] font-semibold text-sm px-4 py-2 min-h-[40px] flex items-center rounded-lg hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-white"
+      >
+        How?
+      </Link>
 
       <button
         type="button"
