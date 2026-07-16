@@ -13,7 +13,6 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { normalizeToE164, formatPhoneForDisplay } from '@/lib/phone';
-import { useRouter } from 'next/navigation';
 
 interface UserSettings {
   id: string;
@@ -27,8 +26,7 @@ interface UserSettings {
 }
 
 export default function SettingsPage() {
-  const { user, signOut } = useAuth();
-  const router = useRouter();
+  const { user } = useAuth();
   const [settings, setSettings] = useState<UserSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -102,11 +100,17 @@ export default function SettingsPage() {
     }
   };
 
-  const handleDeleteAccount = async () => {
-    // In a real app, this would delete the user account
-    // For now, we'll just sign them out
-    await signOut();
-    router.push('/');
+  // DLD-583: self-serve deletion isn't built yet. The old stub signed the user
+  // out while the dialog claimed the account was deleted — misleading. Until a
+  // real deletion flow ships (auth user + rows + storage need coordinated
+  // removal), route the request to support instead of pretending.
+  const handleDeleteAccount = () => {
+    window.location.href =
+      'mailto:admin@bossofclean.com?subject=Account%20deletion%20request&body=' +
+      encodeURIComponent(
+        `Please delete my Boss of Clean account and associated data.\n\nAccount email: ${settings?.email || user?.email || ''}`
+      );
+    setShowDeleteConfirm(false);
   };
 
   const handleInputChange = (field: keyof UserSettings, value: string) => {
@@ -429,7 +433,9 @@ export default function SettingsPage() {
                 Delete Account
               </h3>
               <p className="text-gray-600 mb-6">
-                Are you sure you want to delete your account? This action cannot be undone and you will lose all your data.
+                Account deletion is handled by our support team. This opens an
+                email to admin@bossofclean.com requesting deletion of your
+                account and data — we&apos;ll confirm once it&apos;s done.
               </p>
               <div className="flex gap-4">
                 <button
@@ -442,7 +448,7 @@ export default function SettingsPage() {
                   onClick={handleDeleteAccount}
                   className="flex-1 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
                 >
-                  Delete Account
+                  Request Deletion
                 </button>
               </div>
             </div>
