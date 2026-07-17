@@ -385,6 +385,15 @@ export default async function PricingPage() {
             Paid plans provide priority routing and placement. Lead volume varies by service area
             and marketplace demand.
           </p>
+          <div className="text-center mt-6">
+            <Link
+              href="/how-pricing-works"
+              className="inline-flex items-center gap-2 text-brand-dark font-semibold hover:text-brand-gold transition-colors"
+            >
+              See how pricing works, step by step
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
         </div>
       </section>
 
