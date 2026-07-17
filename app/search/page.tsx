@@ -17,6 +17,7 @@ import type {
   DistanceOption,
 } from '@/components/search/SearchFilters';
 import type { ProviderCardProps } from '@/components/search/ProviderCard';
+import { getResponseTimeStats } from '@/lib/services/response-time';
 import { useSearchHistory } from '@/lib/hooks/useSearchHistory';
 import { useServiceCategories } from '@/lib/hooks/useServiceCategories';
 import { haversineDistance, type ZipCoordinates } from '@/lib/utils/distance';
@@ -261,6 +262,13 @@ export default function SearchPage() {
         }
         return props;
       });
+
+      // Attach measured response-time stats (badge shows only at 3+ points).
+      const responseStats = await getResponseTimeStats(supabase, mappedProviders.map((p) => p.id));
+      for (const p of mappedProviders) {
+        const s = responseStats.get(p.id);
+        if (s) p.responseStat = s;
+      }
 
       if (append) {
         setProviders(prev => [...prev, ...mappedProviders]);

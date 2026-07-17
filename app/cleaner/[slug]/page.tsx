@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import Image from 'next/image';
 import {
-  Star, MapPin, Clock, Shield, Award,
+  Star, MapPin, Shield, Award,
   BadgeCheck, CheckCircle2, DollarSign, Users, Calendar,
   MessageSquare, ArrowLeft, Camera
 } from 'lucide-react';
@@ -13,6 +13,8 @@ import { PublicGallery, PortfolioPhoto } from '@/components/portfolio/PublicGall
 import type { BusinessHours } from '@/lib/types/database';
 import { getCleanerBadges } from '@/lib/services/badges';
 import { BadgeDisplay, BadgeList } from '@/components/badges/BadgeDisplay';
+import { getResponseTimeStats, MIN_RESPONSE_SAMPLES } from '@/lib/services/response-time';
+import { ResponseTimeBadge } from '@/components/pro/ResponseTimeBadge';
 
 // NOTE: business_phone, business_email, website_url intentionally omitted —
 // PII gated behind lead acceptance / payment (DLD-457, v1.1 PII wall).
@@ -186,6 +188,10 @@ export default async function CleanerProfilePage({ params }: { params: Promise<{
 
   const reviews = await getCleanerReviews(cleaner.id);
   const portfolioPhotos = await getCleanerPortfolio(cleaner.user_id);
+
+  // Measured median first-response time (shown only at MIN_RESPONSE_SAMPLES+).
+  const supabaseForStats = await createClient();
+  const responseStat = (await getResponseTimeStats(supabaseForStats, [cleaner.id])).get(cleaner.id) ?? null;
 
   // Calculate badges based on cleaner metrics
   const earnedBadges = getCleanerBadges({
@@ -524,10 +530,11 @@ export default async function CleanerProfilePage({ params }: { params: Promise<{
                   <Calendar className="h-5 w-5 text-gray-400" />
                   <span className="text-gray-600">{cleaner.total_jobs || 0} jobs completed</span>
                 </div>
-                <div className="flex items-center gap-3">
-                  <Clock className="h-5 w-5 text-gray-400" />
-                  <span className="text-gray-600">Responds in ~{cleaner.response_time_hours || 24} hours</span>
-                </div>
+                {responseStat && responseStat.sampleCount >= MIN_RESPONSE_SAMPLES && (
+                  <div className="flex items-center">
+                    <ResponseTimeBadge stat={responseStat} className="text-gray-600" iconClassName="h-5 w-5 text-gray-400" />
+                  </div>
+                )}
                 {cleaner.instant_booking && (
                   <div className="flex items-center gap-3">
                     <CheckCircle2 className="h-5 w-5 text-green-500" />

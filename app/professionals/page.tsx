@@ -2,6 +2,8 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
 import { createClient } from '@/lib/supabase/server';
+import { getResponseTimeStats } from '@/lib/services/response-time';
+import { ResponseTimeBadge } from '@/components/pro/ResponseTimeBadge';
 import {
   Star,
   MapPin,
@@ -122,6 +124,9 @@ export default async function ProfessionalsPage({
 
   const { data: cleaners } = await query;
   const pros = (cleaners || []) as DirectoryCleaner[];
+
+  // Measured response-time stats for the listed pros (badge shows only at 3+).
+  const responseStats = await getResponseTimeStats(supabase, pros.map((p) => p.id));
 
   // Build sort URL helper
   function sortUrl(sort: string) {
@@ -400,6 +405,13 @@ export default async function ProfessionalsPage({
                           </span>
                         )}
                       </div>
+
+                      {/* Measured response time — renders only at 3+ data points */}
+                      <ResponseTimeBadge
+                        stat={responseStats.get(pro.id)}
+                        className="text-xs text-gray-500 mb-3"
+                        iconClassName="h-3.5 w-3.5 text-gray-400"
+                      />
 
                       {/* Services */}
                       {pro.services && pro.services.length > 0 && (
