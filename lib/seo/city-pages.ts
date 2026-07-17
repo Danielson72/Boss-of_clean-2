@@ -16,12 +16,15 @@ export interface CityPageData {
 export function generateCityMetadata(data: CityPageData): Metadata {
   const { city, cleanerCount, averageRating } = data;
 
-  const title = `House Cleaning Services in ${city.name}, FL | Boss of Clean`;
-  const description = `Find home service professionals in ${city.name}, Florida. Residential cleaning, deep cleaning, move-in/out cleaning, pressure washing and more. Browse and connect with local pros.`;
+  const title = `Home Services in ${city.name}, FL | Boss of Clean`;
+  const description = `Find home service pros in ${city.name}, Florida — cleaning, handyman, pressure washing, landscaping and more. Free to request quotes. No subscriptions. Pros pay $30 flat only when you accept.`;
 
   return {
     title,
     description,
+    // Thin/zero-coverage cities are kept out of the index until a pro serves
+    // the area (still crawlable so the recruitment CTA can be discovered).
+    robots: cleanerCount === 0 ? { index: false, follow: true } : undefined,
     keywords: [
       `cleaning services ${city.name}`,
       `house cleaning ${city.name} FL`,
@@ -123,6 +126,53 @@ export function generateBreadcrumbJsonLd(city: FloridaCity): object {
         item: `${SITE_URL}/${city.slug}`,
       },
     ],
+  };
+}
+
+export interface CityFaq {
+  question: string;
+  answer: string;
+}
+
+/**
+ * Shared 4-question FAQ template for city pages. Honest, neutral-marketplace:
+ * general cost framing (never a Boss of Clean price promise), the free/$30
+ * model, how it works, and the independent-pro disclaimer.
+ */
+export function generateCityFaqs(city: FloridaCity): CityFaq[] {
+  return [
+    {
+      question: `How much do home services cost in ${city.name}?`,
+      answer: `Prices vary by the job, your property, and the pro you choose. Boss of Clean isn't a service company and doesn't set prices — each pro quotes their own. Requesting quotes is free, so you can compare a few before you decide.`,
+    },
+    {
+      question: `Is Boss of Clean free for customers in ${city.name}?`,
+      answer: `Yes. Requesting quotes is always free and there's no subscription. Pros pay a flat $30 only after you accept their quote.`,
+    },
+    {
+      question: `How does Boss of Clean work in ${city.name}?`,
+      answer: `Tell us what you need, local ${city.name} pros respond with quotes, and you choose who to hire and pay them directly.`,
+    },
+    {
+      question: `Are the pros on Boss of Clean independent?`,
+      answer: `Yes. Boss of Clean is a neutral marketplace of independent home service pros. We don't employ, supervise, or control them — hiring decisions are yours.`,
+    },
+  ];
+}
+
+/**
+ * FAQPage JSON-LD for city pages, built from the shared template.
+ */
+export function generateCityFaqJsonLd(city: FloridaCity): object {
+  const faqs = generateCityFaqs(city);
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqs.map((f) => ({
+      '@type': 'Question',
+      name: f.question,
+      acceptedAnswer: { '@type': 'Answer', text: f.answer },
+    })),
   };
 }
 
