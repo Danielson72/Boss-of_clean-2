@@ -82,16 +82,17 @@ export function EmptySearchState({ searchLocation, searchService }: EmptySearchS
             <Sparkles className="h-5 w-5 text-brand-gold" />
           </div>
           <h3 className="font-display text-lg font-bold text-brand-dark mb-2">
-            Are You a Pro?
+            Are you a pro?
           </h3>
           <p className="text-gray-600 text-sm mb-4">
-            Join Boss of Clean and connect with customers looking for your services.
+            Boss of Clean is expanding {searchLocation ? `in ${searchLocation}` : 'across Florida'}.
+            Claim your service area and start receiving exclusive leads.
           </p>
           <Link
             href="/signup?role=cleaner"
             className="inline-flex items-center gap-2 text-brand-gold font-semibold text-sm hover:gap-3 transition-all duration-200"
           >
-            List Your Business
+            Claim this area — free to join
             <ArrowRight className="h-4 w-4" />
           </Link>
         </div>

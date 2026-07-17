@@ -428,6 +428,28 @@ export default async function CityPage({ params }: CityPageProps) {
           </section>
         )}
 
+        {/* Zero-coverage recruitment CTA — honest empty state for cities with no listed pros yet */}
+        {(!cleaners || cleaners.length === 0) && (
+          <section className="py-16 bg-gray-50">
+            <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">
+                Are you a pro serving {city.name}?
+              </h2>
+              <p className="text-gray-600 mb-8 max-w-xl mx-auto">
+                Boss of Clean is expanding in {city.name}. Claim your service area and start
+                receiving exclusive leads from local customers — free to join.
+              </p>
+              <Link
+                href="/signup?role=cleaner"
+                className="inline-flex items-center gap-2 bg-blue-600 text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-blue-700 transition"
+              >
+                Claim {city.name} — free to join
+                <ArrowRight className="h-5 w-5" />
+              </Link>
+            </div>
+          </section>
+        )}
+
         {/* Nearby Cities */}
         {nearbyCities.length > 0 && (
           <section className="py-16 bg-white">
