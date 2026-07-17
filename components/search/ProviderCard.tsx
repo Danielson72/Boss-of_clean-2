@@ -3,6 +3,8 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { User, MapPin, ArrowRight } from 'lucide-react';
+import { ResponseTimeBadge } from '@/components/pro/ResponseTimeBadge';
+import type { ResponseStat } from '@/lib/services/response-time';
 
 export interface ProviderCardProps {
   id: string;
@@ -14,6 +16,7 @@ export interface ProviderCardProps {
   city?: string;
   state?: string;
   distance?: number;
+  responseStat?: ResponseStat;
 }
 
 export function ProviderCard({
@@ -26,6 +29,7 @@ export function ProviderCard({
   city,
   state,
   distance,
+  responseStat,
 }: ProviderCardProps) {
   const profileUrl = `/cleaner/${businessSlug || id}`;
 
@@ -70,6 +74,9 @@ export function ProviderCard({
             )}
           </div>
         )}
+
+        {/* Measured response time — renders only at 3+ data points */}
+        <ResponseTimeBadge stat={responseStat} className="text-sm text-gray-500 mb-3" iconClassName="h-3.5 w-3.5 text-gray-400" />
 
         {/* Description */}
         <p className="text-gray-600 text-sm mb-4 line-clamp-2 leading-relaxed">
