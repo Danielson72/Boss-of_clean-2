@@ -24,6 +24,7 @@ const quickLinks = [
   { label: 'How It Works', href: '/how-it-works' },
   { label: 'Install App', href: '/install' },
   { label: 'Pricing', href: '/pricing' },
+  { label: 'How Pricing Works', href: '/how-pricing-works' },
   { label: 'About', href: '/about' },
   { label: 'Contact', href: '/contact' },
   { label: 'Help Center', href: '/help' },

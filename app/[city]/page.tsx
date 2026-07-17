@@ -13,6 +13,8 @@ import {
   generateCityMetadata,
   generateCityJsonLd,
   generateBreadcrumbJsonLd,
+  generateCityFaqs,
+  generateCityFaqJsonLd,
   SERVICE_DESCRIPTIONS,
   getRegionDisplayName,
 } from '@/lib/seo/city-pages';
@@ -161,6 +163,8 @@ export default async function CityPage({ params }: CityPageProps) {
     topServices,
   });
   const breadcrumbJsonLd = generateBreadcrumbJsonLd(city);
+  const faqs = generateCityFaqs(city);
+  const faqJsonLd = generateCityFaqJsonLd(city);
 
   return (
     <>
@@ -171,6 +175,10 @@ export default async function CityPage({ params }: CityPageProps) {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd).replace(/</g, '\\u003c') }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd).replace(/</g, '\\u003c') }}
       />
 
       <div className="min-h-screen bg-gray-50">
@@ -195,20 +203,28 @@ export default async function CityPage({ params }: CityPageProps) {
                 <h1 className="text-4xl lg:text-5xl font-bold mb-6">
                   Professional Cleaning Services in {city.name}, FL
                 </h1>
-                <p className="text-xl text-blue-100 mb-8">{city.description}</p>
+                <p className="text-xl text-blue-100 mb-3">{city.description}</p>
+                <p className="text-blue-100/90 mb-8">
+                  Request quotes free from local pros — no subscription, and a pro pays a flat $30
+                  only when you accept.
+                </p>
 
                 {/* Stats */}
                 <div className="flex flex-wrap gap-6 mb-8">
-                  <div className="flex items-center gap-2">
-                    <Users className="h-6 w-6" />
-                    <span className="text-2xl font-bold">{cleanerCount}+</span>
-                    <span className="text-blue-200">Cleaners</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Star className="h-6 w-6 fill-yellow-400 text-yellow-400" />
-                    <span className="text-2xl font-bold">{avgRating.toFixed(1)}</span>
-                    <span className="text-blue-200">Avg Rating</span>
-                  </div>
+                  {cleanerCount > 0 && (
+                    <>
+                      <div className="flex items-center gap-2">
+                        <Users className="h-6 w-6" />
+                        <span className="text-2xl font-bold">{cleanerCount}</span>
+                        <span className="text-blue-200">Pro{cleanerCount === 1 ? '' : 's'}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Star className="h-6 w-6 fill-yellow-400 text-yellow-400" />
+                        <span className="text-2xl font-bold">{avgRating.toFixed(1)}</span>
+                        <span className="text-blue-200">Avg Rating</span>
+                      </div>
+                    </>
+                  )}
                   <div className="flex items-center gap-2">
                     <MapPin className="h-6 w-6" />
                     <span className="text-blue-200">{city.county} County</span>
@@ -449,6 +465,23 @@ export default async function CityPage({ params }: CityPageProps) {
             </div>
           </section>
         )}
+
+        {/* FAQ — visible content backing the FAQPage JSON-LD */}
+        <section className="py-16 bg-white">
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">
+              Home Services in {city.name} — FAQ
+            </h2>
+            <div className="space-y-6">
+              {faqs.map((faq) => (
+                <div key={faq.question} className="border-b border-gray-100 pb-6 last:border-0">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">{faq.question}</h3>
+                  <p className="text-gray-600 leading-relaxed">{faq.answer}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
 
         {/* Nearby Cities */}
         {nearbyCities.length > 0 && (
