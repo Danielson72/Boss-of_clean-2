@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/context/AuthContext';
 import { ProtectedRoute } from '@/lib/auth/protected-route';
 import { createClient } from '@/lib/supabase/client';
+import { QuoteStatusTracker } from '@/components/quotes/QuoteStatusTracker';
 import {
   Settings, FileText, Clock, CheckCircle,
   XCircle, AlertCircle, Calendar, MapPin, DollarSign,
@@ -436,7 +437,12 @@ export default function CustomerDashboard() {
                                   {quote.status.charAt(0).toUpperCase() + quote.status.slice(1)}
                                 </span>
                               </div>
-                              
+
+                              <QuoteStatusTracker
+                                status={quote.status}
+                                hasResponse={!!(quote.response_message || quote.quoted_price)}
+                              />
+
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
                                 <div className="space-y-2">
                                   <div className="flex items-center gap-2">
