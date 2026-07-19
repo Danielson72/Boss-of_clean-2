@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 import { HomePageStructuredData } from '@/components/seo';
 import { getPublicCategories } from '@/lib/services/public-categories';
+import ScrollWorldHero from '@/components/home/ScrollWorldHero';
 import {
-  HeroSection,
   ServiceCategories,
   HowItWorks,
   ValueProposition,
@@ -36,7 +36,7 @@ export default async function HomePage() {
   return (
     <div className="min-h-screen">
       <HomePageStructuredData />
-      <HeroSection services={categories.map((c) => c.display_name)} />
+      <ScrollWorldHero services={categories.map((c) => c.display_name)} />
       <FloatingTools>
         <ServiceCategories categories={categories} />
       </FloatingTools>
