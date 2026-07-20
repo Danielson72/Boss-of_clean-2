@@ -63,18 +63,31 @@ export function generateCityMetadata(data: CityPageData): Metadata {
 }
 
 /**
- * Generate JSON-LD structured data for a city page
+ * Generate JSON-LD structured data for a city page.
+ *
+ * Boss of Clean is a neutral marketplace, not a LocalBusiness operating in each
+ * city, so a city page is modeled as a `Service` (home services scoped to the
+ * city) provided by the Organization — mirroring generateServiceSchema in
+ * lib/seo/json-ld.ts. No AggregateRating is emitted here: the only rating data
+ * that belongs in structured markup is a real per-pro review count, which lives
+ * on individual pro profiles (generateCleanerSchema), never a city-level count.
  */
 export function generateCityJsonLd(data: CityPageData): object {
-  const { city, cleanerCount, averageRating, topServices } = data;
+  const { city, topServices } = data;
 
   return {
     '@context': 'https://schema.org',
-    '@type': 'LocalBusiness',
-    '@id': `${SITE_URL}/${city.slug}`,
-    name: `Boss of Clean - ${city.name}`,
-    description: `Professional home services in ${city.name}, ${city.county} County, Florida. ${cleanerCount}+ home service professionals available.`,
+    '@type': 'Service',
+    '@id': `${SITE_URL}/${city.slug}#service`,
+    name: `Home Services in ${city.name}, Florida`,
+    description: `Connect with independent home service professionals in ${city.name}, ${city.county} County, Florida — cleaning, pressure washing, landscaping, pool care and more.`,
     url: `${SITE_URL}/${city.slug}`,
+    serviceType: topServices,
+    provider: {
+      '@type': 'Organization',
+      '@id': `${SITE_URL}/#organization`,
+      name: 'Boss of Clean',
+    },
     areaServed: {
       '@type': 'City',
       name: city.name,
@@ -87,15 +100,6 @@ export function generateCityJsonLd(data: CityPageData): object {
         },
       },
     },
-    aggregateRating: cleanerCount > 0 ? {
-      '@type': 'AggregateRating',
-      ratingValue: averageRating.toFixed(1),
-      reviewCount: cleanerCount,
-      bestRating: '5',
-      worstRating: '1',
-    } : undefined,
-    serviceType: topServices,
-    priceRange: '$$',
   };
 }
 
