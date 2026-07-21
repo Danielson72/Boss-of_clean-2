@@ -15,14 +15,14 @@ const securityHeaders = [
     key: 'Content-Security-Policy',
     value: [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://www.googletagmanager.com",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com",
-      "img-src 'self' data: blob: https://*.supabase.co https://*.supabase.in https://boc-scroll-assets.netlify.app",
+      "img-src 'self' data: blob: https://*.supabase.co https://*.supabase.in https://boc-scroll-assets.netlify.app https://www.google-analytics.com https://www.googletagmanager.com",
       // Scroll-world hero clips are served from a dedicated Netlify assets CDN
       // (kept out of the repo). Byte-range 206 verified.
       "media-src 'self' https://boc-scroll-assets.netlify.app",
-      "connect-src 'self' https://*.supabase.co https://*.supabase.in wss://*.supabase.co https://api.stripe.com",
+      "connect-src 'self' https://*.supabase.co https://*.supabase.in wss://*.supabase.co https://api.stripe.com https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com",
       "frame-src https://js.stripe.com https://hooks.stripe.com",
       "object-src 'none'",
       "base-uri 'self'",
