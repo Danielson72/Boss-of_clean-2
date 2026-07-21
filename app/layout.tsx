@@ -2,6 +2,7 @@ import './globals.css';
 import type { Metadata, Viewport } from 'next';
 
 import { DM_Sans, Playfair_Display } from 'next/font/google';
+import { GoogleAnalytics } from '@next/third-parties/google';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { AuthProvider } from '@/lib/context/AuthContext';
@@ -79,6 +80,11 @@ export const metadata: Metadata = {
   },
 };
 
+// Boss of Clean's own GA4 property. Literal fallback keeps analytics firing
+// before the Netlify env var is set. This ID belongs to bossofclean.com only —
+// never reuse a sibling brand's measurement ID here.
+const GA_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || 'G-C50MQ6QYXF';
+
 export const viewport: Viewport = {
   themeColor: '#2563EB',
   width: 'device-width',
@@ -113,6 +119,7 @@ export default function RootLayout({
           <StickyMobileCta />
           <BocAssistantLoader />
         </AuthProvider>
+        <GoogleAnalytics gaId={GA_ID} />
       </body>
     </html>
   );
