@@ -26,12 +26,14 @@ const MAX_TURNS = 12
 const MAX_CONTENT_CHARS = 1000
 
 // Mirrors the homepage taxonomy fallback — used only if the live
-// service_categories fetch fails. Same 20 categories, same carve-out.
+// service_categories fetch fails. 21 categories; Commercial Cleaning is now
+// included (Coverall DLD-256 cleared — written approval on file). office_cleaning
+// stays out — it folds into Commercial Cleaning pending a taxonomy decision.
 const FALLBACK_CATEGORIES =
-  'Residential Cleaning, Deep Cleaning, Maid Service, Move In / Out Cleaning, Post-Construction Cleaning, STR Turnover Cleaning, Window Cleaning, Carpet Cleaning, Pressure Washing, Air Duct Cleaning, Landscaping, Handyman Services, HVAC, Plumbing, Electrical, Pest Control, Gutter Cleaning, Junk Removal, Pool Service, Mobile Detailing'
+  'Residential Cleaning, Commercial Cleaning, Deep Cleaning, Maid Service, Move In / Out Cleaning, Post-Construction Cleaning, STR Turnover Cleaning, Window Cleaning, Carpet Cleaning, Pressure Washing, Air Duct Cleaning, Landscaping, Handyman Services, HVAC, Plumbing, Electrical, Pest Control, Gutter Cleaning, Junk Removal, Pool Service, Mobile Detailing'
 
 // The category list comes from the SAME service_categories helper the
-// homepage uses (active, non-alias, Coverall carve-out applied), cached
+// homepage uses (active, non-alias, Coverall DLD-256 cleared), cached
 // in-process for an hour so David can never drift from the live taxonomy.
 let categoriesCache: { list: string; at: number } | null = null
 async function liveCategoryList(): Promise<string> {
