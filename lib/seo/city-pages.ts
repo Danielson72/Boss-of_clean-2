@@ -16,8 +16,8 @@ export interface CityPageData {
 export function generateCityMetadata(data: CityPageData): Metadata {
   const { city, cleanerCount, averageRating } = data;
 
-  const title = `Home Services in ${city.name}, FL | Boss of Clean`;
-  const description = `Find home service pros in ${city.name}, Florida — cleaning, handyman, pressure washing, landscaping and more. Free to request quotes. No subscriptions. Pros pay $30 flat only when you accept.`;
+  const title = `Residential and Commercial Services in ${city.name}, FL`;
+  const description = `Find residential & commercial service pros in ${city.name}, Florida — cleaning, office cleaning, handyman, pressure washing, landscaping and more. Free to request quotes. No subscriptions. Pros pay $30 flat only when you accept.`;
 
   return {
     title,
@@ -79,8 +79,8 @@ export function generateCityJsonLd(data: CityPageData): object {
     '@context': 'https://schema.org',
     '@type': 'Service',
     '@id': `${SITE_URL}/${city.slug}#service`,
-    name: `Home Services in ${city.name}, Florida`,
-    description: `Connect with independent home service professionals in ${city.name}, ${city.county} County, Florida — cleaning, pressure washing, landscaping, pool care and more.`,
+    name: `Residential & Commercial Services in ${city.name}, Florida`,
+    description: `Connect with independent residential & commercial service pros in ${city.name}, ${city.county} County, Florida — cleaning, pressure washing, landscaping, pool care and more.`,
     url: `${SITE_URL}/${city.slug}`,
     serviceType: topServices,
     provider: {
@@ -146,7 +146,7 @@ export interface CityFaq {
 export function generateCityFaqs(city: FloridaCity): CityFaq[] {
   return [
     {
-      question: `How much do home services cost in ${city.name}?`,
+      question: `How much do residential & commercial services cost in ${city.name}?`,
       answer: `Prices vary by the job, your property, and the pro you choose. Boss of Clean isn't a service company and doesn't set prices — each pro quotes their own. Requesting quotes is free, so you can compare a few before you decide.`,
     },
     {
@@ -159,7 +159,7 @@ export function generateCityFaqs(city: FloridaCity): CityFaq[] {
     },
     {
       question: `Are the pros on Boss of Clean independent?`,
-      answer: `Yes. Boss of Clean is a neutral marketplace of independent home service pros. We don't employ, supervise, or control them — hiring decisions are yours.`,
+      answer: `Yes. Boss of Clean is a neutral marketplace of independent residential & commercial service pros. We don't employ, supervise, or control them — hiring decisions are yours.`,
     },
   ];
 }

@@ -256,9 +256,9 @@ export default async function CityPage({ params }: CityPageProps) {
                   <li className="flex items-start gap-3">
                     <Shield className="h-6 w-6 text-green-400 flex-shrink-0" />
                     <div>
-                      <p className="font-medium">Home Service Professionals</p>
+                      <p className="font-medium">Residential &amp; Commercial Service Pros</p>
                       <p className="text-sm text-blue-200">
-                        Independent home service professionals in your area
+                        Independent residential &amp; commercial service pros in your area
                       </p>
                     </div>
                   </li>
@@ -302,7 +302,7 @@ export default async function CityPage({ params }: CityPageProps) {
               Cleaning Services Available in {city.name}
             </h2>
             <p className="text-gray-600 text-center mb-12 max-w-2xl mx-auto">
-              Our home service professionals offer a wide range of services to meet
+              Our residential &amp; commercial service pros offer a wide range of services to meet
               your needs in {city.name} and surrounding {city.county} County areas.
             </p>
 
@@ -368,7 +368,7 @@ export default async function CityPage({ params }: CityPageProps) {
                 Top-Rated Cleaners in {city.name}
               </h2>
               <p className="text-gray-600 text-center mb-12">
-                Browse our highest-rated home service professionals serving {city.name} and
+                Browse our highest-rated residential &amp; commercial service pros serving {city.name} and
                 nearby areas.
               </p>
 
@@ -470,7 +470,7 @@ export default async function CityPage({ params }: CityPageProps) {
         <section className="py-16 bg-white">
           <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">
-              Home Services in {city.name} — FAQ
+              Residential &amp; Commercial Services in {city.name} — FAQ
             </h2>
             <div className="space-y-6">
               {faqs.map((faq) => (
@@ -491,7 +491,7 @@ export default async function CityPage({ params }: CityPageProps) {
                 Cleaning Services in Nearby Cities
               </h2>
               <p className="text-gray-600 text-center mb-8">
-                Explore home service professionals in areas near {city.name}.
+                Explore residential &amp; commercial service pros in areas near {city.name}.
               </p>
 
               <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">

@@ -6,11 +6,13 @@ import { PricingCTA, type PricingAuthState, type PricingPlanId } from '@/compone
 
 export const metadata = generatePageMetadata({
   title: 'Pricing',
-  description: 'Affordable plans for home service pros to list on Boss of Clean — cleaning, handyman, HVAC, plumbing, electrical, pest control, landscaping, pool, mobile detailing, and pressure washing. Free pay-per-lead, Basic $79/mo, and Pro $199/mo.',
+  description: 'Affordable plans for residential & commercial service pros to list on Boss of Clean — cleaning, office cleaning, handyman, HVAC, plumbing, electrical, pest control, landscaping, pool, mobile detailing, and pressure washing. Free pay-per-lead, Basic $79/mo, and Pro $199/mo.',
   path: '/pricing',
   keywords: [
     'Boss of Clean pricing',
-    'home services marketplace pricing',
+    'residential & commercial service marketplace pricing',
+    'commercial cleaning Florida',
+    'office cleaning',
     'pro listing plans',
     'Thumbtack alternative',
     'Angi alternative',
@@ -102,15 +104,15 @@ const plans: Plan[] = [
 const faqs = [
   {
     question: 'How does lead routing work on Boss of Clean?',
-    answer: 'When a homeowner submits a request, qualified pros in the matching service area receive a notification and can accept the lead. Paid plans place you higher in the routing order, so you see qualified leads first. Lead volume depends on marketplace demand and your service area — we do not guarantee a specific number of leads per month.',
+    answer: 'When a customer submits a request, qualified pros in the matching service area receive a notification and can accept the lead. Paid plans place you higher in the routing order, so you see qualified leads first. Lead volume depends on marketplace demand and your service area — we do not guarantee a specific number of leads per month.',
   },
   {
     question: 'Is Boss of Clean only for cleaning companies?',
-    answer: 'No. Boss of Clean is a marketplace for all home service pros — cleaning, handyman, HVAC, plumbing, electrical, pest control, landscaping, pool service, mobile detailing, and pressure washing. If a homeowner needs it done at their home, the pro who does it belongs here.',
+    answer: 'No. Boss of Clean is a marketplace for all residential & commercial service pros — cleaning, handyman, HVAC, plumbing, electrical, pest control, landscaping, pool service, mobile detailing, and pressure washing. If a customer needs it done, the pro who does it belongs here.',
   },
   {
     question: 'Is Boss of Clean free for customers?',
-    answer: 'Yes, always. Homeowners can search and request quotes from pros at no cost. We only charge pros for marketplace access and lead delivery.',
+    answer: 'Yes, always. Homeowners and businesses can search and request quotes from pros at no cost. We only charge pros for marketplace access and lead delivery.',
   },
   {
     question: 'Do I need a contract?',
@@ -160,7 +162,7 @@ export default async function PricingPage() {
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-20 text-center">
           <p className="inline-block text-brand-gold text-sm font-semibold tracking-[0.2em] uppercase mb-6 border border-brand-gold/30 rounded-full px-5 py-1.5">
-            The Marketplace for Home Service Pros
+            The Marketplace for Residential & Commercial Service Pros
           </p>
           <h1 className="font-display text-4xl sm:text-5xl font-bold text-white mb-4">
             Exclusive Leads. <span className="text-brand-gold">Transparent Pricing.</span>
@@ -329,7 +331,7 @@ export default async function PricingPage() {
       <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
         <div className="text-center mb-8">
           <p className="text-sm font-semibold text-brand-gold uppercase tracking-wider mb-2">
-            Built for every home service trade
+            Built for every residential & commercial trade
           </p>
           <h2 className="font-display text-3xl font-bold text-brand-dark">
             One marketplace. Every category.
@@ -426,7 +428,7 @@ export default async function PricingPage() {
             Ready to Grow Your Business?
           </h2>
           <p className="text-gray-300 text-lg mb-8 max-w-2xl mx-auto">
-            Join Boss of Clean and start connecting with homeowners looking for the trades you run.
+            Join Boss of Clean and start connecting with homeowners and businesses looking for the trades you run.
           </p>
           <Link
             href="/signup?role=pro"

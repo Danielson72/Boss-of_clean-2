@@ -156,7 +156,7 @@ export default function QuoteRequestPage() {
             Quote Request Sent!
           </h2>
           <p className="text-gray-600 mb-6">
-            Your request has been submitted! Home service professionals in your area
+            Your request has been submitted! Residential &amp; commercial service pros in your area
             will be able to view your request and reach out with quotes.
             You&apos;ll receive an email confirmation shortly.
           </p>
@@ -208,7 +208,7 @@ export default function QuoteRequestPage() {
             <div>
               <h1 className="text-2xl font-bold text-gray-900">Get Free Quotes</h1>
               <p className="text-sm text-gray-600">
-                Compare quotes from home service professionals in your area
+                Compare quotes from residential &amp; commercial service pros in your area
               </p>
             </div>
           </div>
@@ -623,7 +623,7 @@ export default function QuoteRequestPage() {
             </span>
             <span className="flex items-center gap-1">
               <CheckCircle className="h-4 w-4 text-green-500" />
-              Home service professionals
+              Residential &amp; commercial service pros
             </span>
           </div>
         </div>
