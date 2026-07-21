@@ -139,7 +139,7 @@ export function EmptySearchState({ searchLocation, searchService }: EmptySearchS
 
       {/* Bottom encouragement */}
       <p className="text-gray-400 text-sm">
-        Florida&apos;s growing home services marketplace
+        Florida&apos;s growing residential &amp; commercial service marketplace
       </p>
     </div>
   );

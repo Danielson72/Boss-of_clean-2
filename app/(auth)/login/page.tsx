@@ -3,7 +3,7 @@ import { generatePageMetadata } from '@/lib/seo/metadata'
 
 export const metadata = generatePageMetadata({
   title: 'Log In',
-  description: 'Log in to your Boss of Clean account. Access your dashboard, manage bookings, and connect with home service professionals across Florida.',
+  description: 'Log in to your Boss of Clean account. Access your dashboard, manage bookings, and connect with residential & commercial service pros across Florida.',
   path: '/login',
   noIndex: true,
 })

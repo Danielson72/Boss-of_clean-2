@@ -8,10 +8,10 @@ import { SERVICE_TYPES } from '@/lib/data/service-types';
 import { generatePageMetadata } from '@/lib/seo/metadata';
 
 export const metadata = generatePageMetadata({
-  title: 'Home Services in Florida',
-  description: 'Browse all professional home services available in Florida. Cleaning, pressure washing, pool cleaning, landscaping, and more. Find trusted professionals near you.',
+  title: 'Residential and Commercial Services in Florida',
+  description: 'Browse all professional residential & commercial services available in Florida. Cleaning, office cleaning, pressure washing, pool, landscaping, and more. Find trusted pros near you.',
   path: '/services',
-  keywords: ['home services Florida', 'cleaning services', 'pressure washing', 'pool cleaning', 'landscaping', 'carpet cleaning', 'window cleaning'],
+  keywords: ['home services Florida', 'commercial cleaning Florida', 'office cleaning', 'commercial services', 'cleaning services', 'pressure washing', 'pool cleaning', 'landscaping', 'carpet cleaning', 'window cleaning'],
 });
 
 const iconMap: Record<string, LucideIcon> = {
@@ -119,7 +119,7 @@ export default function ServicesPage() {
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Quality Professionals</h3>
               <p className="text-gray-600">
-                Independent home service professionals committed to quality service.
+                Independent residential &amp; commercial service pros committed to quality service.
               </p>
             </div>
             <div className="text-center">
@@ -155,7 +155,7 @@ export default function ServicesPage() {
             Ready to Find Your Perfect Cleaner?
           </h2>
           <p className="text-blue-100 text-lg mb-8 max-w-2xl mx-auto">
-            Search thousands of home service professionals in Florida.
+            Search thousands of residential &amp; commercial service pros in Florida.
             Compare quotes and book in minutes.
           </p>
           <Link

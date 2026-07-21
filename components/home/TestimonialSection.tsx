@@ -87,7 +87,7 @@ export default function TestimonialSection() {
             Real Reviews Coming Soon
           </h2>
           <p className="text-gray-500 text-lg mb-10 leading-relaxed">
-            We&apos;re building Florida&apos;s home services marketplace.
+            We&apos;re building Florida&apos;s residential &amp; commercial service marketplace.
             As our first customers and professionals join,
             their genuine experiences will appear right here.
           </p>

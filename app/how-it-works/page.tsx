@@ -4,7 +4,7 @@ import { generatePageMetadata } from '@/lib/seo/metadata';
 
 export const metadata = generatePageMetadata({
   title: 'How It Works',
-  description: 'Learn how Boss of Clean connects Florida homeowners with independent home service professionals. Simple search, compare pros, and hire directly.',
+  description: 'Learn how Boss of Clean connects Florida homeowners and businesses with independent residential & commercial service pros. Simple search, compare pros, and hire directly.',
   path: '/how-it-works',
   keywords: ['how it works', 'find a cleaner', 'hire cleaning professional', 'Boss of Clean process'],
 });
@@ -47,7 +47,7 @@ const proSteps = [
     icon: TrendingUp,
     step: 'Step 3',
     title: 'Grow',
-    description: 'Build your reputation with real customer reviews, earn repeat business, and grow your Florida home service business on your terms.',
+    description: 'Build your reputation with real customer reviews, earn repeat business, and grow your Florida residential & commercial service business on your terms.',
   },
 ];
 
@@ -77,7 +77,7 @@ export default function HowItWorksPage() {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <div className="text-center mb-14">
           <p className="text-brand-gold font-semibold text-sm uppercase tracking-wider mb-2">
-            For Homeowners
+            For Homeowners & Businesses
           </p>
           <h2 className="font-display text-3xl sm:text-4xl font-bold text-brand-dark">
             Find a Local Cleaner in 3 Steps
@@ -130,7 +130,7 @@ export default function HowItWorksPage() {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <div className="text-center mb-14">
           <p className="text-brand-gold font-semibold text-sm uppercase tracking-wider mb-2">
-            For Home Service Professionals
+            For Residential & Commercial Service Pros
           </p>
           <h2 className="font-display text-3xl sm:text-4xl font-bold text-brand-dark">
             Grow Your Business in 3 Steps

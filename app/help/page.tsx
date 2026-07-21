@@ -123,7 +123,7 @@ export default function HelpPage() {
             }`}
           >
             <Home className="h-4 w-4" />
-            For Homeowners
+            For Homeowners &amp; Businesses
           </button>
           <button
             type="button"

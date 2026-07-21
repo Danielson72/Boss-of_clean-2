@@ -159,7 +159,7 @@ export default function ScrollWorldHero({ services }: { services: string[] }) {
       {/* SEO / no-JS mirror */}
       <div className="sr-only" data-sw-seo>
         <h1>Any Service. Any Day. One Boss.</h1>
-        <p>Purrfection is our Standard. Boss of Clean is Florida&apos;s home service marketplace —
+        <p>Purrfection is our Standard. Boss of Clean is Florida&apos;s residential &amp; commercial service marketplace —
           request quotes from independent local pros for cleaning, handyman, HVAC, landscaping,
           pressure washing, and more.</p>
         <a href="/search">Hire like a Boss — search local pros</a>
@@ -172,7 +172,7 @@ export default function ScrollWorldHero({ services }: { services: string[] }) {
         {/* LEFT — headline + search (the escape hatch, always usable) */}
         <div className="order-2 lg:order-1 text-center lg:text-left">
           <p className="inline-block text-brand-gold text-xs sm:text-sm font-semibold tracking-[0.2em] uppercase mb-4 border border-brand-gold/30 rounded-full px-4 py-1">
-            Florida&apos;s Home Service Marketplace
+            Florida&apos;s Residential &amp; Commercial Service Marketplace
           </p>
           <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold text-white leading-[1.1] mb-4">
             Any Service. Any Day.{' '}

@@ -191,7 +191,7 @@ export default function HowPricingWorksPage() {
           </Link>
         </div>
         <p className="text-gray-400 text-sm mt-10 max-w-2xl mx-auto">
-          Boss of Clean is a neutral marketplace connecting customers with independent home service
+          Boss of Clean is a neutral marketplace connecting customers with independent residential &amp; commercial service
           pros. We don&apos;t employ or control pros, and hiring decisions are always yours.
         </p>
       </section>

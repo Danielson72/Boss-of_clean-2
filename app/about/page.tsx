@@ -4,18 +4,20 @@ import { generatePageMetadata } from '@/lib/seo/metadata';
 
 export const metadata = generatePageMetadata({
   title: 'About Us',
-  description: 'Boss of Clean is building Florida\'s home services marketplace. Learn about our mission to connect homeowners and businesses with independent professionals across cleaning, landscaping, handyman services, and more.',
+  description: 'Boss of Clean is building Florida\'s residential & commercial service marketplace. Learn about our mission to connect homeowners and businesses with independent professionals across cleaning, landscaping, handyman services, and more.',
   path: '/about',
   keywords: [
     'home services Florida',
+    'commercial cleaning Florida',
+    'office cleaning',
+    'commercial services',
     'house cleaning',
     'landscaping',
     'handyman',
     'pool service',
     'pressure washing',
     'Boss of Clean',
-    'Florida home services marketplace',
-    'home professionals platform',
+    'Florida residential & commercial service marketplace',
     'cleaning services',
   ],
 });
@@ -39,7 +41,7 @@ export default function AboutPage() {
             About <span className="text-brand-gold">Boss of Clean</span>
           </h1>
           <p className="text-gray-300 text-lg sm:text-xl max-w-2xl mx-auto">
-            Building Florida&apos;s home services marketplace
+            Building Florida&apos;s residential &amp; commercial service marketplace
           </p>
           <p className="text-gray-400 text-base sm:text-lg max-w-2xl mx-auto mt-3">
             Cleaning. Landscaping. Handyman. And every home pro in between.
@@ -55,8 +57,9 @@ export default function AboutPage() {
         <div className="space-y-5 text-gray-600 text-lg leading-relaxed">
           <p>
             Boss of Clean was born from a simple frustration: finding reliable, professional
-            home services in Florida was harder than it should be. For homeowners, the
-            options were overwhelming and opaque. For quality home service professionals —
+            home services in Florida was harder than it should be. For homeowners and
+            businesses, the options were overwhelming and opaque. For quality residential
+            &amp; commercial service pros —
             from cleaners and landscapers to handymen, pressure washers, pool techs, and
             beyond — reaching new customers meant competing on platforms that didn&apos;t
             value their craft.
@@ -70,7 +73,7 @@ export default function AboutPage() {
           <p>
             We&apos;re building a marketplace where quality matters — where &ldquo;Purrfection is
             our Standard&rdquo; isn&apos;t just a tagline but a commitment to connecting
-            homeowners with independent home service professionals they can trust.
+            homeowners and businesses with independent residential &amp; commercial service pros they can trust.
           </p>
           <p>
             We&apos;re just getting started, and we&apos;re proud of that. Being new means
@@ -92,8 +95,8 @@ export default function AboutPage() {
             Our Mission
           </h2>
           <p className="text-gray-700 text-xl leading-relaxed max-w-3xl mx-auto">
-            We believe every Florida home deserves access to trustworthy, professional
-            home services — whether that&apos;s a weekly house cleaning, a landscaping crew,
+            We believe every Florida home and business deserves access to trustworthy, professional
+            services — whether that&apos;s a weekly house cleaning, a landscaping crew,
             a handyman for the to-do list, or any of the skilled trades that keep a home
             running. Boss of Clean exists to make that connection simple, transparent, and
             reliable.
@@ -113,8 +116,8 @@ export default function AboutPage() {
               For Professionals
             </h2>
             <p className="text-gray-600 text-lg leading-relaxed">
-              We&apos;re building a platform that respects the home service professionals
-              who keep Florida homes running — cleaners, landscapers, handymen, pool techs,
+              We&apos;re building a platform that respects the residential &amp; commercial service pros
+              who keep Florida homes and businesses running — cleaners, landscapers, handymen, pool techs,
               pressure washers, and every skilled trade in between. No predatory lead fees.
               No hidden costs. Just a fair marketplace where your work speaks for itself.
             </p>
@@ -136,8 +139,8 @@ export default function AboutPage() {
               The Marketplace Difference
             </h2>
             <p className="text-gray-600 text-lg leading-relaxed">
-              Boss of Clean is a marketplace — we connect you with independent home service
-              professionals, but we don&apos;t employ them. Every professional on our
+              Boss of Clean is a marketplace — we connect you with independent residential
+              &amp; commercial service pros, but we don&apos;t employ them. Every professional on our
               platform runs their own business, sets their own rates, and maintains their
               own standards. We provide the platform. They provide the purrfection.
             </p>
@@ -191,7 +194,7 @@ export default function AboutPage() {
           Join the Boss of Clean Community
         </h2>
         <p className="text-gray-600 text-lg mb-8 max-w-2xl mx-auto">
-          Whether you&apos;re looking for a local home service professional or want to
+          Whether you&apos;re looking for a local residential &amp; commercial service pro or want to
           grow your service business, we&apos;re here to help.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">

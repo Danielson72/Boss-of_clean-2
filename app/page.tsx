@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   description:
     "Florida's fair, transparent alternative to Thumbtack, Angi, and HomeAdvisor. Find local pros for cleaning, handyman work, HVAC, plumbing, electrical, pool service, landscaping, pressure washing, and every job your home or business needs. Free quotes. Direct connections. Purrfection is our Standard.",
   keywords:
-    'Florida home services, pro service marketplace, Thumbtack alternative, Angi alternative, HomeAdvisor alternative, house cleaning Florida, handyman Florida, pressure washing, pool cleaning, HVAC, plumbing, electrical, pest control, landscaping, gutter cleaning, junk removal, mobile car detailing, residential pros',
+    'Florida home services, commercial cleaning Florida, office cleaning, commercial services, pro service marketplace, Thumbtack alternative, Angi alternative, HomeAdvisor alternative, house cleaning Florida, handyman Florida, pressure washing, pool cleaning, HVAC, plumbing, electrical, pest control, landscaping, gutter cleaning, junk removal, mobile car detailing, residential & commercial pros',
   alternates: {
     canonical: 'https://bossofclean.com',
   },

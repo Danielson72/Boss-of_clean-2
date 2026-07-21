@@ -157,7 +157,7 @@ export default function BocAssistant() {
             />
             <div>
               <p className="text-white font-semibold text-sm leading-tight">Boss of Clean</p>
-              <p className="text-orange-100 text-xs">Your home services guide</p>
+              <p className="text-orange-100 text-xs">Your residential &amp; commercial service guide</p>
             </div>
           </div>
 
