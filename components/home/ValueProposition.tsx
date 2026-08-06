@@ -33,7 +33,7 @@ export default function ValueProposition() {
             Why Boss of Clean
           </p>
           <h2 className="font-display text-3xl sm:text-4xl font-bold text-brand-dark mb-4">
-            The Fair, Transparent Alternative to Thumbtack, Angi &amp; HomeAdvisor
+            A Florida-Built Alternative to Thumbtack, Angi &amp; HomeAdvisor
           </h2>
           <p className="text-gray-500 text-lg">
             Straightforward pricing and direct connections between Floridians and the pros who serve them — residential and commercial.

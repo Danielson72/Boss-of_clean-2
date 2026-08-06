@@ -140,7 +140,7 @@ export default function GrowthSection({ categoriesCount = 14 }: { categoriesCoun
             <span className="text-brand-gold">Local</span> Pro Marketplace
           </h2>
           <p className="text-gray-400 text-lg max-w-2xl mx-auto leading-relaxed">
-            We&apos;re on a mission to connect every Florida homeowner and business with local pros for any clean, fix, or service — without the middleman markup.
+            We&apos;re on a mission to connect every Florida homeowner and business with local pros for any clean, fix, or service — with pros setting their own prices and keeping the full job.
           </p>
         </div>
 

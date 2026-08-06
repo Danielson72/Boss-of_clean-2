@@ -11,8 +11,9 @@ export default function TrustSection() {
         <p className="text-gray-500 text-lg leading-relaxed mb-4 max-w-3xl mx-auto">
           Boss of Clean is Florida&apos;s full-service pro marketplace — cleaning, handyman, pressure washing,
           HVAC, plumbing, electrical, pool service, landscaping, pest control, and every skilled trade in between.
-          We connect homeowners and businesses with independent pros across all 67 counties — without
-          the inflated lead fees and middleman markup of Thumbtack, Angi, or HomeAdvisor.
+          We connect homeowners and businesses with independent pros across all 67 counties — with pros paying
+          a flat fee to unlock a customer&apos;s contact info, never a cut of the job. A Florida alternative to
+          Thumbtack, Angi, or HomeAdvisor.
         </p>
         <p className="font-display text-xl text-brand-gold italic">
           &ldquo;Purrfection is our Standard&rdquo; &mdash; your one boss for any clean, fix, or service in Florida.

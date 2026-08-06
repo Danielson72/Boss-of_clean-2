@@ -118,8 +118,8 @@ export default function AboutPage() {
             <p className="text-gray-600 text-lg leading-relaxed">
               We&apos;re building a platform that respects the residential &amp; commercial service pros
               who keep Florida homes and businesses running — cleaners, landscapers, handymen, pool techs,
-              pressure washers, and every skilled trade in between. No predatory lead fees.
-              No hidden costs. Just a fair marketplace where your work speaks for itself.
+              pressure washers, and every skilled trade in between. Flat, published lead fees.
+              No hidden costs. Just a marketplace where your work speaks for itself.
             </p>
             <Link
               href="/signup?role=cleaner"
