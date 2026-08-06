@@ -14,6 +14,7 @@ import { Loader2, Mail, CheckCircle, Eye, EyeOff } from 'lucide-react'
 import { resendVerificationEmail, canResendEmail, markEmailResent, getResendCooldownRemaining } from '@/lib/email/verification'
 import { GoogleSignInButton } from '@/components/auth/GoogleSignInButton'
 import { recordUserTcpaConsent } from '@/lib/actions/tcpa'
+import { seedProServiceArea } from '@/lib/actions/pro-signup'
 import { normalizeToE164 } from '@/lib/phone'
 
 interface AuthFormProps {
@@ -157,10 +158,14 @@ export function AuthForm({ mode, role = 'customer' }: AuthFormProps) {
         }
 
         if (authData.user) {
-          // The handle_new_user DB trigger creates the users row automatically.
-          // Persist phone + full_name + TCPA consent via a service-role server
-          // action: the email isn't confirmed yet so the client has no session,
-          // and a direct client-side users UPDATE is blocked by RLS (DLD-576).
+          // The handle_new_user DB trigger creates the users row — and, for a
+          // 'cleaner' role, the pros row too — in the same transaction as the
+          // auth user. Persist phone + full_name + TCPA consent via a
+          // service-role server action: the email isn't confirmed yet so the
+          // client has no session, and a direct client-side users UPDATE is
+          // blocked by RLS (DLD-576).
+          let setupIssue: string | null = null
+
           const profileResult = await recordUserTcpaConsent(
             authData.user.id,
             navigator.userAgent,
@@ -169,94 +174,29 @@ export function AuthForm({ mode, role = 'customer' }: AuthFormProps) {
           if (!profileResult.ok) {
             // No more silent drops — surface it (account still exists).
             console.error('Failed to persist signup contact info', profileResult.error)
-            setError('Your account was created, but we could not save your phone number. Please add it in your profile settings.')
+            setupIssue = 'your phone number'
           }
 
-          // If cleaner, update the trigger-created cleaners profile with form data
-          if (role === 'cleaner') {
-            // Wait a moment for trigger to complete, then update with full details
-            const { data: cleanerData } = await supabase
-              .from('pros')
-              .select('id')
-              .eq('user_id', authData.user.id)
-              .single()
-
-            // Track whether the cleaner's business details / service area saved.
-            // These run after the account is created; a silent failure here means
-            // the pro won't match leads in their ZIP and never knows why.
-            let cleanerSetupFailed = false
-
-            if (cleanerData) {
-              // Update with business details from the signup form
-              const { error: bizErr } = await supabase
-                .from('pros')
-                .update({
-                  business_name: businessName || fullName || email.split('@')[0],
-                })
-                .eq('id', cleanerData.id)
-              if (bizErr) cleanerSetupFailed = true
-
-              // Seed initial service area if zip provided
-              if (zipCode) {
-                const { data: zipData } = await supabase
-                  .from('florida_zipcodes')
-                  .select('city, county')
-                  .eq('zip_code', zipCode)
-                  .single()
-
-                if (zipData) {
-                  const { error: areaErr } = await supabase
-                    .from('service_areas')
-                    .insert({
-                      cleaner_id: cleanerData.id,
-                      zip_code: zipCode,
-                      city: zipData.city,
-                      county: zipData.county,
-                      is_primary: true,
-                    })
-                  if (areaErr) cleanerSetupFailed = true
-                }
-              }
-            } else {
-              // Fallback: trigger may not have fired yet, create cleaner profile directly
-              const { data: newCleaner, error: cleanerError } = await supabase
-                .from('pros')
-                .insert({
-                  user_id: authData.user.id,
-                  business_name: businessName || fullName || email.split('@')[0],
-                  approval_status: 'pending',
-                })
-                .select('id')
-                .single()
-
-              if (cleanerError) cleanerSetupFailed = true
-
-              if (!cleanerError && newCleaner && zipCode) {
-                const { data: zipData } = await supabase
-                  .from('florida_zipcodes')
-                  .select('city, county')
-                  .eq('zip_code', zipCode)
-                  .single()
-
-                if (zipData) {
-                  const { error: areaErr } = await supabase
-                    .from('service_areas')
-                    .insert({
-                      cleaner_id: newCleaner.id,
-                      zip_code: zipCode,
-                      city: zipData.city,
-                      county: zipData.county,
-                      is_primary: true,
-                    })
-                  if (areaErr) cleanerSetupFailed = true
-                }
-              }
+          // Seed the pro's signup ZIP. The pros row and its business_name are
+          // already set by the trigger from the signUp metadata above, so there
+          // is nothing to create or re-write here — only the service area, via
+          // a service-role server action for the same no-session reason as the
+          // TCPA write. Writes pros.service_areas, the store search reads.
+          if (role === 'cleaner' && zipCode) {
+            const areaResult = await seedProServiceArea(authData.user.id, zipCode)
+            if (!areaResult.ok) {
+              // A missing service area means the pro never surfaces in a ZIP
+              // search and has no way to know why — don't let it fail silently.
+              console.error('Failed to seed pro service area', areaResult.error)
+              setupIssue = setupIssue
+                ? `${setupIssue} or your service ZIP code`
+                : 'your service ZIP code'
             }
+          }
 
-            if (cleanerSetupFailed) {
-              // Account exists; be honest that business setup didn't fully save.
-              setError('Your account was created, but we couldn\'t save all your business details. Please finish setting up your business name and service area in your profile after you verify your email.')
-            }
+          if (setupIssue) {
+            // Account exists; be honest about what didn't save.
+            setError(`Your account was created, but we could not save ${setupIssue}. You can add it in your profile after you verify your email.`)
           }
           // Notify admin of new signup (fire and forget - don't block signup flow)
           fetch('/api/admin/signup-notification', {
