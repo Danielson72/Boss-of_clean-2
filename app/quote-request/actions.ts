@@ -145,39 +145,42 @@ export async function submitQuoteRequest(
     // ============================================
     // STEP 2: Find matching approved pros
     // ============================================
-    // Match by: approved cleaners whose service_areas include this zip code
-    // Fallback: if no service_areas match, try cleaners whose user zip matches
+    // Match by: approved pros whose pros.service_areas array covers this zip.
+    // DLD-599: pros.service_areas text[] is the canonical store. The former
+    // public.service_areas table is retired — it never had a writer, so this
+    // query always returned zero rows and every broadcast silently fell
+    // through to the all-approved fallback below.
     let matchedPros: { cleaner_id: string; user_id: string; email: string; business_name: string; business_phone: string | null }[] = [];
+    let matchStrategy: 'geo' | 'fallback' = 'geo';
 
     try {
-      // Primary match: service_areas table (service-role: cross-customer read)
+      // Primary match: pros.service_areas (service-role: cross-customer read).
+      // Uses the idx_cleaners_service_areas_gin GIN index on pros.service_areas.
       const { data: areaMatches } = await adminSupabase
-        .from('service_areas')
-        .select('cleaner_id, cleaner:pros!inner(id, business_name, user_id, approval_status, business_phone, user:users!inner(email))')
-        .eq('zip_code', data.zip_code);
+        .from('pros')
+        .select('id, business_name, user_id, business_phone, user:users!inner(email)')
+        .contains('service_areas', [data.zip_code])
+        .eq('approval_status', 'approved');
 
       if (areaMatches && areaMatches.length > 0) {
-        matchedPros = areaMatches
-          .filter((m) => {
-            const cleaner = m.cleaner as Record<string, unknown>;
-            return cleaner?.approval_status === 'approved';
-          })
-          .map((m) => {
-            const cleaner = m.cleaner as Record<string, unknown>;
-            const user = cleaner.user as Record<string, unknown>;
-            return {
-              cleaner_id: cleaner.id as string,
-              user_id: cleaner.user_id as string,
-              email: user.email as string,
-              business_name: cleaner.business_name as string,
-              business_phone: (cleaner.business_phone as string) ?? null,
-            };
-          });
+        matchedPros = areaMatches.map((c) => {
+          const user = c.user as Record<string, unknown>;
+          return {
+            cleaner_id: c.id as string,
+            user_id: c.user_id as string,
+            email: user.email as string,
+            business_name: c.business_name as string,
+            business_phone: (c.business_phone as string) ?? null,
+          };
+        });
       }
 
-      // Fallback: if no service_areas match, find all approved cleaners
-      // (early stage — not many pros have set up service areas yet)
+      // Fallback: no pro covers this zip — broadcast to all approved pros.
+      // (early stage — coverage is sparse, so a geo miss must not mean the
+      // customer hears from nobody). Retire this once the geo/fallback ratio
+      // logged below shows coverage is dense enough.
       if (matchedPros.length === 0) {
+        matchStrategy = 'fallback';
         const { data: allApproved } = await adminSupabase
           .from('pros')
           .select('id, business_name, user_id, business_phone, user:users!inner(email)')
@@ -197,8 +200,12 @@ export async function submitQuoteRequest(
         }
       }
 
+      // matchStrategy distinguishes a real geo match from a blind all-approved
+      // broadcast. Track the ratio to decide when the fallback can be retired.
       logger.info('Pro matching complete', {
         function: 'submitQuoteRequest',
+        matchStrategy,
+        zipCode: data.zip_code,
         matchCount: matchedPros.length,
         quoteId: quote.id,
       });
