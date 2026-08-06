@@ -18,8 +18,8 @@ const values = [
   },
   {
     icon: Handshake,
-    title: 'Direct, No Markup',
-    description: 'Connect directly with pros. No middleman markup. No inflated lead fees.',
+    title: 'Quotes Direct From Pros',
+    description: 'Pros quote you directly. You compare and choose who to work with.',
   },
 ];
 
@@ -36,7 +36,7 @@ export default function ValueProposition() {
             The Fair, Transparent Alternative to Thumbtack, Angi &amp; HomeAdvisor
           </h2>
           <p className="text-gray-500 text-lg">
-            No inflated lead fees. No middleman markup. Just direct connections between Floridians and the pros who serve them — residential and commercial.
+            Straightforward pricing and direct connections between Floridians and the pros who serve them — residential and commercial.
           </p>
         </div>
 

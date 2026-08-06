@@ -10,14 +10,14 @@ const steps = [
   {
     number: '02',
     icon: Users,
-    title: 'Browse Local Pros',
-    description: 'See Florida pros in your area with profiles, services, and contact details.',
+    title: 'Get Quotes From Local Pros',
+    description: 'Florida pros serving your ZIP send you quotes. Comparing them is free for customers.',
   },
   {
     number: '03',
     icon: MessageCircle,
-    title: 'Connect Directly',
-    description: 'Reach out to the pro you choose. No middleman markup. No inflated lead fees.',
+    title: 'Choose Your Pro',
+    description: 'Accept the quote that fits. Your pro then gets your details and reaches out to schedule.',
   },
 ];
 

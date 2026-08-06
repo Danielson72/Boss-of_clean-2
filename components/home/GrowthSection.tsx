@@ -105,8 +105,7 @@ export default function GrowthSection({ categoriesCount = 14 }: { categoriesCoun
   const stats = [
     { value: 67, suffix: '', label: 'Florida Counties Served', icon: MapPin },
     { value: categoriesCount, suffix: '+', label: 'Pro Service Categories', icon: TrendingUp },
-    // "0" is the whole point here — phrased so it reads as the benefit it is.
-    { value: 0, suffix: '%', label: 'Lead Fee Markup — pros keep what they earn', icon: Building2 },
+    { value: 0, suffix: '%', label: 'Cut of Your Job — pros set their own price', icon: Building2 },
   ];
 
   // Dot positions along the curve (approximate x,y for key points)

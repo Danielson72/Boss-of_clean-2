@@ -5,7 +5,7 @@ const benefits = [
   { icon: UserPlus, text: 'Reach residential and commercial customers in your area' },
   { icon: FileCheck, text: 'Create your professional profile' },
   { icon: DollarSign, text: 'Set your own rates and availability' },
-  { icon: Calendar, text: 'No long-term contracts. No inflated lead fees.' },
+  { icon: Calendar, text: 'Choose a monthly membership or pay per lead you unlock' },
 ];
 
 export default function ForProfessionals() {
