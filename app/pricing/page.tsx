@@ -245,7 +245,7 @@ export default async function PricingPage() {
             One marketplace. Every category.
           </h2>
           <p className="text-gray-600 mt-3 max-w-2xl mx-auto">
-            The same locked pricing applies whether you clean houses, fix HVAC systems, or run a pool
+            The same pricing applies whether you clean houses, fix HVAC systems, or run a pool
             route. Boss of Clean is the home for the trades.
           </p>
         </div>
