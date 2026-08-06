@@ -1,4 +1,4 @@
-import { Check, ArrowRight, Crown, Sparkles } from 'lucide-react';
+import { Check, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import { generatePageMetadata } from '@/lib/seo/metadata';
 import { createClient } from '@/lib/supabase/server';
@@ -120,7 +120,7 @@ const faqs = [
   },
   {
     question: 'How is this different from Thumbtack, Angi, or HomeAdvisor?',
-    answer: 'Every lead on Boss of Clean is exclusive to a single pro — never shared, never resold. Your pricing is transparent and locked in at signup, with no hidden upcharges or bidding wars.',
+    answer: 'Every lead on Boss of Clean is exclusive to a single pro — never shared, never resold. Every price is published on this page: list free and pay $30 per lead, or choose a flat monthly plan.',
   },
   {
     question: 'How do I get started?',
@@ -172,7 +172,7 @@ export default async function PricingPage() {
             and plain-English overflow pricing. Pick the plan that fits how you run.
           </p>
           <p className="text-brand-gold/70 text-sm">
-            Launch pricing — locked for early pros
+            Free to list. $79/mo Basic. $199/mo Pro.
           </p>
         </div>
       </section>
@@ -232,98 +232,6 @@ export default async function PricingPage() {
               />
             </div>
           ))}
-        </div>
-      </section>
-
-      {/* Founders Offer */}
-      <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
-        <div className="relative overflow-hidden rounded-3xl border-2 border-brand-gold bg-gradient-to-br from-brand-dark via-brand-navy to-brand-dark p-8 sm:p-12 text-white shadow-2xl">
-          <div className="absolute -top-24 -right-24 w-72 h-72 bg-brand-gold/10 rounded-full blur-3xl pointer-events-none" />
-          <div className="relative">
-            <div className="flex items-center gap-3 mb-4">
-              <span className="inline-flex items-center gap-2 bg-brand-gold text-white text-xs font-bold uppercase tracking-wider px-4 py-1.5 rounded-full">
-                <Crown className="h-3.5 w-3.5" />
-                Founders Offer
-              </span>
-              <span className="text-brand-gold/80 text-xs uppercase tracking-[0.2em]">
-                First 100 Pros only
-              </span>
-            </div>
-
-            <h2 className="font-display text-3xl sm:text-4xl font-bold mb-3">
-              Become a <span className="text-brand-gold">Founding Pro</span>
-            </h2>
-            <p className="text-gray-300 text-base sm:text-lg max-w-2xl mb-8">
-              Join Boss of Clean as one of the first 100 Pros and lock in lifetime perks that will never
-              be offered again. No tricks, no auto-rate-hikes — your benefits stay yours as long as you
-              keep your subscription active.
-            </p>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-              <div className="rounded-2xl bg-white/5 border border-white/10 p-5">
-                <div className="flex items-start gap-3">
-                  <Sparkles className="h-5 w-5 text-brand-gold flex-shrink-0 mt-0.5" />
-                  <div>
-                    <p className="font-semibold text-white">6 months at $79/mo, then $199/mo</p>
-                    <p className="text-gray-400 text-sm mt-1">
-                      Pro tier at the Basic price for half a year — then the standard locked Pro rate.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="rounded-2xl bg-white/5 border border-white/10 p-5">
-                <div className="flex items-start gap-3">
-                  <Sparkles className="h-5 w-5 text-brand-gold flex-shrink-0 mt-0.5" />
-                  <div>
-                    <p className="font-semibold text-white">Founders pricing — locked for life</p>
-                    <p className="text-gray-400 text-sm mt-1">
-                      As long as you stay continuously subscribed, your Pro tier rate is locked at
-                      signup. No price increases. No renegotiations.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="rounded-2xl bg-white/5 border border-white/10 p-5">
-                <div className="flex items-start gap-3">
-                  <Crown className="h-5 w-5 text-brand-gold flex-shrink-0 mt-0.5" />
-                  <div>
-                    <p className="font-semibold text-white">Permanent &ldquo;Founding Pro&rdquo; badge</p>
-                    <p className="text-gray-400 text-sm mt-1">
-                      Displayed on your profile and search cards forever — even if you later downgrade
-                      or pause. The badge is yours.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="rounded-2xl bg-white/5 border border-white/10 p-5">
-                <div className="flex items-start gap-3">
-                  <Sparkles className="h-5 w-5 text-brand-gold flex-shrink-0 mt-0.5" />
-                  <div>
-                    <p className="font-semibold text-white">Lifetime lock — one cancellation rule</p>
-                    <p className="text-gray-400 text-sm mt-1">
-                      If you cancel your subscription, the lifetime 30-lead cap and Pro discount are
-                      retired. The Founding Pro badge stays — the pricing perk does not.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <Link
-              href="/signup?role=pro&plan=pro&founders=1"
-              className="inline-flex items-center gap-2 bg-brand-gold text-white px-7 py-3.5 rounded-xl font-semibold hover:bg-brand-gold-light transition-all duration-200 shadow-lg hover:shadow-xl min-h-[44px]"
-            >
-              Claim a Founders Spot
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-            <p className="text-gray-400 text-xs mt-4">
-              Limited to the first 100 Pro signups. Spots are filled in signup order — once they are
-              gone, this offer closes for good.
-            </p>
-          </div>
         </div>
       </section>
 
