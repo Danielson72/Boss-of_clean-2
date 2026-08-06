@@ -495,7 +495,7 @@ export default async function ProfessionalsPage({
             </h2>
             <p className="text-lg text-gray-300 mb-8 max-w-2xl mx-auto">
               Join Boss of Clean and connect with customers across Florida.
-              Fair pricing, no predatory lead fees, and a marketplace built
+              Flat, published lead fees and a marketplace built
               for real professionals.
             </p>
             <Link
