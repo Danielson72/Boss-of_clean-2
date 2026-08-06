@@ -351,8 +351,7 @@ export class SearchService {
       .from('pros')
       .select(`
         *,
-        users!inner(full_name, phone, email, city, zip_code),
-        service_areas!left(zip_code, city, county, travel_fee)
+        users!inner(full_name, phone, email, city, zip_code)
       `)
       .eq('approval_status', 'approved')
       .eq('insurance_verified', true)
@@ -377,8 +376,7 @@ export class SearchService {
       .from('pros')
       .select(`
         *,
-        users!inner(full_name, phone, email, city, zip_code),
-        service_areas!left(zip_code, city, county, travel_fee)
+        users!inner(full_name, phone, email, city, zip_code)
       `)
       .eq('approval_status', 'approved')
       .eq('insurance_verified', true)
