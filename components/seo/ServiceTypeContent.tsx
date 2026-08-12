@@ -154,6 +154,20 @@ export function ServiceTypeContent({
             </div>
           ) : cleaners.length > 0 ? (
             <>
+              {/* Credentials disclaimer — shown only when a listed card renders a credential
+                  label, via either the documents-on-file badge or the per-document list. */}
+              {cleaners.some(
+                (cleaner) =>
+                  (cleaner.insuranceVerified && cleaner.licenseVerified) ||
+                  (!cleaner.isCertified &&
+                    (cleaner.insuranceVerified ||
+                      cleaner.licenseVerified ||
+                      cleaner.backgroundCheckVerified))
+              ) && (
+                <p className="mb-6 text-xs text-gray-500 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
+                  Information shown is provided by the pro and is not independently verified by Boss of Clean. Please confirm licensing and insurance directly with the pro before hiring.
+                </p>
+              )}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {cleaners.map((cleaner) => (
                   <CleanerCard
