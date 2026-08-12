@@ -291,6 +291,13 @@ export default async function ProfessionalsPage({
             </div>
           </div>
 
+          {/* Credentials disclaimer — shown only when a listed pro renders a credential label */}
+          {pros.some((pro) => pro.insurance_verified) && (
+            <p className="mb-6 text-xs text-gray-500 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
+              Information shown is provided by the pro and is not independently verified by Boss of Clean. Please confirm licensing and insurance directly with the pro before hiring.
+            </p>
+          )}
+
           {/* Pro Grid */}
           {pros.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">

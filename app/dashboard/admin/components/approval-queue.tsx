@@ -219,7 +219,7 @@ export function ApprovalQueue({ applications, onViewDetails }: ApprovalQueueProp
                     {cleaner.insurance_verified && (
                       <Badge variant="outline" className="text-green-600">
                         <CheckCircle className="h-3 w-3 mr-1" />
-                        Insurance Verified
+                        Insurance doc on file
                       </Badge>
                     )}
                     {cleaner.background_check && (
