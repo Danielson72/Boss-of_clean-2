@@ -165,7 +165,7 @@ export default function CustomerFavoritesPage() {
                       {favorite.pro.insurance_verified && (
                         <span className="bg-blue-500 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
                           <Shield className="h-3 w-3" />
-                          Insured
+                          Insurance doc on file
                         </span>
                       )}
                     </div>
