@@ -27,11 +27,8 @@ interface CleanerData {
   is_certified?: boolean;
   instant_booking?: boolean;
   subscription_tier?: string;
-  users?: {
-    city?: string;
-    state?: string;
-    zip_code?: string;
-  };
+  business_city?: string;
+  business_state?: string;
 }
 
 interface ServicePageClientProps {
@@ -61,8 +58,8 @@ export function ServicePageClient({ serviceType }: ServicePageClientProps) {
     hourlyRate: cleaner.hourly_rate || 50,
     minimumHours: cleaner.minimum_hours || 2,
     yearsExperience: cleaner.years_experience || 0,
-    city: cleaner.users?.city,
-    state: cleaner.users?.state || 'FL',
+    city: cleaner.business_city,
+    state: cleaner.business_state || 'FL',
     subscriptionTier: cleaner.subscription_tier || 'free',
     insuranceVerified: cleaner.insurance_verified || false,
     licenseVerified: cleaner.license_verified || false,
@@ -79,13 +76,10 @@ export function ServicePageClient({ serviceType }: ServicePageClientProps) {
       // Match against the shortName which is used in the services array
       const query = supabase
         .from('pros')
-        .select(
-          `
-          *,
-          users!inner(full_name, phone, email, city, state, zip_code)
-        `,
-          { count: 'exact' }
-        )
+        // No users join: the users_select RLS policy returns nothing for anon
+        // visitors, so an !inner join filtered out every pro (DLD-603 bug 2).
+        // Location comes from pros.business_city/state; user PII stays gated.
+        .select('*', { count: 'exact' })
         .in('approval_status', ['approved', 'pending'])
         .order('subscription_tier', { ascending: false })
         .order('average_rating', { ascending: false })
