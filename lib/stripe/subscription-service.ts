@@ -279,6 +279,15 @@ export class SubscriptionService {
     }
   }
 
+  /**
+   * Boss of Clean and AI Command Lab share Stripe account
+   * acct_1TNEvGRxaMzY49UQ, and Stripe delivers account-wide events to every
+   * endpoint registered on it. So invoices belonging to another brand's
+   * subscription arrive here routinely. They have no row in our
+   * `subscriptions` table, and that is expected traffic — not an error.
+   * Ignore them quietly; do not throw, or Stripe retries a foreign invoice
+   * against us for three days.
+   */
   async handlePaymentSucceeded(invoice: Stripe.Invoice) {
     const inv = invoice as Stripe.Invoice & {
       payment_intent?: string | { id: string } | null;
@@ -294,16 +303,28 @@ export class SubscriptionService {
     try {
       const supabase = await this.getSupabase();
       // Record successful payment
+      // maybeSingle(): zero rows is a normal outcome here (another brand's
+      // invoice, see the note above), so it returns null data with no error
+      // instead of PGRST116. A genuine database fault still populates
+      // lookupError and still throws.
       const { data: subscriptionData, error: lookupError } = await supabase
         .from('subscriptions')
         .select('cleaner_id')
         .eq('stripe_subscription_id', subscriptionId)
-        .single();
+        .maybeSingle();
       if (lookupError) {
         throw new Error(`subscriptions lookup failed for ${subscriptionId}: ${lookupError.message}`);
       }
 
-      if (subscriptionData) {
+      if (!subscriptionData) {
+        logger.info(
+          `No Boss of Clean subscription matches ${subscriptionId} — invoice belongs to another brand on the shared Stripe account, ignoring`,
+          { function: 'handlePaymentSucceeded', subscriptionId, invoiceId: invoice.id }
+        );
+        return;
+      }
+
+      {
         // Dedupe: invoice.paid and invoice.payment_succeeded both fire for the
         // same invoice on current API versions — only record it once.
         const { data: existingPayment, error: dedupeError } = await supabase
@@ -379,16 +400,27 @@ export class SubscriptionService {
     try {
       const supabase = await this.getSupabase();
       // Get cleaner ID from subscription
+      // maybeSingle(): same shared-account reasoning as handlePaymentSucceeded
+      // — a foreign brand's failed invoice has no row here and must not throw.
+      // A genuine database fault still populates lookupError and still throws.
       const { data: subscriptionData, error: lookupError } = await supabase
         .from('subscriptions')
         .select('cleaner_id')
         .eq('stripe_subscription_id', subscriptionId)
-        .single();
+        .maybeSingle();
       if (lookupError) {
         throw new Error(`subscriptions lookup failed for ${subscriptionId}: ${lookupError.message}`);
       }
 
-      if (subscriptionData) {
+      if (!subscriptionData) {
+        logger.info(
+          `No Boss of Clean subscription matches ${subscriptionId} — failed invoice belongs to another brand on the shared Stripe account, ignoring`,
+          { function: 'handlePaymentFailed', subscriptionId, invoiceId: invoice.id }
+        );
+        return;
+      }
+
+      {
         // Increment failed payment count using RPC
         const { error: rpcError } = await supabase.rpc('increment_payment_failed_count', {
           p_cleaner_id: subscriptionData.cleaner_id,
@@ -454,12 +486,15 @@ export class SubscriptionService {
   async getSubscriptionDetails(cleanerId: string) {
     try {
       const supabase = await this.getSupabase();
+      // maybeSingle(): a pro with no active subscription is a normal state,
+      // and this returns null for them either way — the error was already
+      // discarded here. Switching stops generating a PGRST116 for it.
       const { data } = await supabase
         .from('subscriptions')
         .select('*')
         .eq('cleaner_id', cleanerId)
         .eq('status', 'active')
-        .single();
+        .maybeSingle();
 
       return data;
     } catch (error) {
