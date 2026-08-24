@@ -4,7 +4,7 @@ import { getStripe } from '@/lib/stripe/config';
 import { subscriptionService } from '@/lib/stripe/subscription-service';
 import { webhookEventService } from '@/lib/stripe/webhook-event-service';
 import { handleDisputeCreated, handleDisputeClosed } from '@/lib/stripe/disputes';
-import { sendLeadContactEmail, sendAdminSaleNotification } from '@/lib/email/lead-unlock';
+import { sendLeadContactEmail, sendAdminSaleNotification, sendAdminOpsAlert } from '@/lib/email/lead-unlock';
 import { createLogger } from '@/lib/utils/logger';
 import type Stripe from 'stripe';
 
@@ -223,15 +223,74 @@ async function handleStripeEvent(event: Stripe.Event): Promise<void> {
                 serviceType,
                 city: leadCity,
               }),
-            ]).catch((err) =>
-              logger.error('Lead unlock email batch error', { function: 'handleStripeEvent' }, err)
-            );
+            ])
+              .then(([outcome]) => {
+                // allSettled never rejects, and sendLeadContactEmail resolves
+                // false on a mail-provider error rather than throwing — so a
+                // .catch() alone would miss the likeliest failure. Treat both
+                // a rejection and a false result as an undelivered handoff.
+                const rejected = outcome.status === 'rejected';
+                if (!rejected && outcome.value === true) return;
+
+                const reason = rejected
+                  ? outcome.reason instanceof Error
+                    ? outcome.reason.message
+                    : String(outcome.reason)
+                  : 'mail provider did not accept the message';
+
+                logger.error('Lead unlock handoff email was not delivered', {
+                  function: 'handleStripeEvent',
+                  paymentIntentId,
+                  cleanerId: cleaner_id,
+                  sessionId: session.id,
+                }, reason);
+
+                return sendAdminOpsAlert({
+                  title: 'Paid lead handoff email failed',
+                  summary:
+                    'A pro paid the lead-unlock fee but the handoff email did not go out. The contact is still visible in their dashboard under Customers — reach out so they know.',
+                  details: [
+                    { label: 'Payment Intent', value: paymentIntentId },
+                    { label: 'Pro (pros.id)', value: cleaner_id },
+                    { label: 'Quote request', value: quote_request_id },
+                    { label: 'Attempted recipient', value: recipientEmail },
+                    { label: 'Reason', value: reason },
+                  ],
+                });
+              })
+              // Alerting must never throw out of the webhook or block the 200
+              // back to Stripe.
+              .catch((err) =>
+                logger.error('Lead unlock email batch error', { function: 'handleStripeEvent' }, err)
+              );
           } else {
-            logger.warn('Lead unlock: missing pro email or customer contact, skipping handoff email', {
+            const missingField = !recipientEmail
+              ? 'pro email (pros.business_email and users.email are both empty)'
+              : 'customer record on the quote request';
+
+            logger.error('Lead unlock: cannot send handoff email, contact data missing', {
               function: 'handleStripeEvent',
               sessionId: session.id,
               quoteRequestId: quote_request_id,
+              paymentIntentId,
+              cleanerId: cleaner_id,
+              missingField,
             });
+
+            // Fire-and-forget: the payment stands. Alert only, never throw.
+            sendAdminOpsAlert({
+              title: 'Paid lead has no deliverable contact',
+              summary:
+                'A pro paid the lead-unlock fee, but required contact data was missing so no handoff email could be sent. The payment succeeded and stands.',
+              details: [
+                { label: 'Missing', value: missingField },
+                { label: 'Payment Intent', value: paymentIntentId },
+                { label: 'Pro (pros.id)', value: cleaner_id },
+                { label: 'Quote request', value: quote_request_id },
+              ],
+            }).catch((err) =>
+              logger.error('Missing-contact ops alert failed', { function: 'handleStripeEvent' }, err)
+            );
           }
 
           // Internal "new sale" alert to admin@bossofclean.com. Only on a
