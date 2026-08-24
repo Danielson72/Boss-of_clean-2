@@ -44,14 +44,17 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Get subscription details from database
+    // Get subscription details from database.
+    // maybeSingle(): a pro with no subscription row is a normal state (every
+    // pro on the free tier), so zero rows returns null rather than PGRST116.
+    // Consumed below as `subscription?.status`, which already handles null.
     const { data: subscription } = await supabase
       .from('subscriptions')
       .select('*')
       .eq('cleaner_id', cleaner.id)
       .order('created_at', { ascending: false })
       .limit(1)
-      .single();
+      .maybeSingle();
 
     // Get Stripe subscription details if active
     let stripeSubscription = null;
