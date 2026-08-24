@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createServiceRoleClient } from '@/lib/supabase/service-role';
-import { getStripe, getSiteUrl } from '@/lib/stripe/config';
+import { getStripe, getSiteUrl, VENTURE_KEY, VENTURE_BOC } from '@/lib/stripe/config';
 import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger({ file: 'api/leads/[quoteId]/unlock/route' });
@@ -164,6 +164,7 @@ export async function POST(
       cancel_url: `${siteUrl}/dashboard/pro/leads?canceled=${quoteId}`,
       customer_email: user.email ?? undefined,
       metadata: {
+        [VENTURE_KEY]: VENTURE_BOC, // brand marker; nothing reads it yet
         type: 'lead_unlock', // REQUIRED — webhook gate
         quote_request_id: quoteId,
         cleaner_id: pro.id, // = pros.id (webhook trusts this)

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { STRIPE_PRICES, getSiteUrl } from '@/lib/stripe/config'
+import { STRIPE_PRICES, getSiteUrl, VENTURE_KEY, VENTURE_BOC } from '@/lib/stripe/config'
 import { createCheckoutSession } from '@/lib/stripe/mcp'
 import { createLogger } from '@/lib/utils/logger'
 
@@ -67,11 +67,13 @@ export async function POST(request: NextRequest) {
       cancelUrl: `${siteUrl}/pricing`,
       customerEmail: user.email,
       metadata: {
+        [VENTURE_KEY]: VENTURE_BOC,
         user_id: user.id,
         cleaner_id: pro.id,
         plan: plan,
       },
       subscriptionMetadata: isPerLead ? undefined : {
+        [VENTURE_KEY]: VENTURE_BOC,
         user_id: user.id,
         cleaner_id: pro.id,
         tier: plan,

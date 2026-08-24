@@ -27,6 +27,26 @@ export const stripe = new Proxy({} as Stripe, {
   }
 })
 
+/**
+ * Brand marker written into the metadata of every Stripe object this codebase
+ * creates.
+ *
+ * Boss of Clean LLC operates a single Stripe account across several DBA
+ * brands, and Stripe delivers account-wide events to every endpoint
+ * registered on it — so another brand's sessions and invoices arrive at our
+ * webhook routinely. Stamping `venture` at creation time gives each handler a
+ * way to recognize its own events instead of inferring ownership.
+ *
+ * This extends the convention already carried by our Stripe Products, which
+ * are tagged venture: "boc" in the dashboard. Product metadata does not
+ * propagate to sessions or subscriptions, so it has to be set explicitly here.
+ *
+ * Writers only for now: nothing reads this key yet. Guards ship separately,
+ * once every object in flight carries it.
+ */
+export const VENTURE_KEY = 'venture' as const
+export const VENTURE_BOC = 'boc' as const
+
 // Stripe price IDs mapped to tier names (Free/Basic/Pro matching PRD)
 export const STRIPE_PRICES = {
   basic: process.env.STRIPE_BASIC_PRICE_ID || '',

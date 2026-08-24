@@ -1,4 +1,4 @@
-import { stripe, PLAN_DETAILS, type SubscriptionTier } from './config';
+import { stripe, PLAN_DETAILS, VENTURE_KEY, VENTURE_BOC, type SubscriptionTier } from './config';
 import { createServiceRoleClient } from '@/lib/supabase/service-role';
 import { processDunningEvent, resetDunningState } from '@/lib/stripe/dunning';
 import { createLogger } from '../utils/logger';
@@ -60,6 +60,7 @@ export class SubscriptionService {
         success_url: successUrl,
         cancel_url: cancelUrl,
         metadata: {
+          [VENTURE_KEY]: VENTURE_BOC,
           cleaner_id: cleanerId,
           tier: tier,
         },
@@ -70,6 +71,7 @@ export class SubscriptionService {
         },
         subscription_data: {
           metadata: {
+            [VENTURE_KEY]: VENTURE_BOC,
             cleaner_id: cleanerId,
             tier: tier,
           },
