@@ -4,6 +4,7 @@ import { headers } from 'next/headers';
 import { createClient } from '@/lib/supabase/server';
 import { createServiceRoleClient } from '@/lib/supabase/service-role';
 import { sendQuoteConfirmationEmail, sendNewLeadEmail } from '@/lib/email/notifications';
+import { sendAdminOpsAlert } from '@/lib/email/lead-unlock';
 import { notifyProNewLead, sendSMSIfEnabled } from '@/lib/sms/notifications';
 import { checkRateLimit, RATE_LIMITS } from '@/lib/middleware/rate-limit';
 import { createLogger } from '@/lib/utils/logger';
@@ -209,9 +210,51 @@ export async function submitQuoteRequest(
         matchCount: matchedPros.length,
         quoteId: quote.id,
       });
+      // A quote that matched nobody reaches no pro at all — the customer
+      // hears nothing back. Silent until now; alert a human. This fires only
+      // when BOTH the geo match and the all-approved fallback came back empty,
+      // never on a normal fallback that did find pros.
+      if (matchedPros.length === 0) {
+        logger.error('Quote request matched zero pros — nobody was notified', {
+          function: 'submitQuoteRequest',
+          quoteId: quote.id,
+          zipCode: data.zip_code,
+        });
+        // Fire-and-forget: alerting must never fail the quote submission.
+        sendAdminOpsAlert({
+          title: 'Lead reached no pros',
+          summary:
+            'A quote request was created but no approved pro was matched, so nobody was notified. The customer is waiting on a response that will not arrive.',
+          details: [
+            { label: 'Quote request', value: quote.id },
+            { label: 'ZIP', value: data.zip_code },
+            { label: 'Service', value: data.service_type },
+            { label: 'Approved pros matched', value: '0' },
+          ],
+        }).catch((err) =>
+          logger.error('Zero-match ops alert failed', { function: 'submitQuoteRequest' }, err)
+        );
+      }
     } catch (matchErr) {
       logger.error('Error matching pros', { function: 'submitQuoteRequest' }, matchErr);
       // Non-fatal — the quote is already created
+      // Fire-and-forget: alerting must never fail the quote submission.
+      sendAdminOpsAlert({
+        title: 'Pro matcher failed',
+        summary:
+          'The pro matcher threw while selecting pros for a new quote request. The quote was saved, but no pro was notified.',
+        details: [
+          { label: 'Quote request', value: quote.id },
+          { label: 'ZIP', value: data.zip_code },
+          { label: 'Service', value: data.service_type },
+          {
+            label: 'Error',
+            value: matchErr instanceof Error ? matchErr.message : String(matchErr),
+          },
+        ],
+      }).catch((err) =>
+        logger.error('Matcher-failure ops alert failed', { function: 'submitQuoteRequest' }, err)
+      );
     }
 
     // ============================================

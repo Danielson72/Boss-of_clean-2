@@ -132,3 +132,66 @@ export async function sendAdminSaleNotification(
 
   return result.success;
 }
+
+export interface AdminOpsAlertData {
+  /** short subject suffix, e.g. 'Lead reached no pros' */
+  title: string;
+  /** one-line plain-English description of what broke */
+  summary: string;
+  /** label/value rows — ids, zips, error text. Escaped for you. */
+  details: { label: string; value: string | null | undefined }[];
+}
+
+/**
+ * Generate HTML for an internal ops alert.
+ * Same template and escaping contract as the sale alert above.
+ */
+export function generateAdminOpsAlertHtml(data: AdminOpsAlertData): string {
+  const content = `
+    <h2 style="color: #111827; font-size: 24px; margin: 0 0 8px 0;">⚠️ ${escapeHtml(data.title)}</h2>
+    <p style="color: #6b7280; font-size: 16px; margin-bottom: 24px;">
+      ${escapeHtml(data.summary)}
+    </p>
+
+    ${generateInfoBox(
+      data.details.map((d) => ({ label: d.label, value: escapeHtml(d.value ?? 'not available') }))
+    )}
+
+    <p style="color: #9ca3af; font-size: 14px; margin-top: 24px;">
+      Automated ops alert from Boss of Clean. No customer action was taken.
+    </p>
+  `;
+
+  return wrapEmailTemplate(content);
+}
+
+/**
+ * Send an internal ops alert to the Boss of Clean admin inbox.
+ *
+ * Same recipient and sender as sendAdminSaleNotification — no new
+ * notification infrastructure and no new env vars.
+ *
+ * Callers on the money path are strictly fire-and-forget: this resolves
+ * false on failure and never rejects, so an alerting problem can never
+ * fail a payment, a webhook, or a quote submission.
+ */
+export async function sendAdminOpsAlert(data: AdminOpsAlertData): Promise<boolean> {
+  try {
+    logger.info('Sending admin ops alert', {
+      function: 'sendAdminOpsAlert',
+      title: data.title,
+    });
+
+    const result = await sendResendEmail({
+      to: ADMIN_EMAIL,
+      subject: `⚠️ Boss of Clean ops — ${data.title}`,
+      html: generateAdminOpsAlertHtml(data),
+      from: ALERTS_FROM,
+    });
+
+    return result.success;
+  } catch (err) {
+    logger.error('Admin ops alert failed to send', { function: 'sendAdminOpsAlert' }, err);
+    return false;
+  }
+}
