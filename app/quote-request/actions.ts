@@ -210,26 +210,30 @@ export async function submitQuoteRequest(
         matchCount: matchedPros.length,
         quoteId: quote.id,
       });
-      // A quote that matched nobody reaches no pro at all — the customer
-      // hears nothing back. Silent until now; alert a human. This fires only
-      // when BOTH the geo match and the all-approved fallback came back empty,
+      // Reaching zero here is NOT a per-ZIP coverage gap — the fallback above
+      // already broadcasts to every approved pro regardless of ZIP. So this is
+      // only reachable when the platform-wide approved-pro list came back
+      // empty, which means either there are no approved pros at all, or one of
+      // the two reads above failed (both discard their error, so a failed read
+      // is indistinguishable from an empty result here). Either way the quote
+      // reached nobody. Fires only when the fallback also came back empty,
       // never on a normal fallback that did find pros.
       if (matchedPros.length === 0) {
-        logger.error('Quote request matched zero pros — nobody was notified', {
+        logger.error('No approved pros available platform-wide — quote reached nobody', {
           function: 'submitQuoteRequest',
           quoteId: quote.id,
           zipCode: data.zip_code,
         });
         // Fire-and-forget: alerting must never fail the quote submission.
         sendAdminOpsAlert({
-          title: 'Lead reached no pros',
+          title: 'No approved pros available platform-wide',
           summary:
-            'A quote request was created but no approved pro was matched, so nobody was notified. The customer is waiting on a response that will not arrive.',
+            'A quote request was created, but the all-approved pro broadcast returned nobody, so no pro was notified. This is not a ZIP coverage gap — the fallback ignores ZIP. It means the platform currently has no approved pros, or the pro lookup failed. The customer is waiting on a response that will not arrive.',
           details: [
             { label: 'Quote request', value: quote.id },
             { label: 'ZIP', value: data.zip_code },
             { label: 'Service', value: data.service_type },
-            { label: 'Approved pros matched', value: '0' },
+            { label: 'Pros selected', value: '0 (geo match and all-approved fallback both empty)' },
           ],
         }).catch((err) =>
           logger.error('Zero-match ops alert failed', { function: 'submitQuoteRequest' }, err)
