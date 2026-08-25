@@ -1,6 +1,7 @@
 import { stripe, PLAN_DETAILS, VENTURE_KEY, VENTURE_BOC, type SubscriptionTier } from './config';
 import { createServiceRoleClient } from '@/lib/supabase/service-role';
 import { processDunningEvent, resetDunningState } from '@/lib/stripe/dunning';
+import { sendAdminOpsAlert } from '@/lib/email/lead-unlock';
 import { createLogger } from '../utils/logger';
 import type Stripe from 'stripe';
 
@@ -28,6 +29,82 @@ export class SubscriptionService {
     const sub = inv.parent?.subscription_details?.subscription ?? inv.subscription;
     if (!sub) return null;
     return typeof sub === 'string' ? sub : sub.id;
+  }
+
+  /**
+   * Read the venture stamp off the subscription an invoice belongs to.
+   *
+   * Basil exposes the subscription's metadata inline at
+   * invoice.parent.subscription_details.metadata; when that is absent we
+   * retrieve the Subscription itself. A retrieval failure resolves to null
+   * rather than throwing — an unreadable stamp must not fail the webhook.
+   *
+   * Returns null when no stamp could be read, which callers treat as
+   * "undetermined", NOT as "not ours". See handleInvoiceVentureCheck.
+   */
+  private async resolveInvoiceVenture(
+    invoice: Stripe.Invoice,
+    subscriptionId: string
+  ): Promise<string | null> {
+    const inv = invoice as Stripe.Invoice & {
+      parent?: {
+        subscription_details?: { metadata?: Record<string, string> | null } | null;
+      } | null;
+    };
+
+    const inlineVenture = inv.parent?.subscription_details?.metadata?.[VENTURE_KEY];
+    if (inlineVenture) {
+      return inlineVenture;
+    }
+
+    try {
+      const sub = await stripe.subscriptions.retrieve(subscriptionId);
+      return sub.metadata?.[VENTURE_KEY] ?? null;
+    } catch (error) {
+      logger.warn(
+        `Could not retrieve subscription ${subscriptionId} to read its venture stamp`,
+        { function: 'resolveInvoiceVenture', subscriptionId },
+        error
+      );
+      return null;
+    }
+  }
+
+  /**
+   * Ownership decision for invoice events. Deliberately asymmetric:
+   *
+   *   'boc'        -> ours, process
+   *   other value  -> a sibling brand on the shared account, skip
+   *   absent/null  -> UNDETERMINED. Do not skip. Fall through to the
+   *                   subscriptions lookup and let the database decide,
+   *                   exactly as this behaved before the stamp existed.
+   *
+   * The absent case stays permissive because subscriptions created before
+   * the venture writers shipped carry no stamp, and the writer that puts the
+   * stamp on the Subscription object has not yet been seen on a completed
+   * checkout — only on an open session. Rejecting on absence could lock out
+   * our own traffic. Once a Boss of Clean subscription carrying the stamp has
+   * been observed end to end, this can tighten to a strict equality check and
+   * the null branch can start skipping too.
+   *
+   * Returns true when processing should continue.
+   */
+  private shouldProcessInvoice(
+    venture: string | null,
+    subscriptionId: string,
+    fn: string
+  ): boolean {
+    if (venture === VENTURE_BOC) {
+      return true;
+    }
+    if (venture === null || venture === undefined) {
+      return true; // undetermined — let the database lookup decide
+    }
+    logger.info(
+      `Ignoring invoice for subscription ${subscriptionId} from another venture`,
+      { function: fn, subscriptionId, venture }
+    );
+    return false;
   }
 
   async createCheckoutSession(
@@ -125,7 +202,28 @@ export class SubscriptionService {
     return customer;
   }
 
+  /**
+   * Shared Stripe account: subscription events for our sibling brands on
+   * acct_1TNEvGRxaMzY49UQ are delivered to this endpoint too. Returns false
+   * (and logs) when the subscription was not stamped by us.
+   */
+  private isOwnSubscription(subscription: Stripe.Subscription, fn: string): boolean {
+    const venture = subscription.metadata?.[VENTURE_KEY];
+    if (venture === VENTURE_BOC) {
+      return true;
+    }
+    logger.info(
+      `Ignoring subscription ${subscription.id} from another venture`,
+      { function: fn, subscriptionId: subscription.id, venture: venture ?? null }
+    );
+    return false;
+  }
+
   async handleSubscriptionCreated(subscription: Stripe.Subscription) {
+    if (!this.isOwnSubscription(subscription, 'handleSubscriptionCreated')) {
+      return;
+    }
+
     const { customer, id, status, metadata } = subscription;
     const cleanerId = metadata.cleaner_id;
     const tier = metadata.tier as SubscriptionTier;
@@ -199,6 +297,10 @@ export class SubscriptionService {
   }
 
   async handleSubscriptionUpdated(subscription: Stripe.Subscription) {
+    if (!this.isOwnSubscription(subscription, 'handleSubscriptionUpdated')) {
+      return;
+    }
+
     const { id, status, cancel_at } = subscription;
 
     try {
@@ -247,6 +349,10 @@ export class SubscriptionService {
   }
 
   async handleSubscriptionDeleted(subscription: Stripe.Subscription) {
+    if (!this.isOwnSubscription(subscription, 'handleSubscriptionDeleted')) {
+      return;
+    }
+
     const { id } = subscription;
 
     try {
@@ -302,6 +408,11 @@ export class SubscriptionService {
       return;
     }
 
+    const venture = await this.resolveInvoiceVenture(invoice, subscriptionId);
+    if (!this.shouldProcessInvoice(venture, subscriptionId, 'handlePaymentSucceeded')) {
+      return;
+    }
+
     try {
       const supabase = await this.getSupabase();
       // Record successful payment
@@ -319,6 +430,31 @@ export class SubscriptionService {
       }
 
       if (!subscriptionData) {
+        if (venture === VENTURE_BOC) {
+          // Stamped as ours, but we have no row for it. That is our own
+          // subscriber going unrecorded — a real failure, not shared-account
+          // noise. Surface it; the payment itself still stands in Stripe.
+          logger.error(
+            `Subscription ${subscriptionId} is stamped as ours but has no row in subscriptions — payment not recorded`,
+            { function: 'handlePaymentSucceeded', subscriptionId, invoiceId: invoice.id }
+          );
+          // Fire-and-forget: alerting must never throw or block the 200.
+          sendAdminOpsAlert({
+            title: 'Paid subscription has no local record',
+            summary:
+              'An invoice was paid for a Boss of Clean subscription, but no matching row exists in the subscriptions table, so the payment was not recorded. The charge stands in Stripe and needs reconciling by hand.',
+            details: [
+              { label: 'Stripe subscription', value: subscriptionId },
+              { label: 'Invoice', value: invoice.id },
+              { label: 'Amount paid (cents)', value: String(amount_paid ?? '') },
+              { label: 'Currency', value: currency ?? '' },
+            ],
+          }).catch((err) =>
+            logger.error('Missing-subscription ops alert failed', { function: 'handlePaymentSucceeded' }, err)
+          );
+          return;
+        }
+
         logger.info(
           `No Boss of Clean subscription matches ${subscriptionId} — invoice belongs to another brand on the shared Stripe account, ignoring`,
           { function: 'handlePaymentSucceeded', subscriptionId, invoiceId: invoice.id }
@@ -396,6 +532,11 @@ export class SubscriptionService {
     const subscriptionId = this.resolveInvoiceSubscriptionId(invoice);
     if (!subscriptionId) {
       logger.debug('No subscription associated with failed invoice, skipping');
+      return;
+    }
+
+    const venture = await this.resolveInvoiceVenture(invoice, subscriptionId);
+    if (!this.shouldProcessInvoice(venture, subscriptionId, 'handlePaymentFailed')) {
       return;
     }
 

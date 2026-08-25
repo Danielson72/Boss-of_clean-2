@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { headers } from 'next/headers';
-import { getStripe } from '@/lib/stripe/config';
+import { getStripe, VENTURE_KEY, VENTURE_BOC } from '@/lib/stripe/config';
 import { subscriptionService } from '@/lib/stripe/subscription-service';
 import { webhookEventService } from '@/lib/stripe/webhook-event-service';
 import { handleDisputeCreated, handleDisputeClosed } from '@/lib/stripe/disputes';
@@ -59,6 +59,20 @@ async function handleStripeEvent(event: Stripe.Event): Promise<void> {
   switch (event.type) {
     case 'checkout.session.completed': {
       const session = event.data.object as Stripe.Checkout.Session;
+
+      // Shared Stripe account: this event type fans out to every endpoint on
+      // acct_1TNEvGRxaMzY49UQ, so sessions belonging to our sibling brands
+      // arrive here routinely. Act only on sessions we stamped ourselves.
+      const sessionVenture = session.metadata?.[VENTURE_KEY];
+      if (sessionVenture !== VENTURE_BOC) {
+        logger.info('Ignoring checkout session from another venture', {
+          function: 'handleStripeEvent',
+          sessionId: session.id,
+          venture: sessionVenture ?? null,
+        });
+        break;
+      }
+
       if (session.mode === 'subscription') {
         logger.info('Subscription checkout completed', { sessionId: session.id });
         // Subscription will be created via customer.subscription.created event
