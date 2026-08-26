@@ -38,7 +38,7 @@ export default function TermsPage() {
             <p className="text-gray-600 leading-relaxed mb-4">
               These Terms of Service (&ldquo;Terms&rdquo;) are a binding agreement between you and{' '}
               <strong>Boss of Clean LLC</strong>, a Florida limited liability company (Florida
-              Document No. L26000115956), located at 50 Frisco Court, Apopka, FL 32712
+              Document No. L26000115956), located in Orange County, Florida
               (&ldquo;Boss of Clean,&rdquo; &ldquo;we,&rdquo; or &ldquo;us&rdquo;). You must be at
               least 18 years old to use the platform. By accessing or using Boss of Clean, you agree
               to these Terms.
