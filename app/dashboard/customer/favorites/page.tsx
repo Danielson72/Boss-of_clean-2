@@ -126,7 +126,7 @@ export default function CustomerFavoritesPage() {
             {/* Credentials disclaimer — shown only when a saved pro renders a credential label */}
             {favorites.some((favorite) => favorite.pro.insurance_verified) && (
               <p className="mb-6 text-xs text-gray-500 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
-                Information shown is provided by the pro and is not independently verified by Boss of Clean. Please confirm licensing and insurance directly with the pro before hiring.
+                Information shown is provided by the pro and is not independently confirmed by Boss of Clean. Please confirm licensing and insurance directly with the pro before hiring.
               </p>
             )}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
