@@ -243,7 +243,7 @@ export function AuthForm({ mode, role = 'customer' }: AuthFormProps) {
       if (message.includes('Invalid login credentials')) {
         setError('Incorrect email or password. Please try again or use "Forgot password?" to reset.');
       } else if (message.includes('Email not confirmed')) {
-        setError('Your email hasn\'t been verified yet. Please check your inbox for the verification link, or sign up again to resend it.');
+        setError('Your email hasn\'t been confirmed yet. Please check your inbox for the confirmation link, or sign up again to resend it.');
       } else if (
         message.includes('rate') ||
         message.includes('429') ||

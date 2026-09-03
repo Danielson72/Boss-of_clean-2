@@ -33,7 +33,7 @@ export default function EmailConfirmPage() {
 
           if (data.user) {
             setStatus('success');
-            setMessage('Your email has been verified! Redirecting to your dashboard...');
+            setMessage('Your email has been confirmed! Redirecting to your dashboard…');
 
             // Determine role for redirect
             const { data: userData } = await supabase
@@ -62,7 +62,7 @@ export default function EmailConfirmPage() {
         }, 2000);
       } else if (hash.includes('type=recovery')) {
         setStatus('success');
-        setMessage('Password reset link verified. Redirecting...');
+        setMessage('Password reset link confirmed. Redirecting…');
         setTimeout(() => {
           router.push('/auth/reset-password');
         }, 2000);

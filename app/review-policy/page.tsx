@@ -4,9 +4,9 @@ import { generatePageMetadata } from '@/lib/seo/metadata';
 export const metadata = generatePageMetadata({
   title: 'Review Policy',
   description:
-    'Boss of Clean review policy. Reviews come from verified customers only, no pay-for-reviews, content standards, and the Pro dispute process.',
+    'Boss of Clean review policy. Reviews come from customers who booked through Boss of Clean only, no pay-for-reviews, content standards, and the Pro dispute process.',
   path: '/review-policy',
-  keywords: ['review policy', 'verified reviews', 'Boss of Clean reviews'],
+  keywords: ['review policy', 'customer reviews', 'Boss of Clean reviews'],
 });
 
 export default function ReviewPolicyPage() {
@@ -22,7 +22,7 @@ export default function ReviewPolicyPage() {
             Review Policy
           </h1>
           <p className="text-gray-300 text-lg max-w-2xl mx-auto">
-            Reviews on Boss of Clean reflect real, verified service experiences.
+            Reviews on Boss of Clean reflect real service experiences from customers who booked through the platform.
           </p>
           <p className="text-gray-500 text-sm mt-4">Last updated: July 2026</p>
         </div>
@@ -33,7 +33,7 @@ export default function ReviewPolicyPage() {
         <div className="prose prose-lg prose-gray max-w-none">
           <section className="mb-12">
             <p className="text-gray-600 leading-relaxed">
-              Reviews on Boss of Clean must reflect real, verified service experiences.
+              Reviews on Boss of Clean must reflect real service experiences from customers who booked through the platform.
               &ldquo;Purrfection is our Standard&rdquo; only means something if the ratings are
               honest.
             </p>
@@ -63,7 +63,7 @@ export default function ReviewPolicyPage() {
               <li>imported or copied reviews from other sites.</li>
             </ul>
             <p className="text-gray-600 leading-relaxed mt-4">
-              Reviews may display a &ldquo;Verified job&rdquo; indicator only when the underlying
+              Reviews may display a &ldquo;Booked through Boss of Clean&rdquo; indicator only when the underlying
               booking exists on the platform.
             </p>
           </section>
@@ -126,7 +126,7 @@ export default function ReviewPolicyPage() {
             </h2>
             <p className="text-gray-600 leading-relaxed">
               Pros may not threaten, penalize, or refuse warranty service to a customer because of an
-              honest review. Verified retaliation is grounds for suspension.
+              honest review. Confirmed retaliation is grounds for suspension.
             </p>
           </section>
 
