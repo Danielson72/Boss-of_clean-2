@@ -12,6 +12,7 @@ import {
   Gift, ThumbsUp, Loader2
 } from 'lucide-react';
 import Link from 'next/link';
+import { getServiceDisplayName } from '@/lib/data/service-types';
 
 interface QuoteRequest {
   id: string;
@@ -430,12 +431,19 @@ export default function CustomerDashboard() {
                             <div className="flex-1 min-w-0">
                               <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-3">
                                 <h3 className="text-lg font-semibold text-gray-900 break-words">
-                                  {quote.cleaner?.business_name || 'Unknown Business'}
+                                  {quote.cleaner_id && quote.cleaner?.business_name
+                                    ? quote.cleaner.business_name
+                                    : getServiceDisplayName(quote.service_type)}
                                 </h3>
                                 <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm ${getStatusColor(quote.status)}`}>
                                   {getStatusIcon(quote.status)}
                                   {quote.status.charAt(0).toUpperCase() + quote.status.slice(1)}
                                 </span>
+                                {!quote.cleaner_id && quote.status === 'pending' && (
+                                  <p className="w-full text-sm text-gray-600">
+                                    Sent to local pros — waiting for responses
+                                  </p>
+                                )}
                               </div>
 
                               <QuoteStatusTracker
