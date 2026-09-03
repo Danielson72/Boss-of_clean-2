@@ -25,7 +25,7 @@ const TURNOVER_CHECKLIST = [
   { area: 'Bathrooms', items: ['Toilet, tub & shower scrubbed', 'Mirrors & fixtures polished', 'Fresh towels set out', 'Toiletries restocked', 'Floor mopped'] },
   { area: 'Bedrooms', items: ['Fresh linens & made beds', 'Surfaces dusted', 'Closets checked & organized', 'Under-bed check for left items', 'Nightstands wiped'] },
   { area: 'Living Areas', items: ['Floors vacuumed & mopped', 'Surfaces & decor dusted', 'Couch cushions fluffed', 'Remotes & guides placed', 'Windows & sliders cleaned'] },
-  { area: 'Exterior / Entry', items: ['Front door & porch swept', 'Lockbox / smart lock verified', 'Patio furniture wiped', 'Pool area tidied (if applicable)', 'Welcome mat clean'] },
+  { area: 'Exterior / Entry', items: ['Front door & porch swept', 'Lockbox / smart lock checked', 'Patio furniture wiped', 'Pool area tidied (if applicable)', 'Welcome mat clean'] },
 ];
 
 export default function STRTurnoverPage() {
