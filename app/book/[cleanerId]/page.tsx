@@ -300,7 +300,7 @@ export default function BookCleanerPage() {
               {/* Credentials disclaimer — BOC is a neutral marketplace and does not verify pro-provided info */}
               {cleaner.insurance_verified && (
                 <p className="mt-3 text-xs text-gray-500 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
-                  Information shown is provided by the pro and is not independently verified by Boss of Clean. Please confirm licensing and insurance directly with the pro before hiring.
+                  Information shown is provided by the pro and is not independently confirmed by Boss of Clean. Please confirm licensing and insurance directly with the pro before hiring.
                 </p>
               )}
             </div>
