@@ -4,7 +4,7 @@ import { DashboardSidebar, type SidebarLink } from '@/components/dashboard/Dashb
 import {
   LayoutDashboard, User, FileText, Calendar,
   DollarSign, Clock, Images, Star, MapPin, CreditCard, Bell, MessageSquare,
-  ShieldCheck, Lock, Users, Receipt,
+  ShieldCheck, Lock, Users, Receipt, SlidersHorizontal,
 } from 'lucide-react';
 import { usePendingDocumentActions } from '@/lib/hooks/usePendingDocumentActions';
 import { useProSidebarCounts } from '@/lib/hooks/useProSidebarCounts';
@@ -19,6 +19,7 @@ export default function ProDashboardLayout({ children }: { children: React.React
     { href: '/dashboard/pro/profile', label: 'My Profile', icon: User },
     { href: '/dashboard/pro/documents', label: 'Documents', icon: ShieldCheck, badge: rejectedCount },
     { href: '/dashboard/pro/notifications', label: 'Notifications', icon: Bell, badge: unreadNotifications },
+    { href: '/dashboard/pro/notifications/preferences', label: 'Notification Settings', icon: SlidersHorizontal },
     { href: '/dashboard/messages', label: 'Messages', icon: MessageSquare, badge: unreadMessages },
     { href: '/dashboard/pro/quote-requests', label: 'Quote Requests', icon: FileText, badge: pendingLeads },
     { href: '/dashboard/pro/leads', label: 'Action Needed', icon: Lock, badge: actionNeededLeads },
