@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { getServiceDisplayName } from '@/lib/data/service-types';
+import { getAcceptedQuoteProContacts, type AcceptedQuoteProContact } from './actions';
 
 interface QuoteRequest {
   id: string;
@@ -49,6 +50,7 @@ export default function CustomerDashboard() {
   const [quotes, setQuotes] = useState<QuoteRequest[]>([]);
   const [credits, setCredits] = useState<CustomerCredit[]>([]);
   const [confirmedQuotes, setConfirmedQuotes] = useState<Set<string>>(new Set());
+  const [proContacts, setProContacts] = useState<Record<string, AcceptedQuoteProContact>>({});
   const [confirmingHire, setConfirmingHire] = useState<string | null>(null);
   const [acceptingQuote, setAcceptingQuote] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -81,7 +83,18 @@ export default function CustomerDashboard() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setQuotes(data || []);
+      const loaded = data || [];
+      setQuotes(loaded);
+
+      // One batched call for every accepted card — no per-card waterfall.
+      const acceptedIds = loaded
+        .filter((q: QuoteRequest) => q.status === 'accepted')
+        .map((q: QuoteRequest) => q.id);
+      if (acceptedIds.length > 0) {
+        setProContacts(await getAcceptedQuoteProContacts(acceptedIds));
+      } else {
+        setProContacts({});
+      }
     } catch (error) {
       // Error loading quotes - silently fail for client component
     } finally {
@@ -238,9 +251,16 @@ export default function CustomerDashboard() {
       .map((w) => (w ? w.charAt(0).toUpperCase() + w.slice(1).toLowerCase() : w))
       .join(' ');
 
-  const proContact = (quote: QuoteRequest) =>
-    quote.cleaner?.business_phone ||
-    'Ask your pro for contact details in Messages';
+  const proContact = (quote: QuoteRequest) => {
+    const unlocked = proContacts[quote.id];
+    return (
+      unlocked?.businessPhone ||
+      unlocked?.phone ||
+      unlocked?.email ||
+      quote.cleaner?.business_phone ||
+      'Ask your pro for contact details in Messages'
+    );
+  };
 
   const formatTime = (timeString: string | null | undefined) => {
     if (!timeString) return 'Flexible';
