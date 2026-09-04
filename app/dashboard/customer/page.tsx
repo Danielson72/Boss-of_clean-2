@@ -30,7 +30,7 @@ interface QuoteRequest {
   created_at: string;
   cleaner: {
     business_name: string;
-    business_phone: string;
+    business_phone: string | null;
   } | null;
 }
 
@@ -231,6 +231,16 @@ export default function CustomerDashboard() {
       year: 'numeric'
     });
   };
+
+  const toTitleCase = (value: string | null | undefined) =>
+    (value || '')
+      .split(' ')
+      .map((w) => (w ? w.charAt(0).toUpperCase() + w.slice(1).toLowerCase() : w))
+      .join(' ');
+
+  const proContact = (quote: QuoteRequest) =>
+    quote.cleaner?.business_phone ||
+    'Ask your pro for contact details in Messages';
 
   const formatTime = (timeString: string | null | undefined) => {
     if (!timeString) return 'Flexible';
@@ -463,14 +473,14 @@ export default function CustomerDashboard() {
                                   </div>
                                   <div className="flex items-center gap-2">
                                     <MapPin className="h-4 w-4" />
-                                    <span>{quote.city}, {quote.zip_code}</span>
+                                    <span>{toTitleCase(quote.city)}, {quote.zip_code}</span>
                                   </div>
                                 </div>
                                 
                                 <div className="space-y-2">
                                   <div className="flex items-center gap-2">
                                     <Home className="h-4 w-4" />
-                                    <span>Service: {quote.service_type}</span>
+                                    <span>Service: {getServiceDisplayName(quote.service_type)}</span>
                                   </div>
                                   {quote.quoted_price && (
                                     <div className="flex items-center gap-2">
@@ -511,7 +521,7 @@ export default function CustomerDashboard() {
                                 <div className="text-sm space-y-2">
                                   <div className="text-gray-600">
                                     <p className="font-medium">Contact:</p>
-                                    <p>{quote.cleaner?.business_phone || 'N/A'}</p>
+                                    <p>{proContact(quote)}</p>
                                   </div>
                                   {!confirmedQuotes.has(quote.id) ? (
                                     <button
