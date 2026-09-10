@@ -42,18 +42,16 @@ interface QuoteRequest {
   service_type: string;
   service_date: string;
   service_time: string;
-  address: string;
   city: string;
   zip_code: string;
   description: string;
   status: string;
   quoted_price?: number;
   created_at: string;
-  customer: {
-    full_name: string;
-    email: string;
-    phone: string;
-  } | null;
+  // First name only — quote_requests_pro_view never exposes email, phone,
+  // or street address. Full contact is unlocked on /dashboard/pro/customers
+  // after the lead fee is captured (lib/lead-pii.ts).
+  customer_first_name: string | null;
 }
 
 const subscriptionPlans = [
@@ -139,16 +137,13 @@ export default function CleanerDashboard() {
 
       if (!cleanerData) return;
 
+      // Read through the pro-safe view (no customer contact, no address)
+      // instead of the base quote_requests table + users embed.
       const { data, error } = await supabase
-        .from('quote_requests')
-        .select(`
-          *,
-          customer:users!quote_requests_customer_id_fkey(
-            full_name,
-            email,
-            phone
-          )
-        `)
+        .from('quote_requests_pro_view')
+        .select(
+          'id, service_type, service_date, service_time, city, zip_code, description, status, quoted_price, created_at, customer_first_name'
+        )
         .eq('cleaner_id', cleanerData.id)
         .order('created_at', { ascending: false });
 
@@ -542,7 +537,7 @@ export default function CleanerDashboard() {
                             <div className="flex-1">
                               <div className="flex items-center gap-4 mb-3">
                                 <h3 className="text-lg font-semibold text-gray-900">
-                                  {quote.customer?.full_name || 'Customer'}
+                                  {quote.customer_first_name || 'Customer'}
                                 </h3>
                                 <span className={`px-3 py-1 rounded-full text-sm ${
                                   quote.status === 'pending' 
@@ -568,11 +563,12 @@ export default function CleanerDashboard() {
                                 <div className="space-y-2">
                                   <div className="flex items-center gap-2">
                                     <User className="h-4 w-4" />
-                                    <span>{quote.customer?.email || 'N/A'}</span>
-                                  </div>
-                                  <div className="flex items-center gap-2">
-                                    <Phone className="h-4 w-4" />
-                                    <span>{quote.customer?.phone || 'N/A'}</span>
+                                    <span>
+                                      Contact details are available after the customer accepts your quote and your $30 lead payment is captured.{' '}
+                                      <Link href="/dashboard/pro/customers" className="text-blue-600 hover:underline">
+                                        View unlocked leads
+                                      </Link>
+                                    </span>
                                   </div>
                                 </div>
                               </div>
