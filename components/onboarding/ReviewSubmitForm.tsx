@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { StepProps, SERVICE_TYPES, DOCUMENT_TYPES } from './types'
+import { StepProps, SERVICE_TYPES, DOCUMENT_TYPES, OnboardingStep, STEP_LABELS } from './types'
 import { useServiceCategories } from '@/lib/hooks/useServiceCategories'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -22,6 +22,7 @@ export default function ReviewSubmitForm({
   data,
   onChange,
   onBack,
+  onGoToStep,
   onSubmit,
   isSubmitting
 }: ReviewSubmitFormProps) {
@@ -62,13 +63,29 @@ export default function ReviewSubmitForm({
     }
   }
 
+  // Mirrors the submit route: business name/phone/email, primary_category,
+  // and at least one service area are required. Documents and photos are not.
   const completionStatus = {
     business: !!(data.business_name && data.business_phone && data.business_email),
-    services: services.length > 0,
+    services: !!data.primary_category,
     areas: serviceAreas.length > 0,
     documents: documents.length > 0,
     photos: !!(data.profile_image_url || portfolioImages.length > 0)
   }
+
+  const checklist: Array<{
+    key: keyof typeof completionStatus
+    label: string
+    icon: typeof Building2
+    step: OnboardingStep
+    required: boolean
+  }> = [
+    { key: 'business', label: 'Business', icon: Building2, step: OnboardingStep.BUSINESS_INFO, required: true },
+    { key: 'services', label: 'Services', icon: DollarSign, step: OnboardingStep.SERVICES, required: true },
+    { key: 'areas', label: 'Areas', icon: MapPin, step: OnboardingStep.SERVICE_AREAS, required: true },
+    { key: 'documents', label: 'Docs', icon: FileText, step: OnboardingStep.DOCUMENTS, required: false },
+    { key: 'photos', label: 'Photos', icon: Camera, step: OnboardingStep.PHOTOS, required: false }
+  ]
 
   return (
     <div className="space-y-6">
@@ -86,34 +103,43 @@ export default function ReviewSubmitForm({
         </Alert>
       )}
 
-      {/* Completion checklist */}
+      {/* Completion checklist — each chip jumps back to its step */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-        {[
-          { key: 'business', label: 'Business', icon: Building2 },
-          { key: 'services', label: 'Services', icon: DollarSign },
-          { key: 'areas', label: 'Areas', icon: MapPin },
-          { key: 'documents', label: 'Docs', icon: FileText },
-          { key: 'photos', label: 'Photos', icon: Camera }
-        ].map(({ key, label, icon: Icon }) => (
-          <div
-            key={key}
-            className={`p-3 rounded-lg border ${
-              completionStatus[key as keyof typeof completionStatus]
-                ? 'border-green-200 bg-green-50'
-                : 'border-yellow-200 bg-yellow-50'
-            }`}
-          >
-            <div className="flex items-center gap-2">
-              {completionStatus[key as keyof typeof completionStatus] ? (
-                <Check className="h-4 w-4 text-green-600" />
-              ) : (
-                <AlertCircle className="h-4 w-4 text-yellow-600" />
-              )}
-              <Icon className="h-4 w-4 text-gray-500" />
-            </div>
-            <p className="text-xs font-medium mt-1">{label}</p>
-          </div>
-        ))}
+        {checklist.map(({ key, label, icon: Icon, step, required }) => {
+          const done = completionStatus[key]
+          const state = done ? 'complete' : required ? 'incomplete' : 'optional, not added'
+          return (
+            <button
+              key={key}
+              type="button"
+              onClick={() => onGoToStep?.(step)}
+              disabled={!onGoToStep || isSubmitting}
+              aria-label={`${STEP_LABELS[step - 1]}: ${state}. Go to step ${step}`}
+              className={`p-3 rounded-lg border text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-default ${
+                done
+                  ? 'border-green-200 bg-green-50 hover:bg-green-100'
+                  : required
+                  ? 'border-yellow-200 bg-yellow-50 hover:bg-yellow-100'
+                  : 'border-gray-200 bg-gray-50 hover:bg-gray-100'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                {done ? (
+                  <Check className="h-4 w-4 text-green-600" />
+                ) : required ? (
+                  <AlertCircle className="h-4 w-4 text-yellow-600" />
+                ) : (
+                  <Icon className="h-4 w-4 text-gray-400" />
+                )}
+                {(done || required) && <Icon className="h-4 w-4 text-gray-500" />}
+              </div>
+              <p className="text-xs font-medium mt-1">{label}</p>
+              <p className="text-[11px] text-gray-500">
+                {done ? 'Complete' : required ? 'Needs attention' : 'Optional'}
+              </p>
+            </button>
+          )
+        })}
       </div>
 
       {/* Business Info Summary */}

@@ -8,8 +8,35 @@ import dynamic from 'next/dynamic'
 import {
   ProgressIndicator,
   OnboardingStep,
+  STEP_LABELS,
 } from '@/components/onboarding'
 import type { OnboardingData } from '@/components/onboarding'
+
+// Client mirror of the submit route's required checks, keyed by the step that
+// collects each field. Used only to decide where a forward jump may land and
+// how to word the error; the server remains the authority.
+const REQUIRED_FIELD_LABELS: Record<string, string> = {
+  business_name: 'business name',
+  business_phone: 'phone number',
+  business_email: 'email address',
+}
+
+function firstIncompleteRequiredStep(
+  data: Partial<OnboardingData>,
+  before: OnboardingStep
+): OnboardingStep | null {
+  if (before > OnboardingStep.BUSINESS_INFO &&
+      !(data.business_name && data.business_phone && data.business_email)) {
+    return OnboardingStep.BUSINESS_INFO
+  }
+  if (before > OnboardingStep.SERVICES && !data.primary_category) {
+    return OnboardingStep.SERVICES
+  }
+  if (before > OnboardingStep.SERVICE_AREAS && !(data.service_areas && data.service_areas.length > 0)) {
+    return OnboardingStep.SERVICE_AREAS
+  }
+  return null
+}
 
 const StepSkeleton = () => <div className="h-60 bg-gray-100 rounded-lg animate-pulse" />
 
@@ -58,6 +85,8 @@ export default function CleanerOnboardingPage() {
   const [saving, setSaving] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  // Step the current error points at, so the alert can link straight to it.
+  const [errorStep, setErrorStep] = useState<OnboardingStep | null>(null)
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
   const [submitted, setSubmitted] = useState(false)
 
@@ -190,9 +219,33 @@ export default function CleanerOnboardingPage() {
     }
   }
 
+  // Jump to any step. Backward moves are unrestricted. Forward jumps land on the
+  // first required step that is still incomplete, so nothing is skipped.
+  // Like handleBack this does not save: entered data stays in state and is
+  // written by the next Next/Submit or the autosave timer.
+  const goToStep = (target: OnboardingStep) => {
+    if (target === currentStep || target < OnboardingStep.BUSINESS_INFO || target > OnboardingStep.REVIEW) return
+    setError(null)
+    setErrorStep(null)
+    if (target > currentStep) {
+      const blocker = firstIncompleteRequiredStep(data, target)
+      if (blocker !== null && blocker !== currentStep) {
+        setError(`Finish ${STEP_LABELS[blocker - 1]} before moving ahead.`)
+        setCurrentStep(blocker)
+        return
+      }
+      if (blocker === currentStep) {
+        setError(`Finish ${STEP_LABELS[currentStep - 1]} before moving ahead.`)
+        return
+      }
+    }
+    setCurrentStep(target)
+  }
+
   const handleSubmit = async () => {
     setSubmitting(true)
     setError(null)
+    setErrorStep(null)
 
     try {
       await saveDraft(data, OnboardingStep.REVIEW)
@@ -203,8 +256,20 @@ export default function CleanerOnboardingPage() {
       })
 
       if (!response.ok) {
-        const result = await response.json()
-        throw new Error(result.error || 'Failed to submit')
+        const result: { error?: string; missing?: string[] } = await response.json()
+        // Map the server's validation result to the step that fixes it.
+        if (Array.isArray(result.missing) && result.missing.length > 0) {
+          const names = result.missing.map((f) => REQUIRED_FIELD_LABELS[f] || f).join(', ')
+          setErrorStep(OnboardingStep.BUSINESS_INFO)
+          throw new Error(`${STEP_LABELS[OnboardingStep.BUSINESS_INFO - 1]} is missing: ${names}.`)
+        }
+        const serverError = result.error || 'Failed to submit'
+        if (/primary service category/i.test(serverError)) {
+          setErrorStep(OnboardingStep.SERVICES)
+        } else if (/service area/i.test(serverError)) {
+          setErrorStep(OnboardingStep.SERVICE_AREAS)
+        }
+        throw new Error(serverError)
       }
 
       setSubmitted(true)
@@ -293,13 +358,28 @@ export default function CleanerOnboardingPage() {
             <ProgressIndicator
               currentStep={currentStep}
               completedSteps={completedSteps}
+              onGoToStep={goToStep}
             />
           </div>
 
           {error && (
             <Alert variant="destructive" className="mb-6">
               <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{error}</AlertDescription>
+              <AlertDescription>
+                {error}
+                {errorStep !== null && errorStep !== currentStep && (
+                  <>
+                    {' '}
+                    <button
+                      type="button"
+                      onClick={() => goToStep(errorStep)}
+                      className="font-semibold underline underline-offset-2 hover:no-underline"
+                    >
+                      Go to {STEP_LABELS[errorStep - 1]}
+                    </button>
+                  </>
+                )}
+              </AlertDescription>
             </Alert>
           )}
 
@@ -353,6 +433,7 @@ export default function CleanerOnboardingPage() {
                 data={data}
                 onChange={handleDataChange}
                 onBack={handleBack}
+                onGoToStep={goToStep}
                 onNext={() => {}}
                 onSubmit={handleSubmit}
                 isSubmitting={submitting}
