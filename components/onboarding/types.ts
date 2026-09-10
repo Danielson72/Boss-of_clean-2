@@ -58,6 +58,8 @@ export interface StepProps {
   onChange: (data: Partial<OnboardingData>) => void
   onNext: () => void
   onBack?: () => void
+  /** Jump to any wizard step (used by Review & Submit chips and the progress bar). */
+  onGoToStep?: (step: OnboardingStep) => void
   isSubmitting?: boolean
 }
 
