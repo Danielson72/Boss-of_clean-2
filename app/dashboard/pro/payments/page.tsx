@@ -168,6 +168,16 @@ export default function PaymentHistoryPage() {
                           </span>
                         </div>
                       )}
+                      {p.receipt_url && (
+                        <a
+                          href={p.receipt_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-block text-brand-dark underline hover:no-underline"
+                        >
+                          View receipt
+                        </a>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -179,7 +189,7 @@ export default function PaymentHistoryPage() {
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                       <tr>
-                        {['Date', 'Description', 'Lead', 'Amount', 'Status'].map((h) => (
+                        {['Date', 'Description', 'Lead', 'Amount', 'Status', 'Receipt'].map((h) => (
                           <th key={h} className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             {h}
                           </th>
@@ -199,6 +209,20 @@ export default function PaymentHistoryPage() {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <StatusBadge status={p.status} />
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm">
+                            {p.receipt_url ? (
+                              <a
+                                href={p.receipt_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-brand-dark underline hover:no-underline"
+                              >
+                                View
+                              </a>
+                            ) : (
+                              <span className="text-gray-400">—</span>
+                            )}
                           </td>
                         </tr>
                       ))}
