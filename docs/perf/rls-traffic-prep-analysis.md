@@ -112,3 +112,31 @@ NO insert/update on messages, only SELECT of reported ones — not widened)
   this branch clears the 6 highest-traffic tables).
 - 84 unused_index findings — review after launch traffic, not before.
 - auth_db_connections_absolute — pooler sizing, ops decision.
+
+## Phase 2 (DLD-572) — remaining permissive-policy collisions
+
+Live pg_policies re-pull 2026-07-10 (post-PR#79): 15 tables still had >1
+permissive policy per (role, command). Draft migration
+`20260710230000_perf_policy_consolidation_phase2.sql` consolidates them with
+the same §C OR-merge; service_role ALL (qual `true`) policies untouched.
+
+| Table | Collisions merged |
+|---|---|
+| booking_history | admin ALL folded → per-command; SELECT×3, UPDATE×3, INSERT×2 |
+| booking_transactions | SELECT×3 → 1 |
+| bookings | svc-qual ALL folded → per-command; SELECT×3, UPDATE×3, INSERT×2 |
+| cleaner_blocked_dates | ALL×2 → 1 |
+| cleaner_documents | SELECT×2 → 1 |
+| customer_credits | SELECT×2 → 1 |
+| disputes | SELECT×2 → 1 |
+| hire_confirmations | SELECT×3 → 1 |
+| lead_acceptances | SELECT×2 → 1 |
+| lead_distributions | admin ALL folded; SELECT×3 → 1 (+admin write per-command) |
+| message_attachments | admin ALL folded; SELECT×3 → 1, INSERT×2 → 1 |
+| pii_filter_log | duplicate admin SELECT dropped |
+| pro_categories | admin ALL folded; SELECT×3, INSERT/UPDATE/DELETE×2 each |
+| service_areas | ALL×2 + public SELECT(true) → per-command; SELECT merges to `true` |
+| service_categories | admin ALL folded; SELECT×2 → 1 |
+
+Still parked: 84 unused_index (review after real traffic),
+auth_db_connections_absolute (pooler sizing).
