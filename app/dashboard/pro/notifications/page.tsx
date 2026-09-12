@@ -8,9 +8,10 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import {
   Bell, CheckCircle, XCircle, AlertCircle, Info,
-  Loader2, CheckCheck
+  Loader2, CheckCheck, SlidersHorizontal
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 
 interface Notification {
   id: string
@@ -120,6 +121,15 @@ export default function NotificationsPage() {
 
   return (
     <div className="container mx-auto px-3 py-4 md:p-6 max-w-3xl">
+      <div className="mb-4">
+        <Link
+          href="/dashboard/pro/notifications/preferences"
+          className="inline-flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-700"
+        >
+          <SlidersHorizontal className="h-4 w-4" />
+          Manage preferences
+        </Link>
+      </div>
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold">Notifications</h1>
