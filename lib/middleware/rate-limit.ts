@@ -1,4 +1,6 @@
+import 'server-only';
 import { NextRequest, NextResponse } from 'next/server';
+import { createServiceRoleClient } from '@/lib/supabase/service-role';
 
 interface RateLimitConfig {
   /** Maximum number of requests allowed in the window */
@@ -24,7 +26,7 @@ export const RATE_LIMITS = {
 
 // ---------------------------------------------------------------------------
 // Supabase RPC call — single atomic DB round-trip
-// Uses direct fetch() so it works in both Node and Edge runtimes.
+// Service-role client is used only in server routes, actions and Edge middleware.
 // ---------------------------------------------------------------------------
 
 interface RpcResult {
@@ -38,38 +40,19 @@ async function checkLimitViaRpc(
   endpoint: string,
   config: RateLimitConfig,
 ): Promise<RpcResult> {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  if (!url || !key) {
-    // Missing env vars — fail open so users aren't blocked
-    return { allowed: true, retryAfter: 0, requestCount: 0 };
-  }
-
   try {
-    const res = await fetch(`${url}/rest/v1/rpc/check_rate_limit`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        apikey: key,
-        Authorization: `Bearer ${key}`,
-      },
-      body: JSON.stringify({
-        p_identifier: identifier,
-        p_endpoint: endpoint,
-        p_max_requests: config.maxRequests,
-        p_window_seconds: config.windowSeconds,
-      }),
-      // Prevent caching of rate-limit checks
-      cache: 'no-store',
+    const { data, error } = await createServiceRoleClient().rpc('check_rate_limit', {
+      p_identifier: identifier,
+      p_endpoint: endpoint,
+      p_max_requests: config.maxRequests,
+      p_window_seconds: config.windowSeconds,
     });
 
-    if (!res.ok) {
-      // RPC failure — fail open
+    if (error || !data) {
+      // Preserve the existing fail-open policy on RPC failure.
       return { allowed: true, retryAfter: 0, requestCount: 0 };
     }
 
-    const data = await res.json();
     return {
       allowed: data.allowed,
       retryAfter: data.retry_after_seconds || 0,

@@ -32,12 +32,6 @@ export async function middleware(request: NextRequest) {
     if (blocked) return blocked
   }
 
-  if (pathname === '/api/quote' && request.method === 'POST') {
-    const ip = getClientIp(request)
-    const blocked = await rateLimitMiddleware(request, 'quote-ip', ip, RATE_LIMITS.quoteRequest)
-    if (blocked) return blocked
-  }
-
   let response = NextResponse.next({
     request: {
       headers: request.headers,

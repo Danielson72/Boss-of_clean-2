@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createServiceRoleClient } from '@/lib/supabase/service-role';
 import { STRIPE_PRICES, getSiteUrl, getStripe } from '@/lib/stripe/config';
 import { createLogger } from '@/lib/utils/logger';
 
@@ -85,11 +86,18 @@ export async function POST(request: NextRequest) {
             }
           );
 
-          // Update cleaner tier in database
-          await supabase
+          // TODO (recon BLOCKER-2): reconcile tier updates in the Stripe webhook.
+          const { data: updatedPro, error: tierError } = await createServiceRoleClient()
             .from('pros')
             .update({ subscription_tier: planId })
-            .eq('id', cleaner.id);
+            .eq('id', cleaner.id)
+            .eq('user_id', user.id)
+            .select('id')
+            .single();
+          if (tierError || !updatedPro) {
+            logger.error('Failed to save subscription tier', { function: 'POST' }, tierError);
+            return NextResponse.json({ error: 'Failed to process upgrade' }, { status: 500 });
+          }
 
           return NextResponse.json({
             success: true,
@@ -98,7 +106,8 @@ export async function POST(request: NextRequest) {
           });
         }
       } catch (subError) {
-        logger.error('Error updating subscription, creating new checkout', { function: 'POST' }, subError);
+        logger.error('Error updating subscription', { function: 'POST' }, subError);
+        return NextResponse.json({ error: 'Failed to process upgrade' }, { status: 500 });
       }
     }
 
@@ -117,10 +126,16 @@ export async function POST(request: NextRequest) {
       customerId = customer.id;
 
       // Update cleaner with customer ID
-      await supabase
+      const { data: updatedPro, error: customerError } = await supabase
         .from('pros')
         .update({ stripe_customer_id: customerId })
-        .eq('id', cleaner.id);
+        .eq('id', cleaner.id)
+        .select('id')
+        .single();
+      if (customerError || !updatedPro) {
+        logger.error('Failed to save billing customer', { function: 'POST' }, customerError);
+        return NextResponse.json({ error: 'Failed to process upgrade' }, { status: 500 });
+      }
     }
 
     const session = await stripe.checkout.sessions.create({

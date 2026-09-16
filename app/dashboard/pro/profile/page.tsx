@@ -111,8 +111,6 @@ export default function CleanerProfilePage() {
           hourly_rate: 25,
           minimum_hours: 2,
           years_experience: 1,
-          insurance_verified: false,
-          license_verified: false,
           business_images: [],
           approval_status: 'pending'
         };

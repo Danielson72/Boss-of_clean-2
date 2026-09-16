@@ -53,7 +53,6 @@ export default function CleanerSetupPage() {
     minimum_hours: '2',
     years_experience: '',
     employees_count: '1',
-    insurance_verified: false,
     license_number: '',
     instant_booking: false,
   });
@@ -152,7 +151,6 @@ export default function CleanerSetupPage() {
           minimum_hours: parseInt(formData.minimum_hours) || 2,
           years_experience: parseInt(formData.years_experience) || 0,
           employees_count: parseInt(formData.employees_count) || 1,
-          insurance_verified: formData.insurance_verified,
           license_number: formData.license_number || null,
           instant_booking: formData.instant_booking,
           approval_status: 'pending'
@@ -452,17 +450,6 @@ export default function CleanerSetupPage() {
                   <label className="flex items-center">
                     <input
                       type="checkbox"
-                      name="insurance_verified"
-                      checked={formData.insurance_verified}
-                      onChange={handleChange}
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                    />
-                    <span className="ml-2 text-gray-700">I have liability insurance</span>
-                  </label>
-
-                  <label className="flex items-center">
-                    <input
-                      type="checkbox"
                       name="instant_booking"
                       checked={formData.instant_booking}
                       onChange={handleChange}
@@ -472,20 +459,18 @@ export default function CleanerSetupPage() {
                   </label>
                 </div>
 
-                {formData.insurance_verified && (
-                  <div className="mt-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      License Number (Optional)
-                    </label>
-                    <input
-                      type="text"
-                      name="license_number"
-                      value={formData.license_number}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
-                )}
+                <div className="mt-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    License Number (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    name="license_number"
+                    value={formData.license_number}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
               </div>
 
               {/* SMS consent — separate, opt-in, not a condition of signing up */}
