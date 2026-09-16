@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/context/AuthContext';
 import { ProtectedRoute } from '@/lib/auth/protected-route';
+import { createClient } from '@/lib/supabase/client';
 import {
   ArrowLeft,
   FileText,
@@ -56,8 +57,27 @@ export default function QuoteRequestsPage() {
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   useEffect(() => {
-    if (user) loadQuotes();
+    if (user) {
+      loadQuotes();
+      markNewLeadNotificationsRead(user.id);
+    }
   }, [user]);
+
+  // Opening this page is "seeing" the new leads: clear unread new_lead rows so
+  // the sidebar "New" indicator and bell count drop. Own rows only (RLS
+  // "Users can update own notifications"). Failure is non-fatal.
+  const markNewLeadNotificationsRead = async (userId: string) => {
+    const supabase = createClient();
+    const { error } = await supabase
+      .from('notifications')
+      .update({ read: true })
+      .eq('user_id', userId)
+      .eq('type', 'new_lead')
+      .eq('read', false);
+    if (error) {
+      console.error('[quote-requests] mark new_lead read error:', error.message);
+    }
+  };
 
   const loadQuotes = async () => {
     try {

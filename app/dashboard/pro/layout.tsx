@@ -12,7 +12,7 @@ import { useProSidebarCounts } from '@/lib/hooks/useProSidebarCounts';
 export default function ProDashboardLayout({ children }: { children: React.ReactNode }) {
   const { rejectedCount } = usePendingDocumentActions();
   // DLD-507: unread badges on Messages, Notifications, and Leads.
-  const { unreadMessages, unreadNotifications, pendingLeads, actionNeededLeads } = useProSidebarCounts();
+  const { unreadMessages, unreadNotifications, hasUnreadNewLead, pendingLeads, actionNeededLeads } = useProSidebarCounts();
 
   const proLinks: SidebarLink[] = [
     { href: '/dashboard/pro', label: 'Overview', icon: LayoutDashboard },
@@ -20,7 +20,9 @@ export default function ProDashboardLayout({ children }: { children: React.React
     { href: '/dashboard/pro/documents', label: 'Documents', icon: ShieldCheck, badge: rejectedCount },
     { href: '/dashboard/pro/notifications', label: 'Notifications', icon: Bell, badge: unreadNotifications },
     { href: '/dashboard/messages', label: 'Messages', icon: MessageSquare, badge: unreadMessages },
-    { href: '/dashboard/pro/quote-requests', label: 'Quote Requests', icon: FileText, badge: pendingLeads },
+    // Marketplace leads have cleaner_id = NULL, so pendingLeads (assigned-only)
+    // is 0 for them; the unread new_lead notification is what flags a new lead.
+    { href: '/dashboard/pro/quote-requests', label: 'Quote Requests', icon: FileText, badge: pendingLeads, dot: hasUnreadNewLead },
     { href: '/dashboard/pro/leads', label: 'Action Needed', icon: Lock, badge: actionNeededLeads },
     { href: '/dashboard/pro/customers', label: 'My Customers', icon: Users },
     { href: '/dashboard/pro/bookings', label: 'Bookings', icon: Calendar },

@@ -3,43 +3,24 @@
 import { headers } from 'next/headers';
 import { createClient } from '@/lib/supabase/server';
 import { createServiceRoleClient } from '@/lib/supabase/service-role';
-import { sendQuoteConfirmationEmail, sendNewLeadEmail } from '@/lib/email/notifications';
+import { sendQuoteConfirmationEmail, sendNewLeadEmailWithResult } from '@/lib/email/notifications';
 import { sendAdminOpsAlert } from '@/lib/email/lead-unlock';
 import { notifyProNewLead, sendSMSIfEnabled } from '@/lib/sms/notifications';
 import { checkRateLimit, RATE_LIMITS } from '@/lib/middleware/rate-limit';
-import { createLogger } from '@/lib/utils/logger';
+import { submitQuoteRequestCore, type QuoteRequestData, type QuoteRequestResult } from './submit-core';
 
-const logger = createLogger({ file: 'quote-request/actions' });
-
-export interface QuoteRequestData {
-  service_type: string;
-  property_type: 'home' | 'condo' | 'apartment' | 'vacation_rental' | 'office' | 'other';
-  sqft_estimate?: number;
-  bedrooms?: number;
-  bathrooms?: number;
-  zip_code: string;
-  city?: string;
-  preferred_date?: string;
-  flexibility?: 'exact' | 'flexible' | 'asap';
-  notes?: string;
-  is_commercial?: boolean;
-  tcpa_user_agent?: string;
-}
-
-export interface QuoteRequestResult {
-  success: boolean;
-  quoteId?: string;
-  matchCount?: number;
-  error?: string;
-}
+export type { QuoteRequestData, QuoteRequestResult } from './submit-core';
 
 /**
  * Submit an authenticated marketplace quote request.
  * Customer identity is resolved from the session — contact info is NEVER trusted from the body.
  * 1. Inserts into quote_requests with customer_id (cleaner_id = NULL, no contact_* PII denormalized)
  * 2. Finds approved pros who serve that zip code (service-role for cross-customer match)
- * 3. Sends email + in-app notification to each matched pro
+ * 3. Sends email + in-app notification to each matched pro, logged in notification_logs
  * 4. Sends confirmation email to the customer (email pulled from users row at send time)
+ *
+ * The body lives in ./submit-core.ts with all effects injected; this wrapper
+ * supplies the real Next/Supabase/Resend dependencies.
  */
 export async function submitQuoteRequest(
   data: QuoteRequestData
@@ -59,270 +40,20 @@ export async function submitQuoteRequest(
   // Auth-scoped client (cookie-based) — required so RLS binds to the customer
   const supabase = await createClient();
 
-  // Service-role client for cross-customer reads (matching pros to a zip code).
-  // Never used to write customer-identifying data.
+  // Service-role client for cross-customer reads (matching pros to a zip code)
+  // and cross-user writes (notifications, notification_logs).
   const adminSupabase = createServiceRoleClient();
 
-  try {
-    // Resolve the customer from the session — never trust the request body for PII
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
-      return { success: false, error: 'You must be signed in to request a quote.' };
-    }
-
-    // Pull canonical contact info from the users table (read-time JOIN target,
-    // never denormalized into the quote row)
-    const { data: customer, error: customerError } = await supabase
-      .from('users')
-      .select('id, full_name, email')
-      .eq('id', user.id)
-      .single();
-
-    if (customerError || !customer?.email) {
-      logger.error('Failed to resolve customer for quote request', { function: 'submitQuoteRequest', userId: user.id }, customerError);
-      return { success: false, error: 'Could not resolve your account info. Please refresh and try again.' };
-    }
-
-    // Validate required fields (no contact_* required — those come from the session)
-    if (!data.service_type || !data.zip_code) {
-      return { success: false, error: 'Missing required fields' };
-    }
-
-    // Validate zip code format
-    const zipRegex = /^\d{5}(-\d{4})?$/;
-    if (!zipRegex.test(data.zip_code)) {
-      return { success: false, error: 'Invalid zip code format' };
-    }
-
-    // Build property size string
-    let propertySize: string | null = null;
-    if (data.sqft_estimate) {
-      propertySize = `${data.sqft_estimate} sqft`;
-    }
-
-    // Build description from details
-    const descriptionParts: string[] = [];
-    if (data.bedrooms) descriptionParts.push(`${data.bedrooms} bedrooms`);
-    if (data.bathrooms) descriptionParts.push(`${data.bathrooms} bathrooms`);
-    if (data.flexibility && data.flexibility !== 'flexible') {
-      descriptionParts.push(`Scheduling: ${data.flexibility}`);
-    }
-    if (data.notes) descriptionParts.push(data.notes);
-    const description = descriptionParts.length > 0 ? descriptionParts.join(' | ') : null;
-
-    // ============================================
-    // STEP 1: Insert marketplace lead (cleaner_id = NULL, no contact_* PII)
-    // ============================================
-    // RLS policy quote_requests_customers_insert_own enforces customer_id = auth.uid().
-    const now = new Date().toISOString();
-    const { data: quote, error: insertError } = await supabase
-      .from('quote_requests')
-      .insert({
-        customer_id: user.id,
-        service_type: data.service_type,
-        property_type: data.property_type || 'home',
-        property_size: propertySize,
-        zip_code: data.zip_code,
-        city: data.city || '',
-        description,
-        service_date: data.preferred_date || null,
-        address: '',
-        status: 'pending',
-        is_commercial: data.is_commercial === true,
-        tcpa_consent_at: now,
-        tcpa_consent_ip: ip,
-        tcpa_consent_ua: data.tcpa_user_agent ? data.tcpa_user_agent.slice(0, 512) : null,
-      })
-      .select('id')
-      .single();
-
-    if (insertError) {
-      logger.error('Error inserting quote request', { function: 'submitQuoteRequest' }, insertError);
-      return { success: false, error: 'Failed to submit quote request' };
-    }
-
-    logger.info('Quote request created', { function: 'submitQuoteRequest', quoteId: quote.id });
-
-    // ============================================
-    // STEP 2: Find matching approved pros
-    // ============================================
-    // Match by: approved pros whose pros.service_areas array covers this zip.
-    // DLD-599: pros.service_areas text[] is the canonical store. The former
-    // public.service_areas table is retired — it never had a writer, so this
-    // query always returned zero rows and every broadcast silently fell
-    // through to the all-approved fallback below.
-    let matchedPros: { cleaner_id: string; user_id: string; email: string; business_name: string; business_phone: string | null }[] = [];
-    let matchStrategy: 'geo' | 'fallback' = 'geo';
-
-    try {
-      // Primary match: pros.service_areas (service-role: cross-customer read).
-      // Uses the idx_cleaners_service_areas_gin GIN index on pros.service_areas.
-      const { data: areaMatches } = await adminSupabase
-        .from('pros')
-        .select('id, business_name, user_id, business_phone, user:users!inner(email)')
-        .contains('service_areas', [data.zip_code])
-        .eq('approval_status', 'approved');
-
-      if (areaMatches && areaMatches.length > 0) {
-        matchedPros = areaMatches.map((c) => {
-          const user = c.user as Record<string, unknown>;
-          return {
-            cleaner_id: c.id as string,
-            user_id: c.user_id as string,
-            email: user.email as string,
-            business_name: c.business_name as string,
-            business_phone: (c.business_phone as string) ?? null,
-          };
-        });
-      }
-
-      // Fallback: no pro covers this zip — broadcast to all approved pros.
-      // (early stage — coverage is sparse, so a geo miss must not mean the
-      // customer hears from nobody). Retire this once the geo/fallback ratio
-      // logged below shows coverage is dense enough.
-      if (matchedPros.length === 0) {
-        matchStrategy = 'fallback';
-        const { data: allApproved } = await adminSupabase
-          .from('pros')
-          .select('id, business_name, user_id, business_phone, user:users!inner(email)')
-          .eq('approval_status', 'approved');
-
-        if (allApproved && allApproved.length > 0) {
-          matchedPros = allApproved.map((c) => {
-            const user = c.user as Record<string, unknown>;
-            return {
-              cleaner_id: c.id,
-              user_id: c.user_id,
-              email: user.email as string,
-              business_name: c.business_name,
-              business_phone: (c.business_phone as string) ?? null,
-            };
-          });
-        }
-      }
-
-      // matchStrategy distinguishes a real geo match from a blind all-approved
-      // broadcast. Track the ratio to decide when the fallback can be retired.
-      logger.info('Pro matching complete', {
-        function: 'submitQuoteRequest',
-        matchStrategy,
-        zipCode: data.zip_code,
-        matchCount: matchedPros.length,
-        quoteId: quote.id,
-      });
-      // Reaching zero here is NOT a per-ZIP coverage gap — the fallback above
-      // already broadcasts to every approved pro regardless of ZIP. So this is
-      // only reachable when the platform-wide approved-pro list came back
-      // empty, which means either there are no approved pros at all, or one of
-      // the two reads above failed (both discard their error, so a failed read
-      // is indistinguishable from an empty result here). Either way the quote
-      // reached nobody. Fires only when the fallback also came back empty,
-      // never on a normal fallback that did find pros.
-      if (matchedPros.length === 0) {
-        logger.error('No approved pros available platform-wide — quote reached nobody', {
-          function: 'submitQuoteRequest',
-          quoteId: quote.id,
-          zipCode: data.zip_code,
-        });
-        // Fire-and-forget: alerting must never fail the quote submission.
-        sendAdminOpsAlert({
-          title: 'No approved pros available platform-wide',
-          summary:
-            'A quote request was created, but the all-approved pro broadcast returned nobody, so no pro was notified. This is not a ZIP coverage gap — the fallback ignores ZIP. It means the platform currently has no approved pros, or the pro lookup failed. The customer is waiting on a response that will not arrive.',
-          details: [
-            { label: 'Quote request', value: quote.id },
-            { label: 'ZIP', value: data.zip_code },
-            { label: 'Service', value: data.service_type },
-            { label: 'Pros selected', value: '0 (geo match and all-approved fallback both empty)' },
-          ],
-        }).catch((err) =>
-          logger.error('Zero-match ops alert failed', { function: 'submitQuoteRequest' }, err)
-        );
-      }
-    } catch (matchErr) {
-      logger.error('Error matching pros', { function: 'submitQuoteRequest' }, matchErr);
-      // Non-fatal — the quote is already created
-      // Fire-and-forget: alerting must never fail the quote submission.
-      sendAdminOpsAlert({
-        title: 'Pro matcher failed',
-        summary:
-          'The pro matcher threw while selecting pros for a new quote request. The quote was saved, but no pro was notified.',
-        details: [
-          { label: 'Quote request', value: quote.id },
-          { label: 'ZIP', value: data.zip_code },
-          { label: 'Service', value: data.service_type },
-          {
-            label: 'Error',
-            value: matchErr instanceof Error ? matchErr.message : String(matchErr),
-          },
-        ],
-      }).catch((err) =>
-        logger.error('Matcher-failure ops alert failed', { function: 'submitQuoteRequest' }, err)
-      );
-    }
-
-    // ============================================
-    // STEP 3: Notify matched pros (email + in-app)
-    // ============================================
-    const location = data.city ? `${data.city}, ${data.zip_code}` : data.zip_code;
-
-    for (const pro of matchedPros) {
-      // In-app notification (service-role: writing to a different user's notifications row)
-      try {
-        await adminSupabase.from('notifications').insert({
-          user_id: pro.user_id,
-          type: 'new_lead',
-          title: 'New Quote Request!',
-          message: `A customer in ${location} is looking for ${data.service_type.replace(/_/g, ' ')} service.`,
-          action_url: '/dashboard/pro/quote-requests',
-        });
-      } catch (notifErr) {
-        logger.error('Failed to create pro notification', { function: 'submitQuoteRequest', userId: pro.user_id }, notifErr);
-      }
-
-      // Email notification (fire-and-forget)
-      sendNewLeadEmail({
-        to: pro.email,
-        businessName: pro.business_name,
-        serviceType: data.service_type,
-        zipCode: data.zip_code,
-        preferredDate: data.preferred_date,
-        leadId: quote.id,
-      }).catch((err) =>
-        logger.error('Failed to send pro email', { function: 'submitQuoteRequest', email: pro.email }, err)
-      );
-
-      // SMS notification (consent-gated, fire-and-forget). Routes through the
-      // #89 consent gate inside notifyProNewLead — no consent record → no text,
-      // just email + in-app. Customer name is withheld pre-acceptance (PII).
-      if (pro.business_phone) {
-        sendSMSIfEnabled(() =>
-          notifyProNewLead(pro.user_id, pro.business_phone as string, 'A customer', data.service_type, data.zip_code)
-        ).catch((err) =>
-          logger.error('Pro new-lead SMS error', { function: 'submitQuoteRequest', userId: pro.user_id }, err)
-        );
-      }
-    }
-
-    // ============================================
-    // STEP 4: Send confirmation email to customer (info pulled from session, not body)
-    // ============================================
-    sendQuoteConfirmationEmail({
-      to: customer.email,
-      customerName: customer.full_name || 'Customer',
-      quoteId: quote.id,
-      matchCount: matchedPros.length,
-    }).catch((err) =>
-      logger.error('Error sending confirmation email', { function: 'submitQuoteRequest' }, err)
-    );
-
-    return {
-      success: true,
-      quoteId: quote.id,
-      matchCount: matchedPros.length,
-    };
-  } catch (error) {
-    logger.error('Error in submitQuoteRequest', { function: 'submitQuoteRequest' }, error);
-    return { success: false, error: 'An unexpected error occurred' };
-  }
+  return submitQuoteRequestCore(data, {
+    ip,
+    supabase,
+    adminSupabase,
+    sendNewLeadEmail: sendNewLeadEmailWithResult,
+    sendQuoteConfirmationEmail,
+    sendAdminOpsAlert,
+    notifyProBySms: (pro, lead) =>
+      sendSMSIfEnabled(() =>
+        notifyProNewLead(pro.user_id, pro.business_phone as string, 'A customer', lead.serviceType, lead.zipCode)
+      ),
+  });
 }

@@ -6,6 +6,8 @@ import { createClient } from '@/lib/supabase/client';
 interface UseProSidebarCountsResult {
   unreadMessages: number;
   unreadNotifications: number;
+  /** True when at least one unread `new_lead` notification exists — drives the "New" dot on Quote Requests. */
+  hasUnreadNewLead: boolean;
   pendingLeads: number;
   actionNeededLeads: number;
   isLoading: boolean;
@@ -36,6 +38,7 @@ const POLL_INTERVAL_MS = 30_000;
 export function useProSidebarCounts(): UseProSidebarCountsResult {
   const [unreadMessages, setUnreadMessages] = useState(0);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
+  const [hasUnreadNewLead, setHasUnreadNewLead] = useState(false);
   const [pendingLeads, setPendingLeads] = useState(0);
   const [actionNeededLeads, setActionNeededLeads] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
@@ -55,6 +58,7 @@ export function useProSidebarCounts(): UseProSidebarCountsResult {
         if (!user) {
           setUnreadMessages(0);
           setUnreadNotifications(0);
+          setHasUnreadNewLead(false);
           setPendingLeads(0);
           setActionNeededLeads(0);
           setError(null);
@@ -72,13 +76,14 @@ export function useProSidebarCounts(): UseProSidebarCountsResult {
         if (!pro) {
           setUnreadMessages(0);
           setUnreadNotifications(0);
+          setHasUnreadNewLead(false);
           setPendingLeads(0);
           setActionNeededLeads(0);
           setError(null);
           return;
         }
 
-        const [messages, notifications, leads] = await Promise.all([
+        const [messages, notifications, leads, newLeadNotifs] = await Promise.all([
           supabase
             .from('conversations')
             .select('id', { count: 'exact', head: true })
@@ -94,11 +99,19 @@ export function useProSidebarCounts(): UseProSidebarCountsResult {
             .select('id', { count: 'exact', head: true })
             .eq('cleaner_id', pro.id)
             .eq('status', 'pending'),
+          // Unread new_lead rows (RLS: "Users can view own notifications").
+          supabase
+            .from('notifications')
+            .select('id', { count: 'exact', head: true })
+            .eq('user_id', user.id)
+            .eq('type', 'new_lead')
+            .eq('read', false),
         ]);
         if (cancelled) return;
 
         setUnreadMessages(messages.count ?? 0);
         setUnreadNotifications(notifications.count ?? 0);
+        setHasUnreadNewLead((newLeadNotifs.count ?? 0) > 0);
         setPendingLeads(leads.count ?? 0);
 
         // Action Needed: accepted quotes this pro was confirmed-hired for and
@@ -149,6 +162,7 @@ export function useProSidebarCounts(): UseProSidebarCountsResult {
         setError(e);
         setUnreadMessages(0);
         setUnreadNotifications(0);
+        setHasUnreadNewLead(false);
         setPendingLeads(0);
         setActionNeededLeads(0);
       } finally {
@@ -167,5 +181,5 @@ export function useProSidebarCounts(): UseProSidebarCountsResult {
     };
   }, []);
 
-  return { unreadMessages, unreadNotifications, pendingLeads, actionNeededLeads, isLoading, error };
+  return { unreadMessages, unreadNotifications, hasUnreadNewLead, pendingLeads, actionNeededLeads, isLoading, error };
 }
