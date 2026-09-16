@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createServiceRoleClient } from '@/lib/supabase/service-role';
 import { getStripe } from '@/lib/stripe/config';
 import { createLogger } from '@/lib/utils/logger';
 
@@ -60,7 +61,7 @@ export async function POST(request: NextRequest) {
     );
 
     // Update subscription record in database
-    await supabase
+    const { data: updatedSubscription, error: writeError } = await createServiceRoleClient()
       .from('subscriptions')
       .update({
         cancel_at: subscription.cancel_at
@@ -68,7 +69,14 @@ export async function POST(request: NextRequest) {
           : null,
         status: 'active', // Still active until period end
       })
-      .eq('stripe_subscription_id', cleaner.stripe_subscription_id);
+      .eq('stripe_subscription_id', cleaner.stripe_subscription_id)
+      .eq('cleaner_id', cleaner.id)
+      .select('id')
+      .single();
+    if (writeError || !updatedSubscription) {
+      logger.error('Failed to save subscription state', { function: 'POST' }, writeError);
+      return NextResponse.json({ error: 'Failed to cancel subscription' }, { status: 500 });
+    }
 
     return NextResponse.json({
       success: true,
