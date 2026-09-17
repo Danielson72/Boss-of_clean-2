@@ -173,11 +173,13 @@ export function useProSidebarCounts(): UseProSidebarCountsResult {
     fetchCounts();
     const interval = setInterval(fetchCounts, POLL_INTERVAL_MS);
     window.addEventListener('focus', fetchCounts);
+    window.addEventListener('pro-notifications-read', fetchCounts);
 
     return () => {
       cancelled = true;
       clearInterval(interval);
       window.removeEventListener('focus', fetchCounts);
+      window.removeEventListener('pro-notifications-read', fetchCounts);
     };
   }, []);
 

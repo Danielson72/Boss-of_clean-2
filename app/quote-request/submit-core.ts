@@ -1,7 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { QuoteConfirmationEmailData } from '@/lib/email/notifications';
 import type { SendEmailResult } from '@/lib/email/resend';
-import { dispatchNewLeadToPro, type NewLeadDispatchResult, type SendNewLeadEmailFn } from '@/lib/notifications/new-lead';
+import { dispatchNewLeadToPro, type SendNewLeadEmailFn } from '@/lib/notifications/new-lead';
 import { createLogger } from '@/lib/utils/logger';
 
 // Body of the submitQuoteRequest server action with every external effect
@@ -30,8 +30,6 @@ export interface QuoteRequestResult {
   success: boolean;
   quoteId?: string;
   matchCount?: number;
-  /** Per-pro dispatch outcomes (email + in-app). Present on success. */
-  notified?: NewLeadDispatchResult[];
   error?: string;
 }
 
@@ -41,6 +39,7 @@ export interface MatchedPro {
   email: string;
   business_name: string;
   business_phone: string | null;
+  email_opted_in: boolean;
 }
 
 export interface OpsAlert {
@@ -168,6 +167,7 @@ export async function submitQuoteRequestCore(
           user_id: c.user_id as string,
           email: u.email as string,
           business_name: c.business_name as string,
+          email_opted_in: c.email_opted_in === true,
           business_phone: (c.business_phone as string) ?? null,
         };
       });
@@ -177,7 +177,7 @@ export async function submitQuoteRequestCore(
       // Uses the idx_cleaners_service_areas_gin GIN index on pros.service_areas.
       const { data: areaMatches } = await adminSupabase
         .from('pros')
-        .select('id, business_name, user_id, business_phone, user:users!inner(email)')
+        .select('id, business_name, user_id, business_phone, email_opted_in, user:users!inner(email)')
         .contains('service_areas', [data.zip_code])
         .eq('approval_status', 'approved');
 
@@ -193,7 +193,7 @@ export async function submitQuoteRequestCore(
         matchStrategy = 'fallback';
         const { data: allApproved } = await adminSupabase
           .from('pros')
-          .select('id, business_name, user_id, business_phone, user:users!inner(email)')
+          .select('id, business_name, user_id, business_phone, email_opted_in, user:users!inner(email)')
           .eq('approval_status', 'approved');
 
         if (allApproved && allApproved.length > 0) {
@@ -270,7 +270,6 @@ export async function submitQuoteRequestCore(
     // notification_logs row was ever written. Every pro is now dispatched and
     // awaited before we return; the response is a few hundred ms slower and
     // the pro actually gets the email.
-    const notified: NewLeadDispatchResult[] = [];
     const leadCtx = {
       quoteId: quote.id as string,
       serviceType: data.service_type,
@@ -289,7 +288,7 @@ export async function submitQuoteRequestCore(
     );
     outcomes.forEach((o, i) => {
       if (o.status === 'fulfilled') {
-        notified.push(o.value);
+        logger.info('Pro notification dispatch complete', { function: 'submitQuoteRequest', ...o.value });
       } else {
         logger.error('dispatchNewLeadToPro threw', { function: 'submitQuoteRequest', userId: matchedPros[i]?.user_id }, o.reason);
       }
@@ -325,7 +324,6 @@ export async function submitQuoteRequestCore(
       success: true,
       quoteId: quote.id,
       matchCount: matchedPros.length,
-      notified,
     };
   } catch (error) {
     logger.error('Error in submitQuoteRequest', { function: 'submitQuoteRequest' }, error);

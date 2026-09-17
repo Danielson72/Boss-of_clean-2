@@ -58,8 +58,9 @@ export default function QuoteRequestsPage() {
 
   useEffect(() => {
     if (user) {
-      loadQuotes();
-      markNewLeadNotificationsRead(user.id);
+      loadQuotes().then((loaded) => {
+        if (loaded) return markNewLeadNotificationsRead(user.id);
+      }).catch((err) => console.error('[quote-requests] mark new_lead read error:', err));
     }
   }, [user]);
 
@@ -76,6 +77,8 @@ export default function QuoteRequestsPage() {
       .eq('read', false);
     if (error) {
       console.error('[quote-requests] mark new_lead read error:', error.message);
+    } else {
+      window.dispatchEvent(new Event('pro-notifications-read'));
     }
   };
 
@@ -87,11 +90,14 @@ export default function QuoteRequestsPage() {
       if (result.success) {
         setQuotes(result.quotes || []);
         setCleanerId(result.cleanerId || null);
+        return true;
       } else {
         setError(result.error || 'Failed to load quotes');
+        return false;
       }
     } catch {
       setError('An unexpected error occurred');
+      return false;
     } finally {
       setLoading(false);
     }

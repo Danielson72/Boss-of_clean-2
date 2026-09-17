@@ -22,6 +22,7 @@ export interface NewLeadRecipient {
   user_id: string;
   email: string;
   business_name: string;
+  email_opted_in: boolean;
 }
 
 export interface NewLeadContext {
@@ -53,9 +54,8 @@ export interface NewLeadDispatchResult {
 }
 
 /**
- * Email opt-in for new-lead alerts. Missing notification_preferences row means
- * default ON (transactional lead alert). Only an explicit
- * `email_enabled = false` row opts the pro out.
+ * A missing notification_preferences row permits email only when the pro
+ * has separately opted in. Existing rows must explicitly enable email.
  */
 export async function proWantsLeadEmail(admin: SupabaseClient, userId: string): Promise<boolean> {
   const { data, error } = await admin
@@ -65,12 +65,11 @@ export async function proWantsLeadEmail(admin: SupabaseClient, userId: string): 
     .maybeSingle();
 
   if (error) {
-    // Preference lookup failure must not silence a lead alert — default ON.
-    logger.error('notification_preferences lookup failed; defaulting email ON', { function: 'proWantsLeadEmail', userId }, error);
-    return true;
+    logger.error('notification_preferences lookup failed; skipping email', { function: 'proWantsLeadEmail', userId }, error);
+    throw error;
   }
   if (!data) return true;
-  return (data as { email_enabled: boolean | null }).email_enabled !== false;
+  return (data as { email_enabled: boolean | null }).email_enabled === true;
 }
 
 function hourBucket(d: Date): string {
@@ -84,8 +83,7 @@ function dedupeHash(parts: string[]): string {
 }
 
 /**
- * Notify a single pro about a new marketplace lead. Never throws — every
- * failure is captured in the returned result and in notification_logs.
+ * Notify a single pro about a new marketplace lead. Dispatch details stay server-side.
  */
 export async function dispatchNewLeadToPro(
   pro: NewLeadRecipient,
@@ -103,23 +101,25 @@ export async function dispatchNewLeadToPro(
   const location = lead.city ? `${lead.city}, ${lead.zipCode}` : lead.zipCode;
 
   // 1. In-app notification (drives the sidebar badge + "New" indicator).
-  const { error: notifErr } = await deps.admin.from('notifications').insert({
-    user_id: pro.user_id,
-    type: 'new_lead',
-    title: 'New Quote Request!',
-    message: `A customer in ${location} is looking for ${lead.serviceType.replace(/_/g, ' ')} service.`,
-    action_url: '/dashboard/pro/quote-requests',
-  });
-  if (notifErr) {
-    logger.error('Failed to create pro notification', { function: 'dispatchNewLeadToPro', userId: pro.user_id }, notifErr);
-  } else {
+  try {
+    const { error: notifErr } = await deps.admin.from('notifications').insert({
+      user_id: pro.user_id,
+      type: 'new_lead',
+      title: 'New Quote Request!',
+      message: `A customer in ${location} is looking for ${lead.serviceType.replace(/_/g, ' ')} service.`,
+      action_url: '/dashboard/pro/quote-requests',
+    });
+    if (notifErr) throw notifErr;
     result.notificationInserted = true;
+  } catch (err) {
+    logger.error('Failed to create pro notification', { function: 'dispatchNewLeadToPro', userId: pro.user_id }, err);
   }
 
   // 2. Email opt-in (missing prefs row = ON).
-  const wantsEmail = await proWantsLeadEmail(deps.admin, pro.user_id);
+  const wantsEmail = pro.email_opted_in === true && await proWantsLeadEmail(deps.admin, pro.user_id);
 
-  // 3. notification_logs row first (queued / unsubscribed), then send.
+  // 3. Persist a failure fallback before sending. If final persistence fails,
+  // the row records an unresolved outcome rather than remaining queued.
   const ts = now();
   const logRow = {
     event_id: randomUUID(),
@@ -132,7 +132,9 @@ export async function dispatchNewLeadToPro(
     dedupe_hash: dedupeHash(['new_lead', lead.quoteId, pro.user_id, 'email']),
     bucket_window_iso: hourBucket(ts),
     provider: 'resend',
-    delivery_state: wantsEmail ? 'queued' : 'unsubscribed',
+    delivery_state: wantsEmail ? 'failed' : 'unsubscribed',
+    failed_at: wantsEmail ? ts.toISOString() : null,
+    provider_response_raw: wantsEmail ? { error: 'Dispatch outcome not recorded; check server logs before retrying.' } : null,
   };
 
   const { data: inserted, error: logErr } = await deps.admin
@@ -142,6 +144,7 @@ export async function dispatchNewLeadToPro(
     .single();
   if (logErr || !inserted) {
     logger.error('Failed to write notification_logs row', { function: 'dispatchNewLeadToPro', userId: pro.user_id }, logErr);
+    return result;
   } else {
     result.logId = (inserted as { id: string }).id;
   }
@@ -175,18 +178,21 @@ export async function dispatchNewLeadToPro(
     logger.error('New-lead email failed', { function: 'dispatchNewLeadToPro', userId: pro.user_id, error: sendResult.error });
   }
 
-  if (result.logId) {
-    const { error: updErr } = await deps.admin
+  try {
+    const { data: updated, error: updErr } = await deps.admin
       .from('notification_logs')
       .update(
         sendResult.success
-          ? { delivery_state: 'dispatched', dispatched_at: doneAt, provider_message_id: sendResult.id ?? null }
+          ? { delivery_state: 'dispatched', dispatched_at: doneAt, provider_message_id: sendResult.id ?? null, failed_at: null, provider_response_raw: null }
           : { delivery_state: 'failed', failed_at: doneAt, provider_response_raw: { error: sendResult.error ?? 'unknown' } }
       )
-      .eq('id', result.logId);
-    if (updErr) {
-      logger.error('Failed to update notification_logs state', { function: 'dispatchNewLeadToPro', logId: result.logId }, updErr);
-    }
+      .eq('id', result.logId)
+      .select('id')
+      .single();
+    if (updErr || !updated) throw updErr ?? new Error('Dispatch log update returned no row');
+  } catch (err) {
+    result.error = 'Dispatch outcome could not be saved';
+    logger.error('Failed to update notification_logs state', { function: 'dispatchNewLeadToPro', logId: result.logId, sendResult }, err);
   }
 
   return result;

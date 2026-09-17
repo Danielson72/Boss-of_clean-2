@@ -19,11 +19,13 @@ const PRO_ID = '33333333-3333-4333-8333-333333333333';
 const QUOTE_ID = '44444444-4444-4444-8444-444444444444';
 
 type Row = Record<string, unknown>;
+type Fault = { table: string; op: 'insert' | 'update'; throws?: boolean };
 
 /** Minimal chainable PostgREST fake: enough surface for submit-core + new-lead. */
 function makeFakeSupabase(opts: {
   userId: string | null;
   tables: Record<string, Row[]>;
+  fault?: Fault;
 }) {
   const tables = opts.tables;
   const writes: { table: string; op: 'insert' | 'update'; row: Row }[] = [];
@@ -38,6 +40,10 @@ function makeFakeSupabase(opts: {
     const apply = () => rows().filter((r) => filters.every((f) => f(r)));
 
     const exec = () => {
+      if (opts.fault?.table === table && opts.fault.op === pending?.op) {
+        if (opts.fault.throws) throw new Error('Simulated database failure');
+        return { data: null, error: { message: 'Simulated database failure' } };
+      }
       if (pending?.op === 'insert') {
         const row = { id: pending.row.id ?? `${table}-${rows().length + 1}`, ...pending.row };
         rows().push(row);
@@ -122,6 +128,7 @@ function baseTables(extra: Record<string, Row[]> = {}): Record<string, Row[]> {
         business_name: 'Test Pro LLC',
         business_phone: null,
         approval_status: 'approved',
+        email_opted_in: true,
         service_areas: ['33101'],
         user: { email: 'pro@example.test' },
       },
@@ -133,10 +140,10 @@ function baseTables(extra: Record<string, Row[]> = {}): Record<string, Row[]> {
   };
 }
 
-function makeDeps(tables: Record<string, Row[]>) {
+function makeDeps(tables: Record<string, Row[]>, fault?: Fault) {
   const customerDb = makeFakeSupabase({ userId: CUSTOMER_ID, tables });
   // Service-role client shares the same in-memory tables.
-  const adminDb = makeFakeSupabase({ userId: null, tables });
+  const adminDb = makeFakeSupabase({ userId: null, tables, fault });
 
   // Resend mock: force the inserted quote id so assertions can reference it.
   const resendCalls: NewLeadEmailData[] = [];
@@ -212,10 +219,8 @@ test('quote submit → one Resend call, one notification_logs row (dispatched), 
   // Customer confirmation was awaited and sent once.
   expect(confirmationCalls).toHaveLength(1);
 
-  // Per-pro outcome surfaced to the caller.
-  expect(result.notified).toEqual([
-    expect.objectContaining({ userId: PRO_USER_ID, notificationInserted: true, email: 'dispatched' }),
-  ]);
+  // Operational dispatch details must not reach the customer.
+  expect(Object.keys(result).sort()).toEqual(['matchCount', 'quoteId', 'success']);
 });
 
 test('no notification_preferences row → email still sent (default ON)', async () => {
@@ -250,5 +255,59 @@ test('Resend failure → log row failed with error, submission still succeeds', 
   expect(tables.notification_logs[0].delivery_state).toBe('failed');
   expect(tables.notification_logs[0].failed_at).toBeTruthy();
   expect((tables.notification_logs[0].provider_response_raw as { error: string }).error).toContain('RESEND_API_KEY');
-  expect(result.notified?.[0].email).toBe('failed');
+  expect(result).not.toHaveProperty('notified');
 });
+
+
+test('email_opted_in=false overrides email_enabled=true', async () => {
+  const tables = baseTables({ notification_preferences: [{ user_id: PRO_USER_ID, email_enabled: true }] });
+  tables.pros[0].email_opted_in = false;
+  const { deps, resendCalls } = makeDeps(tables);
+  const result = await submitQuoteRequestCore(QUOTE, deps);
+  expect(result.success).toBe(true);
+  expect(resendCalls).toHaveLength(0);
+  expect(tables.notification_logs[0].delivery_state).toBe('unsubscribed');
+});
+
+test('email_opted_in=false with missing preferences does not send', async () => {
+  const tables = baseTables();
+  tables.pros[0].email_opted_in = false;
+  const { deps, resendCalls } = makeDeps(tables);
+  await submitQuoteRequestCore(QUOTE, deps);
+  expect(resendCalls).toHaveLength(0);
+  expect(tables.notification_logs[0].delivery_state).toBe('unsubscribed');
+});
+
+for (const throws of [false, true]) {
+  test(`log insert failure (throws=${throws}) prevents email`, async () => {
+    const tables = baseTables();
+    const { deps, resendCalls } = makeDeps(tables, { table: 'notification_logs', op: 'insert', throws });
+    expect((await submitQuoteRequestCore(QUOTE, deps)).success).toBe(true);
+    expect(resendCalls).toHaveLength(0);
+    expect(tables.notification_logs).toHaveLength(0);
+  });
+
+  test(`in-app insert failure (throws=${throws}) still sends email`, async () => {
+    const tables = baseTables();
+    const { deps, resendCalls } = makeDeps(tables, { table: 'notifications', op: 'insert', throws });
+    await submitQuoteRequestCore(QUOTE, deps);
+    expect(resendCalls).toHaveLength(1);
+    expect(tables.notification_logs[0].delivery_state).toBe('dispatched');
+  });
+
+  for (const success of [true, false]) {
+    test(`log update failure (throws=${throws}, sent=${success}) leaves no queued row`, async () => {
+      const tables = baseTables();
+      const { deps } = makeDeps(tables, { table: 'notification_logs', op: 'update', throws });
+      let calls = 0;
+      deps.sendNewLeadEmail = async () => {
+        calls++;
+        return success ? { success: true, id: 'provider-id' } : { success: false, error: 'Send failed' };
+      };
+      expect((await submitQuoteRequestCore(QUOTE, deps)).success).toBe(true);
+      expect(calls).toBe(1);
+      expect(tables.notification_logs[0].delivery_state).toBe('failed');
+      expect(tables.notification_logs[0].provider_response_raw).toEqual({ error: 'Dispatch outcome not recorded; check server logs before retrying.' });
+    });
+  }
+}
