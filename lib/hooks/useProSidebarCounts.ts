@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 
 interface UseProSidebarCountsResult {
@@ -43,17 +43,23 @@ export function useProSidebarCounts(): UseProSidebarCountsResult {
   const [actionNeededLeads, setActionNeededLeads] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  // Monotonic request sequence. Every fetch (mount, 30s poll, focus, mark-read
+  // event) bumps it; a response only applies when its captured value is still
+  // current, so a slow older request can never overwrite a newer result.
+  const requestSeq = useRef(0);
 
   useEffect(() => {
     const supabase = createClient();
     let cancelled = false;
 
     async function fetchCounts() {
+      const seq = ++requestSeq.current;
+      const isStale = () => cancelled || seq !== requestSeq.current;
       try {
         const {
           data: { user },
         } = await supabase.auth.getUser();
-        if (cancelled) return;
+        if (isStale()) return;
 
         if (!user) {
           setUnreadMessages(0);
@@ -71,7 +77,7 @@ export function useProSidebarCounts(): UseProSidebarCountsResult {
           .select('id')
           .eq('user_id', user.id)
           .single();
-        if (cancelled) return;
+        if (isStale()) return;
 
         if (!pro) {
           setUnreadMessages(0);
@@ -107,7 +113,7 @@ export function useProSidebarCounts(): UseProSidebarCountsResult {
             .eq('type', 'new_lead')
             .eq('read', false),
         ]);
-        if (cancelled) return;
+        if (isStale()) return;
 
         setUnreadMessages(messages.count ?? 0);
         setUnreadNotifications(notifications.count ?? 0);
@@ -123,7 +129,7 @@ export function useProSidebarCounts(): UseProSidebarCountsResult {
           .eq('cleaner_id', pro.id)
           .eq('status', 'accepted')
           .limit(100);
-        if (cancelled) return;
+        if (isStale()) return;
 
         const acceptedIds = ((accepted || []) as { id: string }[]).map((q) => q.id);
         if (acceptedIds.length === 0) {
@@ -142,7 +148,7 @@ export function useProSidebarCounts(): UseProSidebarCountsResult {
               .eq('status', 'captured')
               .in('quote_request_id', acceptedIds),
           ]);
-          if (cancelled) return;
+          if (isStale()) return;
 
           const hiredSet = new Set(
             ((hires.data || []) as { quote_request_id: string }[]).map((h) => h.quote_request_id)
@@ -157,7 +163,7 @@ export function useProSidebarCounts(): UseProSidebarCountsResult {
 
         setError(null);
       } catch (err) {
-        if (cancelled) return;
+        if (isStale()) return;
         const e = err instanceof Error ? err : new Error('Failed to fetch sidebar counts');
         setError(e);
         setUnreadMessages(0);
@@ -166,7 +172,7 @@ export function useProSidebarCounts(): UseProSidebarCountsResult {
         setPendingLeads(0);
         setActionNeededLeads(0);
       } finally {
-        if (!cancelled) setIsLoading(false);
+        if (!isStale()) setIsLoading(false);
       }
     }
 

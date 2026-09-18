@@ -311,3 +311,131 @@ for (const throws of [false, true]) {
     });
   }
 }
+
+/**
+ * Sidebar count race (Codex P2): the mark-read event triggers a refresh; if an
+ * older in-flight fetch resolves after the newer one, its stale unread=1 must
+ * not overwrite the fresh unread=0. Drives the real useProSidebarCounts hook in
+ * Node with a minimal hook runtime (useState/useRef/useEffect) and a Supabase
+ * fake whose `notifications` count resolves on demand, so response order is
+ * controlled explicitly.
+ */
+type Deferred<T> = { promise: Promise<T>; resolve: (v: T) => void };
+function deferred<T>(): Deferred<T> {
+  let resolve!: (v: T) => void;
+  const promise = new Promise<T>((r) => (resolve = r));
+  return { promise, resolve };
+}
+
+function loadSidebarHook(fakeClient: unknown) {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const Module = require('module') as { _load: (...a: unknown[]) => unknown };
+  const realLoad = Module._load;
+
+  // Minimal hook runtime: one component instance, state slots by call order,
+  // effects with [] deps run once after the first render.
+  const slots: unknown[] = [];
+  let cursor = 0;
+  const effects: Array<() => void | (() => void)> = [];
+  let effectsRan = false;
+  const fakeReact = {
+    useState: (init: unknown) => {
+      const i = cursor++;
+      if (!(i in slots)) slots[i] = init;
+      return [slots[i], (v: unknown) => { slots[i] = v; }];
+    },
+    useRef: (init: unknown) => {
+      const i = cursor++;
+      if (!(i in slots)) slots[i] = { current: init };
+      return slots[i];
+    },
+    useEffect: (fn: () => void | (() => void)) => {
+      if (!effectsRan) effects.push(fn);
+    },
+  };
+
+  Module._load = function (request: string, ...rest: unknown[]) {
+    if (request === 'react') return fakeReact;
+    if (request === '@/lib/supabase/client' || request.endsWith('/lib/supabase/client')) {
+      return { createClient: () => fakeClient };
+    }
+    return realLoad.call(this, request, ...rest);
+  };
+  const listeners: Record<string, Array<() => void>> = {};
+  (globalThis as { window?: unknown }).window = {
+    addEventListener: (n: string, fn: () => void) => (listeners[n] ??= []).push(fn),
+    removeEventListener: () => undefined,
+  };
+  try {
+    // Fresh load each call so the stubbed react is what the hook binds to.
+    const key = require.resolve('../../lib/hooks/useProSidebarCounts');
+    delete require.cache[key];
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { useProSidebarCounts } = require('../../lib/hooks/useProSidebarCounts');
+    const render = () => {
+      cursor = 0;
+      const out = useProSidebarCounts();
+      if (!effectsRan) {
+        effectsRan = true;
+        effects.forEach((e) => e());
+      }
+      return out as { unreadNotifications: number; hasUnreadNewLead: boolean };
+    };
+    const fire = (name: string) => (listeners[name] ?? []).forEach((fn) => fn());
+    return { render, fire };
+  } finally {
+    Module._load = realLoad;
+  }
+}
+
+test('slow first fetch resolving unread=1 after a later fetch resolved unread=0 leaves count at 0', async () => {
+  // Each `notifications` count request gets its own gate, in request order.
+  const gates: Deferred<number>[] = [];
+  const fake = {
+    auth: { getUser: async () => ({ data: { user: { id: PRO_USER_ID } }, error: null }) },
+    from: (table: string) => {
+      const q: Record<string, unknown> = {};
+      let head = false;
+      let isNotifCount = false;
+      q.select = (_c?: string, o?: { head?: boolean }) => { head = !!o?.head; return q; };
+      q.eq = (col: string) => { if (table === 'notifications' && col === 'read') isNotifCount = true; return q; };
+      q.gt = () => q;
+      q.in = () => q;
+      q.limit = () => q;
+      q.single = () => q;
+      q.then = (resolve: (v: unknown) => unknown) => {
+        if (table === 'pros') return Promise.resolve({ data: { id: PRO_ID }, error: null }).then(resolve);
+        if (table === 'notifications' && head && isNotifCount) {
+          const gate = deferred<number>();
+          gates.push(gate);
+          return gate.promise.then((count) => resolve({ data: null, error: null, count }));
+        }
+        return Promise.resolve({ data: head ? null : [], error: null, count: 0 }).then(resolve);
+      };
+      return q;
+    },
+  };
+
+  const { render, fire } = loadSidebarHook(fake);
+  render(); // mount → fetch #1 (in flight)
+  await new Promise((r) => setImmediate(r));
+  expect(gates.length).toBe(2); // unreadNotifications + new_lead count for fetch #1
+
+  fire('pro-notifications-read'); // mark-read → fetch #2
+  await new Promise((r) => setImmediate(r));
+  expect(gates.length).toBe(4);
+
+  // Newer fetch (#2) resolves first with 0.
+  gates[2].resolve(0);
+  gates[3].resolve(0);
+  await new Promise((r) => setTimeout(r, 10));
+  expect(render().unreadNotifications).toBe(0);
+  expect(render().hasUnreadNewLead).toBe(false);
+
+  // Older fetch (#1) resolves late with 1 — must be discarded.
+  gates[0].resolve(1);
+  gates[1].resolve(1);
+  await new Promise((r) => setTimeout(r, 10));
+  expect(render().unreadNotifications).toBe(0);
+  expect(render().hasUnreadNewLead).toBe(false);
+});
