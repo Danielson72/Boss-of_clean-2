@@ -1,11 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 
 interface UseProSidebarCountsResult {
   unreadMessages: number;
   unreadNotifications: number;
+  /** True when at least one unread `new_lead` notification exists — drives the "New" dot on Quote Requests. */
+  hasUnreadNewLead: boolean;
   pendingLeads: number;
   actionNeededLeads: number;
   isLoading: boolean;
@@ -36,25 +38,33 @@ const POLL_INTERVAL_MS = 30_000;
 export function useProSidebarCounts(): UseProSidebarCountsResult {
   const [unreadMessages, setUnreadMessages] = useState(0);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
+  const [hasUnreadNewLead, setHasUnreadNewLead] = useState(false);
   const [pendingLeads, setPendingLeads] = useState(0);
   const [actionNeededLeads, setActionNeededLeads] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  // Monotonic request sequence. Every fetch (mount, 30s poll, focus, mark-read
+  // event) bumps it; a response only applies when its captured value is still
+  // current, so a slow older request can never overwrite a newer result.
+  const requestSeq = useRef(0);
 
   useEffect(() => {
     const supabase = createClient();
     let cancelled = false;
 
     async function fetchCounts() {
+      const seq = ++requestSeq.current;
+      const isStale = () => cancelled || seq !== requestSeq.current;
       try {
         const {
           data: { user },
         } = await supabase.auth.getUser();
-        if (cancelled) return;
+        if (isStale()) return;
 
         if (!user) {
           setUnreadMessages(0);
           setUnreadNotifications(0);
+          setHasUnreadNewLead(false);
           setPendingLeads(0);
           setActionNeededLeads(0);
           setError(null);
@@ -67,18 +77,19 @@ export function useProSidebarCounts(): UseProSidebarCountsResult {
           .select('id')
           .eq('user_id', user.id)
           .single();
-        if (cancelled) return;
+        if (isStale()) return;
 
         if (!pro) {
           setUnreadMessages(0);
           setUnreadNotifications(0);
+          setHasUnreadNewLead(false);
           setPendingLeads(0);
           setActionNeededLeads(0);
           setError(null);
           return;
         }
 
-        const [messages, notifications, leads] = await Promise.all([
+        const [messages, notifications, leads, newLeadNotifs] = await Promise.all([
           supabase
             .from('conversations')
             .select('id', { count: 'exact', head: true })
@@ -94,11 +105,19 @@ export function useProSidebarCounts(): UseProSidebarCountsResult {
             .select('id', { count: 'exact', head: true })
             .eq('cleaner_id', pro.id)
             .eq('status', 'pending'),
+          // Unread new_lead rows (RLS: "Users can view own notifications").
+          supabase
+            .from('notifications')
+            .select('id', { count: 'exact', head: true })
+            .eq('user_id', user.id)
+            .eq('type', 'new_lead')
+            .eq('read', false),
         ]);
-        if (cancelled) return;
+        if (isStale()) return;
 
         setUnreadMessages(messages.count ?? 0);
         setUnreadNotifications(notifications.count ?? 0);
+        setHasUnreadNewLead((newLeadNotifs.count ?? 0) > 0);
         setPendingLeads(leads.count ?? 0);
 
         // Action Needed: accepted quotes this pro was confirmed-hired for and
@@ -110,7 +129,7 @@ export function useProSidebarCounts(): UseProSidebarCountsResult {
           .eq('cleaner_id', pro.id)
           .eq('status', 'accepted')
           .limit(100);
-        if (cancelled) return;
+        if (isStale()) return;
 
         const acceptedIds = ((accepted || []) as { id: string }[]).map((q) => q.id);
         if (acceptedIds.length === 0) {
@@ -129,7 +148,7 @@ export function useProSidebarCounts(): UseProSidebarCountsResult {
               .eq('status', 'captured')
               .in('quote_request_id', acceptedIds),
           ]);
-          if (cancelled) return;
+          if (isStale()) return;
 
           const hiredSet = new Set(
             ((hires.data || []) as { quote_request_id: string }[]).map((h) => h.quote_request_id)
@@ -144,28 +163,31 @@ export function useProSidebarCounts(): UseProSidebarCountsResult {
 
         setError(null);
       } catch (err) {
-        if (cancelled) return;
+        if (isStale()) return;
         const e = err instanceof Error ? err : new Error('Failed to fetch sidebar counts');
         setError(e);
         setUnreadMessages(0);
         setUnreadNotifications(0);
+        setHasUnreadNewLead(false);
         setPendingLeads(0);
         setActionNeededLeads(0);
       } finally {
-        if (!cancelled) setIsLoading(false);
+        if (!isStale()) setIsLoading(false);
       }
     }
 
     fetchCounts();
     const interval = setInterval(fetchCounts, POLL_INTERVAL_MS);
     window.addEventListener('focus', fetchCounts);
+    window.addEventListener('pro-notifications-read', fetchCounts);
 
     return () => {
       cancelled = true;
       clearInterval(interval);
       window.removeEventListener('focus', fetchCounts);
+      window.removeEventListener('pro-notifications-read', fetchCounts);
     };
   }, []);
 
-  return { unreadMessages, unreadNotifications, pendingLeads, actionNeededLeads, isLoading, error };
+  return { unreadMessages, unreadNotifications, hasUnreadNewLead, pendingLeads, actionNeededLeads, isLoading, error };
 }

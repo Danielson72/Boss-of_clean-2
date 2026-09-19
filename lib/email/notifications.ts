@@ -5,7 +5,7 @@
  */
 
 import { createLogger } from '../utils/logger';
-import { sendResendEmail, wrapEmailTemplate, generateButton, generateInfoBox } from './resend';
+import { sendResendEmail, wrapEmailTemplate, generateButton, generateInfoBox, type SendEmailResult } from './resend';
 
 const logger = createLogger({ file: 'lib/email/notifications' });
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://bossofclean.com';
@@ -206,19 +206,26 @@ export function generateQuoteAcceptedCustomerEmailHtml(data: QuoteAcceptedCustom
  * Send email notification to cleaner about new lead
  */
 export async function sendNewLeadEmail(data: NewLeadEmailData): Promise<boolean> {
+  const result = await sendNewLeadEmailWithResult(data);
+  return result.success;
+}
+
+/**
+ * Same as sendNewLeadEmail but returns the full Resend result (provider id /
+ * error) so the caller can record delivery_state in notification_logs.
+ */
+export async function sendNewLeadEmailWithResult(data: NewLeadEmailData): Promise<SendEmailResult> {
   logger.info('Sending new lead notification', {
     function: 'sendNewLeadEmail',
     to: data.to,
     leadId: data.leadId,
   });
 
-  const result = await sendResendEmail({
+  return sendResendEmail({
     to: data.to,
     subject: `New ${data.serviceType?.replace(/_/g, ' ') || 'service'} lead in ${data.zipCode}!`,
     html: generateNewLeadEmailHtml(data),
   });
-
-  return result.success;
 }
 
 /**

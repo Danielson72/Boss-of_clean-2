@@ -14,6 +14,8 @@ export interface SidebarLink {
   label: string;
   icon: LucideIcon;
   badge?: number;
+  /** Show a "New" indicator (no count) — e.g. an unread new_lead exists. */
+  dot?: boolean;
 }
 
 interface DashboardSidebarProps {
@@ -27,6 +29,10 @@ export function DashboardSidebar({ links }: DashboardSidebarProps) {
 
   const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User';
   const userEmail = user?.email || '';
+
+  // Anything unread anywhere → red dot on the mobile menu toggle, since the
+  // per-link badges are hidden behind the hamburger on small screens.
+  const hasAnyAttention = links.some((l) => (l.badge ?? 0) > 0 || l.dot);
 
   const isActive = (href: string) => {
     if (href === pathname) return true;
@@ -62,6 +68,16 @@ export function DashboardSidebar({ links }: DashboardSidebarProps) {
             >
               <Icon className="h-4 w-4 flex-shrink-0" />
               {link.label}
+              {link.dot && !link.badge && (
+                <span
+                  role="status"
+                  aria-label={`New ${link.label}`}
+                  className="ml-auto inline-flex items-center gap-1 rounded-full bg-red-600 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white leading-none pointer-events-none"
+                >
+                  <span className="h-1.5 w-1.5 rounded-full bg-white" aria-hidden="true" />
+                  New
+                </span>
+              )}
               <NavBadge
                 count={link.badge}
                 ariaLabel={link.badge ? `${link.badge} ${link.label} need attention` : undefined}
@@ -92,9 +108,15 @@ export function DashboardSidebar({ links }: DashboardSidebarProps) {
         <button
           onClick={() => setMobileOpen(true)}
           className="md:hidden fixed top-[4.5rem] left-4 z-[60] bg-white shadow-md rounded-lg p-2 border border-gray-200"
-          aria-label="Open sidebar"
+          aria-label={hasAnyAttention ? 'Open sidebar (new activity)' : 'Open sidebar'}
         >
           <Menu className="h-5 w-5" />
+          {hasAnyAttention && (
+            <span
+              aria-hidden="true"
+              className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-red-600 ring-2 ring-white"
+            />
+          )}
         </button>
       )}
 
