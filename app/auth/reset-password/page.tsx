@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Lock, AlertCircle, CheckCircle, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { validatePasswordStrength } from '@/lib/email/password-reset';
 
-export default function ResetPasswordPage() {
+function ResetPasswordContent() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -306,5 +306,13 @@ export default function ResetPasswordPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gray-50" />}>
+      <ResetPasswordContent />
+    </Suspense>
   );
 }

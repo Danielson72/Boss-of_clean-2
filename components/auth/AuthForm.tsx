@@ -531,7 +531,7 @@ export function AuthForm({ mode, role = 'customer' }: AuthFormProps) {
           <p className="text-center text-sm text-muted-foreground">
             {mode === 'login' ? (
               <>
-                Don't have an account?{' '}
+                Don&apos;t have an account?{' '}
                 <a href="/signup" className="text-primary hover:underline">
                   Sign up
                 </a>

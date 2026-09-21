@@ -4,10 +4,11 @@ import { getAdminAnalytics, type DateRange } from '@/lib/services/admin-analytic
 import { AnalyticsDashboard } from './analytics-dashboard';
 
 interface AnalyticsPageProps {
-  searchParams: { range?: string };
+  searchParams: Promise<{ range?: string }>;
 }
 
-export default async function AdminAnalyticsPage({ searchParams }: AnalyticsPageProps) {
+export default async function AdminAnalyticsPage(props: AnalyticsPageProps) {
+  const searchParams = await props.searchParams;
   const supabase = await createClient();
 
   const { data: { user } } = await supabase.auth.getUser();

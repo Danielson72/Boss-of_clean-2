@@ -36,10 +36,8 @@ function getServiceClient() {
  * Returns available time slots for the cleaner within the given date range.
  * Merges weekly schedule + date overrides - existing bookings.
  */
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { cleanerId: string } }
-) {
+export async function GET(request: NextRequest, props: { params: Promise<{ cleanerId: string }> }) {
+  const params = await props.params;
   const { cleanerId } = params;
 
   const { searchParams } = new URL(request.url);

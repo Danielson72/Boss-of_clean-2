@@ -16,10 +16,8 @@ interface PatchBody {
   dbpr_status?: string | null;
 }
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const supabase = await createClient();
 
   const { data: { user }, error: authError } = await supabase.auth.getUser();

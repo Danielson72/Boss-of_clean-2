@@ -6,10 +6,8 @@ export const dynamic = 'force-dynamic';
 
 const SIGNED_URL_EXPIRY_SECONDS = 600;
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const supabase = await createClient();
 
   const { data: { user }, error: authError } = await supabase.auth.getUser();
