@@ -7,6 +7,7 @@ import { handleDisputeCreated, handleDisputeClosed } from '@/lib/stripe/disputes
 import { sendLeadContactEmail, sendAdminSaleNotification, sendAdminOpsAlert } from '@/lib/email/lead-unlock';
 import { createLogger } from '@/lib/utils/logger';
 import type Stripe from 'stripe';
+import { classifyEventVenture, parsePaidLeadUnlock } from '@/lib/stripe/webhook-safety';
 
 const logger = createLogger({ file: 'api/webhooks/stripe/route' });
 
@@ -87,9 +88,22 @@ async function handleStripeEvent(event: Stripe.Event): Promise<void> {
           const { createServiceRoleClient } = await import('@/lib/supabase/service-role');
           const supabase = createServiceRoleClient();
 
-          const { quote_request_id, cleaner_id, amount_cents, lead_acceptance_id } = session.metadata!;
-          const amountCents = parseInt(amount_cents, 10);
-          const paymentIntentId = session.payment_intent as string;
+          const leadUnlock = parsePaidLeadUnlock(session);
+          if (!leadUnlock) {
+            logger.info('Lead-unlock Checkout Session is not paid; no contact released', {
+              function: 'handleStripeEvent',
+              sessionId: session.id,
+              paymentStatus: session.payment_status,
+            });
+            return;
+          }
+          const {
+            quoteRequestId: quote_request_id,
+            cleanerId: cleaner_id,
+            amountCents,
+            leadAcceptanceId: lead_acceptance_id,
+            paymentIntentId,
+          } = leadUnlock;
 
           logger.info('Lead unlock payment completed', {
             sessionId: session.id,
@@ -453,6 +467,17 @@ export async function POST(req: NextRequest) {
 
     logger.info('Processing Stripe webhook', { eventType: event.type, eventId: event.id });
 
+    // This Stripe account is shared with sibling ventures. Reject an explicit
+    // foreign stamp before writing to our ledger or touching business data.
+    if (classifyEventVenture(event) === 'foreign') {
+      logger.info('Ignoring Stripe event from another venture', {
+        function: 'POST',
+        eventType: event.type,
+        eventId: event.id,
+      });
+      return NextResponse.json({ received: true, ignored: true });
+    }
+
     // Check idempotency - record event and check if already processed
     const eventRecord = await webhookEventService.recordEvent(event);
 
@@ -464,8 +489,14 @@ export async function POST(req: NextRequest) {
       }
 
       if (eventRecord.event_status === 'processing') {
-        logger.info(`Event ${event.id} is being processed, skipping`);
-        return NextResponse.json({ received: true, processing: true });
+        logger.info(`Event ${event.id} is being processed; asking Stripe to retry`);
+        // A 2xx here could acknowledge the only surviving delivery after the
+        // original worker dies. Keep Stripe retrying until the lease can be
+        // reclaimed or the original worker records success.
+        return NextResponse.json(
+          { received: false, processing: true },
+          { status: 503, headers: { 'Retry-After': '300' } }
+        );
       }
     }
 
