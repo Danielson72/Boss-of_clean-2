@@ -1,8 +1,10 @@
 'use server';
 
 import { headers } from 'next/headers';
+import { createClient } from '@/lib/supabase/server';
 import { createServiceRoleClient } from '@/lib/supabase/service-role';
 import { PRO_SMS_CONSENT_TEXT } from '@/lib/sms/consent-copy';
+import { updateCallerConsent } from '@/lib/actions/tcpa-core';
 
 async function clientIp(): Promise<string> {
   const headersList = await headers();
@@ -11,18 +13,19 @@ async function clientIp(): Promise<string> {
 }
 
 /**
- * Persist TCPA consent AND signup contact (phone, full_name) via the service
- * role. At signup the email is not yet confirmed, so the client has no session
- * and a direct client-side `users` UPDATE is blocked by the users_update RLS
- * policy (auth.uid() = id) — that silently dropped the phone (DLD-576). Writing
- * here bypasses RLS and returns a result so the caller can surface failures.
+ * Persist TCPA consent and contact changes for the authenticated caller.
+ * The caller identity and audit fields are resolved server-side; no account ID,
+ * IP address, or user-agent value is accepted from the browser.
  */
 export async function recordUserTcpaConsent(
-  userId: string,
-  userAgent: string,
   contact?: { phone?: string | null; fullName?: string | null }
 ): Promise<{ ok: boolean; error?: string }> {
+  const auth = await createClient();
+  const { data: { user }, error: authError } = await auth.auth.getUser();
+  if (authError || !user) return { ok: false, error: 'Not authenticated' };
+
   const ip = await clientIp();
+  const userAgent = headers().get('user-agent') || 'unknown';
 
   const update: Record<string, unknown> = {
     tcpa_consent_at: new Date().toISOString(),
@@ -33,7 +36,13 @@ export async function recordUserTcpaConsent(
   if (contact?.fullName) update.full_name = contact.fullName;
 
   const supabase = createServiceRoleClient();
-  const { error } = await supabase.from('users').update(update).eq('id', userId);
+  const { error } = await updateCallerConsent(supabase, user.id, update as {
+    tcpa_consent_at: string;
+    tcpa_consent_ip: string;
+    tcpa_consent_ua: string;
+    phone?: string;
+    full_name?: string;
+  });
 
   if (error) return { ok: false, error: error.message };
   return { ok: true };
@@ -46,8 +55,14 @@ export async function recordUserTcpaConsent(
  * spoofed); consent is bound to the pro's current business_phone so a later
  * number change invalidates it. Call this AFTER the pros row is saved.
  */
-export async function recordProSmsConsent(userId: string, userAgent: string): Promise<void> {
+export async function recordProSmsConsent(): Promise<void> {
   const ip = await clientIp();
+  const userAgent = headers().get('user-agent') || 'unknown';
+  const auth = await createClient();
+  const { data: { user }, error: authError } = await auth.auth.getUser();
+  if (authError || !user) throw new Error('Not authenticated');
+
+  const userId = user.id;
   const supabase = createServiceRoleClient();
 
   const { data: pro } = await supabase
@@ -91,7 +106,12 @@ export async function recordProSmsConsent(userId: string, userAgent: string): Pr
  * again. This is a preference revocation; distinct from an inbound STOP, which
  * is recorded in sms_opt_outs.
  */
-export async function revokeProSmsConsent(userId: string): Promise<void> {
+export async function revokeProSmsConsent(): Promise<void> {
+  const auth = await createClient();
+  const { data: { user }, error: authError } = await auth.auth.getUser();
+  if (authError || !user) throw new Error('Not authenticated');
+
+  const userId = user.id;
   const supabase = createServiceRoleClient();
   await supabase
     .from('pros')
