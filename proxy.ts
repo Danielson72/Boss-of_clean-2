@@ -1,5 +1,5 @@
 import { createServerClient } from '@supabase/ssr'
-import { NextResponse, type NextRequest } from 'next/server'
+import { NextResponse, type NextRequest } from "next/server";
 import {
   rateLimitMiddleware,
   getClientIp,
@@ -16,7 +16,7 @@ function roleToDashboardPath(role: string): string {
   return '/dashboard/customer'
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname
 
   // --- Rate limiting for abuse-prone API routes ---

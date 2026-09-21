@@ -47,7 +47,7 @@ export default function CleanerCapacityModal({
           <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
             <p className="text-sm text-amber-800">
               <strong>{cleanerName}</strong> is currently at their maximum monthly quote capacity.
-              This means they're in high demand!
+              This means they&apos;re in high demand!
             </p>
           </div>
 

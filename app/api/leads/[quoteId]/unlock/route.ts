@@ -12,10 +12,8 @@ const logger = createLogger({ file: 'api/leads/[quoteId]/unlock/route' });
 const LEAD_UNLOCK_AMOUNT_CENTS = 3000; // $30
 const LEAD_UNLOCK_FEE_TIER = 'standard' as const;
 
-export async function POST(
-  _req: NextRequest,
-  { params }: { params: { quoteId: string } }
-) {
+export async function POST(_req: NextRequest, props: { params: Promise<{ quoteId: string }> }) {
+  const params = await props.params;
   const supabase = await createClient();
 
   const {

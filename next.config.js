@@ -31,9 +31,6 @@ const securityHeaders = [
 ]
 
 const nextConfig = {
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -62,9 +59,6 @@ const nextConfig = {
       { protocol: 'https', hostname: '**.supabase.in' },
       { protocol: 'http', hostname: 'localhost' },
     ],
-  },
-  experimental: {
-    serverActions: true,
   },
 }
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import {
   Calendar,
@@ -53,7 +53,7 @@ const PROPERTY_TYPES = [
   { value: 'other', label: 'Other' },
 ];
 
-export default function QuoteRequestPage() {
+function QuoteRequestContent() {
   const searchParams = useSearchParams();
   const [step, setStep] = useState(1);
   const [submitting, setSubmitting] = useState(false);
@@ -629,5 +629,13 @@ export default function QuoteRequestPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function QuoteRequestPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gray-50" />}>
+      <QuoteRequestContent />
+    </Suspense>
   );
 }
