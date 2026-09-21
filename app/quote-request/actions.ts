@@ -8,6 +8,7 @@ import { sendAdminOpsAlert } from '@/lib/email/lead-unlock';
 import { notifyProNewLead, sendSMSIfEnabled } from '@/lib/sms/notifications';
 import { checkRateLimit, RATE_LIMITS } from '@/lib/middleware/rate-limit';
 import { submitQuoteRequestCore, type QuoteRequestData, type QuoteRequestResult } from './submit-core';
+import { guardPublicSubmission } from '@/lib/security/submission-guard';
 
 export type { QuoteRequestData, QuoteRequestResult } from './submit-core';
 
@@ -29,11 +30,17 @@ export async function submitQuoteRequest(
   const headersList = await headers();
   const forwarded = headersList.get('x-forwarded-for');
   const ip = forwarded ? forwarded.split(',')[0].trim() : headersList.get('x-real-ip') || 'unknown';
-  const rateLimitResult = await checkRateLimit('quote-request', ip, RATE_LIMITS.quoteRequest);
-  if (!rateLimitResult.allowed) {
+  const guard = await guardPublicSubmission(
+    data.website,
+    () => checkRateLimit('quote-request', ip, RATE_LIMITS.quoteRequest),
+  );
+  if (guard.silentlyDrop) {
+    return { success: true };
+  }
+  if (!guard.allowed) {
     return {
       success: false,
-      error: `Too many requests. Please try again in ${rateLimitResult.retryAfter} seconds.`,
+      error: `Too many requests. Please try again in ${guard.retryAfter || 60} seconds.`,
     };
   }
 
@@ -44,7 +51,10 @@ export async function submitQuoteRequest(
   // and cross-user writes (notifications, notification_logs).
   const adminSupabase = createServiceRoleClient();
 
-  return submitQuoteRequestCore(data, {
+  return submitQuoteRequestCore({
+    ...data,
+    tcpa_user_agent: headersList.get('user-agent') || 'unknown',
+  }, {
     ip,
     supabase,
     adminSupabase,

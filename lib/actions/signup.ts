@@ -5,6 +5,8 @@ import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
 import { createServiceRoleClient } from '@/lib/supabase/service-role';
 import { normalizeToE164 } from '@/lib/phone';
+import { checkRateLimit, RATE_LIMITS } from '@/lib/middleware/rate-limit';
+import { guardPublicSubmission } from '@/lib/security/submission-guard';
 
 const signUpSchema = z.object({
   email: z.string().trim().email(),
@@ -15,6 +17,7 @@ const signUpSchema = z.object({
   phone: z.string().trim().min(1).max(32),
   zipCode: z.string().trim().regex(/^\d{5}$/).optional(),
   tcpaConsented: z.literal(true),
+  website: z.string().max(0).optional(),
 });
 
 export type SignUpAccountInput = z.input<typeof signUpSchema>;
@@ -53,6 +56,21 @@ function requestIp(): string {
  * returned by Supabase Auth; callers cannot choose a target account.
  */
 export async function signUpAccount(input: SignUpAccountInput): Promise<SignUpAccountResult> {
+  const ip = requestIp();
+  const guard = await guardPublicSubmission(
+    typeof input === 'object' && input ? (input as { website?: unknown }).website : undefined,
+    () => checkRateLimit('signup', ip, RATE_LIMITS.auth),
+  );
+  if (guard.silentlyDrop) {
+    return { ok: true, needsEmailConfirmation: true };
+  }
+  if (!guard.allowed) {
+    return {
+      ok: false,
+      error: `Too many signup attempts. Please try again in ${guard.retryAfter || 60} seconds.`,
+    };
+  }
+
   const parsed = signUpSchema.safeParse(input);
   if (!parsed.success) {
     return { ok: false, error: 'Please check your signup information and try again.' };
@@ -104,7 +122,7 @@ export async function signUpAccount(input: SignUpAccountInput): Promise<SignUpAc
       phone,
       full_name: values.fullName,
       tcpa_consent_at: new Date().toISOString(),
-      tcpa_consent_ip: requestIp(),
+      tcpa_consent_ip: ip,
       tcpa_consent_ua: userAgent.slice(0, 512),
     })
     .eq('id', userId);

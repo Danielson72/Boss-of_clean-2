@@ -74,6 +74,7 @@ export default function QuoteRequestPage() {
     flexibility: 'flexible',
     notes: '',
     is_commercial: false,
+    website: '',
   });
 
   const handleInputChange = (
@@ -258,6 +259,18 @@ export default function QuoteRequestPage() {
           )}
 
           <form onSubmit={handleSubmit}>
+            <div className="absolute left-[-10000px] top-auto h-px w-px overflow-hidden" aria-hidden="true">
+              <label htmlFor="quote-website">Website</label>
+              <input
+                id="quote-website"
+                name="website"
+                type="text"
+                value={formData.website || ''}
+                onChange={(e) => handleInputChange('website', e.target.value)}
+                tabIndex={-1}
+                autoComplete="off"
+              />
+            </div>
             {/* Step 1: Service Details */}
             {step === 1 && (
               <div className="space-y-6">

@@ -11,6 +11,7 @@ export default function ContactPage() {
     email: '',
     subject: '',
     message: '',
+    website: '',
   });
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -87,6 +88,18 @@ export default function ContactPage() {
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-5">
+                <div className="absolute left-[-10000px] top-auto h-px w-px overflow-hidden" aria-hidden="true">
+                  <label htmlFor="contact-website">Website</label>
+                  <input
+                    id="contact-website"
+                    name="website"
+                    type="text"
+                    value={formData.website}
+                    onChange={(e) => setFormData(prev => ({ ...prev, website: e.target.value }))}
+                    tabIndex={-1}
+                    autoComplete="off"
+                  />
+                </div>
                 {/* Name */}
                 <div>
                   <label htmlFor="contact-name" className="block text-sm font-semibold text-brand-dark mb-2">

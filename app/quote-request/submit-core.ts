@@ -24,6 +24,7 @@ export interface QuoteRequestData {
   notes?: string;
   is_commercial?: boolean;
   tcpa_user_agent?: string;
+  website?: string;
 }
 
 export interface QuoteRequestResult {
