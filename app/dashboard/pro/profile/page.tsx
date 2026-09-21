@@ -374,9 +374,9 @@ export default function CleanerProfilePage() {
       // service-role server actions (IP captured server-side).
       if (user?.id && !profileError) {
         if (smsConsent) {
-          await recordProSmsConsent(user.id, navigator.userAgent).catch(() => {});
+          await recordProSmsConsent().catch(() => {});
         } else {
-          await revokeProSmsConsent(user.id).catch(() => {});
+          await revokeProSmsConsent().catch(() => {});
         }
       }
 

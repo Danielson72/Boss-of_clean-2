@@ -161,7 +161,7 @@ export default function CleanerSetupPage() {
       // Record SMS consent only if the pro affirmatively opted in. IP is
       // captured server-side; consent is bound to the business_phone just saved.
       if (smsConsent && user?.id) {
-        recordProSmsConsent(user.id, navigator.userAgent).catch(() => {});
+        recordProSmsConsent().catch(() => {});
       }
 
       setSuccess('Profile created successfully! Redirecting to dashboard...');
