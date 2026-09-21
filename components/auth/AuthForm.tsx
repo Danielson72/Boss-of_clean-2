@@ -36,6 +36,7 @@ export function AuthForm({ mode, role = 'customer' }: AuthFormProps) {
   const [resendSuccess, setResendSuccess] = useState(false)
   const [resendCooldown, setResendCooldown] = useState(0)
   const [tcpaConsented, setTcpaConsented] = useState(false)
+  const [website, setWebsite] = useState('')
   const router = useRouter()
   const supabase = createClient()
   const isCleaner = mode === 'signup' && role === 'cleaner'
@@ -143,30 +144,13 @@ export function AuthForm({ mode, role = 'customer' }: AuthFormProps) {
           phone: phoneE164,
           zipCode: role === 'cleaner' ? zipCode : undefined,
           tcpaConsented: true,
+          website,
         })
 
         if (!result.ok) throw new Error(result.error || 'Account creation failed')
 
         if (result.setupIssue) {
           setError(`Your account was created, but we could not save ${result.setupIssue}. You can add it in your profile after you verify your email.`)
-        }
-
-        {
-          // Notify admin of new signup (fire and forget - don't block signup flow)
-          fetch('/api/admin/signup-notification', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              email,
-              fullName: fullName || undefined,
-              role,
-              businessName: businessName || undefined,
-              phone: phone || undefined,
-              zipCode: zipCode || undefined,
-            }),
-          }).catch(() => {
-            // Silently fail - don't break signup if notification fails
-          })
         }
 
         // Check if email confirmation is required
@@ -313,6 +297,20 @@ export function AuthForm({ mode, role = 'customer' }: AuthFormProps) {
       </CardHeader>
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4">
+          {isSignup && (
+            <div className="absolute left-[-10000px] top-auto h-px w-px overflow-hidden" aria-hidden="true">
+              <Label htmlFor="signup-website">Website</Label>
+              <Input
+                id="signup-website"
+                name="website"
+                type="text"
+                value={website}
+                onChange={(e) => setWebsite(e.target.value)}
+                tabIndex={-1}
+                autoComplete="off"
+              />
+            </div>
+          )}
           {error && (
             <Alert variant="destructive">
               <AlertDescription>{error}</AlertDescription>

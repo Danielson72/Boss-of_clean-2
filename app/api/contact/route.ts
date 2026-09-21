@@ -4,6 +4,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServiceRoleClient } from '@/lib/supabase/service-role';
 import { createLogger } from '@/lib/utils/logger';
 import { sendResendEmail, wrapEmailTemplate, generateInfoBox, ALERTS_FROM } from '@/lib/email/resend';
+import { rateLimitRoute, getClientIp, RATE_LIMITS } from '@/lib/middleware/rate-limit';
+import { isHoneypotFilled } from '@/lib/security/submission-guard';
 
 const logger = createLogger({ file: 'api/contact/route' });
 
@@ -13,6 +15,13 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { name, email, subject, message } = body;
+
+    if (isHoneypotFilled(body.website)) {
+      return NextResponse.json({ success: true });
+    }
+
+    const limited = await rateLimitRoute('contact', getClientIp(request), RATE_LIMITS.contact);
+    if (limited) return limited;
 
     if (!name || !email || !subject || !message) {
       return NextResponse.json(
@@ -41,7 +50,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    logger.info('Contact submission saved', { function: 'POST', email, subject });
+    logger.info('Contact submission saved', { function: 'POST', subject });
 
     // 2. Send notification email to admin (non-blocking — DB save already succeeded)
     const subjectLabels: Record<string, string> = {
@@ -130,7 +139,7 @@ export async function POST(request: NextRequest) {
         from: 'Boss of Clean <no-reply@bossofclean.com>',
       });
     } catch (customerEmailErr) {
-      logger.error('Failed to send customer confirmation email', { function: 'POST', email }, customerEmailErr);
+      logger.error('Failed to send customer confirmation email', { function: 'POST' }, customerEmailErr);
     }
 
     return NextResponse.json({ success: true });

@@ -2,16 +2,15 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { createClient } from '@/lib/supabase/client';
 import { Mail, ArrowLeft, CheckCircle, AlertCircle } from 'lucide-react';
-import { canRequestReset, recordResetRequest } from '@/lib/email/password-reset';
+import { requestPasswordReset } from '@/lib/actions/password-reset';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
-  const supabase = createClient();
+  const [website, setWebsite] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,26 +20,12 @@ export default function ForgotPasswordPage() {
       return;
     }
 
-    // Check rate limit
-    const { allowed, remainingSeconds } = canRequestReset(email);
-    if (!allowed) {
-      const minutes = Math.ceil(remainingSeconds / 60);
-      setError(`Too many reset requests. Please try again in ${minutes} minute${minutes > 1 ? 's' : ''}.`);
-      return;
-    }
-
     setLoading(true);
     setError('');
 
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth/callback?next=/auth/reset-password`,
-      });
-
-      if (error) throw error;
-
-      // Record the successful request for rate limiting
-      recordResetRequest(email);
+      const result = await requestPasswordReset({ email, website });
+      if (!result.ok) throw new Error(result.error || 'Failed to send reset email');
       setSuccess(true);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to send reset email';
@@ -98,6 +83,18 @@ export default function ForgotPasswordPage() {
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="absolute left-[-10000px] top-auto h-px w-px overflow-hidden" aria-hidden="true">
+                <label htmlFor="reset-website">Website</label>
+                <input
+                  id="reset-website"
+                  name="website"
+                  type="text"
+                  value={website}
+                  onChange={(e) => setWebsite(e.target.value)}
+                  tabIndex={-1}
+                  autoComplete="off"
+                />
+              </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Email Address
