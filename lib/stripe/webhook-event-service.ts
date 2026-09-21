@@ -47,11 +47,14 @@ export class WebhookEventService {
 
     if (error) {
       logger.error('Error recording webhook event:', {}, error);
-      // If we can't record, assume it's new to avoid missing events
-      return { is_new: true, event_status: 'processing' };
+      // Money events must never run without a durable idempotency claim.
+      throw new Error(`Could not claim Stripe webhook event ${event.id}: ${error.message}`);
     }
 
-    const result = data?.[0] || { is_new: true, event_status: 'processing' };
+    const result = data?.[0];
+    if (!result) {
+      throw new Error(`Stripe webhook claim returned no result for ${event.id}`);
+    }
     return result as WebhookEventRecord;
   }
 
@@ -67,6 +70,7 @@ export class WebhookEventService {
 
     if (error) {
       logger.error('Error marking webhook as processed:', {}, error);
+      throw new Error(`Could not mark Stripe webhook event ${eventId} processed: ${error.message}`);
     }
   }
 
@@ -83,6 +87,7 @@ export class WebhookEventService {
 
     if (error) {
       logger.error('Error marking webhook as failed:', {}, error);
+      throw new Error(`Could not mark Stripe webhook event ${eventId} failed: ${error.message}`);
     }
   }
 
