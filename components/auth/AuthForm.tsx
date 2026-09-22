@@ -20,9 +20,10 @@ import { normalizeToE164 } from '@/lib/phone'
 interface AuthFormProps {
   mode: 'login' | 'signup'
   role?: 'customer' | 'cleaner'
+  initialError?: string | null
 }
 
-export function AuthForm({ mode, role = 'customer' }: AuthFormProps) {
+export function AuthForm({ mode, role = 'customer', initialError = null }: AuthFormProps) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [fullName, setFullName] = useState('')
@@ -31,7 +32,7 @@ export function AuthForm({ mode, role = 'customer' }: AuthFormProps) {
   const [zipCode, setZipCode] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(initialError)
   const [verificationPending, setVerificationPending] = useState(false)
   const [resendLoading, setResendLoading] = useState(false)
   const [resendSuccess, setResendSuccess] = useState(false)

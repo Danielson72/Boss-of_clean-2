@@ -147,6 +147,7 @@ export async function GET(request: NextRequest) {
         .from('users').update(updates).eq('email', user.email).select('id').maybeSingle()
       if (linkError || linkedUser?.id !== user.id) {
         logger.error('Account link failed', { function: 'GET' }, linkError)
+        await supabase.auth.signOut()
         return redirectWithCookies(new URL('/login?error=account-link', origin))
       }
 

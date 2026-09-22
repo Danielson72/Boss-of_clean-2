@@ -8,13 +8,14 @@ export const metadata = generatePageMetadata({
   noIndex: true,
 })
 
-export default function LoginPage() {
+export default function LoginPage({ searchParams }: { searchParams: { error?: string } }) {
   return (
     <div className="flex min-h-screen items-center justify-center bg-brand-cream px-4 py-12 sm:px-6 lg:px-8">
       <div className="flex flex-col items-center w-full max-w-md">
-        <AuthForm mode="login" />
+        <AuthForm mode="login" initialError={searchParams.error === 'account-link'
+          ? 'We could not connect this Google sign-in to your existing account. Please sign in with your email and password or contact support.'
+          : null} />
       </div>
     </div>
   )
 }
-
