@@ -13,8 +13,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Loader2, Mail, CheckCircle, Eye, EyeOff } from 'lucide-react'
 import { resendVerificationEmail, canResendEmail, markEmailResent, getResendCooldownRemaining } from '@/lib/email/verification'
 import { GoogleSignInButton } from '@/components/auth/GoogleSignInButton'
-import { recordUserTcpaConsent } from '@/lib/actions/tcpa'
-import { seedProServiceArea } from '@/lib/actions/pro-signup'
+import { saveSignupDetails } from '@/lib/actions/signup'
+import { isFreshSignup } from '@/lib/actions/signup-core'
 import { normalizeToE164 } from '@/lib/phone'
 
 interface AuthFormProps {
@@ -135,6 +135,7 @@ export function AuthForm({ mode, role = 'customer' }: AuthFormProps) {
           return
         }
 
+        const signupNonce = crypto.randomUUID()
         const { data: authData, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
@@ -144,79 +145,32 @@ export function AuthForm({ mode, role = 'customer' }: AuthFormProps) {
               role,
               full_name: fullName || undefined,
               business_name: businessName || undefined,
+              signup_nonce: signupNonce,
             },
           },
         })
-
         if (signUpError) throw signUpError
-
-        // Check for repeated signup (user already exists but Supabase doesn't reveal this for security)
-        if (authData.user && (!authData.user.identities || authData.user.identities.length === 0)) {
+        if (!isFreshSignup(authData.user)) {
           setError('An account with this email already exists. Please sign in instead.')
           setLoading(false)
           return
         }
 
-        if (authData.user) {
-          // The handle_new_user DB trigger creates the users row — and, for a
-          // 'cleaner' role, the pros row too — in the same transaction as the
-          // auth user. Persist phone + full_name + TCPA consent via a
-          // service-role server action: the email isn't confirmed yet so the
-          // client has no session, and a direct client-side users UPDATE is
-          // blocked by RLS (DLD-576).
-          let setupIssue: string | null = null
-
-          const profileResult = await recordUserTcpaConsent(
-            authData.user.id,
-            navigator.userAgent,
-            { phone: phoneE164, fullName: fullName || null }
-          )
-          if (!profileResult.ok) {
-            // No more silent drops — surface it (account still exists).
-            console.error('Failed to persist signup contact info', profileResult.error)
-            setupIssue = 'your phone number'
+        const signupResult = await saveSignupDetails({
+          userId: authData.user.id,
+          nonce: signupNonce,
+          fullName,
+          businessName,
+          phone: phoneE164,
+          zipCode,
+          consented: tcpaConsented,
+        }).catch(() => ({ ok: false as const, error: 'Please finish setup after signing in.' }))
+        if (!signupResult.ok) {
+          setError(`Your account was created, but we could not finish setup: ${signupResult.error}`)
+          if (authData.session) {
+            window.location.assign(`/auth/complete-signup?role=${role}`)
+            return
           }
-
-          // Seed the pro's signup ZIP. The pros row and its business_name are
-          // already set by the trigger from the signUp metadata above, so there
-          // is nothing to create or re-write here — only the service area, via
-          // a service-role server action for the same no-session reason as the
-          // TCPA write. Writes pros.service_areas, the store search reads.
-          if (role === 'cleaner' && zipCode) {
-            const areaResult = await seedProServiceArea(authData.user.id, zipCode)
-            if (!areaResult.ok) {
-              // A missing service area means the pro never surfaces in a ZIP
-              // search and has no way to know why — don't let it fail silently.
-              console.error('Failed to seed pro service area', areaResult.error)
-              setupIssue = setupIssue
-                ? `${setupIssue} or your service ZIP code`
-                : 'your service ZIP code'
-            }
-          }
-
-          if (setupIssue) {
-            // Account exists; be honest about what didn't save.
-            setError(`Your account was created, but we could not save ${setupIssue}. You can add it in your profile after you verify your email.`)
-          }
-          // Notify admin of new signup (fire and forget - don't block signup flow)
-          fetch('/api/admin/signup-notification', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              email,
-              fullName: fullName || undefined,
-              role,
-              businessName: businessName || undefined,
-              phone: phone || undefined,
-              zipCode: zipCode || undefined,
-            }),
-          }).catch(() => {
-            // Silently fail - don't break signup if notification fails
-          })
-        }
-
-        // Check if email confirmation is required
-        if (authData.user && !authData.session) {
           markEmailResent(email)
           setResendCooldown(60_000)
           setVerificationPending(true)
@@ -224,7 +178,40 @@ export function AuthForm({ mode, role = 'customer' }: AuthFormProps) {
           return
         }
 
-        router.push(role === 'cleaner' ? '/dashboard/pro/setup' : '/dashboard/customer')
+        if (signupResult.setupIssue) {
+          setError(`Your account was created, but we could not save ${signupResult.setupIssue}. You can add it in your profile after you verify your email.`)
+        }
+
+        // Notify admin of new signup (fire and forget - don't block signup flow)
+        fetch('/api/admin/signup-notification', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email,
+            fullName: fullName || undefined,
+            role,
+            businessName: businessName || undefined,
+            phone: phone || undefined,
+            zipCode: zipCode || undefined,
+          }),
+        }).catch(() => {
+          // Silently fail - don't break signup if notification fails
+        })
+
+        // Check if email confirmation is required
+        if (!authData.session) {
+          markEmailResent(email)
+          setResendCooldown(60_000)
+          setVerificationPending(true)
+          setLoading(false)
+          return
+        }
+
+        if (signupResult.setupIssue) {
+          window.location.assign(`/auth/complete-signup?role=${role}`)
+          return
+        }
+        window.location.assign(role === 'cleaner' ? '/dashboard/pro/setup' : '/dashboard/customer')
       } else {
         const { error: signInError } = await supabase.auth.signInWithPassword({
           email,

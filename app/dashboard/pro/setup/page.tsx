@@ -161,7 +161,13 @@ export default function CleanerSetupPage() {
       // Record SMS consent only if the pro affirmatively opted in. IP is
       // captured server-side; consent is bound to the business_phone just saved.
       if (smsConsent && user?.id) {
-        recordProSmsConsent(user.id, navigator.userAgent).catch(() => {});
+        try {
+          await recordProSmsConsent();
+        } catch {
+          setError('Profile created, but SMS alerts could not be enabled. You can try again from your profile.');
+          setTimeout(() => router.push('/dashboard/pro'), 3000);
+          return;
+        }
       }
 
       setSuccess('Profile created successfully! Redirecting to dashboard...');
