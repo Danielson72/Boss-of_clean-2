@@ -82,7 +82,7 @@ export async function GET(request: NextRequest) {
 
   // Handle password reset and other redirect flows
   const next = requestUrl.searchParams.get('next')
-  if (next && next.startsWith('/') && !next.startsWith('//')) {
+  if (next === '/auth/reset-password') {
     return redirectWithCookies(new URL(next, origin))
   }
 
