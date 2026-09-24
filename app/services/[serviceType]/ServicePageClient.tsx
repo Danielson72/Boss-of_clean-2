@@ -21,16 +21,11 @@ interface CleanerData {
   average_rating?: number;
   total_reviews?: number;
   profile_image_url?: string;
-  insurance_verified?: boolean;
-  license_verified?: boolean;
-  background_check?: boolean;
-  is_certified?: boolean;
   instant_booking?: boolean;
   subscription_tier?: string;
   users?: {
     city?: string;
     state?: string;
-    zip_code?: string;
   };
 }
 
@@ -64,10 +59,10 @@ export function ServicePageClient({ serviceType }: ServicePageClientProps) {
     city: cleaner.users?.city,
     state: cleaner.users?.state || 'FL',
     subscriptionTier: cleaner.subscription_tier || 'free',
-    insuranceVerified: cleaner.insurance_verified || false,
-    licenseVerified: cleaner.license_verified || false,
-    backgroundCheckVerified: cleaner.background_check || false,
-    isCertified: cleaner.is_certified || false,
+    insuranceVerified: false,
+    licenseVerified: false,
+    backgroundCheckVerified: false,
+    isCertified: false,
     instantBooking: cleaner.instant_booking || false,
   });
 
@@ -81,8 +76,11 @@ export function ServicePageClient({ serviceType }: ServicePageClientProps) {
         .from('pros')
         .select(
           `
-          *,
-          users!inner(full_name, phone, email, city, state, zip_code)
+          id, business_name, business_slug, business_description,
+          services, service_areas, hourly_rate, minimum_hours,
+          years_experience, average_rating, total_reviews, profile_image_url,
+          instant_booking, subscription_tier,
+          users(city, state)
         `,
           { count: 'exact' }
         )
@@ -129,9 +127,9 @@ export function ServicePageClient({ serviceType }: ServicePageClientProps) {
       if (filteredData.length > 0) {
         const prices = filteredData
           .map((c: CleanerData) => c.hourly_rate)
-          .filter((p): p is number => p !== null && p !== undefined && p > 0);
+          .filter((p: number | undefined): p is number => p !== null && p !== undefined && p > 0);
         if (prices.length > 0) {
-          const avg = prices.reduce((sum, p) => sum + p, 0) / prices.length;
+          const avg = prices.reduce((sum: number, p: number) => sum + p, 0) / prices.length;
           setAveragePrice(Math.round(avg));
         }
       }

@@ -38,10 +38,9 @@ export async function POST(
 
   const quoteId = params.quoteId;
 
-  // 2a. Verify the quote is 'accepted' and assigned to THIS pro. Read via the
-  //     user client — the pro's RLS on quote_requests already scopes visibility.
+  // 2a. Verify the safe pro-facing quote is 'accepted' and assigned to THIS pro.
   const { data: quote } = await supabase
-    .from('quote_requests')
+    .from('quote_requests_pro_view')
     .select('id, status, cleaner_id')
     .eq('id', quoteId)
     .single();

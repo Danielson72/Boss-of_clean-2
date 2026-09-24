@@ -46,7 +46,6 @@ interface CityPageCleaner {
   profile_image_url: string | null;
   subscription_tier: string;
   instant_booking: boolean;
-  insurance_verified: boolean;
   users: { city: string | null; state: string | null } | { city: string | null; state: string | null }[];
 }
 
@@ -121,7 +120,6 @@ export default async function CityPage({ params }: CityPageProps) {
       profile_image_url,
       subscription_tier,
       instant_booking,
-      insurance_verified,
       users(city, state)
     `,
       { count: 'exact' }

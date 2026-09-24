@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import Image from 'next/image';
 import {
-  Star, MapPin, Shield, Award,
+  Star, MapPin, Award,
   BadgeCheck, CheckCircle2, DollarSign, Users, Calendar,
   MessageSquare, ArrowLeft, Camera
 } from 'lucide-react';
@@ -34,21 +34,15 @@ interface CleanerProfile {
   total_reviews: number;
   total_jobs: number;
   response_time_hours: number;
-  insurance_verified: boolean;
-  license_verified: boolean;
-  background_check: boolean;
   is_certified?: boolean;
   instant_booking: boolean;
   subscription_tier: string;
   profile_image_url: string;
-  business_images: string[];
   business_hours: BusinessHours | null;
   created_at: string;
   users: {
-    full_name: string;
     city: string;
     state: string;
-    zip_code: string;
   };
 }
 
@@ -84,16 +78,12 @@ const PUBLIC_PROFILE_COLUMNS = `
   total_reviews,
   total_jobs,
   response_time_hours,
-  insurance_verified,
-  license_verified,
-  background_check,
   instant_booking,
   subscription_tier,
   profile_image_url,
-  business_images,
   business_hours,
   created_at,
-  users(full_name, city, state, zip_code)
+  users(city, state)
 `;
 
 async function getCleanerBySlug(slug: string): Promise<CleanerProfile | null> {
@@ -198,8 +188,8 @@ export default async function CleanerProfilePage({ params }: { params: Promise<{
     id: cleaner.id,
     average_rating: cleaner.average_rating || 0,
     total_reviews: cleaner.total_reviews || 0,
-    insurance_verified: cleaner.insurance_verified,
-    license_verified: cleaner.license_verified,
+    insurance_verified: false,
+    license_verified: false,
     response_time_hours: cleaner.response_time_hours,
   });
 
@@ -309,30 +299,8 @@ export default async function CleanerProfilePage({ params }: { params: Promise<{
                     Boss of Clean Member
                   </span>
                 )}
-                {cleaner.insurance_verified && (
-                  <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
-                    <Shield className="h-4 w-4" />
-                    Insurance doc on file
-                  </span>
-                )}
-                {cleaner.license_verified && (
-                  <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
-                    <CheckCircle2 className="h-4 w-4" />
-                    License doc on file
-                  </span>
-                )}
-                {cleaner.background_check && (
-                  <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
-                    <CheckCircle2 className="h-4 w-4" />
-                    Profile on File
-                  </span>
-                )}
               </div>
 
-              {/* Credentials disclaimer — BOC is a neutral marketplace and does not verify pro-provided info */}
-              <p className="mt-3 text-xs text-gray-500 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
-                Information shown is provided by the pro and is not independently confirmed by Boss of Clean. Please confirm licensing and insurance directly with the pro before hiring.
-              </p>
             </div>
 
             {/* CTA Section */}

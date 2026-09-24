@@ -35,7 +35,6 @@ export async function GET(request: NextRequest) {
           services,
           hourly_rate,
           instant_booking,
-          insurance_verified,
           users!inner(city, state)
         )
       `)

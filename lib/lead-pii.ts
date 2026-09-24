@@ -9,6 +9,22 @@
  */
 
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { createServiceRoleClient } from '@/lib/supabase/service-role';
+
+/** Call only after the caller has checked ownership of the related conversation or booking. */
+export async function customerForScopedInteraction(customerId: string, isUnlocked: boolean) {
+  const admin = createServiceRoleClient();
+  const { data, error } = isUnlocked
+    ? await admin.from('users').select('id, full_name, email')
+      .eq('id', customerId).maybeSingle()
+    : await admin.from('users').select('id, full_name')
+      .eq('id', customerId).maybeSingle();
+  if (error || !data) return null;
+  const customer = data as { id: string; full_name: string | null; email?: string | null };
+  return isUnlocked
+    ? { id: customer.id, full_name: customer.full_name, email: customer.email ?? null }
+    : { id: customer.id, full_name: firstNameOnly(customer.full_name), email: null };
+}
 
 /** "Jane Smith" -> "Jane"; null-safe. */
 export function firstNameOnly(fullName: string | null | undefined): string | null {
