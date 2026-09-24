@@ -82,7 +82,7 @@ export async function GET(request: NextRequest) {
 
   // Handle password reset and other redirect flows
   const next = requestUrl.searchParams.get('next')
-  if (next && next.startsWith('/') && !next.startsWith('//')) {
+  if (next === '/auth/reset-password') {
     return redirectWithCookies(new URL(next, origin))
   }
 
@@ -93,7 +93,7 @@ export async function GET(request: NextRequest) {
   // Check if the user record exists (it should, from the trigger).
   const { data: existingUser } = await supabase
     .from('users')
-    .select('id, role')
+    .select('id, role, phone, tcpa_consent_at')
     .eq('id', user.id)
     .single()
 
@@ -108,6 +108,17 @@ export async function GET(request: NextRequest) {
     await supabase.from('users').update(updates).eq('id', user.id)
 
     const role = existingUser.role || 'customer'
+    let needsCompletion = !existingUser.phone || !existingUser.tcpa_consent_at
+    if (role === 'cleaner' && !needsCompletion) {
+      const { data: pro } = await supabase.from('pros').select('service_areas').eq('user_id', user.id).maybeSingle()
+      needsCompletion = !pro?.service_areas?.length
+    }
+    if (role !== 'admin' && needsCompletion) {
+      const completionRole = intendedRole === 'cleaner' ? 'cleaner' : role
+      const completionUrl = new URL('/auth/complete-signup', origin)
+      completionUrl.searchParams.set('role', completionRole)
+      return redirectWithCookies(completionUrl)
+    }
     return redirectWithCookies(new URL(roleToDashboardPath(role), origin))
   }
 
@@ -116,7 +127,7 @@ export async function GET(request: NextRequest) {
   if (user.email) {
     const { data: userByEmail } = await supabase
       .from('users')
-      .select('id, role')
+      .select('id, role, phone, tcpa_consent_at')
       .eq('email', user.email)
       .single()
 
@@ -132,10 +143,26 @@ export async function GET(request: NextRequest) {
       if (avatarUrl) updates.avatar_url = avatarUrl
       if (fullName) updates.full_name = fullName
 
-      await supabase.from('users').update(updates).eq('email', user.email)
+      const { data: linkedUser, error: linkError } = await supabase
+        .from('users').update(updates).eq('email', user.email).select('id').maybeSingle()
+      if (linkError || linkedUser?.id !== user.id) {
+        logger.error('Account link failed', { function: 'GET' }, linkError)
+        await supabase.auth.signOut()
+        return redirectWithCookies(new URL('/login?error=account-link', origin))
+      }
 
       const role = userByEmail.role || 'customer'
-      return redirectWithCookies(new URL(roleToDashboardPath(role), origin))
+      let needsCompletion = !userByEmail.phone || !userByEmail.tcpa_consent_at
+      if (role === 'cleaner' && !needsCompletion) {
+        const { data: pro } = await supabase.from('pros').select('service_areas').eq('user_id', user.id).maybeSingle()
+        needsCompletion = !pro?.service_areas?.length
+      }
+      if (role === 'admin' || !needsCompletion) {
+        return redirectWithCookies(new URL(roleToDashboardPath(role), origin))
+      }
+      const completionUrl = new URL('/auth/complete-signup', origin)
+      completionUrl.searchParams.set('role', intendedRole === 'cleaner' ? 'cleaner' : role)
+      return redirectWithCookies(completionUrl)
     }
   }
 
@@ -167,12 +194,7 @@ export async function GET(request: NextRequest) {
       })
   }
 
-  // If role was specified via signup flow, go straight to dashboard
-  if (intendedRole) {
-    const dashPath = newRole === 'cleaner' ? '/dashboard/pro/setup' : '/dashboard/customer'
-    return redirectWithCookies(new URL(dashPath, origin))
-  }
-
-  // No intended role - new OAuth users go to role selection
-  return redirectWithCookies(new URL('/auth/select-role', origin))
+  const completionUrl = new URL('/auth/complete-signup', origin)
+  completionUrl.searchParams.set('role', newRole)
+  return redirectWithCookies(completionUrl)
 }

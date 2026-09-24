@@ -370,13 +370,16 @@ export default function CleanerProfilePage() {
       // saved — consent binds to the phone just saved; an
       // unchecked box unconditionally revokes any consent so sends stop. Revoke
       // is unconditional (not gated on stale loaded state) and idempotent, so a
-      // same-session opt-in then opt-out is honored. Both run through
-      // service-role server actions (IP captured server-side).
+      // same-session opt-in then opt-out is honored. IP is captured server-side.
       if (user?.id && !profileError) {
-        if (smsConsent) {
-          await recordProSmsConsent(user.id, navigator.userAgent).catch(() => {});
-        } else {
-          await revokeProSmsConsent(user.id).catch(() => {});
+        try {
+          if (smsConsent) {
+            await recordProSmsConsent();
+          } else {
+            await revokeProSmsConsent();
+          }
+        } catch {
+          saveErrors.push('SMS consent — could not save your choice');
         }
       }
 
