@@ -7,7 +7,6 @@ import { ResponseTimeBadge } from '@/components/pro/ResponseTimeBadge';
 import {
   Star,
   MapPin,
-  Shield,
   ArrowRight,
   User,
   Search,
@@ -39,7 +38,6 @@ interface DirectoryCleaner {
   total_jobs: number | null;
   hourly_rate: number | null;
   years_experience: number | null;
-  insurance_verified: boolean;
   instant_booking: boolean;
   subscription_tier: string;
   users:
@@ -92,7 +90,7 @@ export default async function ProfessionalsPage({
       id, business_name, business_slug, business_description,
       services, service_areas, profile_image_url,
       average_rating, total_reviews, total_jobs, hourly_rate,
-      years_experience, insurance_verified, instant_booking, subscription_tier,
+      years_experience, instant_booking, subscription_tier,
       users(city, state)
     `
     )
@@ -291,13 +289,6 @@ export default async function ProfessionalsPage({
             </div>
           </div>
 
-          {/* Credentials disclaimer — shown only when a listed pro renders a credential label */}
-          {pros.some((pro) => pro.insurance_verified) && (
-            <p className="mb-6 text-xs text-gray-500 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
-              Information shown is provided by the pro and is not independently confirmed by Boss of Clean. Please confirm licensing and insurance directly with the pro before hiring.
-            </p>
-          )}
-
           {/* Pro Grid */}
           {pros.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -394,12 +385,6 @@ export default async function ProfessionalsPage({
 
                       {/* Trust signals */}
                       <div className="flex flex-wrap gap-1.5 mb-4">
-                        {pro.insurance_verified && (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-700 text-xs rounded-full">
-                            <Shield className="h-3 w-3" />
-                            Insurance doc on file
-                          </span>
-                        )}
                         {pro.instant_booking && (
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-50 text-green-700 text-xs rounded-full">
                             <BadgeCheck className="h-3 w-3" />

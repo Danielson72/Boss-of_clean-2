@@ -105,7 +105,7 @@ export async function GET(request: NextRequest) {
     // Calculate lead credits usage (mock data for now - you can implement actual tracking)
     // In a real implementation, you'd query a lead_contacts or similar table
     const { count: leadContactsCount } = await supabase
-      .from('quote_requests')
+      .from('quote_requests_pro_view')
       .select('*', { count: 'exact', head: true })
       .eq('cleaner_id', cleaner.id)
       .gte('created_at', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString());
@@ -137,7 +137,7 @@ export async function GET(request: NextRequest) {
       dayEnd.setDate(dayEnd.getDate() + 1);
 
       const { count } = await supabase
-        .from('quote_requests')
+        .from('quote_requests_pro_view')
         .select('*', { count: 'exact', head: true })
         .eq('cleaner_id', cleaner.id)
         .gte('created_at', dayStart.toISOString())

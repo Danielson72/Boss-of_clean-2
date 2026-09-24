@@ -172,12 +172,11 @@ export async function respondToQuote(
       return { success: false, error: 'Please include a message with your quote' };
     }
 
-    // Verify the quote is still available (pending, unclaimed).
-    // Customer email/name pulled from users table via JOIN at read time —
-    // never read from the contact_* columns on the quote row.
+    // Verify through the pro-facing projection; it never exposes customer
+    // identity or contact information before payment.
     const { data: quote, error: fetchError } = await supabase
-      .from('quote_requests')
-      .select('id, status, cleaner_id, customer_id, customer:users!quote_requests_customer_id_fkey(full_name, email)')
+      .from('quote_requests_pro_view')
+      .select('id, status, cleaner_id, customer_first_name')
       .eq('id', quoteId)
       .single();
 
@@ -189,12 +188,16 @@ export async function respondToQuote(
       return { success: false, error: 'This quote has already been claimed by another pro' };
     }
 
-    if (quote.status !== 'pending' && quote.cleaner_id !== cleaner.id) {
+    if (quote.status !== 'pending') {
       return { success: false, error: 'This quote is no longer available' };
     }
 
-    // Claim + respond: update quote_requests with cleaner_id and quote details
-    const { error: updateError } = await supabase
+    // A conditional server write handles the state transition without granting
+    // the pro a direct read of the private quote row. Recheck the state at write
+    // time so a concurrent pro response cannot claim the same quote. A direct
+    // request already assigned to this pro is also eligible.
+    const adminSupabase = createServiceRoleClient();
+    const { data: updatedQuote, error: updateError } = await adminSupabase
       .from('quote_requests')
       .update({
         cleaner_id: cleaner.id,
@@ -204,21 +207,26 @@ export async function respondToQuote(
         responded_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       })
-      .eq('id', quoteId);
+      .eq('id', quoteId)
+      .eq('status', 'pending')
+      .or(`cleaner_id.is.null,cleaner_id.eq.${cleaner.id}`)
+      .select('id, customer_id')
+      .maybeSingle();
 
-    if (updateError) {
+    if (updateError || !updatedQuote) {
       logger.error('Error updating quote request', { function: 'respondToQuote' }, updateError);
       return { success: false, error: 'Failed to submit your quote' };
     }
 
-    // Resolve customer info from the JOIN (legacy rows with no customer_id will be null)
-    const customerJoin = Array.isArray(quote.customer) ? quote.customer[0] : quote.customer;
-    const customerEmail = customerJoin?.email || null;
-    const customerFullName = customerJoin?.full_name || null;
-    const customerFirstName = customerFullName ? customerFullName.split(/\s+/)[0] : null;
-
-    // Create notification for the customer (if they have a user account)
-    const adminSupabase = createServiceRoleClient();
+    const { data: customer } = updatedQuote.customer_id
+      ? await adminSupabase.from('users')
+        .select('full_name, email')
+        .eq('id', updatedQuote.customer_id)
+        .maybeSingle()
+      : { data: null };
+    const customerEmail = customer?.email || null;
+    const customerFullName = customer?.full_name || null;
+    const customerFirstName = quote.customer_first_name || null;
 
     // Notify customer via email (fire-and-forget)
     if (customerEmail) {

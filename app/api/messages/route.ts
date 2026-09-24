@@ -6,7 +6,7 @@ import { rateLimitRoute, RATE_LIMITS } from '@/lib/middleware/rate-limit';
 import { createLogger } from '@/lib/utils/logger';
 import { notifyProNewMessage, notifyCustomerQuoteReceived, sendSMSIfEnabled } from '@/lib/sms/notifications';
 import { filterPII, filterPIIWithWindow } from '@/lib/pii-filter';
-import { capturedCustomerIdsForPro, redactCustomerForPro } from '@/lib/lead-pii';
+import { capturedCustomerIdsForPro, customerForScopedInteraction } from '@/lib/lead-pii';
 
 const logger = createLogger({ file: 'api/messages/route' });
 
@@ -59,7 +59,6 @@ export async function GET() {
       customer_unread_count,
       cleaner_unread_count,
       created_at,
-      customer:users!conversations_customer_id_fkey(id, full_name, email),
       cleaner:pros!conversations_cleaner_id_fkey(id, business_name, user_id)
     `)
     .order('last_message_at', { ascending: false, nullsFirst: false });
@@ -103,17 +102,14 @@ export async function GET() {
         .limit(1)
         .single();
 
-      // FK embed may be typed as array; normalize before redacting.
-      const customerRaw = conv.customer as unknown;
-      const customerObj = (Array.isArray(customerRaw) ? customerRaw[0] : customerRaw) as
-        | { id: string; full_name: string | null; email: string | null }
-        | null;
+      const customer = await customerForScopedInteraction(
+        conv.customer_id,
+        isCustomer || unlockedCustomerIds.has(conv.customer_id)
+      );
 
       return {
         ...conv,
-        customer: isCustomer
-          ? customerObj
-          : redactCustomerForPro(customerObj, unlockedCustomerIds.has(conv.customer_id)),
+        customer,
         lastMessage: lastMessage || null,
         unreadCount: isCustomer ? conv.customer_unread_count : conv.cleaner_unread_count,
       };
@@ -190,7 +186,7 @@ export async function POST(request: NextRequest) {
       }
 
       // Get cleaner's email from users table
-      const { data: cleanerUser } = await supabase
+      const { data: cleanerUser } = await createServiceRoleClient()
         .from('users')
         .select('email, full_name')
         .eq('id', cleaner.user_id)
@@ -238,7 +234,6 @@ export async function POST(request: NextRequest) {
         id,
         customer_id,
         cleaner_id,
-        customer:users!conversations_customer_id_fkey(email, full_name),
         cleaner:pros!conversations_cleaner_id_fkey(business_name, business_email, user_id)
       `)
       .eq('id', conversationId)
@@ -270,16 +265,20 @@ export async function POST(request: NextRequest) {
       const cleanerData = conv.cleaner as unknown as { business_name: string; business_email: string; user_id: string };
       recipientName = cleanerData.business_name;
       // Get cleaner's email
-      const { data: cleanerUser } = await supabase
+      const { data: cleanerUser } = await createServiceRoleClient()
         .from('users')
         .select('email')
         .eq('id', cleanerData.user_id)
         .single();
       recipientEmail = cleanerData.business_email || cleanerUser?.email || '';
     } else {
-      const customerData = conv.customer as unknown as { email: string; full_name: string };
-      recipientEmail = customerData.email;
-      recipientName = customerData.full_name;
+      const { data: customerData } = await createServiceRoleClient()
+        .from('users')
+        .select('email, full_name')
+        .eq('id', conv.customer_id)
+        .maybeSingle();
+      recipientEmail = customerData?.email || '';
+      recipientName = customerData?.full_name || 'Customer';
     }
   }
 
@@ -403,7 +402,7 @@ export async function POST(request: NextRequest) {
   let recipientUserId: string | null = null;
   if (isCustomer && cleanerId) {
     // Customer sent message to cleaner — notify the cleaner via SMS
-    const { data: cleanerSms } = await supabase
+    const { data: cleanerSms } = await createServiceRoleClient()
       .from('pros')
       .select('business_phone, user_id')
       .eq('id', cleanerId)
@@ -428,7 +427,7 @@ export async function POST(request: NextRequest) {
 
     if (conv?.customer_id) {
       recipientUserId = conv.customer_id;
-      const { data: customerUser } = await supabase
+      const { data: customerUser } = await createServiceRoleClient()
         .from('users')
         .select('phone')
         .eq('id', conv.customer_id)

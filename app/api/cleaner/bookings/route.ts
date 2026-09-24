@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createLogger } from '@/lib/utils/logger';
-import { capturedCustomerIdsForPro, redactCustomerForPro } from '@/lib/lead-pii';
+import { capturedCustomerIdsForPro, customerForScopedInteraction } from '@/lib/lead-pii';
 
 const logger = createLogger({ file: 'api/cleaner/bookings/route' });
 
@@ -26,17 +26,10 @@ export async function GET() {
     return NextResponse.json({ error: 'Cleaner profile not found' }, { status: 403 });
   }
 
-  // Fetch all bookings for this cleaner with customer info
+  // Fetch only this cleaner's bookings; resolve customer identity separately.
   const { data: bookings, error: bookingsError } = await supabase
     .from('bookings')
-    .select(`
-      *,
-      customer:users!bookings_customer_id_fkey(
-        id,
-        full_name,
-        email
-      )
-    `)
+    .select('*')
     .eq('cleaner_id', cleaner.id)
     .order('booking_date', { ascending: true });
 
@@ -57,23 +50,20 @@ export async function GET() {
     rows.map((b: { customer_id: string }) => b.customer_id)
   );
 
-  const walledBookings = rows.map((b: Record<string, unknown>) => {
+  const walledBookings = await Promise.all(rows.map(async (b: Record<string, unknown>) => {
     const isUnlocked = unlockedCustomerIds.has(b.customer_id as string);
-    const customerRaw = b.customer as unknown;
-    const customerObj = (Array.isArray(customerRaw) ? customerRaw[0] : customerRaw) as
-      | { id: string; full_name: string | null; email: string | null }
-      | null;
+    const customer = await customerForScopedInteraction(b.customer_id as string, isUnlocked);
 
     if (isUnlocked) {
-      return { ...b, customer: customerObj };
+      return { ...b, customer };
     }
     return {
       ...b,
-      customer: redactCustomerForPro(customerObj, false),
+      customer,
       address: '', // zip_code stays — same exposure as quote_requests_pro_view
       special_instructions: null,
     };
-  });
+  }));
 
   return NextResponse.json({ bookings: walledBookings });
 }

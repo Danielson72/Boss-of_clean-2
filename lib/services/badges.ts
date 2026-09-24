@@ -138,7 +138,7 @@ export async function calculateAverageResponseTime(
   cleanerId: string
 ): Promise<number | null> {
   const { data, error } = await supabase
-    .from('quote_requests')
+    .from('quote_requests_pro_view')
     .select('created_at, updated_at, status')
     .eq('cleaner_id', cleanerId)
     .eq('status', 'responded')

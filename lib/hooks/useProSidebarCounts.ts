@@ -101,7 +101,7 @@ export function useProSidebarCounts(): UseProSidebarCountsResult {
             .eq('user_id', user.id)
             .eq('read', false),
           supabase
-            .from('quote_requests')
+            .from('quote_requests_pro_view')
             .select('id', { count: 'exact', head: true })
             .eq('cleaner_id', pro.id)
             .eq('status', 'pending'),
@@ -124,7 +124,7 @@ export function useProSidebarCounts(): UseProSidebarCountsResult {
         // has not yet unlocked (no `captured` lead_acceptances). Mirrors the
         // getHiredLeadsAwaitingUnlock server action's eligibility.
         const { data: accepted } = await supabase
-          .from('quote_requests')
+          .from('quote_requests_pro_view')
           .select('id')
           .eq('cleaner_id', pro.id)
           .eq('status', 'accepted')

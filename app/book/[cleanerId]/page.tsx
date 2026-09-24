@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowLeft, Star, Shield, Loader2 } from 'lucide-react';
+import { ArrowLeft, Star, Loader2 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/context/AuthContext';
 import { DateTimePicker } from '@/components/booking/DateTimePicker';
@@ -41,7 +41,6 @@ interface CleanerProfile {
   minimum_hours: number;
   average_rating: number;
   total_reviews: number;
-  insurance_verified: boolean;
   services: string[];
   instant_booking: boolean;
 }
@@ -111,7 +110,7 @@ export default function BookCleanerPage() {
       const { data, error: fetchError } = await supabase
         .from('pros')
         .select(
-          'id, business_name, business_description, profile_image_url, hourly_rate, minimum_hours, average_rating, total_reviews, insurance_verified, services, instant_booking'
+          'id, business_name, business_description, profile_image_url, hourly_rate, minimum_hours, average_rating, total_reviews, services, instant_booking'
         )
         .eq('id', cleanerId)
         .single();
@@ -290,19 +289,7 @@ export default function BookCleanerPage() {
                   <Star className="h-4 w-4 text-yellow-500 fill-current" />
                   {(cleaner.average_rating || 0).toFixed(1)} ({cleaner.total_reviews || 0} reviews)
                 </span>
-                {cleaner.insurance_verified && (
-                  <span className="flex items-center gap-1">
-                    <Shield className="h-4 w-4 text-blue-500" />
-                    Insurance doc on file
-                  </span>
-                )}
               </div>
-              {/* Credentials disclaimer — BOC is a neutral marketplace and does not verify pro-provided info */}
-              {cleaner.insurance_verified && (
-                <p className="mt-3 text-xs text-gray-500 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
-                  Information shown is provided by the pro and is not independently confirmed by Boss of Clean. Please confirm licensing and insurance directly with the pro before hiring.
-                </p>
-              )}
             </div>
           </div>
         </div>

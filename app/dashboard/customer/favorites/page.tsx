@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/context/AuthContext';
 import { ProtectedRoute } from '@/lib/auth/protected-route';
 import { FavoriteButton } from '@/components/FavoriteButton';
-import { Star, MapPin, Clock, Shield, Sparkles, Heart, ArrowLeft, Loader2 } from 'lucide-react';
+import { Star, MapPin, Clock, Sparkles, Heart, ArrowLeft, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { createLogger } from '@/lib/utils/logger';
@@ -25,7 +25,6 @@ interface FavoritePro {
     services: string[] | null;
     hourly_rate: number | null;
     instant_booking: boolean;
-    insurance_verified: boolean;
     users: {
       city: string | null;
       state: string | null;
@@ -123,12 +122,6 @@ export default function CustomerFavoritesPage() {
             </div>
           ) : (
             <>
-            {/* Credentials disclaimer — shown only when a saved pro renders a credential label */}
-            {favorites.some((favorite) => favorite.pro.insurance_verified) && (
-              <p className="mb-6 text-xs text-gray-500 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
-                Information shown is provided by the pro and is not independently confirmed by Boss of Clean. Please confirm licensing and insurance directly with the pro before hiring.
-              </p>
-            )}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {favorites.map((favorite) => (
                 <div
@@ -167,12 +160,6 @@ export default function CustomerFavoritesPage() {
                         <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
                           <Sparkles className="h-3 w-3" />
                           Instant Book
-                        </span>
-                      )}
-                      {favorite.pro.insurance_verified && (
-                        <span className="bg-blue-500 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
-                          <Shield className="h-3 w-3" />
-                          Insurance doc on file
                         </span>
                       )}
                     </div>
