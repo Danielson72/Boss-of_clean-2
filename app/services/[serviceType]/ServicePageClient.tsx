@@ -23,10 +23,8 @@ interface CleanerData {
   profile_image_url?: string;
   instant_booking?: boolean;
   subscription_tier?: string;
-  users?: {
-    city?: string;
-    state?: string;
-  };
+  city?: string;
+  state?: string;
 }
 
 interface ServicePageClientProps {
@@ -56,8 +54,8 @@ export function ServicePageClient({ serviceType }: ServicePageClientProps) {
     hourlyRate: cleaner.hourly_rate || 50,
     minimumHours: cleaner.minimum_hours || 2,
     yearsExperience: cleaner.years_experience || 0,
-    city: cleaner.users?.city,
-    state: cleaner.users?.state || 'FL',
+    city: cleaner.city,
+    state: cleaner.state || 'FL',
     subscriptionTier: cleaner.subscription_tier || 'free',
     insuranceVerified: false,
     licenseVerified: false,
@@ -73,18 +71,17 @@ export function ServicePageClient({ serviceType }: ServicePageClientProps) {
       // Build query to find cleaners offering this service type
       // Match against the shortName which is used in the services array
       const query = supabase
-        .from('pros')
+        .from('pros_directory')
         .select(
           `
           id, business_name, business_slug, business_description,
           services, service_areas, hourly_rate, minimum_hours,
           years_experience, average_rating, total_reviews, profile_image_url,
           instant_booking, subscription_tier,
-          users(city, state)
+          city, state
         `,
           { count: 'exact' }
         )
-        .in('approval_status', ['approved', 'pending'])
         .order('subscription_tier', { ascending: false })
         .order('average_rating', { ascending: false })
         .limit(PAGE_SIZE);

@@ -40,10 +40,8 @@ interface CleanerProfile {
   profile_image_url: string;
   business_hours: BusinessHours | null;
   created_at: string;
-  users: {
-    city: string;
-    state: string;
-  };
+  city: string | null;
+  state: string | null;
 }
 
 interface Review {
@@ -83,25 +81,24 @@ const PUBLIC_PROFILE_COLUMNS = `
   profile_image_url,
   business_hours,
   created_at,
-  users(city, state)
+  city,
+  state
 `;
 
 async function getCleanerBySlug(slug: string): Promise<CleanerProfile | null> {
   const supabase = await createClient();
 
   const { data, error } = await supabase
-    .from('pros')
+    .from('pros_directory')
     .select(PUBLIC_PROFILE_COLUMNS)
     .eq('business_slug', slug)
-    .eq('approval_status', 'approved')
     .single();
 
   if (error || !data) {
     const { data: dataById, error: errorById } = await supabase
-      .from('pros')
+      .from('pros_directory')
       .select(PUBLIC_PROFILE_COLUMNS)
       .eq('id', slug)
-      .eq('approval_status', 'approved')
       .single();
 
     if (errorById || !dataById) return null;
@@ -159,7 +156,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
   return {
     title: `${cleaner.business_name} | Professional Cleaning Services | Boss of Clean`,
-    description: cleaner.business_description || `${cleaner.business_name} offers professional cleaning services in ${cleaner.users?.city || 'Florida'}. ${cleaner.years_experience}+ years experience. Book now!`,
+    description: cleaner.business_description || `${cleaner.business_name} offers professional cleaning services in ${cleaner.city || 'Florida'}. ${cleaner.years_experience}+ years experience. Book now!`,
     openGraph: {
       title: cleaner.business_name,
       description: cleaner.business_description,
@@ -281,7 +278,7 @@ export default async function CleanerProfilePage({ params }: { params: Promise<{
               {/* Location */}
               <div className="flex items-center gap-2 text-gray-600 mb-4">
                 <MapPin className="h-4 w-4" />
-                <span>{cleaner.users?.city}, {cleaner.users?.state || 'FL'}</span>
+                <span>{cleaner.city}, {cleaner.state || 'FL'}</span>
               </div>
 
               {/* Achievement Badges */}
