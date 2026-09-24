@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createServiceRoleClient } from '@/lib/supabase/service-role';
 import { sendBookingConfirmationEmails } from '@/lib/email/booking-confirmation';
 import { createLogger } from '@/lib/utils/logger';
 import { notifyCustomerBookingConfirmed, sendSMSIfEnabled } from '@/lib/sms/notifications';
@@ -78,8 +79,8 @@ export async function POST(request: NextRequest) {
 
   // Verify cleaner exists and has instant booking enabled
   const { data: cleaner, error: cleanerError } = await supabase
-    .from('pros')
-    .select('id, user_id, business_name, business_email, instant_booking, approval_status')
+    .from('pros_directory')
+    .select('id, user_id, business_name, instant_booking')
     .eq('id', cleanerId)
     .single();
 
@@ -90,13 +91,6 @@ export async function POST(request: NextRequest) {
   if (!cleaner.instant_booking) {
     return NextResponse.json(
       { error: 'This cleaner does not accept instant bookings' },
-      { status: 400 }
-    );
-  }
-
-  if (cleaner.approval_status !== 'approved') {
-    return NextResponse.json(
-      { error: 'This cleaner is not currently available' },
       { status: 400 }
     );
   }
@@ -171,11 +165,11 @@ export async function POST(request: NextRequest) {
     .single();
 
   // Get cleaner email
-  const { data: cleanerUser } = await supabase
-    .from('users')
-    .select('email')
-    .eq('id', cleaner.user_id)
-    .single();
+  const admin = createServiceRoleClient();
+  const [{ data: cleanerUser }, { data: cleanerContact }] = await Promise.all([
+    admin.from('users').select('email').eq('id', cleaner.user_id).maybeSingle(),
+    admin.from('pros').select('business_email').eq('id', cleaner.id).maybeSingle(),
+  ]);
 
   // Send confirmation email + SMS in parallel (non-blocking)
   const notifications: Promise<unknown>[] = [
@@ -183,7 +177,7 @@ export async function POST(request: NextRequest) {
       bookingId: booking.id,
       customerName: customer?.full_name || 'Customer',
       customerEmail: customer?.email || user.email || '',
-      cleanerEmail: cleaner.business_email || cleanerUser?.email || '',
+      cleanerEmail: cleanerContact?.business_email || cleanerUser?.email || '',
       businessName: cleaner.business_name,
       serviceType,
       propertyType,

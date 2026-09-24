@@ -45,14 +45,9 @@ export interface Booking {
   cleaner: {
     id: string;
     business_name: string;
-    business_phone: string;
-    business_email: string;
+    business_phone: string | null;
     profile_image_url?: string;
     average_rating: number;
-    user: {
-      full_name: string;
-      email: string;
-    };
   };
 }
 

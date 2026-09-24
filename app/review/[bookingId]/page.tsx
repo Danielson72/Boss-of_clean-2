@@ -55,12 +55,7 @@ function ReviewPageContent() {
           cleaner_id,
           customer_id,
           service_type,
-          booking_date,
-          cleaner:pros!bookings_cleaner_id_fkey(
-            id,
-            business_name,
-            profile_image_url
-          )
+          booking_date
         `)
         .eq('id', bookingId)
         .single();
@@ -74,6 +69,17 @@ function ReviewPageContent() {
       // Verify this booking belongs to the current user
       if (bookingData.customer_id !== user.id) {
         setError('You are not authorized to review this booking.');
+        setLoading(false);
+        return;
+      }
+
+      const { data: cleaner, error: cleanerError } = await supabase
+        .from('pros_directory')
+        .select('id, business_name, profile_image_url')
+        .eq('id', bookingData.cleaner_id)
+        .maybeSingle();
+      if (cleanerError || !cleaner) {
+        setError('Service professional not found.');
         setLoading(false);
         return;
       }
@@ -100,7 +106,7 @@ function ReviewPageContent() {
         return;
       }
 
-      setBooking(bookingData as unknown as BookingData);
+      setBooking({ ...bookingData, cleaner } as BookingData);
       setLoading(false);
     }
 

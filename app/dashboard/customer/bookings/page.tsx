@@ -68,23 +68,32 @@ export default function CustomerBookingsPage() {
     try {
       const { data, error } = await supabase
         .from('bookings')
-        .select(`
-          *,
-          cleaner:pros(
-            id,
-            business_name,
-            business_phone,
-            business_email,
-            profile_image_url,
-            average_rating,
-            user:users(full_name, email)
-          )
-        `)
+        .select('*')
         .eq('customer_id', user.id)
         .order('booking_date', { ascending: false });
 
       if (error) throw error;
-      setBookings(data || []);
+      const rows = (data || []) as Omit<Booking, 'cleaner'>[];
+      const proIds = Array.from(new Set(rows.map((b) => b.cleaner_id)));
+      const { data: directory, error: directoryError } = proIds.length
+        ? await supabase.from('pros_directory')
+          .select('id, business_name, profile_image_url, average_rating')
+          .in('id', proIds)
+        : { data: [], error: null };
+      if (directoryError) throw directoryError;
+      const prosById = new Map(((directory || []) as {
+        id: string; business_name: string; profile_image_url: string | null; average_rating: number | null;
+      }[]).map((pro) => [pro.id, pro]));
+      setBookings(rows.map((booking) => ({
+        ...booking,
+        cleaner: {
+          id: booking.cleaner_id,
+          business_name: prosById.get(booking.cleaner_id)?.business_name || 'Service professional',
+          business_phone: null,
+          profile_image_url: prosById.get(booking.cleaner_id)?.profile_image_url || null,
+          average_rating: prosById.get(booking.cleaner_id)?.average_rating || 0,
+        },
+      })) as Booking[]);
     } catch (error) {
       logger.error('Error loading bookings', { function: 'loadBookings', error });
     } finally {

@@ -40,14 +40,12 @@ interface DirectoryCleaner {
   years_experience: number | null;
   instant_booking: boolean;
   subscription_tier: string;
-  users:
-    | { city: string | null; state: string | null }
-    | { city: string | null; state: string | null }[];
+  city: string | null;
+  state: string | null;
 }
 
 function getUser(cleaner: DirectoryCleaner) {
-  if (!cleaner.users) return null;
-  return Array.isArray(cleaner.users) ? cleaner.users[0] : cleaner.users;
+  return { city: cleaner.city, state: cleaner.state };
 }
 
 // Service types for filter
@@ -84,17 +82,16 @@ export default async function ProfessionalsPage({
   const supabase = await createClient();
 
   let query = supabase
-    .from('pros')
+    .from('pros_directory')
     .select(
       `
       id, business_name, business_slug, business_description,
       services, service_areas, profile_image_url,
       average_rating, total_reviews, total_jobs, hourly_rate,
       years_experience, instant_booking, subscription_tier,
-      users(city, state)
+      city, state
     `
-    )
-    .eq('approval_status', 'approved');
+    );
 
   if (activeService) {
     query = query.contains('services', [activeService]);

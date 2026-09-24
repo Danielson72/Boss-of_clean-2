@@ -21,7 +21,7 @@ const REQUIRED_TABLES = [
 ];
 
 const REQUIRED_VIEWS = [
-  'cleaner_directory'
+  'pros_directory'
 ];
 
 const REQUIRED_TRIGGERS = [
@@ -154,12 +154,12 @@ async function checkDirectoryViewData(supabase) {
   
   try {
     const { data, error, count } = await supabase
-      .from('cleaner_directory')
-      .select('cleaner_id, business_name, city, zip_code', { count: 'exact' })
+      .from('pros_directory')
+      .select('id, business_name, city, state', { count: 'exact' })
       .limit(5);
       
     if (error) {
-      console.log(`❌ Cannot query cleaner_directory view: ${error.message}`);
+      console.log(`❌ Cannot query pros_directory view: ${error.message}`);
       return;
     }
 
@@ -168,12 +168,12 @@ async function checkDirectoryViewData(supabase) {
     if (data && data.length > 0) {
       console.log('   Sample entries:');
       data.forEach(cleaner => {
-        console.log(`   - ${cleaner.business_name} (${cleaner.city}, ${cleaner.zip_code})`);
+        console.log(`   - ${cleaner.business_name} (${cleaner.city}, ${cleaner.state})`);
       });
     }
     
     // Check for potential data quality issues
-    const withoutLocation = data?.filter(c => !c.city || !c.zip_code) || [];
+    const withoutLocation = data?.filter(c => !c.city || !c.state) || [];
     if (withoutLocation.length > 0) {
       console.log(`⚠️  ${withoutLocation.length} cleaners missing location data`);
     }

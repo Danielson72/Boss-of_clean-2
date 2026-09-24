@@ -31,8 +31,7 @@ export async function GET(
     .select(`
       id,
       customer_id,
-      cleaner_id,
-      cleaner:pros!conversations_cleaner_id_fkey(id, business_name, user_id)
+      cleaner_id
     `)
     .eq('id', conversationId)
     .single();
@@ -49,6 +48,7 @@ export async function GET(
     .single();
 
   const isCustomer = userData?.role === 'customer';
+  let ownedPro: { id: string; business_name: string; user_id: string } | null = null;
 
   // Check access
   if (isCustomer && conv.customer_id !== user.id) {
@@ -58,13 +58,23 @@ export async function GET(
   if (!isCustomer) {
     const { data: cleanerData } = await supabase
       .from('pros')
-      .select('id')
+      .select('id, business_name, user_id')
       .eq('user_id', user.id)
       .single();
 
     if (!cleanerData || cleanerData.id !== conv.cleaner_id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
+    ownedPro = cleanerData;
+  }
+
+  const { data: cleaner, error: cleanerError } = await supabase
+    .from('pros_directory')
+    .select('id, business_name, user_id')
+    .eq('id', conv.cleaner_id)
+    .maybeSingle();
+  if (cleanerError) {
+    return NextResponse.json({ error: 'Failed to load pro' }, { status: 500 });
   }
 
   // Get pagination params
@@ -90,6 +100,7 @@ export async function GET(
   const isUnlocked = isCustomer || await proHasCapturedLeadForCustomer(supabase, conv.cleaner_id, conv.customer_id);
   const conversation = {
     ...conv,
+    cleaner: ownedPro || cleaner,
     customer: await customerForScopedInteraction(conv.customer_id, isUnlocked),
   };
 

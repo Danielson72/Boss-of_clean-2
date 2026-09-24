@@ -39,13 +39,15 @@ export async function GET() {
 
   // Get cleaner ID if user is a cleaner
   let cleanerId: string | null = null;
+  let ownedPro: { id: string; business_name: string; user_id: string } | null = null;
   if (!isCustomer) {
     const { data: cleanerData } = await supabase
       .from('pros')
-      .select('id')
+      .select('id, business_name, user_id')
       .eq('user_id', user.id)
       .single();
     cleanerId = cleanerData?.id || null;
+    ownedPro = cleanerData || null;
   }
 
   // Fetch conversations
@@ -58,8 +60,7 @@ export async function GET() {
       last_message_at,
       customer_unread_count,
       cleaner_unread_count,
-      created_at,
-      cleaner:pros!conversations_cleaner_id_fkey(id, business_name, user_id)
+      created_at
     `)
     .order('last_message_at', { ascending: false, nullsFirst: false });
 
@@ -77,6 +78,18 @@ export async function GET() {
     logger.error('Error fetching conversations', { function: 'GET' }, error);
     return NextResponse.json({ error: 'Failed to fetch conversations' }, { status: 500 });
   }
+
+  const proIds = Array.from(new Set((conversations || []).map((conv) => conv.cleaner_id)));
+  const { data: directory, error: directoryError } = proIds.length
+    ? await supabase.from('pros_directory')
+      .select('id, business_name, user_id').in('id', proIds)
+    : { data: [], error: null };
+  if (directoryError) {
+    logger.error('Error loading conversation pros', { function: 'GET' }, directoryError);
+    return NextResponse.json({ error: 'Failed to fetch conversations' }, { status: 500 });
+  }
+  const prosById = new Map((directory || []).map((pro) => [pro.id, pro]));
+  if (ownedPro) prosById.set(ownedPro.id, ownedPro);
 
   // SEC-01 (DLD-555): PII wall. A pro only sees the customer's full name and
   // email after paying the lead fee (a captured lead_acceptance on one of that
@@ -109,6 +122,7 @@ export async function GET() {
 
       return {
         ...conv,
+        cleaner: prosById.get(conv.cleaner_id) || null,
         customer,
         lastMessage: lastMessage || null,
         unreadCount: isCustomer ? conv.customer_unread_count : conv.cleaner_unread_count,
@@ -165,6 +179,7 @@ export async function POST(request: NextRequest) {
   let recipientEmail = '';
   let recipientName = '';
   let senderName = userData?.full_name || 'User';
+  let recipientProId = cleanerId;
 
   // If customer sending to cleaner, we need cleanerId
   if (isCustomer && !cleanerId && !conversationId) {
@@ -176,8 +191,8 @@ export async function POST(request: NextRequest) {
     if (isCustomer) {
       // Verify cleaner exists
       const { data: cleaner, error: cleanerError } = await supabase
-        .from('pros')
-        .select('id, business_name, business_email, user_id')
+        .from('pros_directory')
+        .select('id, business_name, user_id')
         .eq('id', cleanerId)
         .single();
 
@@ -185,14 +200,15 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Cleaner not found' }, { status: 404 });
       }
 
-      // Get cleaner's email from users table
-      const { data: cleanerUser } = await createServiceRoleClient()
-        .from('users')
-        .select('email, full_name')
-        .eq('id', cleaner.user_id)
-        .single();
+      // The address is used only for a server-side notification; it is not
+      // included in the response or directory projection.
+      const admin = createServiceRoleClient();
+      const [{ data: cleanerContact }, { data: cleanerUser }] = await Promise.all([
+        admin.from('pros').select('business_email').eq('id', cleaner.id).maybeSingle(),
+        admin.from('users').select('email').eq('id', cleaner.user_id).maybeSingle(),
+      ]);
 
-      recipientEmail = cleaner.business_email || cleanerUser?.email || '';
+      recipientEmail = cleanerContact?.business_email || cleanerUser?.email || '';
       recipientName = cleaner.business_name;
 
       // Check for existing conversation
@@ -233,8 +249,7 @@ export async function POST(request: NextRequest) {
       .select(`
         id,
         customer_id,
-        cleaner_id,
-        cleaner:pros!conversations_cleaner_id_fkey(business_name, business_email, user_id)
+        cleaner_id
       `)
       .eq('id', conversationId)
       .single();
@@ -242,6 +257,7 @@ export async function POST(request: NextRequest) {
     if (convError || !conv) {
       return NextResponse.json({ error: 'Conversation not found' }, { status: 404 });
     }
+    recipientProId = conv.cleaner_id;
 
     // Verify access
     if (isCustomer && conv.customer_id !== user.id) {
@@ -262,15 +278,20 @@ export async function POST(request: NextRequest) {
 
     // Set recipient info for email
     if (isCustomer) {
-      const cleanerData = conv.cleaner as unknown as { business_name: string; business_email: string; user_id: string };
-      recipientName = cleanerData.business_name;
-      // Get cleaner's email
-      const { data: cleanerUser } = await createServiceRoleClient()
-        .from('users')
-        .select('email')
-        .eq('id', cleanerData.user_id)
-        .single();
-      recipientEmail = cleanerData.business_email || cleanerUser?.email || '';
+      const { data: cleanerData } = await supabase
+        .from('pros_directory')
+        .select('id, business_name, user_id')
+        .eq('id', conv.cleaner_id)
+        .maybeSingle();
+      recipientName = cleanerData?.business_name || 'Service professional';
+      const admin = createServiceRoleClient();
+      const [{ data: cleanerContact }, { data: cleanerUser }] = await Promise.all([
+        admin.from('pros').select('business_email').eq('id', conv.cleaner_id).maybeSingle(),
+        cleanerData?.user_id
+          ? admin.from('users').select('email').eq('id', cleanerData.user_id).maybeSingle()
+          : Promise.resolve({ data: null }),
+      ]);
+      recipientEmail = cleanerContact?.business_email || cleanerUser?.email || '';
     } else {
       const { data: customerData } = await createServiceRoleClient()
         .from('users')
@@ -400,12 +421,12 @@ export async function POST(request: NextRequest) {
   // SMS notification: look up recipient's phone number. Also capture the
   // recipient's user_id so we can write an in-app notification row.
   let recipientUserId: string | null = null;
-  if (isCustomer && cleanerId) {
+  if (isCustomer && recipientProId) {
     // Customer sent message to cleaner — notify the cleaner via SMS
     const { data: cleanerSms } = await createServiceRoleClient()
       .from('pros')
       .select('business_phone, user_id')
-      .eq('id', cleanerId)
+      .eq('id', recipientProId)
       .single();
 
     if (cleanerSms?.user_id) recipientUserId = cleanerSms.user_id;
