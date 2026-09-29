@@ -4,10 +4,8 @@ import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger({ file: 'api/bookings/[id]/route' });
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const supabase = await createClient();
   const {
     data: { user },
@@ -42,10 +40,8 @@ export async function GET(
   return NextResponse.json({ booking });
 }
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const supabase = await createClient();
   const {
     data: { user },

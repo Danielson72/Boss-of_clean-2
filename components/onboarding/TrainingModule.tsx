@@ -148,7 +148,7 @@ export default function TrainingModule({ data, onChange, onNext, onBack, isSubmi
               {isExpanded && (
                 <div className="px-4 pb-4 border-t bg-white">
                   <div className="pt-4 space-y-3">
-                    <h4 className="font-medium text-gray-800">What you'll learn:</h4>
+                    <h4 className="font-medium text-gray-800">What you&apos;ll learn:</h4>
                     <ul className="space-y-2">
                       {section.content.map((item, index) => (
                         <li key={index} className="flex items-start gap-2 text-sm text-gray-600">

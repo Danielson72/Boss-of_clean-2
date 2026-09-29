@@ -208,7 +208,9 @@ export default function DocumentUploadForm({ data, onChange, onNext, onBack, isS
                 >
                   <input
                     type="file"
-                    ref={(el) => (fileInputRefs.current[docType.value] = el)}
+                    ref={(el) => {
+                      fileInputRefs.current[docType.value] = el
+                    }}
                     className="hidden"
                     accept=".pdf,.jpg,.jpeg,.png,.webp"
                     onChange={(e) => {

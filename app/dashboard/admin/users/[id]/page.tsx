@@ -22,7 +22,7 @@ export const metadata = {
 }
 
 interface UserDetailPageProps {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 type UserRow = {
@@ -74,7 +74,8 @@ function formatRole(role: string | null): string {
   return role
 }
 
-export default async function AdminUserDetailPage({ params }: UserDetailPageProps) {
+export default async function AdminUserDetailPage(props: UserDetailPageProps) {
+  const params = await props.params;
   const supabase = await createClient()
 
   const { data: { user: authUser } } = await supabase.auth.getUser()

@@ -1,6 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse } from 'next/server'
-import { NextRequest } from 'next/server'
+import { NextRequest } from "next/server";
 import { cookies } from 'next/headers'
 import { createLogger } from '@/lib/utils/logger'
 import { roleToDashboardPath } from '@/lib/utils/dashboard-path'
@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
   const code = requestUrl.searchParams.get('code')
   const origin = getRedirectOrigin(request, requestUrl)
 
-  const cookieStore = cookies()
+  const cookieStore = await cookies()
 
   // Track cookies set during auth exchange so we can copy them to the redirect
   const pendingCookies: { name: string; value: string; options: Record<string, unknown> }[] = []

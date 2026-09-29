@@ -504,4 +504,3 @@ export async function POST(req: NextRequest) {
 
 // Disable body parsing for webhooks (required for signature verification)
 export const runtime = 'nodejs';
-export const preferredRegion = 'auto';

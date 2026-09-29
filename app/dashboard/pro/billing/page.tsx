@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/lib/context/AuthContext';
 import { ProtectedRoute } from '@/lib/auth/protected-route';
@@ -52,7 +52,7 @@ interface BillingData {
   invoices: Invoice[];
 }
 
-export default function BillingPage() {
+function BillingContent() {
   const { user } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -404,5 +404,13 @@ export default function BillingPage() {
         </div>
       </div>
     </ProtectedRoute>
+  );
+}
+
+export default function BillingPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gray-50" />}>
+      <BillingContent />
+    </Suspense>
   );
 }

@@ -9,10 +9,8 @@ import { notifyProQuoteAccepted, sendSMSIfEnabled } from '@/lib/sms/notification
 
 const logger = createLogger({ file: 'api/quotes/[id]/accept/route' });
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function POST(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const supabase = await createClient();
 
   const {
