@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { createServiceRoleClient } from '@/lib/supabase/service-role';
 import { createLogger } from '../utils/logger';
 import type Stripe from 'stripe';
@@ -6,6 +7,7 @@ const logger = createLogger({ file: 'lib/stripe/webhook-event-service' });
 
 export interface WebhookEventRecord {
   is_new: boolean;
+  claim_token: string | null;
   event_status: 'pending' | 'processing' | 'processed' | 'failed';
 }
 
@@ -36,7 +38,8 @@ export class WebhookEventService {
       ? (eventData.id as string)
       : null;
 
-    const { data, error } = await supabase.rpc('record_webhook_event', {
+    const { data, error } = await supabase.rpc('claim_stripe_webhook_event', {
+      p_claim_token: randomUUID(),
       p_event_id: event.id,
       p_event_type: event.type,
       p_payload: event as unknown as Record<string, unknown>,
@@ -47,42 +50,54 @@ export class WebhookEventService {
 
     if (error) {
       logger.error('Error recording webhook event:', {}, error);
-      // If we can't record, assume it's new to avoid missing events
-      return { is_new: true, event_status: 'processing' };
+      // Money events must never run without a durable idempotency claim.
+      throw new Error(`Could not claim Stripe webhook event ${event.id}: ${error.message}`);
     }
 
-    const result = data?.[0] || { is_new: true, event_status: 'processing' };
+    const result = data?.[0];
+    if (!result || typeof result.is_new !== 'boolean' ||
+        !['processing', 'processed', 'failed', 'pending'].includes(result.event_status) ||
+        (result.is_new && (result.event_status !== 'processing' ||
+          typeof result.claim_token !== 'string' ||
+          !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(result.claim_token)))) {
+      throw new Error(`Stripe webhook claim returned no result for ${event.id}`);
+    }
     return result as WebhookEventRecord;
   }
 
   /**
    * Mark event as successfully processed
    */
-  async markProcessed(eventId: string): Promise<void> {
+  async markProcessed(eventId: string, claimToken: string): Promise<void> {
     const supabase = await this.getSupabase();
 
-    const { error } = await supabase.rpc('mark_webhook_processed', {
+    const { error } = await supabase.rpc('finish_stripe_webhook_event', {
       p_event_id: eventId,
+      p_claim_token: claimToken,
+      p_error_message: null,
     });
 
     if (error) {
       logger.error('Error marking webhook as processed:', {}, error);
+      throw new Error(`Could not mark Stripe webhook event ${eventId} processed: ${error.message}`);
     }
   }
 
   /**
    * Mark event as failed with error message
    */
-  async markFailed(eventId: string, errorMessage: string): Promise<void> {
+  async markFailed(eventId: string, claimToken: string, errorMessage: string): Promise<void> {
     const supabase = await this.getSupabase();
 
-    const { error } = await supabase.rpc('mark_webhook_failed', {
+    const { error } = await supabase.rpc('finish_stripe_webhook_event', {
       p_event_id: eventId,
+      p_claim_token: claimToken,
       p_error_message: errorMessage,
     });
 
     if (error) {
       logger.error('Error marking webhook as failed:', {}, error);
+      throw new Error(`Could not mark Stripe webhook event ${eventId} failed: ${error.message}`);
     }
   }
 

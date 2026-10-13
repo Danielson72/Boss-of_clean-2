@@ -1,0 +1,61 @@
+app/api/quotes/[id]/accept/route.ts(106,54): error TS7006: Parameter 'n' implicitly has an 'any' type.
+app/auth/confirm/page.tsx(27,24): error TS7031: Binding element 'data' implicitly has an 'any' type.
+app/auth/confirm/page.tsx(27,30): error TS7031: Binding element 'error' implicitly has an 'any' type.
+app/auth/reset-password/page.tsx(72,73): error TS7006: Parameter 'event' implicitly has an 'any' type.
+app/dashboard/admin/actions.ts(47,18): error TS2352: Conversion of type '{ email: any; }[] | undefined' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Type '{ email: any; }[]' is not comparable to type 'Record<string, unknown>'.
+    Index signature for type 'string' is missing in type '{ email: any; }[]'.
+app/dashboard/customer/page.tsx(128,51): error TS7006: Parameter 'h' implicitly has an 'any' type.
+app/dashboard/customer/reviews/new/page.tsx(60,38): error TS7006: Parameter 'r' implicitly has an 'any' type.
+app/dashboard/customer/reviews/new/page.tsx(65,10): error TS7006: Parameter 'b' implicitly has an 'any' type.
+app/dashboard/messages/[conversationId]/page.tsx(16,26): error TS18047: 'params' is possibly 'null'.
+app/layout.tsx(2,25): error TS2614: Module '"next"' has no exported member 'Viewport'. Did you mean to use 'import Viewport from "next"' instead?
+app/layout.tsx(5,33): error TS2307: Cannot find module '@next/third-parties/google' or its corresponding type declarations.
+app/search/page.tsx(144,45): error TS7006: Parameter 'cleaner' implicitly has an 'any' type.
+app/search/page.tsx(167,45): error TS7006: Parameter 'cleaner' implicitly has an 'any' type.
+app/search/page.tsx(207,33): error TS7006: Parameter 'c' implicitly has an 'any' type.
+app/search/page.tsx(224,33): error TS7006: Parameter 'cleaner' implicitly has an 'any' type.
+app/search/page.tsx(244,49): error TS7006: Parameter 'cleaner' implicitly has an 'any' type.
+app/search/page.tsx(251,30): error TS7006: Parameter 'a' implicitly has an 'any' type.
+app/search/page.tsx(251,33): error TS7006: Parameter 'b' implicitly has an 'any' type.
+app/search/page.tsx(257,49): error TS7006: Parameter 'cleaner' implicitly has an 'any' type.
+app/search/page.tsx(267,87): error TS7006: Parameter 'p' implicitly has an 'any' type.
+Boss of clean files/Boss-of_clean-2-main/lib/context/AuthContext.tsx(36,14): error TS7006: Parameter 'event' implicitly has an 'any' type.
+Boss of clean files/Boss-of_clean-2-main/lib/context/AuthContext.tsx(36,21): error TS7006: Parameter 'session' implicitly has an 'any' type.
+components/auth/UserNav.tsx(52,14): error TS7006: Parameter 'event' implicitly has an 'any' type.
+components/auth/UserNav.tsx(52,21): error TS7006: Parameter 'session' implicitly has an 'any' type.
+components/dashboard/DashboardSidebar.tsx(41,24): error TS18047: 'pathname' is possibly 'null'.
+components/home/ScrollWorldHero.tsx(255,21): error TS2578: Unused '@ts-expect-error' directive.
+components/onboarding/ServiceAreasForm.tsx(108,26): error TS2802: Type 'Set<string>' can only be iterated through when using the '--downlevelIteration' flag or with a '--target' of 'es2015' or higher.
+components/onboarding/ServiceAreasForm.tsx(131,31): error TS2802: Type 'Set<string>' can only be iterated through when using the '--downlevelIteration' flag or with a '--target' of 'es2015' or higher.
+components/onboarding/TrainingModule.tsx(71,34): error TS2339: Property 'training_videos_watched' does not exist on type 'Partial<OnboardingData>'.
+components/onboarding/TrainingModule.tsx(75,35): error TS7006: Parameter 'id' implicitly has an 'any' type.
+components/onboarding/TrainingModule.tsx(80,7): error TS2345: Argument of type '{ training_videos_watched: any; training_completed: boolean; business_name?: string | undefined; business_description?: string | undefined; business_phone?: string | undefined; business_email?: string | undefined; ... 13 more ...; portfolio_images?: string[] | undefined; }' is not assignable to parameter of type 'Partial<OnboardingData>'.
+  Object literal may only specify known properties, and 'training_videos_watched' does not exist in type 'Partial<OnboardingData>'.
+lib/auth/auth-service.ts(157,50): error TS7006: Parameter '_event' implicitly has an 'any' type.
+lib/auth/auth-service.ts(157,58): error TS7006: Parameter 'session' implicitly has an 'any' type.
+lib/context/AuthContext.tsx(120,14): error TS7006: Parameter 'event' implicitly has an 'any' type.
+lib/context/AuthContext.tsx(120,21): error TS7006: Parameter 'session' implicitly has an 'any' type.
+lib/hooks/useMessages.ts(69,10): error TS7006: Parameter 'payload' implicitly has an 'any' type.
+lib/hooks/useMessages.ts(88,10): error TS7006: Parameter 'payload' implicitly has an 'any' type.
+lib/phone.ts(1,44): error TS2307: Cannot find module 'libphonenumber-js' or its corresponding type declarations.
+lib/services/analytics.ts(72,48): error TS7006: Parameter 'b' implicitly has an 'any' type.
+lib/services/analytics.ts(77,53): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+lib/services/analytics.ts(77,58): error TS7006: Parameter 'b' implicitly has an 'any' type.
+lib/services/analytics.ts(83,15): error TS7006: Parameter 'b' implicitly has an 'any' type.
+lib/services/analytics.ts(84,16): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+lib/services/analytics.ts(84,21): error TS7006: Parameter 'b' implicitly has an 'any' type.
+lib/services/analytics.ts(88,41): error TS7006: Parameter 'l' implicitly has an 'any' type.
+lib/services/analytics.ts(100,75): error TS7006: Parameter 'b' implicitly has an 'any' type.
+lib/services/analytics.ts(193,39): error TS7006: Parameter 'b' implicitly has an 'any' type.
+lib/services/quote-service.ts(137,39): error TS7006: Parameter 'area' implicitly has an 'any' type.
+lib/services/quote-service.ts(395,28): error TS7006: Parameter 'q' implicitly has an 'any' type.
+lib/services/quote-service.ts(396,30): error TS7006: Parameter 'q' implicitly has an 'any' type.
+lib/services/quote-service.ts(397,29): error TS7006: Parameter 'q' implicitly has an 'any' type.
+lib/services/quote-service.ts(398,30): error TS7006: Parameter 'q' implicitly has an 'any' type.
+lib/services/quote-service.ts(399,30): error TS7006: Parameter 'q' implicitly has an 'any' type.
+lib/services/searchService.ts(233,34): error TS7006: Parameter 'cleaner' implicitly has an 'any' type.
+lib/services/searchService.ts(262,34): error TS7006: Parameter 'cleaner' implicitly has an 'any' type.
+tests/unit/quote-request-notifications.spec.ts(357,3): error TS2322: Type '(request: string, ...rest: unknown[]) => unknown' is not assignable to type '(...a: unknown[]) => unknown'.
+  Types of parameters 'request' and 'a' are incompatible.
+    Type 'unknown' is not assignable to type 'string'.

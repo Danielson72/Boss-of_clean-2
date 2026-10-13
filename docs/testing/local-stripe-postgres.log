@@ -1,0 +1,106 @@
+TAP version 13
+# Subtest: real simultaneous event claims have exactly one owner
+ok 1 - real simultaneous event claims have exactly one owner
+  ---
+  duration_ms: 38.258583
+  type: 'test'
+  ...
+# Subtest: real stale claim recovery fences both completion and fulfillment
+ok 2 - real stale claim recovery fences both completion and fulfillment
+  ---
+  duration_ms: 3.735
+  type: 'test'
+  ...
+# Subtest: crashed subscription-created claim recovers atomically and unblocks owned invoice
+ok 3 - crashed subscription-created claim recovers atomically and unblocks owned invoice
+  ---
+  duration_ms: 4.500292
+  type: 'test'
+  ...
+# Subtest: different invoice event IDs concurrently record one null-intent payment and reset once
+ok 4 - different invoice event IDs concurrently record one null-intent payment and reset once
+  ---
+  duration_ms: 2.700667
+  type: 'test'
+  ...
+# Subtest: real transaction rolls back invoice insert when subsequent pro update fails
+ok 5 - real transaction rolls back invoice insert when subsequent pro update fails
+  ---
+  duration_ms: 1.747542
+  type: 'test'
+  ...
+# Subtest: subscription insert rolls back on pro-link failure and recovers without duplicate rows
+ok 6 - subscription insert rolls back on pro-link failure and recovers without duplicate rows
+  ---
+  duration_ms: 2.813791
+  type: 'test'
+  ...
+# Subtest: failure while enqueuing outbox rolls back payment and captured acceptance
+ok 7 - failure while enqueuing outbox rolls back payment and captured acceptance
+  ---
+  duration_ms: 3.607791
+  type: 'test'
+  ...
+# Subtest: real lead capture/payment/outbox are atomic and concurrent retries deduplicate
+ok 8 - real lead capture/payment/outbox are atomic and concurrent retries deduplicate
+  ---
+  duration_ms: 3.801708
+  type: 'test'
+  ...
+# Subtest: invoice duplicate blocks on transaction lock then observes the committed payment
+ok 9 - invoice duplicate blocks on transaction lock then observes the committed payment
+  ---
+  duration_ms: 3.075917
+  type: 'test'
+  ...
+# Subtest: snapshot supersession prevents reverse commit at equal event seconds
+ok 10 - snapshot supersession prevents reverse commit at equal event seconds
+  ---
+  duration_ms: 2.487084
+  type: 'test'
+  ...
+# Subtest: replacement B generation is independent of old A update clock
+ok 11 - replacement B generation is independent of old A update clock
+  ---
+  duration_ms: 2.566833
+  type: 'test'
+  ...
+# Subtest: cancellation retains owning ID and rejects same-generation different ID
+ok 12 - cancellation retains owning ID and rejects same-generation different ID
+  ---
+  duration_ms: 4.470667
+  type: 'test'
+  ...
+# Subtest: real outbox claims are exclusive; backoff and recovery completion are fenced
+ok 13 - real outbox claims are exclusive; backoff and recovery completion are fenced
+  ---
+  duration_ms: 2.565875
+  type: 'test'
+  ...
+# Subtest: unique invoice identity constraint prevents direct duplicate payments
+ok 14 - unique invoice identity constraint prevents direct duplicate payments
+  ---
+  duration_ms: 0.347792
+  type: 'test'
+  ...
+# Subtest: unprivileged role cannot invoke money RPCs
+ok 15 - unprivileged role cannot invoke money RPCs
+  ---
+  duration_ms: 2.510958
+  type: 'test'
+  ...
+# Subtest: migration rejects existing duplicate invoice identities without silently deleting them
+ok 16 - migration rejects existing duplicate invoice identities without silently deleting them
+  ---
+  duration_ms: 2.985125
+  type: 'test'
+  ...
+1..16
+# tests 16
+# suites 0
+# pass 16
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 90.355625

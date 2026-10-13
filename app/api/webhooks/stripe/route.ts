@@ -1,12 +1,15 @@
+import { dispatchPaidLeadHandoff } from '@/lib/notifications/paid-lead-handoff';
+import { getServerStripe, paymentsUnavailable } from '@/lib/stripe/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { headers } from 'next/headers';
-import { getStripe, VENTURE_KEY, VENTURE_BOC } from '@/lib/stripe/config';
+import { VENTURE_KEY, VENTURE_BOC } from '@/lib/stripe/config';
 import { subscriptionService } from '@/lib/stripe/subscription-service';
 import { webhookEventService } from '@/lib/stripe/webhook-event-service';
 import { handleDisputeCreated, handleDisputeClosed } from '@/lib/stripe/disputes';
-import { sendLeadContactEmail, sendAdminSaleNotification, sendAdminOpsAlert } from '@/lib/email/lead-unlock';
+import { sendAdminSaleNotification } from '@/lib/email/lead-unlock';
 import { createLogger } from '@/lib/utils/logger';
 import type Stripe from 'stripe';
+import { classifyEventVenture, parsePaidLeadUnlock } from '@/lib/stripe/webhook-safety';
 
 const logger = createLogger({ file: 'api/webhooks/stripe/route' });
 
@@ -55,7 +58,7 @@ async function processEventWithRetry(
 /**
  * Route event to appropriate handler
  */
-async function handleStripeEvent(event: Stripe.Event): Promise<void> {
+async function handleStripeEvent(event: Stripe.Event, claimToken: string): Promise<void> {
   switch (event.type) {
     case 'checkout.session.completed': {
       const session = event.data.object as Stripe.Checkout.Session;
@@ -87,9 +90,22 @@ async function handleStripeEvent(event: Stripe.Event): Promise<void> {
           const { createServiceRoleClient } = await import('@/lib/supabase/service-role');
           const supabase = createServiceRoleClient();
 
-          const { quote_request_id, cleaner_id, amount_cents, lead_acceptance_id } = session.metadata!;
-          const amountCents = parseInt(amount_cents, 10);
-          const paymentIntentId = session.payment_intent as string;
+          const leadUnlock = parsePaidLeadUnlock(session);
+          if (!leadUnlock) {
+            logger.info('Lead-unlock Checkout Session is not paid; no contact released', {
+              function: 'handleStripeEvent',
+              sessionId: session.id,
+              paymentStatus: session.payment_status,
+            });
+            return;
+          }
+          const {
+            quoteRequestId: quote_request_id,
+            cleanerId: cleaner_id,
+            amountCents,
+            leadAcceptanceId: lead_acceptance_id,
+            paymentIntentId,
+          } = leadUnlock;
 
           logger.info('Lead unlock payment completed', {
             sessionId: session.id,
@@ -97,40 +113,6 @@ async function handleStripeEvent(event: Stripe.Event): Promise<void> {
             cleanerId: cleaner_id,
             amountCents,
           });
-
-          // Update lead_acceptances: pending → captured.
-          // NEW-03 (DLD-557): .select() the affected rows and treat 0 rows as a
-          // hard failure. Keying on stripe_checkout_session_id alone previously
-          // passed silently when no row matched (phantom capture: pro paid,
-          // nothing flipped) — e.g. if the session id was replaced after this
-          // checkout was created. Throwing sends it through the retry path and,
-          // if still unmatched, surfaces as a webhook failure Stripe re-delivers.
-          const nowIso = new Date().toISOString();
-          const { data: capturedRows, error: unlockError } = await supabase
-            .from('lead_acceptances')
-            .update({
-              status: 'captured',
-              unlocked_at: nowIso,
-              captured_at: nowIso,
-              stripe_payment_intent_id: paymentIntentId,
-            })
-            .eq('stripe_checkout_session_id', session.id)
-            .select('id');
-
-          if (unlockError) {
-            logger.error('Failed to update lead_acceptances', { function: 'handleStripeEvent' }, unlockError);
-            throw unlockError;
-          }
-          if (!capturedRows || capturedRows.length === 0) {
-            logger.error('capture.zero_rows: no lead_acceptance matched this checkout session — phantom capture averted', {
-              function: 'handleStripeEvent',
-              sessionId: session.id,
-              leadAcceptanceId: lead_acceptance_id ?? null,
-              quoteRequestId: quote_request_id,
-              cleanerId: cleaner_id,
-            });
-            throw new Error(`lead_acceptances capture matched 0 rows for session ${session.id}`);
-          }
 
           // Read the quote once (service-role): supplies payments metadata
           // (city/service_type) and the customer's contact for the handoff email.
@@ -144,57 +126,26 @@ async function handleStripeEvent(event: Stripe.Event): Promise<void> {
           const leadCity = quote?.city || '';
           const serviceType = quote?.service_type || '';
 
-          // Record the lead-unlock payment, idempotently: skip if this payment
-          // intent already wrote a row (Stripe may redeliver this event).
-          const { data: existingPayment } = await supabase
-            .from('payments')
-            .select('id')
-            .eq('stripe_payment_intent_id', paymentIntentId)
-            .maybeSingle();
-
-          // True only when THIS delivery inserted a fresh payments row — gates
-          // the admin sale alert so Stripe redeliveries don't re-notify.
-          let paymentRecorded = false;
-          if (!existingPayment) {
-            const paymentMetadata: Record<string, string> = {
-              type: 'lead_unlock',
-              quote_request_id,
-              lead_city: leadCity,
-              service_type: serviceType,
-            };
-            // Older checkout sessions may predate lead_acceptance_id in metadata.
-            if (lead_acceptance_id) {
-              paymentMetadata.lead_acceptance_id = lead_acceptance_id;
+          // Capture and payment insertion share one fenced transaction. A stale
+          // worker cannot release contact or insert payment after losing its claim.
+          const { data: paymentRecorded, error: fulfillmentError } = await supabase.rpc(
+            'fulfill_stripe_lead_unlock',
+            {
+              p_event_id: event.id,
+              p_claim_token: claimToken,
+              p_session_id: session.id,
+              p_quote_request_id: quote_request_id,
+              p_cleaner_id: cleaner_id,
+              p_lead_acceptance_id: lead_acceptance_id,
+              p_payment_intent_id: paymentIntentId,
+              p_amount_cents: amountCents,
+              p_lead_city: leadCity,
+              p_service_type: serviceType,
             }
-
-            const { error: paymentError } = await supabase.from('payments').insert({
-              cleaner_id,
-              amount: amountCents / 100, // payments.amount is DOLLARS
-              currency: 'usd',
-              status: 'succeeded',
-              description: 'Lead unlock',
-              stripe_payment_intent_id: paymentIntentId,
-              paid_at: nowIso,
-              metadata: paymentMetadata,
-            });
-
-            if (paymentError) {
-              // Concurrent retry: another delivery passed the pre-check and inserted
-              // first. The DB unique index on stripe_payment_intent_id rejects this
-              // one with 23505 — treat as already-processed and continue (no dup,
-              // no throw; the contact email still fires below).
-              if ((paymentError as { code?: string }).code === '23505') {
-                logger.info('Lead unlock payment already recorded (unique violation), skipping insert', {
-                  function: 'handleStripeEvent',
-                  paymentIntentId,
-                });
-              } else {
-                logger.error('Failed to record lead unlock payment', { function: 'handleStripeEvent' }, paymentError);
-                throw paymentError;
-              }
-            } else {
-              paymentRecorded = true;
-            }
+          );
+          if (fulfillmentError) throw fulfillmentError;
+          if (typeof paymentRecorded !== 'boolean') {
+            throw new Error(`Lead fulfillment returned no result for ${session.id}`);
           }
 
           // Release the customer's contact to the pro. Look up the pro's
@@ -205,17 +156,6 @@ async function handleStripeEvent(event: Stripe.Event): Promise<void> {
             .eq('id', cleaner_id)
             .single();
 
-          let proAccountEmail: string | null = null;
-          if (pro?.user_id) {
-            const { data: proUser } = await supabase
-              .from('users')
-              .select('email')
-              .eq('id', pro.user_id)
-              .single();
-            proAccountEmail = proUser?.email ?? null;
-          }
-
-          const recipientEmail: string | null = pro?.business_email || proAccountEmail;
           // supabase infers the embedded read as an array; a many-to-one FK embed
           // returns a single object at runtime — normalize to be safe either way.
           const customerRaw = quote?.customer as unknown;
@@ -224,93 +164,17 @@ async function handleStripeEvent(event: Stripe.Event): Promise<void> {
             | null
             | undefined;
 
-          if (recipientEmail && customer) {
-            // Fire-and-forget: a mail failure must NEVER fail the webhook or the
-            // payments write (mirrors the notification batch in api/messages/route.ts).
-            Promise.allSettled([
-              sendLeadContactEmail({
-                recipientEmail,
-                proName: pro?.business_name || 'there',
-                customerName: customer.full_name || 'Customer',
-                customerEmail: customer.email || '',
-                customerPhone: customer.phone,
-                serviceType,
-                city: leadCity,
-              }),
-            ])
-              .then(([outcome]) => {
-                // allSettled never rejects, and sendLeadContactEmail resolves
-                // false on a mail-provider error rather than throwing — so a
-                // .catch() alone would miss the likeliest failure. Treat both
-                // a rejection and a false result as an undelivered handoff.
-                const rejected = outcome.status === 'rejected';
-                if (!rejected && outcome.value === true) return;
-
-                const reason = rejected
-                  ? outcome.reason instanceof Error
-                    ? outcome.reason.message
-                    : String(outcome.reason)
-                  : 'mail provider did not accept the message';
-
-                logger.error('Lead unlock handoff email was not delivered', {
-                  function: 'handleStripeEvent',
-                  paymentIntentId,
-                  cleanerId: cleaner_id,
-                  sessionId: session.id,
-                }, reason);
-
-                return sendAdminOpsAlert({
-                  title: 'Paid lead handoff email failed',
-                  summary:
-                    'A pro paid the lead-unlock fee but the handoff email did not go out. The contact is still visible in their dashboard under Customers — reach out so they know.',
-                  details: [
-                    { label: 'Payment Intent', value: paymentIntentId },
-                    { label: 'Pro (pros.id)', value: cleaner_id },
-                    { label: 'Quote request', value: quote_request_id },
-                    { label: 'Attempted recipient', value: recipientEmail },
-                    { label: 'Reason', value: reason },
-                  ],
-                });
-              })
-              // Alerting must never throw out of the webhook or block the 200
-              // back to Stripe.
-              .catch((err) =>
-                logger.error('Lead unlock email batch error', { function: 'handleStripeEvent' }, err)
-              );
-          } else {
-            const missingField = !recipientEmail
-              ? 'pro email (pros.business_email and users.email are both empty)'
-              : 'customer record on the quote request';
-
-            logger.error('Lead unlock: cannot send handoff email, contact data missing', {
-              function: 'handleStripeEvent',
-              sessionId: session.id,
-              quoteRequestId: quote_request_id,
-              paymentIntentId,
-              cleanerId: cleaner_id,
-              missingField,
-            });
-
-            // Fire-and-forget: the payment stands. Alert only, never throw.
-            sendAdminOpsAlert({
-              title: 'Paid lead has no deliverable contact',
-              summary:
-                'A pro paid the lead-unlock fee, but required contact data was missing so no handoff email could be sent. The payment succeeded and stands.',
-              details: [
-                { label: 'Missing', value: missingField },
-                { label: 'Payment Intent', value: paymentIntentId },
-                { label: 'Pro (pros.id)', value: cleaner_id },
-                { label: 'Quote request', value: quote_request_id },
-              ],
-            }).catch((err) =>
-              logger.error('Missing-contact ops alert failed', { function: 'handleStripeEvent' }, err)
-            );
+          // The fulfillment transaction persisted a unique handoff job first.
+          // Await one attempt; provider failure leaves a durable retry job and
+          // must not undo the committed payment or capture.
+          try {
+            await dispatchPaidLeadHandoff(paymentIntentId);
+          } catch (error) {
+            logger.error('Paid lead handoff remains queued for retry', {
+              function: 'handleStripeEvent', paymentIntentId,
+            }, error);
           }
 
-          // Internal "new sale" alert to admin@bossofclean.com. Only on a
-          // freshly-recorded payment (not on Stripe redeliveries). Fire-and-
-          // forget: a mail failure must NEVER fail the webhook or the payments
-          // write (same contract as the handoff email above).
           if (paymentRecorded) {
             Promise.allSettled([
               sendAdminSaleNotification({
@@ -338,7 +202,8 @@ async function handleStripeEvent(event: Stripe.Event): Promise<void> {
     case 'customer.subscription.created':
       await processEventWithRetry(event, () =>
         subscriptionService.handleSubscriptionCreated(
-          event.data.object as Stripe.Subscription
+          event.data.object as Stripe.Subscription,
+          { eventId: event.id, claimToken }
         )
       );
       break;
@@ -346,7 +211,8 @@ async function handleStripeEvent(event: Stripe.Event): Promise<void> {
     case 'customer.subscription.updated':
       await processEventWithRetry(event, () =>
         subscriptionService.handleSubscriptionUpdated(
-          event.data.object as Stripe.Subscription
+          event.data.object as Stripe.Subscription,
+          { eventId: event.id, claimToken }
         )
       );
       break;
@@ -354,7 +220,8 @@ async function handleStripeEvent(event: Stripe.Event): Promise<void> {
     case 'customer.subscription.deleted':
       await processEventWithRetry(event, () =>
         subscriptionService.handleSubscriptionDeleted(
-          event.data.object as Stripe.Subscription
+          event.data.object as Stripe.Subscription,
+          { eventId: event.id, claimToken }
         )
       );
       break;
@@ -367,7 +234,8 @@ async function handleStripeEvent(event: Stripe.Event): Promise<void> {
     case 'invoice.payment_succeeded':
       await processEventWithRetry(event, () =>
         subscriptionService.handlePaymentSucceeded(
-          event.data.object as Stripe.Invoice
+          event.data.object as Stripe.Invoice,
+          { eventId: event.id, claimToken }
         )
       );
       break;
@@ -411,17 +279,12 @@ async function handleStripeEvent(event: Stripe.Event): Promise<void> {
 
 export async function POST(req: NextRequest) {
   try {
-    // Check for required env vars at runtime
     const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
-    if (!webhookSecret) {
-      logger.error('STRIPE_WEBHOOK_SECRET is required', { function: 'POST' });
-      return NextResponse.json(
-        { error: 'Webhook configuration missing' },
-        { status: 500 }
-      );
+    const stripe = getServerStripe();
+    if (!webhookSecret || !stripe) {
+      return paymentsUnavailable('api/webhooks/stripe', { 'Retry-After': '300' });
     }
 
-    const stripe = getStripe();
     const body = await req.text();
     const headersList = await headers();
     const signature = headersList.get('stripe-signature');
@@ -453,6 +316,17 @@ export async function POST(req: NextRequest) {
 
     logger.info('Processing Stripe webhook', { eventType: event.type, eventId: event.id });
 
+    // This Stripe account is shared with sibling ventures. Reject an explicit
+    // foreign stamp before writing to our ledger or touching business data.
+    if (classifyEventVenture(event) === 'foreign') {
+      logger.info('Ignoring Stripe event from another venture', {
+        function: 'POST',
+        eventType: event.type,
+        eventId: event.id,
+      });
+      return NextResponse.json({ received: true, ignored: true });
+    }
+
     // Check idempotency - record event and check if already processed
     const eventRecord = await webhookEventService.recordEvent(event);
 
@@ -463,18 +337,24 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ received: true, duplicate: true });
       }
 
-      if (eventRecord.event_status === 'processing') {
-        logger.info(`Event ${event.id} is being processed, skipping`);
-        return NextResponse.json({ received: true, processing: true });
+      {
+        logger.info(`Event ${event.id} is being processed; asking Stripe to retry`);
+        // A 2xx here could acknowledge the only surviving delivery after the
+        // original worker dies. Keep Stripe retrying until the lease can be
+        // reclaimed or the original worker records success.
+        return NextResponse.json(
+          { received: false, processing: true },
+          { status: 503, headers: { 'Retry-After': '300' } }
+        );
       }
     }
 
     // Process the event
     try {
-      await handleStripeEvent(event);
+      await handleStripeEvent(event, eventRecord.claim_token!);
 
       // Mark as successfully processed
-      await webhookEventService.markProcessed(event.id);
+      await webhookEventService.markProcessed(event.id, eventRecord.claim_token!);
 
       logger.info(`Successfully processed webhook: ${event.type} (${event.id})`);
       return NextResponse.json({ received: true });
@@ -483,7 +363,7 @@ export async function POST(req: NextRequest) {
         error instanceof Error ? error.message : 'Unknown error';
 
       // Mark as failed with error
-      await webhookEventService.markFailed(event.id, errorMessage);
+      await webhookEventService.markFailed(event.id, eventRecord.claim_token!, errorMessage);
 
       logger.error(`Failed to process webhook ${event.id}`, { function: 'POST' }, error);
 
