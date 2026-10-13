@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createServiceRoleClient } from '@/lib/supabase/service-role';
-import { getStripe, getSiteUrl, VENTURE_KEY, VENTURE_BOC } from '@/lib/stripe/config';
+import { getSiteUrl, VENTURE_KEY, VENTURE_BOC } from '@/lib/stripe/config';
+import { getServerStripe, paymentsUnavailable } from '@/lib/stripe/server';
 import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger({ file: 'api/leads/[quoteId]/unlock/route' });
@@ -16,6 +17,12 @@ export async function POST(
   _req: NextRequest,
   { params }: { params: { quoteId: string } }
 ) {
+  // Fail closed before any DB write or Stripe call when Stripe is not configured.
+  const stripe = getServerStripe();
+  if (!stripe) {
+    return paymentsUnavailable('api/leads/[quoteId]/unlock');
+  }
+
   const supabase = await createClient();
 
   const {
@@ -86,8 +93,6 @@ export async function POST(
   if (existing?.status === 'captured') {
     return NextResponse.json({ alreadyUnlocked: true, leadAcceptanceId: existing.id });
   }
-
-  const stripe = getStripe();
 
   if (existing?.status === 'pending' && existing.stripe_checkout_session_id) {
     // NEW-03 (DLD-557): decide by the prior session's actual state.

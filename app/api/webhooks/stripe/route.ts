@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { headers } from 'next/headers';
-import { getStripe, VENTURE_KEY, VENTURE_BOC } from '@/lib/stripe/config';
+import { VENTURE_KEY, VENTURE_BOC } from '@/lib/stripe/config';
+import { getServerStripe, paymentsUnavailable } from '@/lib/stripe/server';
 import { subscriptionService } from '@/lib/stripe/subscription-service';
 import { webhookEventService } from '@/lib/stripe/webhook-event-service';
 import { handleDisputeCreated, handleDisputeClosed } from '@/lib/stripe/disputes';
@@ -411,17 +412,14 @@ async function handleStripeEvent(event: Stripe.Event): Promise<void> {
 
 export async function POST(req: NextRequest) {
   try {
-    // Check for required env vars at runtime
+    // Fail closed before signature checks when Stripe is not configured.
+    // 503 + Retry-After keeps Stripe retrying instead of dropping the event.
     const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
-    if (!webhookSecret) {
-      logger.error('STRIPE_WEBHOOK_SECRET is required', { function: 'POST' });
-      return NextResponse.json(
-        { error: 'Webhook configuration missing' },
-        { status: 500 }
-      );
+    const stripe = getServerStripe();
+    if (!webhookSecret || !stripe) {
+      return paymentsUnavailable('api/webhooks/stripe', { 'Retry-After': '300' });
     }
 
-    const stripe = getStripe();
     const body = await req.text();
     const headersList = await headers();
     const signature = headersList.get('stripe-signature');

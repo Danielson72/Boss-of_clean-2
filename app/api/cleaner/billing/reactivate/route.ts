@@ -1,13 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createServiceRoleClient } from '@/lib/supabase/service-role';
-import { getStripe } from '@/lib/stripe/config';
+import { getServerStripe, paymentsUnavailable } from '@/lib/stripe/server';
 import { createLogger } from '@/lib/utils/logger';
 import type Stripe from 'stripe';
 
 const logger = createLogger({ file: 'api/cleaner/billing/reactivate/route' });
 
 export async function POST(request: NextRequest) {
+  // Fail closed before any DB write or Stripe call when Stripe is not configured.
+  const stripe = getServerStripe();
+  if (!stripe) {
+    return paymentsUnavailable('api/cleaner/billing/reactivate');
+  }
+
   try {
     const supabase = await createClient();
 
@@ -43,8 +49,6 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-
-    const stripe = getStripe();
 
     // Get current subscription
     const currentSubscription = await stripe.subscriptions.retrieve(

@@ -3,6 +3,10 @@ import { createLogger } from '../utils/logger'
 
 const logger = createLogger({ file: 'lib/stripe/client' })
 
+// Shown when a payment route returns 503 (Stripe not configured).
+export const PAYMENTS_UNAVAILABLE_MESSAGE =
+  'Payments are temporarily unavailable. Please try again shortly.'
+
 // Client-side Stripe initialization
 let stripePromise: ReturnType<typeof loadStripe>
 
@@ -28,6 +32,10 @@ export async function redirectToCheckout(plan: 'basic' | 'pro') {
         'Content-Type': 'application/json',
       },
     })
+
+    if (response.status === 503) {
+      throw new Error(PAYMENTS_UNAVAILABLE_MESSAGE)
+    }
 
     if (!response.ok) {
       throw new Error('Failed to create checkout session')
@@ -60,6 +68,10 @@ export async function redirectToBillingPortal() {
         'Content-Type': 'application/json',
       },
     })
+
+    if (response.status === 503) {
+      throw new Error(PAYMENTS_UNAVAILABLE_MESSAGE)
+    }
 
     if (!response.ok) {
       throw new Error('Failed to create portal session')

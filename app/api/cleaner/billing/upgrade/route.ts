@@ -1,12 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createServiceRoleClient } from '@/lib/supabase/service-role';
-import { STRIPE_PRICES, getSiteUrl, getStripe } from '@/lib/stripe/config';
+import { STRIPE_PRICES, getSiteUrl } from '@/lib/stripe/config';
+import { getServerStripe, paymentsUnavailable } from '@/lib/stripe/server';
 import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger({ file: 'api/cleaner/billing/upgrade/route' });
 
 export async function POST(request: NextRequest) {
+  // Fail closed before any DB write or Stripe call when Stripe is not configured.
+  const stripe = getServerStripe();
+  if (!stripe) {
+    return paymentsUnavailable('api/cleaner/billing/upgrade');
+  }
+
   try {
     const supabase = await createClient();
 
@@ -49,7 +56,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const stripe = getStripe();
     const siteUrl = getSiteUrl();
 
     // Map planId to price (Free/Basic/Pro matching PRD)

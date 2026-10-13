@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { getCustomerInvoices, getUpcomingInvoice } from '@/lib/stripe/invoices';
+import { getServerStripe, paymentsUnavailable } from '@/lib/stripe/server';
 import { createLogger } from '@/lib/utils/logger';
 
 export const dynamic = 'force-dynamic';
@@ -8,6 +9,11 @@ export const dynamic = 'force-dynamic';
 const logger = createLogger({ file: 'api/cleaner/billing/invoices/route' });
 
 export async function GET(request: NextRequest) {
+  // Fail closed before any Stripe call when Stripe is not configured.
+  if (!getServerStripe()) {
+    return paymentsUnavailable('api/cleaner/billing/invoices');
+  }
+
   try {
     const supabase = await createClient();
 
