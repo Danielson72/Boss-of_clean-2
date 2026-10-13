@@ -1,6 +1,7 @@
+import { randomUUID } from 'node:crypto';
 import { stripe, PLAN_DETAILS, VENTURE_KEY, VENTURE_BOC, type SubscriptionTier } from './config';
 import { createServiceRoleClient } from '@/lib/supabase/service-role';
-import { processDunningEvent, resetDunningState } from '@/lib/stripe/dunning';
+import { processDunningEvent } from '@/lib/stripe/dunning';
 import { sendAdminOpsAlert } from '@/lib/email/lead-unlock';
 import { createLogger } from '../utils/logger';
 import type Stripe from 'stripe';
@@ -219,172 +220,78 @@ export class SubscriptionService {
     return false;
   }
 
-  async handleSubscriptionCreated(subscription: Stripe.Subscription) {
-    if (!this.isOwnSubscription(subscription, 'handleSubscriptionCreated')) {
-      return;
+  private async syncSubscription(
+    subscription: Stripe.Subscription,
+    claim: { eventId: string; claimToken: string },
+    action: 'created' | 'updated' | 'deleted'
+  ) {
+    if (!this.isOwnSubscription(subscription, `handleSubscription${action}`)) return;
+    // Reserve a per-subscription snapshot generation before retrieval. A later
+    // reservation supersedes a blocked older fetch, even at equal event clocks.
+    const supabase = await this.getSupabase();
+    const snapshotToken = randomUUID();
+    const { data: reserved, error: reservationError } = await supabase.rpc('begin_stripe_subscription_sync', {
+      p_event_id: claim.eventId,
+      p_claim_token: claim.claimToken,
+      p_subscription_id: subscription.id,
+      p_snapshot_token: snapshotToken,
+    });
+    if (reservationError) throw new Error(`Subscription reservation failed: ${reservationError.message}`);
+    if (reserved !== true) throw new Error('Subscription reservation returned no claim');
+    if (action === 'updated') {
+      subscription = await stripe.subscriptions.retrieve(subscription.id);
+      if (!this.isOwnSubscription(subscription, 'syncSubscription')) return;
     }
-
     const { customer, id, status, metadata } = subscription;
     const cleanerId = metadata.cleaner_id;
     const tier = metadata.tier as SubscriptionTier;
-
-    if (!cleanerId || !tier) {
-      logger.warn(
-        `Missing cleaner_id or tier in metadata for subscription ${id} — cannot record it`,
-        { subscriptionId: id, metadata }
-      );
-      return;
+    if (!cleanerId || !['free', 'basic', 'pro'].includes(tier) ||
+        !Number.isSafeInteger(subscription.created) || subscription.created <= 0) {
+      throw new Error(`Missing or invalid subscription metadata for ${id}`);
     }
-
-    try {
-      const tierConfig = PLAN_DETAILS[tier];
-
-      // Basil (2025+ Stripe API): current_period_start/end moved from the
-      // subscription to each subscription item. Fall back to the legacy
-      // top-level fields for older payloads.
-      const item = subscription.items?.data?.[0] as
-        | (Stripe.SubscriptionItem & { current_period_start?: number; current_period_end?: number })
-        | undefined;
-      const legacy = subscription as Stripe.Subscription & {
-        current_period_start?: number;
-        current_period_end?: number;
-      };
-      const periodStartUnix = item?.current_period_start ?? legacy.current_period_start;
-      const periodEndUnix = item?.current_period_end ?? legacy.current_period_end;
-      if (!periodStartUnix || !periodEndUnix) {
-        throw new Error(`Missing current_period_start/end on subscription ${id}`);
-      }
-      const periodStart = new Date(periodStartUnix * 1000).toISOString();
-      const periodEnd = new Date(periodEndUnix * 1000).toISOString();
-
-      const supabase = await this.getSupabase();
-      // Insert subscription record
-      const { error: insertError } = await supabase.from('subscriptions').insert({
+    const item = subscription.items?.data?.[0] as
+      | (Stripe.SubscriptionItem & { current_period_start?: number; current_period_end?: number })
+      | undefined;
+    const legacy = subscription as Stripe.Subscription & {
+      current_period_start?: number; current_period_end?: number;
+    };
+    const start = item?.current_period_start ?? legacy.current_period_start;
+    const end = item?.current_period_end ?? legacy.current_period_end;
+    if (action !== 'deleted' && (!start || !end)) {
+      throw new Error(`Missing current period on subscription ${id}`);
+    }
+    const { data, error } = await supabase.rpc('sync_stripe_subscription', {
+      p_event_id: claim.eventId,
+      p_claim_token: claim.claimToken,
+      p_snapshot_token: snapshotToken,
+      p_subscription: {
+        stripe_created: subscription.created,
         cleaner_id: cleanerId,
         stripe_subscription_id: id,
         stripe_customer_id: typeof customer === 'string' ? customer : customer?.id,
         tier,
-        status,
-        current_period_start: periodStart,
-        current_period_end: periodEnd,
-        monthly_price: tierConfig.price,
-        features: tierConfig.features,
-      });
-      if (insertError) {
-        throw new Error(`subscriptions insert failed for ${id}: ${insertError.message}`);
-      }
-
-      // Update cleaner subscription info and billing dates
-      const { error: prosError } = await supabase
-        .from('pros')
-        .update({
-          subscription_tier: tier,
-          subscription_expires_at: periodEnd,
-          stripe_subscription_id: id,
-          next_billing_date: periodEnd,
-          payment_failed_count: 0, // Reset on new subscription
-        })
-        .eq('id', cleanerId);
-      if (prosError) {
-        throw new Error(`pros update failed for subscription ${id}: ${prosError.message}`);
-      }
-
-      logger.info(`Subscription created for cleaner ${cleanerId}: ${tier}`);
-    } catch (error) {
-      logger.error('Error handling subscription created:', {}, error);
-      throw error; // Re-throw for retry logic
-    }
+        status: action === 'deleted' ? 'canceled' : status,
+        current_period_start: start ? new Date(start * 1000).toISOString() : null,
+        current_period_end: end ? new Date(end * 1000).toISOString() : null,
+        cancel_at: subscription.cancel_at ? new Date(subscription.cancel_at * 1000).toISOString() : null,
+        monthly_price: PLAN_DETAILS[tier].price,
+        features: PLAN_DETAILS[tier].features,
+      },
+    });
+    if (error) throw new Error(`Subscription transaction failed for ${id}: ${error.message}`);
+    if (typeof data !== 'boolean') throw new Error(`Subscription transaction returned no result for ${id}`);
   }
 
-  async handleSubscriptionUpdated(subscription: Stripe.Subscription) {
-    if (!this.isOwnSubscription(subscription, 'handleSubscriptionUpdated')) {
-      return;
-    }
-
-    const { id, status, cancel_at } = subscription;
-
-    try {
-      // Basil: period fields live on the subscription item (legacy fallback below).
-      const item = subscription.items?.data?.[0] as
-        | (Stripe.SubscriptionItem & { current_period_end?: number })
-        | undefined;
-      const legacy = subscription as Stripe.Subscription & { current_period_end?: number };
-      const periodEndUnix = item?.current_period_end ?? legacy.current_period_end;
-      if (!periodEndUnix) {
-        throw new Error(`Missing current_period_end on subscription ${id}`);
-      }
-      const periodEnd = new Date(periodEndUnix * 1000).toISOString();
-
-      const supabase = await this.getSupabase();
-      // Update subscription record
-      const { error: subError } = await supabase
-        .from('subscriptions')
-        .update({
-          status,
-          current_period_end: periodEnd,
-          cancel_at: cancel_at ? new Date(cancel_at * 1000).toISOString() : null,
-        })
-        .eq('stripe_subscription_id', id);
-      if (subError) {
-        throw new Error(`subscriptions update failed for ${id}: ${subError.message}`);
-      }
-
-      // Update cleaner subscription expiry and next billing date
-      const { error: prosError } = await supabase
-        .from('pros')
-        .update({
-          subscription_expires_at: periodEnd,
-          next_billing_date: periodEnd,
-        })
-        .eq('stripe_subscription_id', id);
-      if (prosError) {
-        throw new Error(`pros update failed for subscription ${id}: ${prosError.message}`);
-      }
-
-      logger.info(`Subscription updated: ${id}`);
-    } catch (error) {
-      logger.error('Error handling subscription updated:', {}, error);
-      throw error; // Re-throw for retry logic
-    }
+  async handleSubscriptionCreated(subscription: Stripe.Subscription, claim: { eventId: string; claimToken: string }) {
+    await this.syncSubscription(subscription, claim, 'created');
   }
 
-  async handleSubscriptionDeleted(subscription: Stripe.Subscription) {
-    if (!this.isOwnSubscription(subscription, 'handleSubscriptionDeleted')) {
-      return;
-    }
+  async handleSubscriptionUpdated(subscription: Stripe.Subscription, claim: { eventId: string; claimToken: string }) {
+    await this.syncSubscription(subscription, claim, 'updated');
+  }
 
-    const { id } = subscription;
-
-    try {
-      const supabase = await this.getSupabase();
-      // Update cleaner to free tier and clear billing dates
-      const { error: prosError } = await supabase
-        .from('pros')
-        .update({
-          subscription_tier: 'free',
-          subscription_expires_at: null,
-          stripe_subscription_id: null,
-          next_billing_date: null,
-        })
-        .eq('stripe_subscription_id', id);
-      if (prosError) {
-        throw new Error(`pros update failed for subscription ${id}: ${prosError.message}`);
-      }
-
-      // Update subscription status
-      const { error: subError } = await supabase
-        .from('subscriptions')
-        .update({ status: 'canceled' })
-        .eq('stripe_subscription_id', id);
-      if (subError) {
-        throw new Error(`subscriptions update failed for ${id}: ${subError.message}`);
-      }
-
-      logger.info(`Subscription canceled: ${id}`);
-    } catch (error) {
-      logger.error('Error handling subscription deleted:', {}, error);
-      throw error; // Re-throw for retry logic
-    }
+  async handleSubscriptionDeleted(subscription: Stripe.Subscription, claim: { eventId: string; claimToken: string }) {
+    await this.syncSubscription(subscription, claim, 'deleted');
   }
 
   /**
@@ -396,7 +303,7 @@ export class SubscriptionService {
    * Ignore them quietly; do not throw, or Stripe retries a foreign invoice
    * against us for three days.
    */
-  async handlePaymentSucceeded(invoice: Stripe.Invoice) {
+  async handlePaymentSucceeded(invoice: Stripe.Invoice, claim: { eventId: string; claimToken: string }) {
     const inv = invoice as Stripe.Invoice & {
       payment_intent?: string | { id: string } | null;
     };
@@ -438,11 +345,11 @@ export class SubscriptionService {
             `Subscription ${subscriptionId} is stamped as ours but has no row in subscriptions — payment not recorded`,
             { function: 'handlePaymentSucceeded', subscriptionId, invoiceId: invoice.id }
           );
-          // Fire-and-forget: alerting must never throw or block the 200.
+          // Alerting is best effort; the invoice remains retryable until its row exists.
           sendAdminOpsAlert({
             title: 'Paid subscription has no local record',
             summary:
-              'An invoice was paid for a Boss of Clean subscription, but no matching row exists in the subscriptions table, so the payment was not recorded. The charge stands in Stripe and needs reconciling by hand.',
+              'An invoice was paid for a Boss of Clean subscription, but no matching row exists in the subscriptions table, so the payment was not recorded. The charge stands in Stripe. Delivery will retry until the subscription row exists.',
             details: [
               { label: 'Stripe subscription', value: subscriptionId },
               { label: 'Invoice', value: invoice.id },
@@ -452,7 +359,7 @@ export class SubscriptionService {
           }).catch((err) =>
             logger.error('Missing-subscription ops alert failed', { function: 'handlePaymentSucceeded' }, err)
           );
-          return;
+          throw new Error(`Owned subscription ${subscriptionId} is not available yet for invoice ${invoice.id}`);
         }
 
         logger.info(
@@ -462,59 +369,27 @@ export class SubscriptionService {
         return;
       }
 
-      {
-        // Dedupe: invoice.paid and invoice.payment_succeeded both fire for the
-        // same invoice on current API versions — only record it once.
-        const { data: existingPayment, error: dedupeError } = await supabase
-          .from('payments')
-          .select('id')
-          .eq('cleaner_id', subscriptionData.cleaner_id)
-          .eq('status', 'succeeded')
-          .contains('metadata', { invoice_id: invoice.id })
-          .limit(1)
-          .maybeSingle();
-        if (dedupeError) {
-          throw new Error(`payments dedupe lookup failed for ${subscriptionId}: ${dedupeError.message}`);
-        }
-        if (existingPayment) {
-          logger.info(`Payment for invoice ${invoice.id} already recorded, skipping duplicate event`);
-          return;
-        }
-
-        const paymentIntentId = typeof inv.payment_intent === 'string'
-          ? inv.payment_intent
-          : inv.payment_intent?.id || null;
-
-        // Record payment
-        const { error: paymentError } = await supabase.from('payments').insert({
-          cleaner_id: subscriptionData.cleaner_id,
-          stripe_payment_intent_id: paymentIntentId,
-          amount: (amount_paid || 0) / 100, // Convert cents to dollars
-          currency: currency || 'usd',
-          status: 'succeeded',
-          description: 'Monthly subscription payment',
-          metadata: { invoice_id: invoice.id },
-          paid_at: new Date().toISOString(),
-        });
-        if (paymentError) {
-          throw new Error(`payments insert failed for ${subscriptionId}: ${paymentError.message}`);
-        }
-
-        // Update last payment date, reset failed count, and reset monthly lead acceptance counter
-        const { error: prosError } = await supabase
-          .from('pros')
-          .update({
-            last_payment_date: new Date().toISOString(),
-            payment_failed_count: 0,
-            monthly_accepted_lead_count: 0,
-          })
-          .eq('id', subscriptionData.cleaner_id);
-        if (prosError) {
-          throw new Error(`pros update failed for ${subscriptionId}: ${prosError.message}`);
-        }
-
-        // Reset dunning state (grace period, subscription status)
-        await resetDunningState(subscriptionData.cleaner_id);
+      // One transaction records the invoice and applies all billing effects.
+      // The invoice identity deduplicates different Stripe event IDs, including
+      // zero-dollar invoices with no payment intent. Ledger token/row locking
+      // prevents an expired worker from fulfilling a reclaimed delivery.
+      const paymentIntentId = typeof inv.payment_intent === 'string'
+        ? inv.payment_intent
+        : inv.payment_intent?.id || null;
+      const { data: fulfilled, error: fulfillmentError } = await supabase.rpc('fulfill_stripe_paid_invoice', {
+        p_event_id: claim.eventId,
+        p_claim_token: claim.claimToken,
+        p_subscription_id: subscriptionId,
+        p_invoice_id: invoice.id,
+        p_payment_intent_id: paymentIntentId,
+        p_amount_paid: amount_paid ?? 0,
+        p_currency: currency || 'usd',
+      });
+      if (fulfillmentError) {
+        throw new Error(`Invoice fulfillment failed for ${invoice.id}: ${fulfillmentError.message}`);
+      }
+      if (typeof fulfilled !== 'boolean') {
+        throw new Error(`Invoice fulfillment returned no result for ${invoice.id}`);
       }
 
       logger.info(`Payment succeeded for subscription: ${subscriptionId}`);

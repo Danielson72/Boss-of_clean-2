@@ -1,0 +1,31 @@
+
+Running 6 tests using 5 workers
+
+(node:48740) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:48738) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:48737) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:48739) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:48736) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:48737) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:48740) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:48738) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:48736) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:48739) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 tests/unit/stripe-payment-safety.spec.ts:67:7 › Stripe payment safety › double-click and ambiguous network retry reuse the same Stripe key (7ms)
+  ✓  3 tests/unit/stripe-payment-safety.spec.ts:53:7 › Stripe payment safety › declined or abandoned checkout cannot release contact data (6ms)
+  ✓  2 tests/unit/stripe-payment-safety.spec.ts:58:7 › Stripe payment safety › out-of-order payment-intent event is not treated as lead fulfillment (7ms)
+  ✓  4 tests/unit/stripe-payment-safety.spec.ts:42:7 › Stripe payment safety › paid lead unlock has complete, internally consistent metadata (8ms)
+  ✓  5 tests/unit/stripe-payment-safety.spec.ts:36:7 › Stripe payment safety › venture guard rejects explicit sibling events before processing (6ms)
+  ✓  6 tests/unit/stripe-payment-safety.spec.ts:74:7 › Stripe payment safety › webhook ledger migration uses an atomic claim and a stale-work lease (3ms)
+
+  6 passed (694ms)

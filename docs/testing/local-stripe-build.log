@@ -1,0 +1,81 @@
+
+> nextjs@0.1.0 build
+> next build
+
+   Creating an optimized production build...
+request to https://fonts.googleapis.com/css2?family=DM+Sans:wght@100..1000&display=swap failed, reason: getaddrinfo ENOTFOUND fonts.googleapis.com
+
+Retrying 1/3...
+request to https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400..900&display=swap failed, reason: getaddrinfo ENOTFOUND fonts.googleapis.com
+
+Retrying 1/3...
+request to https://fonts.googleapis.com/css2?family=DM+Sans:wght@100..1000&display=swap failed, reason: getaddrinfo ENOTFOUND fonts.googleapis.com
+
+Retrying 2/3...
+request to https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400..900&display=swap failed, reason: getaddrinfo ENOTFOUND fonts.googleapis.com
+
+Retrying 2/3...
+FetchError: request to https://fonts.googleapis.com/css2?family=DM+Sans:wght@100..1000&display=swap failed, reason: getaddrinfo ENOTFOUND fonts.googleapis.com
+    at ClientRequest.<anonymous> (/Users/danielalvarez/Documents/Codex/2026-10-13/task-4/boc-stripe-recovery/node_modules/next/dist/compiled/node-fetch/index.js:1:65756)
+    at ClientRequest.emit (node:events:519:28)
+    at ClientRequest.emit (node:domain:489:12)
+    at emitErrorEvent (node:_http_client:108:11)
+    at TLSSocket.socketErrorListener (node:_http_client:575:5)
+    at TLSSocket.emit (node:events:519:28)
+    at TLSSocket.emit (node:domain:489:12)
+    at emitErrorNT (node:internal/streams/destroy:170:8)
+    at emitErrorCloseNT (node:internal/streams/destroy:129:3)
+    at process.processTicksAndRejections (node:internal/process/task_queues:89:21) {
+  type: 'system',
+  errno: 'ENOTFOUND',
+  code: 'ENOTFOUND'
+}
+FetchError: request to https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400..900&display=swap failed, reason: getaddrinfo ENOTFOUND fonts.googleapis.com
+    at ClientRequest.<anonymous> (/Users/danielalvarez/Documents/Codex/2026-10-13/task-4/boc-stripe-recovery/node_modules/next/dist/compiled/node-fetch/index.js:1:65756)
+    at ClientRequest.emit (node:events:519:28)
+    at ClientRequest.emit (node:domain:489:12)
+    at emitErrorEvent (node:_http_client:108:11)
+    at TLSSocket.socketErrorListener (node:_http_client:575:5)
+    at TLSSocket.emit (node:events:519:28)
+    at TLSSocket.emit (node:domain:489:12)
+    at emitErrorNT (node:internal/streams/destroy:170:8)
+    at emitErrorCloseNT (node:internal/streams/destroy:129:3)
+    at process.processTicksAndRejections (node:internal/process/task_queues:89:21) {
+  type: 'system',
+  errno: 'ENOTFOUND',
+  code: 'ENOTFOUND'
+}
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (116kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
+Failed to compile.
+
+app/layout.tsx
+`next/font` error:
+Failed to fetch `DM Sans` from Google Fonts.
+
+app/layout.tsx
+`next/font` error:
+Failed to fetch `Playfair Display` from Google Fonts.
+
+./lib/phone.ts
+Module not found: Can't resolve 'libphonenumber-js'
+
+https://nextjs.org/docs/messages/module-not-found
+
+Import trace for requested module:
+./app/settings/page.tsx
+
+./app/layout.tsx
+Module not found: Can't resolve '@next/third-parties/google'
+
+https://nextjs.org/docs/messages/module-not-found
+
+./lib/phone.ts
+Module not found: Can't resolve 'libphonenumber-js'
+
+https://nextjs.org/docs/messages/module-not-found
+
+Import trace for requested module:
+./app/api/cleaners/onboarding/route.ts
+
+
+> Build failed because of webpack errors

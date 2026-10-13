@@ -1,0 +1,180 @@
+TAP version 13
+# Subtest: ledger outage and empty/malformed/tokenless claims fail closed
+ok 1 - ledger outage and empty/malformed/tokenless claims fail closed
+  ---
+  duration_ms: 1.126375
+  type: 'test'
+  ...
+# Subtest: ledger completion failures remain retryable
+ok 2 - ledger completion failures remain retryable
+  ---
+  duration_ms: 0.153334
+  type: 'test'
+  ...
+# Subtest: simultaneous duplicate claims have one owner; crash lease gets a fresh token
+ok 3 - simultaneous duplicate claims have one owner; crash lease gets a fresh token
+  ---
+  duration_ms: 0.467625
+  type: 'test'
+  ...
+# Subtest: unconverted failed-invoice handler is not reclaimed while old worker may still write
+ok 4 - unconverted failed-invoice handler is not reclaimed while old worker may still write
+  ---
+  duration_ms: 0.265292
+  type: 'test'
+  ...
+# Subtest: expired worker cannot complete or fail the newer claim
+ok 5 - expired worker cannot complete or fail the newer claim
+  ---
+  duration_ms: 0.480959
+  type: 'test'
+  ...
+# Subtest: invoice before subscription stays retryable, then records once after replay
+ok 6 - invoice before subscription stays retryable, then records once after replay
+  ---
+  duration_ms: 0.70075
+  type: 'test'
+  ...
+# Subtest: different event IDs concurrently fulfilling invoice without payment intent apply effects once
+ok 7 - different event IDs concurrently fulfilling invoice without payment intent apply effects once
+  ---
+  duration_ms: 0.59525
+  type: 'test'
+  ...
+# Subtest: failure after payment insert rolls back effects; retry applies the entire invoice once
+ok 8 - failure after payment insert rolls back effects; retry applies the entire invoice once
+  ---
+  duration_ms: 0.343292
+  type: 'test'
+  ...
+# Subtest: stale invoice worker cannot fulfill after claim is reclaimed
+ok 9 - stale invoice worker cannot fulfill after claim is reclaimed
+  ---
+  duration_ms: 0.612208
+  type: 'test'
+  ...
+# Subtest: missing fulfillment result fails closed rather than acknowledging an invoice
+ok 10 - missing fulfillment result fails closed rather than acknowledging an invoice
+  ---
+  duration_ms: 0.521416
+  type: 'test'
+  ...
+# Subtest: route returns 503 for active claims, then fulfills paid lead once across duplicates
+ok 11 - route returns 503 for active claims, then fulfills paid lead once across duplicates
+  ---
+  duration_ms: 140.734959
+  type: 'test'
+  ...
+# Subtest: reclaimed lead worker cannot write capture or overwrite processed recovery
+ok 12 - reclaimed lead worker cannot write capture or overwrite processed recovery
+  ---
+  duration_ms: 3009.275375
+  type: 'test'
+  ...
+# Subtest: lead payment/capture failure rolls back and can retry without duplicate writes
+# (node:48729) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+# (Use `node --trace-deprecation ...` to show where the warning was created)
+ok 13 - lead payment/capture failure rolls back and can retry without duplicate writes
+  ---
+  duration_ms: 1002.1945
+  type: 'test'
+  ...
+# Subtest: PR159 guards prevent webhook/unlock DB access when Stripe config is missing
+ok 14 - PR159 guards prevent webhook/unlock DB access when Stripe config is missing
+  ---
+  duration_ms: 16.461
+  type: 'test'
+  ...
+# Subtest: existing service-role helper still rejects missing credentials before constructing client
+ok 15 - existing service-role helper still rejects missing credentials before constructing client
+  ---
+  duration_ms: 51.904042
+  type: 'test'
+  ...
+# Subtest: subscription-created crash is reclaimed and invoice-before-subscription can then complete
+ok 16 - subscription-created crash is reclaimed and invoice-before-subscription can then complete
+  ---
+  duration_ms: 1.193458
+  type: 'test'
+  ...
+# Subtest: subscription insert/pro linkage roll back together; retry does not hit duplicate insert
+ok 17 - subscription insert/pro linkage roll back together; retry does not hit duplicate insert
+  ---
+  duration_ms: 0.188041
+  type: 'test'
+  ...
+# Subtest: legacy partial subscription creation repairs missing pro linkage without duplicate subscription
+ok 18 - legacy partial subscription creation repairs missing pro linkage without duplicate subscription
+  ---
+  duration_ms: 0.09725
+  type: 'test'
+  ...
+# Subtest: delete-before-create makes a tombstone; delayed create cannot resurrect it
+ok 19 - delete-before-create makes a tombstone; delayed create cannot resurrect it
+  ---
+  duration_ms: 0.108041
+  type: 'test'
+  ...
+# Subtest: subscription updated refreshes the Stripe snapshot and updates atomically with the claim
+ok 20 - subscription updated refreshes the Stripe snapshot and updates atomically with the claim
+  ---
+  duration_ms: 0.088666
+  type: 'test'
+  ...
+# Subtest: handoff job survives failed send and retries; successful send suppresses later sends
+ok 21 - handoff job survives failed send and retries; successful send suppresses later sends
+  ---
+  duration_ms: 0.254042
+  type: 'test'
+  ...
+# Subtest: handoff crash before send is reclaimable and stale completion cannot overwrite recovery
+ok 22 - handoff crash before send is reclaimable and stale completion cannot overwrite recovery
+  ---
+  duration_ms: 0.111542
+  type: 'test'
+  ...
+# Subtest: bounded outbox drain retries queued jobs after webhook process has exited
+ok 23 - bounded outbox drain retries queued jobs after webhook process has exited
+  ---
+  duration_ms: 0.238958
+  type: 'test'
+  ...
+# Subtest: replacement B creation is not vetoed by later old A update clock
+ok 24 - replacement B creation is not vetoed by later old A update clock
+  ---
+  duration_ms: 0.309
+  type: 'test'
+  ...
+# Subtest: equal-second blocked stale snapshot cannot commit after fresh reservation and application
+ok 25 - equal-second blocked stale snapshot cannot commit after fresh reservation and application
+  ---
+  duration_ms: 0.335167
+  type: 'test'
+  ...
+# Subtest: unknown legacy owner generation fails closed rather than replacing its linkage
+ok 26 - unknown legacy owner generation fails closed rather than replacing its linkage
+  ---
+  duration_ms: 1.309333
+  type: 'test'
+  ...
+# Subtest: different subscription IDs created within one second require explicit ownership reconciliation
+ok 27 - different subscription IDs created within one second require explicit ownership reconciliation
+  ---
+  duration_ms: 0.1985
+  type: 'test'
+  ...
+# Subtest: canceled A retains generation identity: same-second B create/update/cancel all require reconciliation
+ok 28 - canceled A retains generation identity: same-second B create/update/cancel all require reconciliation
+  ---
+  duration_ms: 0.265625
+  type: 'test'
+  ...
+1..28
+# tests 28
+# suites 0
+# pass 28
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 4650.064709

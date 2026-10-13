@@ -1,8 +1,10 @@
+import { getServerStripe, paymentsUnavailable } from '@/lib/stripe/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createServiceRoleClient } from '@/lib/supabase/service-role';
-import { getStripe, getSiteUrl, VENTURE_KEY, VENTURE_BOC } from '@/lib/stripe/config';
+import { getSiteUrl, VENTURE_KEY, VENTURE_BOC } from '@/lib/stripe/config';
 import { createLogger } from '@/lib/utils/logger';
+import { leadUnlockCheckoutIdempotencyKey } from '@/lib/stripe/webhook-safety';
 
 const logger = createLogger({ file: 'api/leads/[quoteId]/unlock/route' });
 
@@ -16,6 +18,9 @@ export async function POST(
   _req: NextRequest,
   { params }: { params: { quoteId: string } }
 ) {
+  const stripe = getServerStripe();
+  if (!stripe) return paymentsUnavailable('api/leads/[quoteId]/unlock');
+
   const supabase = await createClient();
 
   const {
@@ -87,7 +92,6 @@ export async function POST(
     return NextResponse.json({ alreadyUnlocked: true, leadAcceptanceId: existing.id });
   }
 
-  const stripe = getStripe();
 
   if (existing?.status === 'pending' && existing.stripe_checkout_session_id) {
     // NEW-03 (DLD-557): decide by the prior session's actual state.
@@ -170,6 +174,11 @@ export async function POST(
         amount_cents: String(LEAD_UNLOCK_AMOUNT_CENTS),
         lead_acceptance_id: leadAcceptanceId,
       },
+    }, {
+      idempotencyKey: leadUnlockCheckoutIdempotencyKey(
+        leadAcceptanceId,
+        existing?.stripe_checkout_session_id
+      ),
     });
   } catch (err) {
     logger.error('Stripe session create failed', { function: 'POST', quoteId }, err);
