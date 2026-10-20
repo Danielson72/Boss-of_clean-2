@@ -16,6 +16,7 @@ import { GoogleSignInButton } from '@/components/auth/GoogleSignInButton'
 import { recordUserTcpaConsent } from '@/lib/actions/tcpa'
 import { seedProServiceArea } from '@/lib/actions/pro-signup'
 import { normalizeToE164 } from '@/lib/phone'
+import { CUSTOMER_SIGNUP_COPY, PRO_SIGNUP_COPY } from '@/lib/auth/signup-copy'
 
 interface AuthFormProps {
   mode: 'login' | 'signup'
@@ -41,6 +42,7 @@ export function AuthForm({ mode, role = 'customer' }: AuthFormProps) {
   const supabase = createClient()
   const isCleaner = mode === 'signup' && role === 'cleaner'
   const isSignup = mode === 'signup'
+  const signupCopy = isCleaner ? PRO_SIGNUP_COPY : CUSTOMER_SIGNUP_COPY
   const { user: authUser, loading: authLoading, roleLoaded, isAdmin, isCleaner: isCleanerRole } = useAuth()
   const [redirecting, setRedirecting] = useState(false)
   const safetyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -352,9 +354,7 @@ export function AuthForm({ mode, role = 'customer' }: AuthFormProps) {
         <CardDescription>
           {mode === 'login'
             ? 'Enter your email and password to access your account'
-            : isCleaner
-              ? 'Set up your professional cleaning account'
-              : 'Sign up to find professional cleaners in your area'}
+            : signupCopy.description}
         </CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit}>
@@ -387,7 +387,7 @@ export function AuthForm({ mode, role = 'customer' }: AuthFormProps) {
                 <Input
                   id="businessName"
                   type="text"
-                  placeholder="Smith's Cleaning Services"
+                  placeholder={PRO_SIGNUP_COPY.businessPlaceholder}
                   value={businessName}
                   onChange={(e) => setBusinessName(e.target.value)}
                   required
@@ -487,7 +487,7 @@ export function AuthForm({ mode, role = 'customer' }: AuthFormProps) {
                 required
               />
               <label htmlFor="tcpa-consent" className="text-xs text-muted-foreground leading-snug">
-                I agree to receive calls, texts, and emails from Boss of Clean and the independent service professional(s) who respond to my request, at the phone number and email I provided. Consent is not a condition of purchase. Message and data rates may apply. Reply STOP to unsubscribe. See our{' '}
+                {signupCopy.consent} See our{' '}
                 <a href="/privacy" className="underline hover:text-foreground">Privacy Policy</a>
                 {' '}and{' '}
                 <a href="/terms" className="underline hover:text-foreground">Terms</a>.
