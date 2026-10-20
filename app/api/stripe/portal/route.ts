@@ -2,11 +2,17 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getSiteUrl } from '@/lib/stripe/config'
 import { createBillingPortalSession, findCustomerByEmail } from '@/lib/stripe/mcp'
+import { getServerStripe, paymentsUnavailable } from '@/lib/stripe/server'
 import { createLogger } from '@/lib/utils/logger'
 
 const logger = createLogger({ file: 'api/stripe/portal/route' })
 
 export async function POST(request: NextRequest) {
+  // Fail closed before any DB write or Stripe call when Stripe is not configured.
+  if (!getServerStripe()) {
+    return paymentsUnavailable('api/stripe/portal')
+  }
+
   try {
     // Check for required env vars at runtime
     const siteUrlEnv = process.env.SITE_URL || process.env.NEXT_PUBLIC_SITE_URL

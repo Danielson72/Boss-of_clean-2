@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/lib/context/AuthContext';
 import { ProtectedRoute } from '@/lib/auth/protected-route';
-import { redirectToBillingPortal } from '@/lib/stripe/client';
+import { redirectToBillingPortal, PAYMENTS_UNAVAILABLE_MESSAGE } from '@/lib/stripe/client';
 import dynamic from 'next/dynamic';
 import {
   SubscriptionStatusCard,
@@ -149,6 +149,10 @@ export default function BillingPage() {
 
       const data = await response.json();
 
+      if (response.status === 503) {
+        throw new Error(PAYMENTS_UNAVAILABLE_MESSAGE);
+      }
+
       if (!response.ok) {
         throw new Error(data.error || 'Failed to process upgrade');
       }
@@ -202,6 +206,10 @@ export default function BillingPage() {
 
       const data = await response.json();
 
+      if (response.status === 503) {
+        throw new Error(PAYMENTS_UNAVAILABLE_MESSAGE);
+      }
+
       if (!response.ok) {
         throw new Error(data.error || 'Failed to cancel subscription');
       }
@@ -229,6 +237,10 @@ export default function BillingPage() {
       });
 
       const data = await response.json();
+
+      if (response.status === 503) {
+        throw new Error(PAYMENTS_UNAVAILABLE_MESSAGE);
+      }
 
       if (!response.ok) {
         throw new Error(data.error || 'Failed to reactivate subscription');

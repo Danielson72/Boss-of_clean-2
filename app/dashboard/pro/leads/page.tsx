@@ -15,6 +15,7 @@ import {
   PartyPopper,
 } from 'lucide-react';
 import Link from 'next/link';
+import { PAYMENTS_UNAVAILABLE_MESSAGE } from '@/lib/stripe/client';
 import { getHiredLeadsAwaitingUnlock, type HiredLead } from './actions';
 
 export default function HiredLeadsPage() {
@@ -52,6 +53,12 @@ export default function HiredLeadsPage() {
     try {
       const res = await fetch(`/api/leads/${quoteId}/unlock`, { method: 'POST' });
       const data = await res.json();
+
+      if (res.status === 503) {
+        setError(PAYMENTS_UNAVAILABLE_MESSAGE);
+        setUnlockingId(null);
+        return;
+      }
 
       if (!res.ok) {
         setError(data.error || 'Could not start checkout. Please try again.');
