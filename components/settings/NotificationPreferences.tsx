@@ -9,19 +9,26 @@ export interface NotificationPreferencesData {
   messages: boolean;
   promotions: boolean;
   review_requests: boolean;
+  [key: string]: boolean;
+}
+
+export interface NotificationOption {
+  key: string;
+  label: string;
+  description: string;
+  icon: React.ReactNode;
+  /** Renders the row read-only, with `disabledNote` explaining why. */
+  disabled?: boolean;
+  disabledNote?: string;
 }
 
 interface NotificationPreferencesProps {
   preferences: NotificationPreferencesData;
   onUpdate: (preferences: NotificationPreferencesData) => Promise<void>;
   loading?: boolean;
-}
-
-interface NotificationOption {
-  key: keyof NotificationPreferencesData;
-  label: string;
-  description: string;
-  icon: React.ReactNode;
+  /** Defaults to the customer option set below. */
+  options?: NotificationOption[];
+  footerNote?: string;
 }
 
 const notificationOptions: NotificationOption[] = [
@@ -55,7 +62,10 @@ export function NotificationPreferences({
   preferences,
   onUpdate,
   loading = false,
+  options,
+  footerNote,
 }: NotificationPreferencesProps) {
+  const rows = options ?? notificationOptions;
   const [localPreferences, setLocalPreferences] = useState<NotificationPreferencesData>(preferences);
   const [saving, setSaving] = useState<string | null>(null);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -64,7 +74,7 @@ export function NotificationPreferences({
     setLocalPreferences(preferences);
   }, [preferences]);
 
-  const handleToggle = async (key: keyof NotificationPreferencesData) => {
+  const handleToggle = async (key: string) => {
     if (saving) return;
 
     setSaving(key);
@@ -127,7 +137,7 @@ export function NotificationPreferences({
         </div>
       )}
 
-      {notificationOptions.map((option) => (
+      {rows.map((option) => (
         <div
           key={option.key}
           className="flex items-center justify-between p-4 bg-white border rounded-lg hover:shadow-sm transition-shadow"
@@ -139,6 +149,9 @@ export function NotificationPreferences({
             <div>
               <h4 className="font-medium text-gray-900">{option.label}</h4>
               <p className="text-sm text-gray-500">{option.description}</p>
+              {option.disabled && option.disabledNote && (
+                <p className="mt-1 text-sm text-gray-400">{option.disabledNote}</p>
+              )}
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -146,9 +159,9 @@ export function NotificationPreferences({
               <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-600 border-t-transparent" />
             )}
             <Switch
-              checked={localPreferences[option.key]}
+              checked={!!localPreferences[option.key]}
               onCheckedChange={() => handleToggle(option.key)}
-              disabled={saving !== null}
+              disabled={saving !== null || option.disabled}
               aria-label={`Toggle ${option.label}`}
             />
           </div>
@@ -157,8 +170,9 @@ export function NotificationPreferences({
 
       <div className="mt-6 p-4 bg-gray-50 rounded-lg">
         <p className="text-sm text-gray-600">
-          <strong>Note:</strong> Even with notifications turned off, we may still send you important
-          account-related emails, such as password resets and security alerts.
+          <strong>Note:</strong>{' '}
+          {footerNote ??
+            'Even with notifications turned off, we may still send you important account-related emails, such as password resets and security alerts.'}
         </p>
       </div>
     </div>
