@@ -42,13 +42,23 @@ export default function NewReviewPage() {
         .select(`
           id,
           booking_date,
-          cleaner:pros(id, business_name)
+          cleaner_id
         `)
         .eq('customer_id', user.id)
         .eq('status', 'completed')
         .order('booking_date', { ascending: false });
 
       if (bookingsError) throw bookingsError;
+
+      const bookingRows = (completedBookings || []) as { id: string; booking_date: string; cleaner_id: string }[];
+      const proIds = Array.from(new Set(bookingRows.map((b) => b.cleaner_id)));
+      const { data: directory, error: directoryError } = proIds.length
+        ? await supabase.from('pros_directory')
+          .select('id, business_name').in('id', proIds)
+        : { data: [], error: null };
+      if (directoryError) throw directoryError;
+      const prosById = new Map(((directory || []) as { id: string; business_name: string }[])
+        .map((pro) => [pro.id, pro]));
 
       // Get existing reviews by this user
       const { data: existingReviews } = await supabase
@@ -57,13 +67,16 @@ export default function NewReviewPage() {
         .eq('customer_id', user.id);
 
       const reviewedBookingIds = new Set(
-        (existingReviews || []).map((r) => r.quote_request_id)
+        (existingReviews || []).map((r: { quote_request_id: string }) => r.quote_request_id)
       );
 
       // Filter out already-reviewed bookings
-      const unreviewedBookings = (completedBookings || []).filter(
+      const unreviewedBookings = bookingRows.filter(
         (b) => !reviewedBookingIds.has(b.id)
-      );
+      ).map((b) => ({
+        ...b,
+        cleaner: prosById.get(b.cleaner_id) || { id: b.cleaner_id, business_name: 'Service professional' },
+      }));
 
       setBookings(unreviewedBookings as CompletedBooking[]);
     } catch (err) {

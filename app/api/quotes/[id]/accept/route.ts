@@ -28,7 +28,7 @@ export async function POST(
   // Fetch the quote request — must belong to this customer and be in 'responded' status
   const { data: quote, error: fetchError } = await supabase
     .from('quote_requests')
-    .select('*, cleaner:pros(id, user_id, business_name, approval_status)')
+    .select('*')
     .eq('id', quoteId)
     .single();
 
@@ -49,8 +49,17 @@ export async function POST(
     );
   }
 
-  if (!quote.cleaner_id || !quote.cleaner) {
+  if (!quote.cleaner_id) {
     return NextResponse.json({ error: 'No cleaner assigned to this quote' }, { status: 400 });
+  }
+
+  const { data: cleaner, error: cleanerError } = await supabase
+    .from('pros_directory')
+    .select('id, user_id, business_name')
+    .eq('id', quote.cleaner_id)
+    .maybeSingle();
+  if (cleanerError || !cleaner) {
+    return NextResponse.json({ error: 'Pro is not currently available' }, { status: 400 });
   }
 
   // A7 Slice 1 — persist the accept with the service-role client.
@@ -103,7 +112,7 @@ export async function POST(
   // end_time === start_time (e.g. start 23:30 -> 23:30). Compute in minutes,
   // cap at 23:59, and if that still isn't strictly after start, fall back to
   // 23:59 / push start back by a minute so end > start always holds.
-  const [startH, startM] = startTime.split(':').map((n) => parseInt(n, 10) || 0);
+  const [startH, startM] = startTime.split(':').map((n: string) => parseInt(n, 10) || 0);
   const startTotal = startH * 60 + startM;
   const DAY_MAX = 23 * 60 + 59; // 23:59
   let endTotal = Math.min(startTotal + estimatedHours * 60, DAY_MAX);
@@ -215,12 +224,12 @@ export async function POST(
   // Booking exists (created now or already present from a prior accept). Reuse
   // the `admin` client from the accept write — no second service client needed.
   const quotedPrice = Number(quote.quoted_price) || 0;
-  const businessName = (quote.cleaner.business_name as string) || 'Your pro';
+  const businessName = cleaner.business_name || 'Your pro';
 
   // Pro in-app notification.
   try {
     await admin.from('notifications').insert({
-      user_id: quote.cleaner.user_id,
+      user_id: cleaner.user_id,
       type: 'quote_accepted',
       title: 'Quote Accepted!',
       message: `Your quote of $${quotedPrice} has been accepted. A booking has been created.`,
@@ -249,7 +258,7 @@ export async function POST(
   if (proContact?.business_phone) {
     // Routes through the #89 consent gate (fail-closed): no consent → no text.
     sendSMSIfEnabled(() =>
-      notifyProQuoteAccepted(quote.cleaner.user_id, proContact.business_phone, quotedPrice)
+      notifyProQuoteAccepted(cleaner.user_id, proContact.business_phone, quotedPrice)
     ).catch((err) => logger.error('Pro quote-accepted SMS error', { function: 'POST' }, err));
   }
 

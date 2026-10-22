@@ -44,9 +44,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   let cleanerPages: MetadataRoute.Sitemap = [];
   try {
     const { data: cleaners } = await supabase
-      .from('pros')
+      .from('pros_directory')
       .select('business_slug, updated_at')
-      .eq('approval_status', 'approved')
       .not('business_slug', 'is', null);
 
     if (cleaners) {

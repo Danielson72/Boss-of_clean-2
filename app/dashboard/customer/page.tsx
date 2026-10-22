@@ -31,7 +31,6 @@ interface QuoteRequest {
   created_at: string;
   cleaner: {
     business_name: string;
-    business_phone: string | null;
   } | null;
 }
 
@@ -72,18 +71,26 @@ export default function CustomerDashboard() {
     try {
       const { data, error } = await supabase
         .from('quote_requests')
-        .select(`
-          *,
-          cleaner:pros(
-            business_name,
-            business_phone
-          )
-        `)
+        .select('*')
         .eq('customer_id', user?.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      const loaded = data || [];
+      const rawQuotes = (data || []) as Omit<QuoteRequest, 'cleaner'>[];
+      const proIds = Array.from(new Set(rawQuotes
+        .map((quote) => quote.cleaner_id)
+        .filter((id): id is string => Boolean(id))));
+      const { data: directory, error: directoryError } = proIds.length
+        ? await supabase.from('pros_directory')
+          .select('id, business_name').in('id', proIds)
+        : { data: [], error: null };
+      if (directoryError) throw directoryError;
+      const prosById = new Map(((directory || []) as { id: string; business_name: string }[])
+        .map((pro) => [pro.id, pro]));
+      const loaded = rawQuotes.map((quote) => ({
+        ...quote,
+        cleaner: quote.cleaner_id ? prosById.get(quote.cleaner_id) || null : null,
+      }));
       setQuotes(loaded);
 
       // One batched call for every accepted card — no per-card waterfall.
@@ -125,7 +132,7 @@ export default function CustomerDashboard() {
         .eq('customer_id', user?.id);
 
       if (error) throw error;
-      setConfirmedQuotes(new Set((data || []).map(h => h.quote_request_id)));
+      setConfirmedQuotes(new Set((data || []).map((h: { quote_request_id: string }) => h.quote_request_id)));
     } catch {
       // silently fail
     }
@@ -257,7 +264,6 @@ export default function CustomerDashboard() {
       unlocked?.businessPhone ||
       unlocked?.phone ||
       unlocked?.email ||
-      quote.cleaner?.business_phone ||
       'Ask your pro for contact details in Messages'
     );
   };

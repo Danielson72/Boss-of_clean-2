@@ -18,26 +18,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
 
-    // Get favorites with cleaner details
+    // Read owned favorite IDs, then resolve the public pro projection.
     const { data: favorites, error } = await supabase
       .from('customer_favorites')
-      .select(`
-        id,
-        created_at,
-        cleaner:pros(
-          id,
-          business_name,
-          business_slug,
-          business_description,
-          profile_image_url,
-          average_rating,
-          total_reviews,
-          services,
-          hourly_rate,
-          instant_booking,
-          users!inner(city, state)
-        )
-      `)
+      .select('id, created_at, cleaner_id')
       .eq('customer_id', user.id)
       .order('created_at', { ascending: false });
 
@@ -46,7 +30,25 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to fetch favorites' }, { status: 500 });
     }
 
-    return NextResponse.json({ favorites: favorites || [] });
+    const ids = Array.from(new Set((favorites || []).map((favorite) => favorite.cleaner_id)));
+    const { data: directory, error: directoryError } = ids.length
+      ? await supabase.from('pros_directory')
+        .select('id, business_name, business_slug, business_description, profile_image_url, average_rating, total_reviews, services, hourly_rate, instant_booking, city, state')
+        .in('id', ids)
+      : { data: [], error: null };
+    if (directoryError) {
+      logger.error('Error loading favorite pros', { function: 'GET' }, directoryError);
+      return NextResponse.json({ error: 'Failed to fetch favorites' }, { status: 500 });
+    }
+    const prosById = new Map((directory || []).map((pro) => [pro.id, pro]));
+    return NextResponse.json({ favorites: (favorites || []).flatMap((favorite) => {
+      const pro = prosById.get(favorite.cleaner_id);
+      return pro ? [{
+        id: favorite.id,
+        created_at: favorite.created_at,
+        cleaner: { ...pro, users: { city: pro.city, state: pro.state } },
+      }] : [];
+    }) });
   } catch (error) {
     logger.error('Favorites fetch error', { function: 'GET' }, error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
@@ -75,7 +77,7 @@ export async function POST(request: NextRequest) {
 
     // Check if cleaner exists
     const { data: cleaner } = await supabase
-      .from('pros')
+      .from('pros_directory')
       .select('id')
       .eq('id', cleanerId)
       .single();

@@ -38,16 +38,12 @@ interface CleanerData {
   instant_booking?: boolean;
   business_hours?: Record<string, { open: string; close: string; closed: boolean }> | null;
   created_at?: string;
-  users?: {
-    city?: string;
-    state?: string;
-    zip_code?: string;
-  } | Array<{ city?: string; state?: string; zip_code?: string }>;
+  city?: string;
+  state?: string;
 }
 
 function getUsers(cleaner: CleanerData) {
-  if (!cleaner.users) return undefined;
-  return Array.isArray(cleaner.users) ? cleaner.users[0] : cleaner.users;
+  return { city: cleaner.city, state: cleaner.state };
 }
 
 export default function SearchPage() {
@@ -101,14 +97,13 @@ export default function SearchPage() {
 
       // Build query
       let query = supabase
-        .from('pros')
+        .from('pros_directory')
         .select(`
           id, business_name, business_slug, business_description,
           services, service_areas, profile_image_url, instant_booking,
           business_hours, created_at,
-          users(city, state, zip_code)
-        `, { count: 'exact' })
-        .in('approval_status', ['approved', 'pending']);
+          city, state
+        `, { count: 'exact' });
 
       // Apply sorting
       const sortBy = filters.sortBy || 'relevance';
@@ -136,7 +131,7 @@ export default function SearchPage() {
 
       if (error) throw error;
 
-      let filteredData = data || [];
+      let filteredData: CleanerData[] = (data || []) as unknown as CleanerData[];
 
       // Client-side location filtering
       const searchValue = (filters.selectedZip || filters.location).toLowerCase().trim();
@@ -152,8 +147,7 @@ export default function SearchPage() {
           }
           const user = getUsers(c);
           const userCity = user?.city?.toLowerCase() || '';
-          const userZip = user?.zip_code || '';
-          return userCity.includes(searchValue) || userZip.includes(searchValue);
+          return userCity.includes(searchValue);
         });
       }
 

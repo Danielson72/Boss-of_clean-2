@@ -19,18 +19,7 @@ export async function GET(
 
   const { data: booking, error } = await supabase
     .from('bookings')
-    .select(`
-      *,
-      cleaner:pros(
-        id,
-        business_name,
-        business_phone,
-        business_email,
-        profile_image_url,
-        average_rating,
-        user:users(full_name, email)
-      )
-    `)
+    .select('*')
     .eq('id', params.id)
     .eq('customer_id', user.id)
     .single();
@@ -39,7 +28,24 @@ export async function GET(
     return NextResponse.json({ error: 'Booking not found' }, { status: 404 });
   }
 
-  return NextResponse.json({ booking });
+  const { data: pro, error: proError } = await supabase
+    .from('pros_directory')
+    .select('id, business_name, profile_image_url, average_rating')
+    .eq('id', booking.cleaner_id)
+    .maybeSingle();
+  if (proError) return NextResponse.json({ error: 'Failed to load pro' }, { status: 500 });
+  return NextResponse.json({
+    booking: {
+      ...booking,
+      cleaner: {
+        id: booking.cleaner_id,
+        business_name: pro?.business_name || 'Service professional',
+        business_phone: null,
+        profile_image_url: pro?.profile_image_url || null,
+        average_rating: pro?.average_rating || 0,
+      },
+    },
+  });
 }
 
 export async function PATCH(

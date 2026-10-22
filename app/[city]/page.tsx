@@ -46,7 +46,8 @@ interface CityPageCleaner {
   profile_image_url: string | null;
   subscription_tier: string;
   instant_booking: boolean;
-  users: { city: string | null; state: string | null } | { city: string | null; state: string | null }[];
+  city: string | null;
+  state: string | null;
 }
 
 // Dynamic rendering — pages render on-demand (SSR), not at build time.
@@ -65,9 +66,8 @@ export async function generateMetadata({ params }: CityPageProps): Promise<Metad
   // Get cleaner stats for this city
   const supabase = await createClient();
   const { count, data: cleaners } = await supabase
-    .from('pros')
+    .from('pros_directory')
     .select('average_rating, services', { count: 'exact' })
-    .in('approval_status', ['approved', 'pending'])
     .overlaps('service_areas', city.zipCodes);
 
   const cleanerCount = count || 0;
@@ -107,7 +107,7 @@ export default async function CityPage({ params }: CityPageProps) {
   // Get cleaner data for this city
   const supabase = await createClient();
   const { count, data: cleaners } = await supabase
-    .from('pros')
+    .from('pros_directory')
     .select(
       `
       id,
@@ -120,11 +120,10 @@ export default async function CityPage({ params }: CityPageProps) {
       profile_image_url,
       subscription_tier,
       instant_booking,
-      users(city, state)
+      city, state
     `,
       { count: 'exact' }
     )
-    .in('approval_status', ['approved', 'pending'])
     .overlaps('service_areas', city.zipCodes)
     .order('subscription_tier', { ascending: false })
     .order('average_rating', { ascending: false })
