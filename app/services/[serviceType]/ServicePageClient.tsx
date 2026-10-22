@@ -71,7 +71,6 @@ export function ServicePageClient({ serviceType }: ServicePageClientProps) {
 
     try {
       // Build query to find cleaners offering this service type
-      // Match against the shortName which is used in the services array
       const query = supabase
         .from('pros')
         .select(
@@ -89,8 +88,6 @@ export function ServicePageClient({ serviceType }: ServicePageClientProps) {
         .order('average_rating', { ascending: false })
         .limit(PAGE_SIZE);
 
-      // The services column contains display names like "House Cleaning"
-      // We need to filter by the shortName
       const { data, count, error } = await query;
 
       if (error) {
@@ -100,24 +97,13 @@ export function ServicePageClient({ serviceType }: ServicePageClientProps) {
         return;
       }
 
-      // Filter cleaners who offer this service type
-      // Services are stored as display names in the database
-      const serviceNames = [
-        serviceType.shortName.toLowerCase(),
-        serviceType.name.toLowerCase(),
-        serviceType.dbValue.replace(/_/g, ' ').toLowerCase(),
-      ];
-
-      const filteredData = (data || []).filter((cleaner: CleanerData) => {
-        if (!cleaner.services || cleaner.services.length === 0) return false;
-        return cleaner.services.some((service) =>
-          serviceNames.some(
-            (name) =>
-              service.toLowerCase().includes(name) ||
-              name.includes(service.toLowerCase())
-          )
-        );
-      });
+      // Filter cleaners who offer this service type.
+      // pros.services stores the enum dbValues (e.g. "move_in_out"), so match
+      // the dbValue exactly — display-name fuzzy matching never matched
+      // underscored values (DLD-603 bug 1).
+      const filteredData = (data || []).filter((cleaner: CleanerData) =>
+        cleaner.services?.includes(serviceType.dbValue)
+      );
 
       const mappedCleaners = filteredData.map(mapCleanerToCardProps);
       setCleaners(mappedCleaners);
