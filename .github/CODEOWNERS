@@ -1,0 +1,31 @@
+# Boss of Clean - code owners for sensitive paths (DLD-647, Phase 0 gate).
+# Changes to these paths need review by the owner before merge.
+# Main is production: it auto-deploys to bossofclean.com and takes live $30 payments.
+
+# Payments (Stripe)
+/lib/stripe/              @Danielson72
+/app/api/stripe/          @Danielson72
+/app/api/webhooks/        @Danielson72
+/app/api/leads/           @Danielson72
+
+# Auth, server actions, data access
+/app/auth/                @Danielson72
+/lib/auth/                @Danielson72
+/lib/actions/             @Danielson72
+/lib/supabase/            @Danielson72
+/middleware.ts            @Danielson72
+/app/dashboard/admin/     @Danielson72
+
+# SMS / TCPA
+/lib/sms/                 @Danielson72
+
+# Database schema, RLS, edge functions
+/supabase/                @Danielson72
+
+# Build, deploy, dependencies, repo policy
+/netlify.toml             @Danielson72
+/next.config.js           @Danielson72
+/package.json             @Danielson72
+/package-lock.json        @Danielson72
+/.env.example             @Danielson72
+/.github/                 @Danielson72
