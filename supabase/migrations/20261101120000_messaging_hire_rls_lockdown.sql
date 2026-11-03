@@ -15,6 +15,10 @@
 -- as guard_pro_approval_status, 20260910140000). The SECURITY DEFINER trigger
 -- update_conversation_on_message only writes last_message_at / unread counts
 -- / updated_at, which stay writable.
+--
+-- Review follow-up (DLD-703, F1-F3): reports are final once filed and can only
+-- be filed by the recipient; read_at is set once, by the recipient; a party can
+-- only lower its own unread counter.
 
 BEGIN;
 
@@ -43,11 +47,36 @@ BEGIN
       USING ERRCODE = '42501';
   END IF;
 
-  -- A report can only be filed in the caller's own name.
-  IF NEW.reported_by IS DISTINCT FROM OLD.reported_by
-     AND NEW.reported_by IS DISTINCT FROM auth.uid() THEN
-    RAISE EXCEPTION 'permission denied: reported_by must be the current user'
-      USING ERRCODE = '42501';
+  -- F1: reports. A report is filed once, in the caller's own name, on a
+  -- message the caller did not send, and is then final for end users (only
+  -- service role / admins can clear it). Without this, the reported sender
+  -- could null out reported_at / report_reason and hide the report.
+  IF NEW.reported_at   IS DISTINCT FROM OLD.reported_at
+     OR NEW.report_reason IS DISTINCT FROM OLD.report_reason
+     OR NEW.reported_by   IS DISTINCT FROM OLD.reported_by THEN
+    IF OLD.reported_at IS NOT NULL
+       OR OLD.reported_by IS NOT NULL
+       OR OLD.report_reason IS NOT NULL THEN
+      RAISE EXCEPTION 'permission denied: a filed report cannot be changed'
+        USING ERRCODE = '42501';
+    END IF;
+    IF NEW.reported_at IS NULL
+       OR NEW.reported_by IS DISTINCT FROM auth.uid()
+       OR OLD.sender_id IS NOT DISTINCT FROM auth.uid() THEN
+      RAISE EXCEPTION 'permission denied: reports must be filed by the recipient in their own name'
+        USING ERRCODE = '42501';
+    END IF;
+  END IF;
+
+  -- F2: read receipts. read_at can only go from NULL to a value, and only
+  -- the recipient (not the sender) can set it.
+  IF NEW.read_at IS DISTINCT FROM OLD.read_at THEN
+    IF OLD.read_at IS NOT NULL
+       OR NEW.read_at IS NULL
+       OR OLD.sender_id IS NOT DISTINCT FROM auth.uid() THEN
+      RAISE EXCEPTION 'permission denied: only the recipient can mark a message read'
+        USING ERRCODE = '42501';
+    END IF;
   END IF;
 
   RETURN NEW;
@@ -98,6 +127,21 @@ BEGIN
      OR NEW.quote_request_id IS DISTINCT FROM OLD.quote_request_id
      OR NEW.created_at       IS DISTINCT FROM OLD.created_at THEN
     RAISE EXCEPTION 'permission denied: conversation participants and quote link are fixed'
+      USING ERRCODE = '42501';
+  END IF;
+
+  -- F3: unread counters. Increases stay allowed (update_conversation_on_message
+  -- runs under the sender's JWT). Each party may only lower its OWN counter:
+  -- the customer owns customer_unread_count, the pro owns cleaner_unread_count.
+  IF NEW.cleaner_unread_count < OLD.cleaner_unread_count
+     AND NOT EXISTS ( SELECT 1 FROM public.pros p
+           WHERE p.id = OLD.cleaner_id AND p.user_id = auth.uid() ) THEN
+    RAISE EXCEPTION 'permission denied: only the pro can clear the pro unread count'
+      USING ERRCODE = '42501';
+  END IF;
+  IF NEW.customer_unread_count < OLD.customer_unread_count
+     AND OLD.customer_id IS DISTINCT FROM auth.uid() THEN
+    RAISE EXCEPTION 'permission denied: only the customer can clear the customer unread count'
       USING ERRCODE = '42501';
   END IF;
 
