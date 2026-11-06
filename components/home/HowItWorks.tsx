@@ -5,7 +5,7 @@ const steps = [
     number: '01',
     icon: ClipboardList,
     title: 'Tell Us What You Need',
-    description: 'Enter your ZIP code and the service you need — residential or commercial.',
+    description: 'Enter your ZIP code and the home service you need.',
   },
   {
     number: '02',

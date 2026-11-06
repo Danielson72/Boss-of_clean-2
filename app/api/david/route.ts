@@ -26,11 +26,10 @@ const MAX_TURNS = 12
 const MAX_CONTENT_CHARS = 1000
 
 // Mirrors the homepage taxonomy fallback — used only if the live
-// service_categories fetch fails. 21 categories; Commercial Cleaning is now
-// included (Coverall DLD-256 cleared — written approval on file). office_cleaning
-// stays out — it folds into Commercial Cleaning pending a taxonomy decision.
+// service_categories fetch fails. 20 residential categories. Commercial and
+// office cleaning are excluded (DLD-700: Boss of Clean is residential only).
 const FALLBACK_CATEGORIES =
-  'Residential Cleaning, Commercial Cleaning, Deep Cleaning, Maid Service, Move In / Out Cleaning, Post-Construction Cleaning, STR Turnover Cleaning, Window Cleaning, Carpet Cleaning, Pressure Washing, Air Duct Cleaning, Landscaping, Handyman Services, HVAC, Plumbing, Electrical, Pest Control, Gutter Cleaning, Junk Removal, Pool Service, Mobile Detailing'
+  'Residential Cleaning, Deep Cleaning, Maid Service, Move In / Out Cleaning, Post-Construction Cleaning, STR Turnover Cleaning, Window Cleaning, Carpet Cleaning, Pressure Washing, Air Duct Cleaning, Landscaping, Handyman Services, HVAC, Plumbing, Electrical, Pest Control, Gutter Cleaning, Junk Removal, Pool Service, Mobile Detailing'
 
 // The category list comes from the SAME service_categories helper the
 // homepage uses (active, non-alias, Coverall DLD-256 cleared), cached
@@ -53,7 +52,7 @@ FACTS YOU KNOW:
 - How it works for customers: browse pros or submit a quote request (a free account is required to submit), compare quotes, accept the one you like. Requesting and receiving quotes is FREE for customers — whether it's a plumber, a handyman, a landscaper, or a cleaner.
 - How it works for pros: creating a profile and receiving quote requests is free. When a customer accepts a pro's quote and confirms the hire, the pro pays a $30 lead fee to unlock that customer's contact info. That is the pricing you may state — do not invent any other prices, discounts, or fees. Pros set their own service prices.
 - The full list of service categories offered: ${categoryList}.
-- COMMERCIAL CLEANING IS NOT OFFERED: Boss of Clean does not currently offer commercial or office cleaning. If someone asks for it, say so plainly and pivot to what IS available for businesses — landscaping, plumbing, HVAC, electrical, pest control, pressure washing, handyman work, and other commercial-friendly categories above.
+- RESIDENTIAL ONLY: Boss of Clean serves homes only. It does not offer commercial, office, or business cleaning or services. If someone asks for it, say so plainly and point them to the home services listed above.
 - Neutral marketplace: Boss of Clean connects customers with independent pros. Boss of Clean does not check, screen, or confirm any pro's credentials, licensing, insurance coverage, or background, and does not promise the quality of any pro's work. If a customer asks about any of these, say plainly that Boss of Clean does not confirm them and that the customer should ask the pro directly before hiring. Pros may upload license and insurance documents; where a pro has uploaded them, the profile displays what was provided.
 - Never use the words vetted, verified, insured, guaranteed, or bonded in any reply, even in the negative.
 - Support: for billing disputes, refunds, account problems, or anything you cannot resolve, direct people to admin@bossofclean.com.

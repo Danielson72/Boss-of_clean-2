@@ -14,13 +14,13 @@ import {
 } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'Find Residential and Commercial Service Pros in Florida',
+  title: 'Find Home Service Pros in Florida',
   description:
-    'Browse our directory of independent residential & commercial service pros across Florida. View portfolios, read reviews, and request free quotes. Purrfection is our Standard.',
+    'Browse our directory of independent home service pros across Florida. View portfolios, read reviews, and request free quotes. Purrfection is our Standard.',
   openGraph: {
-    title: 'Find Residential & Commercial Service Pros | Boss of Clean',
+    title: 'Find Home Service Pros | Boss of Clean',
     description:
-      'Browse our directory of independent residential & commercial service pros across Florida. View portfolios, read reviews, and request free quotes.',
+      'Browse our directory of independent home service pros across Florida. View portfolios, read reviews, and request free quotes.',
     url: 'https://bossofclean.com/professionals',
   },
 };
@@ -144,9 +144,9 @@ export default async function ProfessionalsPage({
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
-    name: 'Residential & Commercial Service Pros in Florida',
+    name: 'Home Service Pros in Florida',
     description:
-      'Directory of independent residential & commercial service pros on Boss of Clean.',
+      'Directory of independent home service pros on Boss of Clean.',
     url: 'https://bossofclean.com/professionals',
     numberOfItems: pros.length,
     itemListElement: pros.slice(0, 20).map((pro, i) => ({
@@ -182,7 +182,7 @@ export default async function ProfessionalsPage({
         <section className="bg-brand-dark text-white py-16 lg:py-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h1 className="text-4xl lg:text-5xl font-bold font-display mb-4">
-              Florida Residential & Commercial Service Pros
+              Florida Home Service Pros
             </h1>
             <p className="text-lg text-gray-300 max-w-2xl mx-auto mb-8">
               Independent professionals across Florida.

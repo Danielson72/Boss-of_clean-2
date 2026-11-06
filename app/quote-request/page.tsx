@@ -156,7 +156,7 @@ export default function QuoteRequestPage() {
             Quote Request Sent!
           </h2>
           <p className="text-gray-600 mb-6">
-            Your request has been submitted! Residential &amp; commercial service pros in your area
+            Your request has been submitted! Home service pros in your area
             will be able to view your request and reach out with quotes.
             You&apos;ll receive an email confirmation shortly.
           </p>
@@ -208,7 +208,7 @@ export default function QuoteRequestPage() {
             <div>
               <h1 className="text-2xl font-bold text-gray-900">Get Free Quotes</h1>
               <p className="text-sm text-gray-600">
-                Compare quotes from residential &amp; commercial service pros in your area
+                Compare quotes from home service pros in your area
               </p>
             </div>
           </div>
@@ -261,36 +261,6 @@ export default function QuoteRequestPage() {
             {/* Step 1: Service Details */}
             {step === 1 && (
               <div className="space-y-6">
-                <div>
-                  <h2 className="text-lg font-semibold text-gray-900 mb-2">
-                    Is this for a business or facility?
-                  </h2>
-                  <p className="text-sm text-gray-600 mb-3">
-                    Commercial requests (offices, retail, multifamily, facilities) may be
-                    routed to a specialized commercial partner.
-                  </p>
-                  <div className="flex gap-3">
-                    {[
-                      { value: false, label: 'Residential (home)' },
-                      { value: true, label: 'Commercial (business / facility)' },
-                    ].map((option) => (
-                      <button
-                        key={option.label}
-                        type="button"
-                        onClick={() => handleInputChange('is_commercial', option.value)}
-                        aria-pressed={formData.is_commercial === option.value}
-                        className={`flex-1 py-2 px-3 border rounded-lg text-sm font-medium transition ${
-                          formData.is_commercial === option.value
-                            ? 'border-blue-500 bg-blue-50 text-blue-700'
-                            : 'border-gray-200 text-gray-600 hover:border-gray-300'
-                        }`}
-                      >
-                        {option.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
                 <div>
                   <h2 className="text-lg font-semibold text-gray-900 mb-4">
                     What type of cleaning do you need?
@@ -521,10 +491,6 @@ export default function QuoteRequestPage() {
                     <h4 className="font-medium text-gray-900 mb-2">Your Quote Request Summary</h4>
                     <dl className="text-sm space-y-1">
                       <div className="flex justify-between">
-                        <dt className="text-gray-600">Type:</dt>
-                        <dd className="font-medium">{formData.is_commercial ? 'Commercial (business / facility)' : 'Residential (home)'}</dd>
-                      </div>
-                      <div className="flex justify-between">
                         <dt className="text-gray-600">Service:</dt>
                         <dd className="font-medium">{SERVICE_TYPES.find(s => s.value === formData.service_type)?.label || '-'}</dd>
                       </div>
@@ -623,7 +589,7 @@ export default function QuoteRequestPage() {
             </span>
             <span className="flex items-center gap-1">
               <CheckCircle className="h-4 w-4 text-green-500" />
-              Residential &amp; commercial service pros
+              Home service pros
             </span>
           </div>
         </div>

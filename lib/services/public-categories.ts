@@ -4,11 +4,10 @@ import { createPublicClient } from '@/lib/supabase/public';
  * Public-facing service categories for homepage taxonomy (hero dropdown +
  * services grid + stats count). Single source of truth: service_categories.
  *
- * A category is public if it serves residential OR commercial customers.
- * Coverall DLD-256 is cleared (written approval on file), so Commercial Cleaning
- * (supports_residential = false, supports_commercial = true) now surfaces.
- * office_cleaning is held back for now — it folds into Commercial Cleaning as a
- * sub-service pending a taxonomy decision, so it's excluded explicitly here.
+ * A category is public only if it serves residential customers (DLD-700:
+ * Boss of Clean is residential only). Commercial-only rows such as Commercial
+ * Cleaning (supports_residential = false) are hidden. office_cleaning is also
+ * excluded explicitly.
  * Aliases are excluded (their canonical rows are included).
  *
  * RLS: reads via the anon-key server client under the public
@@ -33,7 +32,7 @@ export async function getPublicCategories(): Promise<PublicCategory[]> {
     if (error || !data) return [];
     return data
       .filter((c) => c.slug !== 'office_cleaning')
-      .filter((c) => c.supports_residential !== false || c.supports_commercial === true)
+      .filter((c) => c.supports_residential !== false) // DLD-700: residential only
       .map(({ slug, display_name, description }) => ({ slug, display_name, description }));
   } catch {
     // Components fall back to their static lists when this returns [].

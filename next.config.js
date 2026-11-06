@@ -48,6 +48,11 @@ const nextConfig = {
   async redirects() {
     return [
       {
+        source: '/services/commercial-cleaning',
+        destination: '/services',
+        permanent: true,
+      },
+      {
         source: '/guarantee',
         destination: '/refund-policy',
         permanent: true,

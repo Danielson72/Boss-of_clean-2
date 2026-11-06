@@ -101,7 +101,7 @@ export default async function Footer() {
             </h3>
             <ul
               className="grid grid-cols-2 gap-x-6 gap-y-2.5"
-              aria-label="Available residential & commercial services"
+              aria-label="Available home services"
             >
               {services.map((service) => (
                 <li key={service}>
@@ -120,7 +120,7 @@ export default async function Footer() {
           {/* Disclaimer */}
           <p className="text-xs text-gray-500 leading-relaxed max-w-4xl mx-auto text-center mb-4">
             Boss of Clean is a pro services marketplace
-            connecting homeowners and businesses with independent service providers. We are not a
+            connecting homeowners with independent service providers. We are not a
             cleaning company and do not directly employ, supervise, or control
             service providers listed on our platform. All service providers are
             independent businesses responsible for their own licensing, insurance,
