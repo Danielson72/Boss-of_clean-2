@@ -38,7 +38,8 @@ BEGIN
     RETURN NEW;
   END IF;
 
-  IF NEW.conversation_id IS DISTINCT FROM OLD.conversation_id
+  IF NEW.id              IS DISTINCT FROM OLD.id
+     OR NEW.conversation_id IS DISTINCT FROM OLD.conversation_id
      OR NEW.sender_id    IS DISTINCT FROM OLD.sender_id
      OR NEW.sender_role  IS DISTINCT FROM OLD.sender_role
      OR NEW.content      IS DISTINCT FROM OLD.content
@@ -122,7 +123,8 @@ BEGIN
     RETURN NEW;
   END IF;
 
-  IF NEW.customer_id      IS DISTINCT FROM OLD.customer_id
+  IF NEW.id               IS DISTINCT FROM OLD.id
+     OR NEW.customer_id      IS DISTINCT FROM OLD.customer_id
      OR NEW.cleaner_id       IS DISTINCT FROM OLD.cleaner_id
      OR NEW.quote_request_id IS DISTINCT FROM OLD.quote_request_id
      OR NEW.created_at       IS DISTINCT FROM OLD.created_at THEN

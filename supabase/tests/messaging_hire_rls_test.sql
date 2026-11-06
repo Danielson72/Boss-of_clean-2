@@ -1,10 +1,24 @@
 -- Rolled-back allow/deny test for 20261101120000_messaging_hire_rls_lockdown.sql
 -- (DLD-693 S2/S3, DLD-694 S4, DLD-703 F1-F3).
 --
--- Run AFTER the migration body in the same transaction (or against a DB where
--- it is applied). The final RAISE always aborts, so nothing persists: the
--- error message carries the PASS/FAIL table. Uses the two busiest live
--- conversations as fixtures; every change is undone by the abort.
+-- DRY RUN ON PRODUCTION WITHOUT APPLYING (DLD-712 N1). The migration file
+-- ends in COMMIT;, so NEVER paste the migration file and then this file as-is:
+-- that commits the migration before the first case runs. Instead, in the
+-- Supabase dashboard > SQL Editor > New query, paste in this order:
+--   1. BEGIN;
+--   2. the migration file WITHOUT its own `BEGIN;` line and WITHOUT its last
+--      line `COMMIT;`
+--   3. this whole file
+--   4. ROLLBACK;
+-- Click Run. Expected: an error reading `RLS TEST 27/27 passed ...` followed by
+-- one PASS line per case. The error is deliberate: it aborts the transaction,
+-- so the migration and every fixture change are undone. Any FAIL line: stop
+-- and paste the output on DLD-693. Then confirm nothing was applied (must be 0):
+--   select count(*) from pg_trigger
+--   where tgname in ('guard_message_update','guard_conversation_update');
+--
+-- Against a DB where the migration is already applied, paste this file alone.
+-- Uses the busiest live conversation as fixtures; every change is undone.
 DO $rlstest$
 DECLARE
   c1 uuid; c2 uuid; cu uuid; pid uuid; pu uuid; ou uuid;
@@ -19,11 +33,31 @@ BEGIN
     AND EXISTS (SELECT 1 FROM messages m WHERE m.conversation_id = c.id AND m.sender_role <> 'customer')
   ORDER BY (SELECT count(*) FROM messages m WHERE m.conversation_id = c.id) DESC LIMIT 1;
   SELECT id INTO c2 FROM conversations WHERE customer_id = cu AND id <> c1 LIMIT 1;
+  IF c2 IS NULL THEN  -- N2 fallback: any other conversation
+    SELECT id INTO c2 FROM conversations WHERE id <> c1 LIMIT 1;
+  END IF;
   SELECT p.user_id INTO ou FROM pros p WHERE p.id <> pid AND p.user_id IS NOT NULL
     AND NOT EXISTS (SELECT 1 FROM conversations c WHERE c.id = c1 AND c.customer_id = p.user_id) LIMIT 1;
   SELECT id INTO mp FROM messages WHERE conversation_id = c1 AND sender_role <> 'customer' ORDER BY created_at DESC LIMIT 1;
   SELECT id INTO mc FROM messages WHERE conversation_id = c1 AND sender_role = 'customer' ORDER BY created_at DESC LIMIT 1;
   SELECT id, cleaner_id INTO q, qcleaner FROM quote_requests WHERE customer_id = cu AND cleaner_id IS NOT NULL LIMIT 1;
+
+  -- N2: fail fast and name any missing fixture. A NULL here would make
+  -- replace() return NULL and every case FAIL with 22004, proving nothing.
+  IF c1 IS NULL OR c2 IS NULL OR cu IS NULL OR pid IS NULL OR pu IS NULL OR ou IS NULL
+     OR mp IS NULL OR mc IS NULL OR q IS NULL OR qcleaner IS NULL THEN
+    RAISE EXCEPTION 'RLS TEST ABORTED: missing fixture(s):%', concat(
+      CASE WHEN c1 IS NULL THEN ' c1(conversation with both sides)' ELSE '' END,
+      CASE WHEN c2 IS NULL THEN ' c2(second conversation)' ELSE '' END,
+      CASE WHEN cu IS NULL THEN ' cu(customer)' ELSE '' END,
+      CASE WHEN pid IS NULL THEN ' pid(pro id)' ELSE '' END,
+      CASE WHEN pu IS NULL THEN ' pu(pro user)' ELSE '' END,
+      CASE WHEN ou IS NULL THEN ' ou(outsider pro)' ELSE '' END,
+      CASE WHEN mp IS NULL THEN ' mp(pro message)' ELSE '' END,
+      CASE WHEN mc IS NULL THEN ' mc(customer message)' ELSE '' END,
+      CASE WHEN q IS NULL THEN ' q(quote with cleaner_id for cu)' ELSE '' END,
+      CASE WHEN qcleaner IS NULL THEN ' qcleaner' ELSE '' END);
+  END IF;
 
   FOR r IN SELECT * FROM (VALUES
     -- id, actor, setup (as owner, guard-exempt), statement, expect
