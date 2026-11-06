@@ -68,8 +68,10 @@ export function ServicePageClient({ serviceType }: ServicePageClientProps) {
     setIsLoading(true);
 
     try {
-      // Build query to find cleaners offering this service type
-      // Match against the shortName which is used in the services array
+      // Find pros offering this service type. pros.services stores enum
+      // dbValues (e.g. "deep_cleaning", "move_in_out"), so filter on the exact
+      // dbValue in the database. The old client-side display-name fuzzy match
+      // never matched underscored values and only saw the first page (DLD-603).
       const query = supabase
         .from('pros_directory')
         .select(
@@ -82,12 +84,11 @@ export function ServicePageClient({ serviceType }: ServicePageClientProps) {
         `,
           { count: 'exact' }
         )
+        .contains('services', [serviceType.dbValue])
         .order('subscription_tier', { ascending: false })
         .order('average_rating', { ascending: false })
         .limit(PAGE_SIZE);
 
-      // The services column contains display names like "House Cleaning"
-      // We need to filter by the shortName
       const { data, count, error } = await query;
 
       if (error) {
@@ -97,28 +98,11 @@ export function ServicePageClient({ serviceType }: ServicePageClientProps) {
         return;
       }
 
-      // Filter cleaners who offer this service type
-      // Services are stored as display names in the database
-      const serviceNames = [
-        serviceType.shortName.toLowerCase(),
-        serviceType.name.toLowerCase(),
-        serviceType.dbValue.replace(/_/g, ' ').toLowerCase(),
-      ];
-
-      const filteredData = (data || []).filter((cleaner: CleanerData) => {
-        if (!cleaner.services || cleaner.services.length === 0) return false;
-        return cleaner.services.some((service) =>
-          serviceNames.some(
-            (name) =>
-              service.toLowerCase().includes(name) ||
-              name.includes(service.toLowerCase())
-          )
-        );
-      });
+      const filteredData = (data || []) as CleanerData[];
 
       const mappedCleaners = filteredData.map(mapCleanerToCardProps);
       setCleaners(mappedCleaners);
-      setTotalCount(filteredData.length);
+      setTotalCount(count ?? filteredData.length);
 
       // Calculate average price from cleaners offering this service
       if (filteredData.length > 0) {
