@@ -186,7 +186,7 @@ export default function HeroSection({ services }: { services?: string[] }) {
 
             {/* Subtle descriptor */}
             <p className="mt-6 text-gray-400 text-sm">
-              Your one boss for any clean, fix, or service in Florida — residential &amp; commercial
+              Your one boss for any clean, fix, or service in Florida
             </p>
           </div>
 

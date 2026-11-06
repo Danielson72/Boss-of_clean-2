@@ -1,14 +1,11 @@
 // ============================================================
 // SERVICE CATEGORY CONFIGURATION
 // ============================================================
-// Coverall carve-out — CLEARED (DLD-256): commercial cleaning and office
-// cleaning were previously restricted under DLD-256 pending Coverall North
-// America corporate sign-off. Written approval is now on file (granted 2026-07),
-// so Commercial Cleaning is permitted on user-facing surfaces and is added
-// below. Commercial Special Services (high-rise window washing, commercial
-// carpet extraction, floor strip/wax/buff) remain out of scope until separately
-// spec'd. Residential versions of window and carpet cleaning are retained.
-// Last updated: July 2026 (DLD-256 cleared; was April 2026 restriction)
+// RESIDENTIAL ONLY (DLD-700): Boss of Clean is residential-facing only per
+// the attorney rule. Commercial / office cleaning is not listed on any
+// user-facing surface. The DB enum values 'commercial' and 'office_cleaning'
+// are retained for data compatibility only.
+// Last updated: November 2026 (DLD-700; Commercial Cleaning page removed)
 // ============================================================
 
 /**
@@ -131,7 +128,7 @@ export const SERVICE_TYPES: ServiceType[] = [
     dbValue: 'pressure_washing',
     name: 'Pressure Washing',
     shortName: 'Power Washing',
-    description: 'Professional pressure washing for Florida homes and businesses. Remove mold, mildew, and stains from exterior surfaces.',
+    description: 'Professional pressure washing for Florida homes. Remove mold, mildew, and stains from exterior surfaces.',
     longDescription: 'Florida humidity creates the perfect environment for mold, mildew, and algae growth on exterior surfaces. Our professional pressure washing services restore driveways, sidewalks, patios, pool decks, siding, roofs, and fences to like-new condition. Protect your property value and curb appeal with regular pressure washing from experienced Florida professionals.',
     priceRange: { min: 100, max: 500, unit: 'job' },
     averageTime: '2-6 hours',
@@ -480,7 +477,7 @@ export const SERVICE_TYPES: ServiceType[] = [
     name: 'Air Duct Cleaning',
     shortName: 'Air Duct Cleaning',
     description: 'Professional air duct and HVAC cleaning services in Florida. Improve air quality and system efficiency.',
-    longDescription: 'Air duct cleaning services to improve indoor air quality in Florida homes and businesses. Technicians remove dust, mold, allergens, and debris from your HVAC system using professional-grade equipment. In Florida\'s humid climate, ductwork is prone to mold growth and allergen buildup, making regular cleaning essential for healthy indoor air and optimal AC efficiency.',
+    longDescription: 'Air duct cleaning services to improve indoor air quality in Florida homes. Technicians remove dust, mold, allergens, and debris from your HVAC system using professional-grade equipment. In Florida\'s humid climate, ductwork is prone to mold growth and allergen buildup, making regular cleaning essential for healthy indoor air and optimal AC efficiency.',
     priceRange: { min: 200, max: 600, unit: 'job' },
     averageTime: '3-5 hours',
     icon: 'Wind',
@@ -548,47 +545,6 @@ export const SERVICE_TYPES: ServiceType[] = [
       }
     ],
     keywords: ['Airbnb cleaning Florida', 'VRBO cleaning service', 'vacation rental turnover', 'STR cleaning', 'short-term rental cleaning', 'Airbnb turnover cleaning']
-  },
-  {
-    slug: 'commercial-cleaning',
-    dbValue: 'commercial',
-    name: 'Commercial Cleaning',
-    shortName: 'Commercial',
-    description: 'Professional commercial cleaning for Florida offices, retail, medical, and business spaces.',
-    longDescription: 'Boss of Clean connects Florida businesses with independent commercial cleaning pros for offices, retail storefronts, medical and dental practices, and other business spaces. From recurring janitorial service and day-porter coverage to hard-floor care — strip, wax, buff, and burnish — pros scale to your square footage and schedule, working after hours or overnight to stay out of your operation. Consistent checklists, restroom and breakroom sanitation, and touchpoint disinfection keep your space presentable for customers, staff, and inspectors.',
-    priceRange: { min: 150, max: 1000, unit: 'job' },
-    averageTime: '2–8 hours',
-    icon: 'Building2',
-    benefits: [
-      'Recurring janitorial on your schedule — nightly, weekly, or custom',
-      'After-hours and overnight service that stays out of your operation',
-      'Hard-floor care: strip, wax, buff, and burnish',
-      'Restroom, breakroom, and high-touch disinfection',
-      'Scales from a single office to multi-suite facilities'
-    ],
-    faqs: [
-      {
-        question: 'How much does commercial cleaning cost in Florida?',
-        answer: 'Commercial cleaning is usually priced by square footage, frequency, and scope. Small offices often run $150-$400 per visit, while larger or specialized spaces (medical, retail) can exceed $1,000. Recurring contracts typically lower the per-visit rate. Request quotes to compare pros for your specific space.'
-      },
-      {
-        question: 'Can pros clean after business hours?',
-        answer: 'Yes. Most commercial pros offer evening, overnight, and weekend service so cleaning never disrupts your customers or staff. You set the access and hours that work for your operation.'
-      },
-      {
-        question: 'Do you handle medical or dental office cleaning?',
-        answer: 'Many pros clean medical and dental practices with the appropriate disinfection protocols, restroom sanitation, and touchpoint cleaning. Confirm any specific compliance needs directly with the pro when you request a quote.'
-      },
-      {
-        question: 'What is included in commercial floor care?',
-        answer: 'Commercial floor care typically covers hard-floor strip, wax, buff, and burnish for VCT and tile, plus routine sweeping and mopping. Carpeted areas can be added. Scope and frequency are set per your space when you request quotes.'
-      },
-      {
-        question: 'Can I set up recurring janitorial service?',
-        answer: 'Yes. Recurring service — nightly, several times a week, weekly, or a custom cadence — is the most common commercial arrangement. Recurring schedules usually earn better per-visit pricing than one-time cleanings.'
-      }
-    ],
-    keywords: ['commercial cleaning Florida', 'office cleaning', 'janitorial services', 'retail cleaning', 'medical office cleaning', 'business cleaning']
   }
 ];
 

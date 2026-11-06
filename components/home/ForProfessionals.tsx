@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { UserPlus, DollarSign, Calendar, FileCheck } from 'lucide-react';
 
 const benefits = [
-  { icon: UserPlus, text: 'Reach residential and commercial customers in your area' },
+  { icon: UserPlus, text: 'Reach homeowners in your area' },
   { icon: FileCheck, text: 'Create your professional profile' },
   { icon: DollarSign, text: 'Set your own rates and availability' },
   { icon: Calendar, text: 'Choose a monthly membership or pay per lead you unlock' },
@@ -27,7 +27,7 @@ export default function ForProfessionals() {
             </h2>
             <p className="text-gray-400 text-lg mb-10 leading-relaxed">
               Cleaning, handyman, HVAC, plumbing, electrical, landscaping, pool, pest control —
-              join Florida&apos;s full-service pro marketplace and connect with homeowners and businesses
+              join Florida&apos;s full-service pro marketplace and connect with homeowners
               looking for what you do.
             </p>
 

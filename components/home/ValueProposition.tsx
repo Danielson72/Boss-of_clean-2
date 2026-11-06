@@ -4,12 +4,12 @@ const values = [
   {
     icon: MapPin,
     title: 'Local Florida Pros',
-    description: 'Local pros in all 67 counties, serving both residential and commercial customers.',
+    description: 'Local pros in all 67 counties, serving Florida homes.',
   },
   {
     icon: DollarSign,
     title: 'Free to Search',
-    description: 'Browse pros and request quotes at no cost — homeowners and businesses welcome.',
+    description: 'Browse pros and request quotes at no cost — homeowners welcome.',
   },
   {
     icon: Layers,
@@ -36,7 +36,7 @@ export default function ValueProposition() {
             A Florida-Built Alternative to Thumbtack, Angi &amp; HomeAdvisor
           </h2>
           <p className="text-gray-500 text-lg">
-            Straightforward pricing and direct connections between Floridians and the pros who serve them — residential and commercial.
+            Straightforward pricing and direct connections between Floridians and the pros who serve them.
           </p>
         </div>
 

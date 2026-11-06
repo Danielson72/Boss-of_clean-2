@@ -32,7 +32,7 @@ const services: ServiceCategory[] = [
   {
     icon: Home,
     name: 'House Cleaning',
-    description: 'Recurring or one-time, residential and commercial',
+    description: 'Recurring or one-time home cleaning',
     searchParam: 'House Cleaning',
   },
   {
@@ -178,7 +178,7 @@ export default function ServiceCategories({ categories }: { categories?: DbCateg
             Every Pro Service, One Marketplace
           </h2>
           <p className="text-gray-500 text-lg">
-            Residential and commercial — from house cleaning to handyman work, pool service to plumbing.
+            For your home — from house cleaning to handyman work, pool service to plumbing.
             Find local Florida pros for every job.
           </p>
         </div>
