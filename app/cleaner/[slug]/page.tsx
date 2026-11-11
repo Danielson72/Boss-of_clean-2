@@ -151,16 +151,21 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const cleaner = await getCleanerBySlug(slug);
 
   if (!cleaner) {
-    return { title: 'Cleaner Not Found | Boss of Clean' };
+    return { title: 'Cleaner Not Found', robots: { index: false, follow: true } };
   }
 
   return {
-    title: `${cleaner.business_name} | Professional Cleaning Services | Boss of Clean`,
+    // Layout title template appends "| Boss of Clean".
+    title: `${cleaner.business_name} | Professional Cleaning Services`,
     description: cleaner.business_description || `${cleaner.business_name} offers professional cleaning services in ${cleaner.city || 'Florida'}. ${cleaner.years_experience}+ years experience. Book now!`,
     openGraph: {
       title: cleaner.business_name,
       description: cleaner.business_description,
       images: cleaner.profile_image_url ? [cleaner.profile_image_url] : [],
+    },
+    // Self-referencing canonical (metadataBase in app/layout.tsx makes it absolute).
+    alternates: {
+      canonical: `/cleaner/${slug}`,
     },
   };
 }

@@ -30,7 +30,7 @@ export async function generateMetadata({
 
   if (!serviceType) {
     return {
-      title: 'Service Not Found | Boss of Clean',
+      title: 'Service Not Found',
       description: 'The requested cleaning service could not be found.',
     };
   }

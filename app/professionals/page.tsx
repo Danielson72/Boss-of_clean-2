@@ -23,6 +23,9 @@ export const metadata: Metadata = {
       'Browse our directory of independent residential & commercial service pros across Florida. View portfolios, read reviews, and request free quotes.',
     url: 'https://bossofclean.com/professionals',
   },
+  alternates: {
+    canonical: '/professionals',
+  },
 };
 
 interface DirectoryCleaner {

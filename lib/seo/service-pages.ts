@@ -7,7 +7,10 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://bossofclean.com';
  * Generate metadata for a service type landing page
  */
 export function generateServicePageMetadata(serviceType: ServiceType): Metadata {
-  const title = `${serviceType.name} in Florida | Boss of Clean`;
+  // The root layout's title template appends "| Boss of Clean"; OG/Twitter
+  // titles don't go through the template, so they keep the brand explicitly.
+  const title = `${serviceType.name} in Florida`;
+  const socialTitle = `${title} | Boss of Clean`;
   const description = `Find ${serviceType.name.toLowerCase()} pros in Florida. ${serviceType.description} Free to request quotes. No subscriptions. Pros pay $30 flat only when you accept.`;
 
   return {
@@ -15,7 +18,7 @@ export function generateServicePageMetadata(serviceType: ServiceType): Metadata 
     description,
     keywords: serviceType.keywords.join(', '),
     openGraph: {
-      title,
+      title: socialTitle,
       description,
       type: 'website',
       locale: 'en_US',
@@ -32,7 +35,7 @@ export function generateServicePageMetadata(serviceType: ServiceType): Metadata 
     },
     twitter: {
       card: 'summary_large_image',
-      title,
+      title: socialTitle,
       description,
       images: [`${SITE_URL}/og-images/services/${serviceType.slug}.png`],
     },
