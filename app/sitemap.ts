@@ -2,7 +2,7 @@ import { MetadataRoute } from 'next';
 import { createClient } from '@/lib/supabase/server';
 import { createLogger } from '@/lib/utils/logger';
 import { getAllServiceTypeSlugs } from '@/lib/data/service-types';
-import { getAllCitySlugs } from '@/lib/data/florida-cities';
+import { FLORIDA_CITIES } from '@/lib/data/florida-cities';
 
 const logger = createLogger({ file: 'app/sitemap' });
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://bossofclean.com';
@@ -32,8 +32,29 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
-  // City landing pages — root-level (/{slug})
-  const cityPages: MetadataRoute.Sitemap = getAllCitySlugs().map((slug) => ({
+  // City landing pages — root-level (/{slug}).
+  // Only list cities that at least one pro serves. City pages with zero pros
+  // are noindex (lib/seo/city-pages.ts), and listing noindex URLs in the
+  // sitemap sends Google mixed signals. If the lookup fails, list every city
+  // (previous behavior) rather than dropping them all.
+  let citySlugs = FLORIDA_CITIES.map((c) => c.slug);
+  try {
+    const { data: pros, error } = await supabase
+      .from('pros_directory')
+      .select('service_areas');
+    if (!error && pros) {
+      const servedZips = new Set<string>(
+        pros.flatMap((p: { service_areas: string[] | null }) => p.service_areas || [])
+      );
+      citySlugs = FLORIDA_CITIES.filter((c) => c.zipCodes.some((z) => servedZips.has(z))).map(
+        (c) => c.slug
+      );
+    }
+  } catch (error) {
+    logger.error('Error fetching pro coverage for sitemap', { function: 'sitemap' }, error);
+  }
+
+  const cityPages: MetadataRoute.Sitemap = citySlugs.map((slug) => ({
     url: `${BASE_URL}/${slug}`,
     lastModified: now,
     changeFrequency: 'weekly' as const,

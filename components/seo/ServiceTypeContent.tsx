@@ -274,11 +274,17 @@ export function ServiceTypeContent({
           <div className="max-w-3xl">
             <Accordion type="single" collapsible className="w-full">
               {serviceType.faqs.map((faq, index) => (
-                <AccordionItem key={index} value={`faq-${index}`}>
+                <AccordionItem
+                  key={index}
+                  value={`faq-${index}`}
+                  className="[&[data-state=closed]>[role=region]]:hidden"
+                >
                   <AccordionTrigger className="text-left font-medium">
                     {faq.question}
                   </AccordionTrigger>
-                  <AccordionContent className="text-gray-600 leading-relaxed">
+                  {/* forceMount keeps answers in the server HTML for search engines;
+                      the AccordionItem class above hides closed panels visually. */}
+                  <AccordionContent forceMount className="text-gray-600 leading-relaxed">
                     {faq.answer}
                   </AccordionContent>
                 </AccordionItem>

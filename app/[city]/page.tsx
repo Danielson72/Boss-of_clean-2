@@ -18,6 +18,7 @@ import {
   SERVICE_DESCRIPTIONS,
   getRegionDisplayName,
 } from '@/lib/seo/city-pages';
+import { getServiceTypeByDbValue, getServiceDisplayName } from '@/lib/data/service-types';
 import {
   MapPin,
   Star,
@@ -306,7 +307,13 @@ export default async function CityPage({ params }: CityPageProps) {
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {topServices.length > 0
                 ? topServices.map((service) => {
-                    const serviceInfo = SERVICE_DESCRIPTIONS[service];
+                    // Pro services are stored as DB enum values (e.g. "deep_cleaning");
+                    // map them to the service catalog so raw slugs never render.
+                    const catalog = getServiceTypeByDbValue(service);
+                    const serviceInfo = catalog
+                      ? { title: catalog.name, description: catalog.description }
+                      : SERVICE_DESCRIPTIONS[service];
+                    const label = catalog?.shortName || getServiceDisplayName(service);
                     return (
                       <div
                         key={service}
@@ -315,18 +322,18 @@ export default async function CityPage({ params }: CityPageProps) {
                         <div className="flex items-center gap-3 mb-3">
                           <Sparkles className="h-6 w-6 text-blue-600" />
                           <h3 className="font-semibold text-gray-900">
-                            {serviceInfo?.title || service}
+                            {serviceInfo?.title || label}
                           </h3>
                         </div>
                         <p className="text-gray-600 text-sm mb-4">
                           {serviceInfo?.description ||
-                            `Professional ${service.toLowerCase()} services in ${city.name}.`}
+                            `Professional ${label.toLowerCase()} services in ${city.name}.`}
                         </p>
                         <Link
                           href={`/search?location=${encodeURIComponent(city.name)}&service=${encodeURIComponent(service)}`}
                           className="text-blue-600 text-sm font-medium hover:underline inline-flex items-center gap-1"
                         >
-                          Find {service} Pros
+                          Find {label} Pros
                           <ArrowRight className="h-4 w-4" />
                         </Link>
                       </div>

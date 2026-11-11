@@ -25,8 +25,12 @@ export const metadata: Metadata = {
   },
 };
 
-// Taxonomy changes rarely — cache the page and refresh hourly.
-export const revalidate = 3600;
+// Render per request. The ISR-cached homepage (revalidate = 3600, since #103)
+// is the only public page served from the prerender cache, and the live "/"
+// is answering with a 13-byte text/plain body instead of HTML (browsers see a
+// blank page or a download). Every other public route is dynamic and renders
+// fine, so the homepage matches them until the cache issue is understood.
+export const dynamic = 'force-dynamic';
 
 export default async function HomePage() {
   // Single taxonomy source (service_categories) for hero dropdown, services

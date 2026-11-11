@@ -15,7 +15,7 @@ import {
 import Link from 'next/link';
 
 export const metadata = {
-  title: 'Airbnb & Vacation Rental Turnover Cleaning | Boss of Clean Florida',
+  title: 'Airbnb & Vacation Rental Turnover Cleaning in Florida',
   description:
     'Professional STR turnover cleaning for Airbnb, VRBO, and vacation rental hosts in Florida. Same-day turnovers, linen service, amenity restocking, and damage reporting.',
 };
