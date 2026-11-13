@@ -82,19 +82,27 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Not authorized to report this message' }, { status: 403 });
   }
 
-  // Update the message with report info
-  const { error: updateError } = await supabase
+  // Update the message with report info. Reports are final once filed
+  // (#162 guard_message_update), so only touch unreported rows; a repeat
+  // report updates 0 rows and is treated as success (DLD-712 N3).
+  const { data: updatedRows, error: updateError } = await supabase
     .from('messages')
     .update({
       reported_at: new Date().toISOString(),
       report_reason: reason,
       reported_by: user.id,
     })
-    .eq('id', messageId);
+    .eq('id', messageId)
+    .is('reported_at', null)
+    .select('id');
 
   if (updateError) {
     logger.error('Error reporting message', { function: 'POST' }, updateError);
     return NextResponse.json({ error: 'Failed to report message' }, { status: 500 });
+  }
+
+  if (!updatedRows || updatedRows.length === 0) {
+    return NextResponse.json({ success: true, alreadyReported: true });
   }
 
   return NextResponse.json({ success: true });
