@@ -179,7 +179,7 @@ export function generateLocationMetadata(
   const locationStr = county ? `${city}, ${county} County` : city;
   const title = `Cleaning Services in ${locationStr}, Florida`;
 
-  let description = `Find trusted residential & commercial service pros in ${locationStr}, FL.`;
+  let description = `Find local residential & commercial service pros in ${locationStr}, FL.`;
   if (cleanerCount && cleanerCount > 0) {
     description += ` Browse ${cleanerCount}+ residential & commercial service pros.`;
   }

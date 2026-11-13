@@ -464,8 +464,8 @@ export default async function ProfessionalsPage({
               </h3>
               <p className="text-gray-600 mb-6 max-w-md mx-auto">
                 {activeService
-                  ? `We don't have any approved professionals for "${activeService}" yet. Try a different service or check back soon.`
-                  : 'No approved professionals available right now. Check back soon!'}
+                  ? `We don't have any professionals listed for "${activeService}" yet. Try a different service or check back soon.`
+                  : 'No professionals available right now. Check back soon!'}
               </p>
               {activeService && (
                 <Link

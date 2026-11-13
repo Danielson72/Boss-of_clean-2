@@ -9,7 +9,7 @@ import { generatePageMetadata } from '@/lib/seo/metadata';
 
 export const metadata = generatePageMetadata({
   title: 'Residential and Commercial Services in Florida',
-  description: 'Browse all professional residential & commercial services available in Florida. Cleaning, office cleaning, pressure washing, pool, landscaping, and more. Find trusted pros near you.',
+  description: 'Browse all professional residential & commercial services available in Florida. Cleaning, office cleaning, pressure washing, pool, landscaping, and more. Find local pros near you.',
   path: '/services',
   keywords: ['home services Florida', 'commercial cleaning Florida', 'office cleaning', 'commercial services', 'cleaning services', 'pressure washing', 'pool cleaning', 'landscaping', 'carpet cleaning', 'window cleaning'],
 });
