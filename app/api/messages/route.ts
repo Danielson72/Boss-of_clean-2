@@ -240,7 +240,7 @@ export async function POST(request: NextRequest) {
         actualConversationId = newConv.id;
       }
     } else {
-      return NextResponse.json({ error: 'Conversation ID is required for cleaner' }, { status: 400 });
+      return NextResponse.json({ error: 'Unlock this lead to message the customer' }, { status: 400 });
     }
   } else {
     // Verify user has access to this conversation
