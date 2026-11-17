@@ -127,20 +127,14 @@ export async function POST(
   const safeStartTime = fmt(safeStartTotal);
   const endTime = fmt(endTotal);
 
-  // Slice 1b — idempotency: one booking per accepted quote. bookings has no
-  // quote_request_id column (no schema change in this slice), so we key off the
-  // deterministic natural tuple this quote produces. A retry of the same accept
-  // yields identical values and is a no-op instead of a duplicate booking.
-  // CAVEAT: two *distinct* quotes with identical cleaner+customer+date+start
-  // would also collapse to one booking — rare; the clean fix is a
-  // bookings.quote_request_id FK + unique index (follow-up, schema-touching).
+  // Idempotency: one booking per accepted quote, keyed on
+  // bookings.quote_request_id (DLD-696; partial unique index in migration
+  // 20261117120000). The Stripe webhook uses the same key to unlock this
+  // booking after the lead is paid.
   const { data: existingBooking } = await admin
     .from('bookings')
     .select('id')
-    .eq('cleaner_id', quote.cleaner_id)
-    .eq('customer_id', user.id)
-    .eq('booking_date', bookingDate)
-    .eq('start_time', safeStartTime)
+    .eq('quote_request_id', quoteId)
     .maybeSingle();
 
   let booking = existingBooking;
@@ -173,6 +167,7 @@ export async function POST(
       .insert({
         cleaner_id: quote.cleaner_id,
         customer_id: user.id,
+        quote_request_id: quoteId,
         service_type: quote.service_type || 'residential',
         property_type: quote.property_type || 'house',
         bedrooms: 0,
