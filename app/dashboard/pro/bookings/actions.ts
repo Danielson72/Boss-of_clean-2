@@ -81,7 +81,7 @@ export async function getProBookings(): Promise<{
       ...b, customer: { full_name: namesById.get(b.customer_id) || 'Customer', email: '' },
     }));
 
-    // No quote FK exists on bookings. Only an exact, unambiguous payment
+    // The Stripe webhook sets the payment id on the booking (DLD-696). Only an exact, unambiguous payment
     // reference can link a booking here; customer/schedule similarity cannot.
     const paymentIds = rows.map((b) => b.stripe_payment_intent_id).filter((id): id is string => !!id);
     if (paymentIds.length === 0) return { success: true, bookings: redacted };
