@@ -146,54 +146,6 @@ async function handleStripeEvent(event: Stripe.Event): Promise<void> {
           const leadCity = quote?.city || '';
           const serviceType = quote?.service_type || '';
 
-          // DLD-696: the capture above is committed, so it is now safe to
-          // release contact. Both steps are idempotent across redeliveries and
-          // throw on error so this branch goes through the retry path.
-          if (quote?.customer_id) {
-            // (1) Link (or create) the customer/pro thread to the paid quote so
-            // Messages stops contact-filtering it and the pro can write first.
-            await ensurePaidConversation(supabase, {
-              customerId: quote.customer_id,
-              cleanerId: cleaner_id,
-              quoteRequestId: quote_request_id,
-            });
-
-            // (2) Unlock the booking created at accept: attach the payment
-            // intent (the pro Bookings page keys on it) and backfill the street
-            // address + raw notes that the accept route PII-walled. The
-            // stripe_payment_intent_id IS NULL guard makes redeliveries a no-op.
-            const { data: unlockedBookings, error: bookingUnlockError } = await supabase
-              .from('bookings')
-              .update({
-                stripe_payment_intent_id: paymentIntentId,
-                address: quote.address || quote.city || '',
-                special_instructions: quote.description || quote.special_requests || null,
-              })
-              .eq('quote_request_id', quote_request_id)
-              .eq('cleaner_id', cleaner_id)
-              .eq('customer_id', quote.customer_id)
-              .is('stripe_payment_intent_id', null)
-              .select('id');
-            if (bookingUnlockError) {
-              logger.error('Failed to unlock booking after lead capture', { function: 'handleStripeEvent' }, bookingUnlockError);
-              throw bookingUnlockError;
-            }
-            if (!unlockedBookings || unlockedBookings.length === 0) {
-              // Fine: already unlocked on an earlier delivery, or no booking
-              // exists (e.g. the accept-time insert failed).
-              logger.info('Lead unlock: no booking to unlock', {
-                function: 'handleStripeEvent',
-                quoteRequestId: quote_request_id,
-                cleanerId: cleaner_id,
-              });
-            }
-          } else {
-            logger.error('Lead unlock: quote has no customer, cannot link thread or booking', {
-              function: 'handleStripeEvent',
-              quoteRequestId: quote_request_id,
-            });
-          }
-
           // Record the lead-unlock payment, idempotently: skip if this payment
           // intent already wrote a row (Stripe may redeliver this event).
           const { data: existingPayment } = await supabase
